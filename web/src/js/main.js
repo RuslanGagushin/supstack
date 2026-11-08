@@ -1,4 +1,4 @@
-/* Supstack Standalone — Supernotes-style cards for a folder of Markdown notes, in one HTML file.
+/* Supstack Standalone — a folder of Markdown notes as a board of nested cards, in one HTML file.
    The hierarchy lives in each note's frontmatter (parents / child_order / order / color / icon /
    child_template); the page shows it as a board and a tree, with drag & drop, multi-select and undo.
 

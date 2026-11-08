@@ -1,6 +1,7 @@
 /* =========================================================
    Welcome, opening vaults, demo
    ========================================================= */
+import { APP_ICON } from "./app-icon.js";
 import { nt, t } from "../core/i18n.js";
 import { HandleFS, idb, MemoryFS } from "../services/fs.js";
 import { IS_ANDROID, IS_NATIVE, lastNative } from "../services/native.js";
@@ -76,7 +77,8 @@ export async function showWelcome() {
   const last = IS_NATIVE ? null : hasFsApi ? await idb.get("lastVault") : null;
   if (vault.fs) return; // a vault opened while this waited
   const card = h("div", { cls: "sn-welcome-card" },
-    ic("sn-welcome-logo", "layers"), h("h1", { cls: "wb-brand" }, "Sup", h("i", { text: "sidian" })), h("p", { text: t("welcomeSub") }));
+    h("img", { cls: "sn-welcome-logo", src: APP_ICON, alt: "", width: "72", height: "72" }),
+    h("h1", { cls: "sn-welcome-title", text: "Supstack" }), h("p", { cls: "sn-welcome-sub", text: t("welcomeSub") }));
   const actions = h("div", { cls: "sn-welcome-actions" });
   if (IS_NATIVE) {
     const ln = lastNative();

@@ -22,6 +22,8 @@ export const sync = { crash: "", busy: false, last: null, error: "", report: nul
 export const syncAvailable = () => !!(IS_NATIVE && vault.fs?.native);
 const gitKey = () => "sn-git:" + vault.fs.root;
 const gitConfigured = () => !!SS.remote.trim();
+/** Sync is set up for this vault (it has a remote). */
+export const syncConfigured = () => syncAvailable() && gitConfigured();
 
 function loadSyncSettings(saved) { Object.assign(SS, GIT_DEFAULTS, lsGet(gitKey(), {}) || {}, saved || {}); }
 export function saveSyncSettings() { lsSet(gitKey(), SS); saveRepoSettings(); scheduleAuto(); syncChanged(); }

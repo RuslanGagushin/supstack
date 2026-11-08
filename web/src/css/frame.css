@@ -195,30 +195,11 @@ button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--f
 .checkbox-container::after { width: 16px; height: 16px; }
 .checkbox-container.is-enabled::after { transform: translateX(14px); }
 /* settings: a fixed-height dialog with a tab per group, so switching tabs doesn't make it jump */
-.modal.mod-settings { width: min(640px, calc(100vw - 32px)); height: min(620px, calc(100vh - 64px)); display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
-.modal.mod-settings > .modal-title { margin-bottom: 0; flex: none; }
-.modal.mod-settings > .sn-set-tabs { margin-inline: 0; }
-.sn-set-tabs { flex: none; display: flex; gap: 2px; padding: 0 10px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
-.sn-set-tabs::-webkit-scrollbar { display: none; }
-button.sn-set-tab { flex: none; height: 36px; padding: 0 10px; margin-bottom: -1px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; color: var(--muted); font-size: var(--fs-sm); cursor: pointer; }
-button.sn-set-tab:hover { color: var(--fg); background: none; }
-button.sn-set-tab.is-active { color: var(--fg); }
-button.sn-set-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-.sn-set-tab-icon { display: inline-flex; }
-.sn-set-tab-icon svg { width: 14px; height: 14px; }
-.sn-set-body { flex: 1; min-height: 0; overflow-y: auto; padding: 6px 0 16px; }
-.sn-set-body > .sn-sync-status { margin-top: 10px; }
-.sn-set-note { margin-top: 14px; font-size: var(--fs-sm); color: var(--faint); }
 .sn-about { padding: 16px 0 14px; }
 .sn-about-name { font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 500; }
 .sn-about-ver { margin-top: 2px; font-size: var(--fs-sm); color: var(--muted); }
 .sn-update-row.is-available .setting-item-description { color: var(--accent); }
 .setting-item-control .wb-btn.is-cta { background: var(--fg); color: var(--bg); border-color: var(--fg); }
-@media (max-width: 520px) {
-  .modal.mod-settings { width: calc(100vw - 16px); height: calc(100vh - 32px); }
-  button.sn-set-tab { padding: 0 8px; }
-}
-.sn-kbd-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
 .prompt { position: fixed; z-index: 71; top: 80px; left: 50%; transform: translateX(-50%); width: min(700px, calc(100vw - 32px)); max-height: calc(100vh - 160px); display: flex; flex-direction: column; overflow: hidden; background: var(--win); border: 1px solid var(--line); box-shadow: var(--shadow-l); }
 .prompt-instructions { display: flex; flex-wrap: wrap; gap: var(--size-4-3); padding: var(--size-4-2) var(--size-4-4); border-top: var(--border-width) solid var(--background-modifier-border); color: var(--text-faint); font-size: var(--fs-xs); }
 .suggestion-item.is-selected { background: var(--sel); }
@@ -226,13 +207,6 @@ button.sn-set-tab:focus-visible { outline: 2px solid var(--accent); outline-offs
 .icon-grid .suggestion-icon svg { width: 20px; height: 20px; }
 
 /* ---------- Welcome */
-.sn-welcome { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: var(--size-4-4); overflow-y: auto; background: var(--bg); }
-.sn-welcome h1.wb-brand { justify-content: center; font-size: 44px; margin: 0 0 10px; }
-.sn-welcome-logo { display: inline-flex; margin-bottom: var(--size-4-5); background: var(--accent-soft); color: var(--accent); border-radius: 12px; padding: 14px; }
-.sn-welcome-logo svg { stroke-width: 1.5px; width: 34px; height: 34px; }
-.sn-welcome p { margin: 0 auto var(--size-4-6); max-width: 420px; line-height: 1.5; font-size: var(--fs-md); color: var(--muted); }
-.sn-welcome-note { margin-top: var(--size-4-6) !important; color: var(--text-faint) !important; font-size: var(--fs-xs) !important; }
-.sn-welcome-corner .clickable-icon { border: 1px solid var(--line); border-radius: 6px; background: var(--win); width: 30px; height: 28px; }
 .sn-loading { background: var(--bg); font-family: var(--font-mono); }
 
 /* ---------- Narrow screens */

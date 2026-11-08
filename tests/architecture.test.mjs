@@ -74,3 +74,16 @@ test("every name exported by one module is imported where another uses it", () =
   }
   assert.deepEqual([...new Set(bad)], []);
 });
+
+test("every CSS variable used without a fallback is defined, and no comment closes early", () => {
+  const CSS = fileURLToPath(new URL("../web/src/css/", import.meta.url));
+  const css = readdirSync(CSS).filter((f) => f.endsWith(".css")).map((f) => readFileSync(join(CSS, f), "utf8")).join("\n");
+  const js = modules.map((f) => readFileSync(join(JS, f), "utf8")).join("\n");
+  const bare = css.replace(/\/\*[\s\S]*?\*\//g, " ");
+  // a "*/" inside a comment's text ends it there, and the rest becomes a broken declaration that swallows the next one
+  assert.doesNotMatch(bare, /\*\//, "a comment holds */ in its text");
+  const defined = new Set([...bare.matchAll(/(?<![\w-])(--[\w-]+)\s*:/g)].map((m) => m[1]));
+  const fromJs = new Set([...js.matchAll(/["'`](--[\w-]+)["'`]/g)].map((m) => m[1]));
+  const missing = [...new Set([...bare.matchAll(/var\(\s*(--[\w-]+)\s*\)/g)].map((m) => m[1]))].filter((v) => !defined.has(v) && !fromJs.has(v));
+  assert.deepEqual(missing, []);
+});

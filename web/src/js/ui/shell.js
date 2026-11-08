@@ -234,12 +234,15 @@ function makeResizer(el, onMove, getStart) {
 }
 /** Settings, one tab per group. `tab` picks the tab (the last one used otherwise); with the dialog open it just switches to it. */
 let settingsOpen = null;
+/** Settings: sections in a list on the left (with a search over all of them), their options on the right, in groups
+   of rows on cards. Opening it again while it is open switches the section. */
 export function settingsModal(tab) {
   if (settingsOpen) { settingsOpen(tab); return; }
   const panel = h("div", { cls: "modal mod-settings" });
   const leaveTab = () => { sync.panel = null; upd.view = null; };
   const close = openLayer(panel, () => { leaveTab(); settingsOpen = null; renderAll(); if (editor.path) openEditor(editor.path, { keepCaret: true }); });
   const item = (name, desc, control) => h("div", { cls: "setting-item" }, h("div", { cls: "setting-item-info" }, h("div", { cls: "setting-item-name", text: name }), desc ? h("div", { cls: "setting-item-description", text: desc }) : null), h("div", { cls: "setting-item-control" }, control));
+  const heading = (text) => h("h3", { cls: "sn-set-heading", text });
   const select = (value, options, onChange) => { const s = h("select", {}, options.map(([v, l]) => h("option", { value: v, text: l, selected: String(v) === String(value) }))); s.addEventListener("change", () => onChange(s.value)); return s; };
   const text = (value, ph, onChange, type = "text") => { const i = h("input", { type, value: String(value ?? ""), placeholder: ph || "" }); i.addEventListener("change", () => onChange(i.value)); return i; };
   const toggle = (value, onChange) => {
@@ -250,60 +253,95 @@ export function settingsModal(tab) {
     return c;
   };
   const save = () => { saveSettings(); setGraph(buildGraph()); };
-  const storedIn = () => h("p", { cls: "modal-text sn-set-note", text: vault.fs.kind === "disk" ? t("settingsShared") : t("settingsLocal") });
-  const tabs = [
-    ["appearance", t("sectionAppearance"), "palette", () => [
+  const storedIn = () => h("p", { cls: "sn-set-note", text: vault.fs.kind === "disk" ? t("settingsShared") : t("settingsLocal") });
+  const sections = [
+    ["appearance", t("sectionAppearance"), "palette", "options", () => [
       item(t("setLanguage"), null, select(UI.lang, [["auto", "Auto"], ["en", "English"], ["ru", "Русский"]], (v) => { UI.lang = v; saveUI(); applyLanguage(); close(); settingsModal("appearance"); })),
       item(t("setTheme"), null, select(UI.theme, [["auto", t("themeAuto")], ["light", t("themeLight")], ["dark", t("themeDark")]], (v) => { UI.theme = v; saveUI(); applyTheme(); })),
     ]],
-    ["board", t("sectionBoard"), "layout-grid", () => [
+    ["board", t("sectionBoard"), "layout-grid", "options", () => [
+      heading(t("setGroupView")),
       item(t("setDefaultDepth"), null, select(normDepth(S.defaultDepth), DEPTHS.map((d) => [d, d ? String(d) : "∞"]), (v) => { S.defaultDepth = Number(v); save(); })),
       item(t("setDefaultLayout"), null, select(S.defaultLayout, LAYOUTS().map(([v, , l]) => [v, l]), (v) => { S.defaultLayout = v; save(); })),
       item(t("setDefaultSort"), null, select(S.defaultSort, [["manual", t("sortManual")], ["name", t("sortName")], ["modified", t("sortModified")], ["created", t("sortCreated")]], (v) => { S.defaultSort = v; save(); })),
+      heading(t("setGroupCards")),
       item(t("setCardFace"), t("setCardFaceDesc"), select(S.cardFace || "full", [["full", t("faceFull")], ["compact", t("faceCompact")], ["title", t("faceTitle")], ["auto", t("faceAuto")]], (v) => { S.cardFace = v; save(); })),
       item(t("setPreview"), t("setPreviewDesc"), text(S.previewLength, "600", (v) => { const n = Number(v); if (Number.isFinite(n) && n >= 0) { S.previewLength = Math.floor(n); save(); } }, "number")),
       item(t("setCardHeight"), t("setCardHeightDesc"), text(S.cardMaxHeight, "360", (v) => { const n = Number(v); if (Number.isFinite(n) && n >= 0) { S.cardMaxHeight = Math.floor(n); save(); } }, "number")),
       item(t("setMaxCards"), null, text(S.maxCards, "1000", (v) => { const n = Number(v); if (Number.isFinite(n) && n > 0) { S.maxCards = Math.floor(n); save(); } }, "number")),
       storedIn(),
     ]],
-    syncAvailable() && ["sync", "Git", "git-branch", () => syncSettingsBody(item, toggle)],
-    ["about", ut("about"), "info", () => aboutBody(item, toggle)],
+    ["keys", t("hotkeys"), "keyboard", "options", () => hotkeyRows().map(([k, d]) => item(keyText(d), null, k))],
+    syncAvailable() && ["sync", "Git", "git-branch", "app", () => syncSettingsBody(item, toggle, heading)],
+    ["about", ut("about"), "info", "app", () => aboutBody(item, toggle)],
   ].filter(Boolean);
-  const bar = h("div", { cls: "sn-set-tabs", role: "tablist" });
+  // consecutive rows become one card; headings, notes and buttons sit between the cards
+  const cards = (nodes) => {
+    const out = [];
+    let card = null;
+    for (const n of nodes.flat().filter(Boolean)) {
+      if (n.classList?.contains("setting-item")) { if (!card) out.push((card = h("div", { cls: "sn-set-group" }))); card.append(n); }
+      else { card = null; out.push(n); }
+    }
+    return out;
+  };
+  const search = h("input", { cls: "sn-set-search", type: "search", placeholder: t("setSearch"), "aria-label": t("setSearch"), spellcheck: "false", autocomplete: "off" });
+  const nav = h("div", { cls: "sn-set-tabs", role: "tablist", "aria-orientation": "vertical" });
   const body = h("div", { cls: "sn-set-body", role: "tabpanel" });
   const buttons = new Map();
+  const mark = (id) => { for (const [k, b] of buttons) { b.classList.toggle("is-active", k === id); b.setAttribute("aria-selected", String(k === id)); b.tabIndex = k === id ? 0 : -1; } };
   const show = (id) => {
-    const tb = tabs.find((x) => x[0] === id) || tabs[0];
+    const sec = sections.find((x) => x[0] === id) || sections[0];
     leaveTab();
-    body.replaceChildren(...tb[3]().flat());
+    if (search.value) search.value = "";
+    body.replaceChildren(...cards(sec[4]()));
     body.scrollTop = 0;
-    for (const [k, b] of buttons) { b.classList.toggle("is-active", k === tb[0]); b.setAttribute("aria-selected", String(k === tb[0])); b.tabIndex = k === tb[0] ? 0 : -1; }
-    buttons.get(tb[0]).scrollIntoView?.({ block: "nearest", inline: "nearest" });
-    if (UI.settingsTab !== tb[0]) { UI.settingsTab = tb[0]; saveUI(); }
+    mark(sec[0]);
+    buttons.get(sec[0]).scrollIntoView?.({ block: "nearest", inline: "nearest" });
+    if (UI.settingsTab !== sec[0]) { UI.settingsTab = sec[0]; saveUI(); }
   };
-  for (const [id, label, icon] of tabs) {
+  // the search looks through every section's rows by name and description
+  const find = () => {
+    const q = search.value.trim().toLowerCase();
+    if (!q) { show(UI.settingsTab); return; }
+    leaveTab();
+    const out = [];
+    for (const [, label, , , make] of sections) {
+      const hits = make().flat().filter((n) => n?.classList?.contains("setting-item") && n.textContent.toLowerCase().includes(q));
+      if (hits.length) out.push(heading(label), ...hits);
+    }
+    body.replaceChildren(...(out.length ? cards(out) : [h("p", { cls: "sn-set-note", text: t("setNoMatch") })]));
+    body.scrollTop = 0;
+    mark(null);
+  };
+  search.addEventListener("input", find);
+  search.addEventListener("keydown", (e) => { if (e.key === "Escape" && search.value) { e.stopPropagation(); search.value = ""; find(); } });
+  let group = null;
+  for (const [id, label, icon, grp] of sections) {
+    if (grp !== group) { group = grp; nav.append(h("div", { cls: "sn-set-nav-group", text: t(grp === "app" ? "setGroupApp" : "setGroupOptions") })); }
     const b = h("button", { cls: "sn-set-tab", type: "button", role: "tab", onClick: () => show(id) }, ic("sn-set-tab-icon", icon), h("span", { text: label }));
     buttons.set(id, b);
-    bar.append(b);
+    nav.append(b);
   }
-  // arrow keys move between tabs, as in other tab lists
-  bar.addEventListener("keydown", (e) => {
-    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+  // arrow keys move between sections
+  nav.addEventListener("keydown", (e) => {
+    const d = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+    if (!d) return;
     e.preventDefault();
-    const i = tabs.findIndex((x) => x[0] === UI.settingsTab), n = tabs.length;
-    const next = tabs[(i + (e.key === "ArrowRight" ? 1 : n - 1)) % n][0];
+    const i = sections.findIndex((x) => x[0] === UI.settingsTab), n = sections.length;
+    const next = sections[(i + d + n) % n][0];
     show(next);
     buttons.get(next).focus();
   });
-  panel.append(iconBtn("x", t("close"), () => close(), "modal-close"), h("div", { cls: "modal-title", text: t("settings") }), bar, body);
+  const side = h("div", { cls: "sn-set-side" }, h("div", { cls: "sn-set-search-row" }, ic("sn-set-search-icon", "search"), search), nav);
+  panel.append(iconBtn("x", t("close"), () => close(), "modal-close"), h("div", { cls: "modal-title", text: t("settings") }), h("div", { cls: "sn-set-layout" }, side, body));
   settingsOpen = (id) => show(id || UI.settingsTab);
   show(tab || UI.settingsTab);
 }
-export function hotkeysModal() {
-  const panel = h("div", { cls: "modal" });
-  const close = openLayer(panel);
+/** Every keyboard shortcut: [keys, what it does]. */
+function hotkeyRows() {
   const kb = (...keys) => h("span", { cls: "suggestion-keys" }, keys.map((k) => h("kbd", { text: keyName(k) })));
-  const rows = [[kb("Ctrl", "P"), t("k_palette")], [kb("Alt", "X"), t("k_palette")], [kb("click"), t("k_click")], [kb("dbl-click"), t("k_dbl")],
+  return [[kb("Ctrl", "P"), t("k_palette")], [kb("Alt", "X"), t("k_palette")], [kb("click"), t("k_click")], [kb("dbl-click"), t("k_dbl")],
     [kb("←", "↑", "→", "↓"), t("k_arrows")], [kb("Enter"), t("k_enter")], [kb("Alt", "↑"), t("k_parent")], [kb("Alt", "←"), t("k_back")], [kb("Shift", "Enter"), t("k_shiftEnter")], [kb("Ctrl", "Enter"), t("k_modEnter")],
     [kb("Space"), t("k_space")], [kb("Shift", "click"), t("k_shiftClick")], [kb("Delete"), t("k_delete")], [kb("a…z"), t("k_type")], [kb("Ctrl", "F"), t("k_find")],
     [kb("Ctrl", "A"), t("k_selectAll")], [kb("Ctrl", "Z"), t("k_undo")], [kb("Ctrl", "O"), t("k_open")], [kb("Esc"), t("k_esc")], [kb("Ctrl", "Alt"), t("k_drag")],
@@ -311,9 +349,9 @@ export function hotkeysModal() {
     [kb("/"), wt("slashHint")], [kb("#"), wt("tagsSection")], [kb("Ctrl", "Shift", "D"), wt("todayHint")], [kb("Ctrl", "Shift", "F"), wt("focus")],
     [kb("Ctrl", "Shift", "K"), tt("tasksHint")], [kb("Ctrl", "Shift", "E"), fvt("filesHint")], [kb("Ctrl", "Enter"), LANG === "ru" ? "Задача: следующее состояние (в редакторе)" : "Next task state (in the editor)"],
     [kb("Ctrl", "C", "…"), tt("keysEditor")], [kb(LANG === "ru" ? "агенда" : "agenda"), tt("keysAgenda")]];
-  panel.append(iconBtn("x", t("close"), () => close(), "modal-close"), h("div", { cls: "modal-title", text: t("hotkeys") }),
-    h("table", { cls: "sn-kbd-table" }, rows.map(([k, d]) => h("tr", {}, h("td", {}, k), h("td", { text: keyText(d) })))));
 }
+/** The keyboard shortcuts are a section of the settings. */
+export function hotkeysModal() { settingsModal("keys"); }
 
 /** Open a vault: read it (services/vault.js readVault), then show it and start syncing. */
 export async function loadVault(fs) {

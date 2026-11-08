@@ -11,8 +11,19 @@ body.theme-dark {
   --pri-a:#ff7c70; --pri-b:#f0a650; --pri-c:#a8a4a3; --now:#ff7c70;
   color-scheme: dark;
 }
-body { --shade: var(--fg); --win:#ffffff; --panel:#e7e6e5; --fg:#212121; --muted:#696564; --faint:#726e6c; --line:#d4d1ce; --accent:#4d64ff; --accent-soft:#ebeeff; --sel:#dfddda; --flash:#fff1a8; --code-bg:#f4f3f2; --ink:#141414; --cta:#4d64ff; --cta-hover:#3245bb; --hover-bg:#edeceb; --tag:#3e3e3e; --tbl-head:#f4f3f2; --tbl-head-line:#d4d1ce; --l1:#2f4fb5; --l2:#9a5524; --l3:#7a3fb0; --l5:#2d7a3a; --l7:#946500; --l8:#1d7385; --todo:#c42f27; --next:#b25f06; --done:#2d7a3a; --pri-a:#c42f27; --pri-b:#b25f06; --pri-c:#696564; --now:#c42f27; --now are the semantic colours. */
-  --bg:#f6f5f4; --sb-avatar:#7c5cdb; --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; --font-inter: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --fs-xs: 11px; --fs-sm: 12px; --fs-ui: 13px; --fs-md: 14px; --fs-text: 15px; --fs-lg: 20px; --fs-xl: 28px; --font-display: var(--font-inter);
+body {
+  --shade: var(--fg); /* dims and shadows; black in dark themes, where --fg is light and would glow */
+  /* The palette, the one source of colour: white notes on warm grey, neutral ink, one blue accent.
+     The --l1 to --l8 levels, --todo, --next and --done, and the agenda's priority and now colours carry meaning. */
+  --bg:#f6f5f4; --win:#ffffff; --panel:#e7e6e5; --fg:#212121; --muted:#696564; --faint:#726e6c; --line:#d4d1ce;
+  --accent:#4d64ff; --accent-soft:#ebeeff; --sel:#dfddda; --flash:#fff1a8; --code-bg:#f4f3f2; --ink:#141414; --cta:#4d64ff;
+  --cta-hover:#3245bb; --hover-bg:#edeceb; --sb-avatar:#7c5cdb; --tag:#3e3e3e; --tbl-head:#f4f3f2; --tbl-head-line:#d4d1ce; --l1:#2f4fb5;
+  --l2:#9a5524; --l3:#7a3fb0; --l5:#2d7a3a; --l7:#946500; --l8:#1d7385; --todo:#c42f27; --next:#b25f06;
+  --done:#2d7a3a; --pri-a:#c42f27; --pri-b:#b25f06; --pri-c:#696564; --now:#c42f27;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; --font-inter: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --fs-xs: 11px;
+  --fs-sm: 12px; --fs-ui: 13px; --fs-md: 14px;
+  --fs-text: 15px; --fs-lg: 20px; --fs-xl: 28px;
+  --font-ui: var(--font-inter); --font-display: var(--font-inter);
   /* theme variables the board styles use, mapped onto the base palette */
   --font-interface: var(--font-mono);
 

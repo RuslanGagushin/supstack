@@ -695,10 +695,10 @@ describe("palettes, settings, language and themes", () => {
     noErrors();
   });
 
-  test("settings have a tab per group, arrow keys move between them and the last tab is remembered", async () => {
+  test("settings list their sections on the side, arrow keys move between them, the last one is remembered and the search finds rows", async () => {
     await ev(() => settingsModal("appearance"));
     const tabs = () => page().$$eval(".sn-set-tab", (b) => b.map((x) => [x.textContent, x.getAttribute("aria-selected")]));
-    assert.deepEqual((await tabs()).map((x) => x[0]), ["Appearance", "Board", "About"], "no Git tab outside the app");
+    assert.deepEqual((await tabs()).map((x) => x[0]), ["Appearance", "Board", "Keyboard shortcuts", "About"], "no Git section outside the app");
     assert.match(await page().textContent(".sn-set-body"), /Theme/);
     assert.doesNotMatch(await page().textContent(".sn-set-body"), /Parents field/, "one group at a time");
     const height = await page().$eval(".modal", (m) => m.offsetHeight);
@@ -706,13 +706,18 @@ describe("palettes, settings, language and themes", () => {
     assert.match(await page().textContent(".sn-set-body"), /Default depth/);
     assert.equal(await page().$eval(".modal", (m) => m.offsetHeight), height, "the dialog keeps its size between tabs");
     await page().focus(".sn-set-tab.is-active");
-    await page().keyboard.press("ArrowRight");
+    await page().keyboard.press("ArrowDown");
+    assert.equal((await tabs()).find((x) => x[1] === "true")[0], "Keyboard shortcuts");
+    await page().keyboard.press("ArrowDown");
     assert.equal((await tabs()).find((x) => x[1] === "true")[0], "About");
     await page().keyboard.press("Escape");
     await ev(() => settingsModal());
     assert.equal(await page().textContent(".sn-set-tab.is-active"), "About");
     await ev(() => settingsModal("about")); // already open: switches tabs instead of stacking a second dialog
     assert.equal(await page().$$eval(".modal", (m) => m.length), 1);
+    await page().fill(".sn-set-search", "preview");
+    assert.match(await page().textContent(".sn-set-body"), /Preview length/, "the search looks through every section");
+    assert.doesNotMatch(await page().textContent(".sn-set-body"), /Theme/);
     noErrors();
   });
 
@@ -810,8 +815,8 @@ describe("sidebar", () => {
     assert.ok(!keys.some((k) => /\b[CMS]-|RET|SPC/.test(k)), "no Emacs-style key names");
     await page().fill(".prompt-input", "keyboard shortcuts");
     await page().keyboard.press("Enter");
-    assert.equal(await page().textContent(".modal .modal-title"), "Keyboard shortcuts");
-    assert.equal(await page().$$eval(".sn-kbd-table .suggestion-keys kbd", (k) => k.length > 20), true, "the shortcuts list uses the same key chips");
+    assert.equal(await page().textContent(".modal .sn-set-tab.is-active"), "Keyboard shortcuts", "the shortcuts are a section of the settings");
+    assert.equal(await page().$$eval(".sn-set-body .suggestion-keys kbd", (k) => k.length > 20), true, "the shortcuts list uses the same key chips");
     noErrors();
   });
 
