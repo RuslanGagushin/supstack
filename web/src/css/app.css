@@ -284,7 +284,7 @@ button.sn-row-enter:hover, .sn-row:focus-visible button.sn-row-enter { backgroun
   /* under the sidebar (30), the note (35) and popups: it shows over the board, the agenda and Files */
   .sn-tabbar {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 28; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-    padding: 2px 8px env(safe-area-inset-bottom); border-top: 1px solid var(--line);
+    padding: 2px 8px var(--safe-bottom); border-top: 1px solid var(--line);
     background: color-mix(in srgb, var(--win) 94%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
     transition: transform 200ms ease;
   }
@@ -296,9 +296,9 @@ button.sn-row-enter:hover, .sn-row:focus-visible button.sn-row-enter { backgroun
   button.sn-tab svg { width: 22px; height: 22px; }
   #app:not(:has(.sn-board.is-tasks, .sn-board.is-files)) .sn-tab[data-tab="board"], #app:has(.sn-board.is-tasks) .sn-tab[data-tab="agenda"] { color: var(--accent); }
   /* room to scroll the last card, task or file out from under the bar */
-  body.sn-app .sn-page, body.sn-app .ag-body, body.sn-app .fv-list { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
-  .sn-toast.is-quiet { bottom: calc(66px + env(safe-area-inset-bottom)); }
-  #app.editor-open ~ .sn-toast.is-quiet { bottom: calc(10px + env(safe-area-inset-bottom)); } /* the note covers the bar */
+  body.sn-app .sn-page, body.sn-app .ag-body, body.sn-app .fv-list { padding-bottom: calc(80px + var(--safe-bottom)); }
+  .sn-toast.is-quiet { bottom: calc(66px + var(--safe-bottom)); }
+  #app.editor-open ~ .sn-toast.is-quiet { bottom: calc(10px + var(--safe-bottom)); } /* the note covers the bar */
   /* hit areas of about 40px around small controls, without moving anything */
   body.sn-app :is(button.task-box, .sn-table-add-row, .sn-table-add-col, .sn-card-edit, .sn-kids, .sn-places, .sn-tag, .sn-chip, .tags .tag, .sn-tag-pill, .fchip) { position: relative; }
   body.sn-app :is(button.task-box, .sn-card-edit, .sn-kids, .sn-places)::after { content: ""; position: absolute; inset: -10px; }
@@ -307,9 +307,18 @@ button.sn-row-enter:hover, .sn-row:focus-visible button.sn-row-enter { backgroun
 }
 
 /* ---------- The native apps (html.is-native, html.is-android: ui/native-shell.js) */
+/* the screen's safe areas. The Android app draws edge to edge (under the status bar and the gesture bar); a WebView
+   that still reports no insets gets room for both anyway */
+:root { --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px); }
+html.is-android { --safe-top: max(env(safe-area-inset-top, 0px), 44px); --safe-bottom: max(env(safe-area-inset-bottom, 0px), 24px); }
 /* the app's own controls are not text: a long press or a drag over them selects nothing */
 html.is-native :is(.wb-top, .sn-side, .sn-tabbar, .sn-topbar, .agbar, .ag-strip, .sn-seg, button) { -webkit-user-select: none; user-select: none; }
 html.is-android { -webkit-tap-highlight-color: transparent; }
 /* edge-to-edge screens: keep the top bar and the sides clear of the status bar and rounded corners */
 html.is-native body.sn-app .wb-top { padding-top: max(10px, env(safe-area-inset-top)); padding-right: max(14px, env(safe-area-inset-right)); }
 html.is-native body.sn-app .sn-main { padding-right: env(safe-area-inset-right); }
+@media (max-width: 820px) {
+  /* the drawer and the note over the board start below the status bar and end above the gesture bar */
+  html.is-android body.sn-app .sn-side { padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
+  html.is-android body.sn-app .sn-editor.win { top: 0; padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
+}

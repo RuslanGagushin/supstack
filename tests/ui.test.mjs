@@ -627,9 +627,9 @@ describe("rendering", () => {
     // a native click in the page (Playwright's actionability wait is flaky here)
     await H.page.waitForFunction(() => document.querySelectorAll(".sn-reading .task-box").length === 3);
     await ev(() => document.querySelectorAll(".sn-reading .task-box")[1].click());
-    await H.page.waitForFunction(() => vault.notes.get("cards/A.md").raw === "- [ ] one\n- [x] two\n> - [ ] quoted\n");
+    await H.page.waitForFunction(() => /^- \[ \] one\n- \[x\] two\n  CLOSED: \[\d{4}-\d\d-\d\d \w{3} \d\d:\d\d\]\n> - \[ \] quoted\n$/.test(vault.notes.get("cards/A.md").raw));
     await ev(() => document.querySelectorAll(".sn-reading .task-box")[2].click());
-    await H.page.waitForFunction(() => vault.notes.get("cards/A.md").raw === "- [ ] one\n- [x] two\n> - [x] quoted\n");
+    await H.page.waitForFunction(() => /\n> - \[x\] quoted\n$/.test(vault.notes.get("cards/A.md").raw));
     await ev(() => document.querySelectorAll(".sn-reading .task-box")[0].dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true })));
     await H.page.waitForSelector(".prompt .suggestion-item");
     assert.deepEqual(await H.page.$$eval(".prompt .suggestion-title", (x) => x.map((e) => e.textContent)), ["To do", "In progress", "Waiting / scheduling", "Done", "Cancelled", "Forwarded"]);

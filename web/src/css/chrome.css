@@ -127,7 +127,7 @@
 
 /* ---------- The toast: one message at a time (ui.js echo), bottom centre; at the top on phones */
 .sn-toast {
-  position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 80; transform: translateX(-50%);
+  position: fixed; left: 50%; bottom: calc(16px + var(--safe-bottom)); z-index: 80; transform: translateX(-50%);
   display: flex; align-items: center; gap: 8px; max-width: min(560px, calc(100vw - 32px)); padding: 7px 8px 7px 14px;
   border: 1px solid var(--line); border-radius: 10px; background: var(--win); color: var(--fg);
   box-shadow: 0 8px 24px color-mix(in srgb, var(--shade) 14%, transparent); font-family: var(--font-ui); font-size: var(--fs-ui); line-height: 1.4;
@@ -142,8 +142,8 @@ button.sn-toast-x { width: 26px; padding: 0; justify-content: center; border-col
 button.sn-toast-btn:hover, button.sn-toast-x:hover { background: var(--hover-bg); }
 @keyframes sn-in { from { opacity: 0; transform: translate(-50%, 6px); } }
 @media (max-width: 820px) {
-  .sn-toast { top: calc(10px + env(safe-area-inset-top)); bottom: auto; }
-  .sn-toast.is-quiet { top: auto; bottom: calc(10px + env(safe-area-inset-bottom)); right: 12px; }
+  .sn-toast { top: calc(10px + var(--safe-top)); bottom: auto; }
+  .sn-toast.is-quiet { top: auto; bottom: calc(10px + var(--safe-bottom)); right: 12px; }
   @keyframes sn-in { from { opacity: 0; transform: translate(-50%, -6px); } }
 }
 

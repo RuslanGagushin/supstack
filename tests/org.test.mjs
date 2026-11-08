@@ -86,14 +86,17 @@ describe("task states", () => {
 
   const apply = (src, fn, arg) => ev(({ src, fn, arg }) => { const L = src.split("\n"); const msg = globalThis[fn](L, 0, ...arg); return { text: L.join("\n"), msg }; }, { src, fn, arg });
 
-  test("closing a planned task adds CLOSED, reopening removes it; plain checklists stay plain", async () => {
+  test("closing any task adds CLOSED (as org-log-done), reopening removes it", async () => {
     const done = await apply("- [ ] Task\n  SCHEDULED: <2026-10-29 Thu>", "orgSetState", ["x"]);
     assert.equal(done.text, "- [x] Task\n  CLOSED: [2026-10-29 Thu 10:00] SCHEDULED: <2026-10-29 Thu>");
     assert.equal(done.msg, "State: Done");
     assert.equal((await apply(done.text, "orgSetState", [" "])).text, "- [ ] Task\n  SCHEDULED: <2026-10-29 Thu>");
     assert.equal((await apply("- [/] Task\n  SCHEDULED: <2026-10-29 Thu>", "orgSetState", ["-"])).text, "- [-] Task\n  CLOSED: [2026-10-29 Thu 10:00] SCHEDULED: <2026-10-29 Thu>", "cancelling closes too");
-    assert.equal((await apply("- [ ] buy milk", "orgSetState", ["x"])).text, "- [x] buy milk");
-    assert.equal((await apply("- [x] buy milk", "orgSetState", ["<"])).text, "- [<] buy milk");
+    const milk = await apply("- [ ] buy milk", "orgSetState", ["x"]);
+    assert.equal(milk.text, "- [x] buy milk\n  CLOSED: [2026-10-29 Thu 10:00]", "a task without dates gets a planning line of its own");
+    assert.equal((await apply(milk.text, "orgSetState", ["<"])).text, "- [<] buy milk", "and loses it when it opens again");
+    assert.equal((await apply("- [x] buy milk\n  CLOSED: [2026-10-29 Thu 10:00]", "orgSetState", ["-"])).text, "- [-] buy milk\n  CLOSED: [2026-10-29 Thu 10:00]", "closed to closed keeps the stamp");
+    assert.equal((await apply("- [ ] parent\n  - [ ] child", "orgSetState", ["x"])).text, "- [x] parent\n  CLOSED: [2026-10-29 Thu 10:00]\n  - [ ] child", "the stamp goes right under the task, above its subtasks");
     assert.equal((await apply("1. item", "orgSetState", [" "])).text, "1. [ ] item", "a list item gets a box");
     const head = await apply("## Heading", "orgSetState", ["x"]);
     assert.deepEqual([head.text, head.msg], ["## Heading", null], "headings are never tasks");
@@ -157,6 +160,17 @@ describe("agenda", () => {
 
   test("today: overdue deadline first, scheduled carry-over, events, warnings; nothing done", async () => {
     assert.deepEqual(await today(), ["Meeting", "2 d. ago: Write report", "In 7 d.: Parts", "Scheduled: Run", "Sched.5x: Call Bob"]);
+  });
+
+  test("with the log on, a task closed today is listed once, as closed", async () => {
+    const kinds = await ev(async () => {
+      await writeRaw("cards/Z.md", "- [x] Fix the mount\n  CLOSED: [2026-10-29 Thu 09:00] SCHEDULED: <2026-10-29 Thu>\n");
+      const T = onow().dn;
+      const r = [true, false].map((log) => orgDayEntries(T, orgAll(), T, { log }).filter((x) => x.e.title === "Fix the mount").map((x) => x.kind));
+      await writeRaw("cards/Z.md", ""); // the vault is shared by the tests that follow
+      return r;
+    });
+    assert.deepEqual(kinds, [["closed"], ["sched"]]);
   });
 
   test("a repeating entry shows on its future days, not past ones", async () => {

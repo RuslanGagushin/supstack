@@ -208,7 +208,7 @@ function orgRepeat(lines, li) {
 /** The localized name of a state, e.g. "in progress". */
 export const taskStateName = (ch) => tt("st_" + (taskState(ch)?.id || "todo"));
 /** Put a task into state `ch`; a list item without a box gets one. Closing a repeating task moves it to its next date
- *  instead; a task with a planning line gets CLOSED: when it closes and loses it when it opens again. */
+ *  instead; any task gets CLOSED: (as Org's org-log-done) when it closes and loses it when it opens again. */
 export function orgSetState(lines, li, ch) {
   const info = orgLine(lines[li]);
   const to = taskState(ch);
@@ -221,7 +221,7 @@ export function orgSetState(lines, li, ch) {
     if (r) { put(from.ch); return r; }
   }
   put(to.ch);
-  if (!to.open && from.open && planned()) orgSetPlanning(lines, li, "CLOSED", orgNowTs());
+  if (!to.open && from.open) orgSetPlanning(lines, li, "CLOSED", orgNowTs());
   else if (to.open && planned()) orgSetPlanning(lines, li, "CLOSED", null);
   return tt("stateTo", { kw: taskStateName(to.ch) });
 }
@@ -359,7 +359,9 @@ export function orgDayEntries(dn, all, T, { log = false } = {}) {
   const out = [];
   for (const e of all) {
     if (orgSkip(e)) continue;
-    const push = (kind, label, ts, x) => out.push({ e, kind, label, dn, time: ts?.time ?? null, end: ts?.end ?? null, rank: 5, ...x });
+    // with the log on, a task closed on this day is listed once, as closed, not also as scheduled or due
+    const closedHere = log && e.done && e.closed && e.closed.dn === dn;
+    const push = (kind, label, ts, x) => (closedHere && (kind === "sched" || kind === "dead")) ? null : out.push({ e, kind, label, dn, time: ts?.time ?? null, end: ts?.end ?? null, rank: 5, ...x });
     const d = e.dead;
     if (d?.active) {
       if (orgOccursOn(d, dn) && (dn === d.dn || (dn >= T && !e.done))) push("dead", tt("lDeadline"), d, { rank: 1 });
