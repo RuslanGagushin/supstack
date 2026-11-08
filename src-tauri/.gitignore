@@ -1,0 +1,4 @@
+/target
+/gen/schemas
+/gen/android/keystore.properties
+/gen/android/*.jks

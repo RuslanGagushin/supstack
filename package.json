@@ -1,0 +1,38 @@
+{
+  "name": "supstack-app",
+  "private": true,
+  "license": "MIT",
+  "version": "0.25.0",
+  "type": "module",
+  "description": "Windows, macOS and Android apps for Supstack (Tauri 2)",
+  "scripts": {
+    "page": "node scripts/page.mjs",
+    "web": "node scripts/web.mjs",
+    "codemirror": "node scripts/codemirror.mjs",
+    "pretest": "node scripts/page.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:rust": "cargo test --manifest-path tauri-plugin-vault/Cargo.toml",
+    "screenshots": "node scripts/screenshots.mjs",
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "icons": "tauri icon icon.png",
+    "android:init": "tauri android init && tauri icon icon.png",
+    "android:dev": "tauri android dev",
+    "android:build": "tauri android build --apk --target aarch64"
+  },
+  "devDependencies": {
+    "@codemirror/commands": "6.11.1",
+    "@codemirror/language": "6.13.1",
+    "@codemirror/state": "6.7.6",
+    "@codemirror/view": "6.43.15",
+    "@lezer/highlight": "1.2.5",
+    "@lezer/markdown": "1.8.1",
+    "@tauri-apps/cli": "2.12.4",
+    "esbuild": "0.28.2",
+    "playwright-core": "1.64.1"
+  },
+  "dependencies": {
+    "pdfjs-dist": "4.10.38"
+  }
+}

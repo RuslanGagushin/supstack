@@ -1,0 +1,28 @@
+[package]
+name = "tauri-plugin-vault"
+version = "0.1.0"
+license = "MIT"
+edition = "2021"
+links = "tauri-plugin-vault"
+description = "Pick a vault folder and read/write files in it (desktop: std::fs, Android: Storage Access Framework)"
+publish = false
+
+[dependencies]
+tauri = "2.12"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+base64 = "0.22"
+thiserror = "2"
+webpki-root-certs = "1"
+git2 = { version = "0.20", default-features = false, features = ["https", "vendored-libgit2"] }
+
+[target.'cfg(not(windows))'.dependencies]
+# libgit2 needs OpenSSL for https; Android has none and macOS runners lack a universal build, so compile it in
+openssl-sys = { version = "0.9", features = ["vendored"] }
+libgit2-sys = "0.18"
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-dialog = "2.8"
+
+[build-dependencies]
+tauri-plugin = { version = "2.7", features = ["build"] }

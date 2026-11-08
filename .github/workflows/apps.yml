@@ -1,0 +1,191 @@
+# Builds the Supstack apps on GitHub's machines.
+# Works both in a repository with app/ + standalone/ folders and in a repository that holds only the app folder.
+#  - Run it by hand: Actions → "Build apps" → Run workflow. The files appear under the run's "Artifacts".
+#  - Push a tag like v0.1.0 and the same files are also attached to a GitHub Release.
+# Desktop updates: with the TAURI_SIGNING_PRIVATE_KEY secret (and TAURI_SIGNING_PRIVATE_KEY_PASSWORD
+# if the key has one) the Windows and macOS builds are signed for the updater, and the release gets
+# a latest.json that the installed apps check. Without it the apps build as before but can't
+# update themselves; they point to the release page instead.
+name: Build apps
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apps-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Find the app folder
+        shell: bash
+        run: if [ -d app/src-tauri ]; then echo "APP=app" >> "$GITHUB_ENV"; else echo "APP=." >> "$GITHUB_ENV"; fi
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: ${{ env.APP }}/src-tauri -> target
+      - name: Install page dependencies
+        if: hashFiles('standalone/package-lock.json') != ''
+        working-directory: standalone
+        run: npm ci
+      - name: Install app tools
+        working-directory: ${{ env.APP }}
+        run: npm ci
+      - name: Build Windows installers
+        working-directory: ${{ env.APP }}
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ]; then npm run build -- --config src-tauri/tauri.updater.conf.json
+          else echo "::warning::No TAURI_SIGNING_PRIVATE_KEY secret: no signed update for the installed apps."; npm run build; fi
+      - uses: actions/upload-artifact@v6
+        with:
+          name: Supstack-Windows
+          path: |
+            ${{ env.APP }}/src-tauri/target/release/bundle/msi/*.msi
+            ${{ env.APP }}/src-tauri/target/release/bundle/nsis/*.exe
+            ${{ env.APP }}/src-tauri/target/release/bundle/nsis/*.exe.sig
+          if-no-files-found: error
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Find the app folder
+        shell: bash
+        run: if [ -d app/src-tauri ]; then echo "APP=app" >> "$GITHUB_ENV"; else echo "APP=." >> "$GITHUB_ENV"; fi
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: ${{ env.APP }}/src-tauri -> target
+      - if: hashFiles('standalone/package-lock.json') != ''
+        working-directory: standalone
+        run: npm ci
+      - working-directory: ${{ env.APP }}
+        run: npm ci
+      - name: Build universal app (Apple Silicon + Intel)
+        working-directory: ${{ env.APP }}
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ]; then npm run tauri build -- --target universal-apple-darwin --config src-tauri/tauri.updater.conf.json
+          else echo "::warning::No TAURI_SIGNING_PRIVATE_KEY secret: no signed update for the installed apps."; npm run tauri build -- --target universal-apple-darwin; fi
+      - uses: actions/upload-artifact@v6
+        with:
+          name: Supstack-macOS
+          # the .app.tar.gz and its .sig are what the updater downloads
+          path: |
+            ${{ env.APP }}/src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+            ${{ env.APP }}/src-tauri/target/universal-apple-darwin/release/bundle/macos/*.app.tar.gz
+            ${{ env.APP }}/src-tauri/target/universal-apple-darwin/release/bundle/macos/*.app.tar.gz.sig
+          if-no-files-found: error
+
+  android:
+    runs-on: ubuntu-24.04
+    env:
+      NDK_VERSION: 27.2.12479018
+    steps:
+      - uses: actions/checkout@v5
+      - name: Find the app folder
+        shell: bash
+        run: if [ -d app/src-tauri ]; then echo "APP=app" >> "$GITHUB_ENV"; else echo "APP=." >> "$GITHUB_ENV"; fi
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v4
+      - name: Install Android SDK parts
+        run: |
+          sdkmanager --install "platforms;android-36" "build-tools;36.0.0" "ndk;${NDK_VERSION}"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/${NDK_VERSION}" >> "$GITHUB_ENV"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: ${{ env.APP }}/src-tauri -> target
+      - if: hashFiles('standalone/package-lock.json') != ''
+        working-directory: standalone
+        run: npm ci
+      - working-directory: ${{ env.APP }}
+        run: npm ci
+      - name: Create the Android project
+        working-directory: ${{ env.APP }}
+        run: |
+          npx tauri android init --ci
+          npx tauri icon icon.png
+          # icon.png's rounded plate shows as a square inside Android's mask: use the committed full-bleed foregrounds
+          for d in src-tauri/icons/android/mipmap-*dpi; do cp "$d/ic_launcher_foreground.png" "src-tauri/gen/android/app/src/main/res/${d##*/}/"; done
+      # Optional: add these repository secrets to get a signed release APK that you can update later
+      #   ANDROID_KEYSTORE_BASE64  — base64 of a .jks file (scripts/android-signing.mjs makes one)
+      #   ANDROID_KEY_PASSWORD     — its password (the key alias is read from the file)
+      # Without them the release APK is signed with a one-off key made for that run: it installs fine,
+      # but the next build can't update it in place (uninstall first), since every run has a new key.
+      - name: Signing key
+        working-directory: ${{ env.APP }}
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            JKS="$PWD/src-tauri/gen/android/supstack.jks"
+            echo "$KEYSTORE_B64" | base64 -d > "$JKS"
+            ALIAS=$(keytool -list -keystore "$JKS" -storepass "$KEY_PASSWORD" | awk -F, '/PrivateKeyEntry/ { print $1; exit }')
+            [ -n "$ALIAS" ] || { echo "::error::No private key found in ANDROID_KEYSTORE_BASE64"; exit 1; }
+            printf 'password=%s\nkeyAlias=%s\nstoreFile=%s\n' "$KEY_PASSWORD" "$ALIAS" "$JKS" > src-tauri/gen/android/keystore.properties
+            node scripts/android-signing.mjs
+          else
+            node scripts/android-signing.mjs
+            echo "::warning::No ANDROID_KEYSTORE_BASE64 secret: the APK is signed with a one-off key, so it can't update an earlier install."
+          fi
+      - name: Build release APK
+        working-directory: ${{ env.APP }}
+        # openssl-src (libgit2's TLS) calls aarch64-linux-android-ranlib, which lives in the NDK's bin folder
+        run: |
+          export PATH="$NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH"
+          npx tauri android build --apk --target aarch64
+      - uses: actions/upload-artifact@v6
+        with:
+          name: Supstack-Android
+          path: ${{ env.APP }}/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [windows, macos, android]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Find the app folder
+        run: if [ -d app/src-tauri ]; then echo "APP=app" >> "$GITHUB_ENV"; else echo "APP=." >> "$GITHUB_ENV"; fi
+      - uses: actions/download-artifact@v7
+        with:
+          path: out
+      - name: Update manifest for the desktop apps (latest.json)
+        run: node "$APP/scripts/updater-manifest.mjs" out "$GITHUB_REF_NAME" "$GITHUB_REPOSITORY"
+      - uses: softprops/action-gh-release@v3
+        with:
+          files: out/**/*
+          generate_release_notes: true
