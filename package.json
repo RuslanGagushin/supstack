@@ -1,7 +1,7 @@
 {
   "name": "supstack-app",
   "private": true,
-  "version": "0.24.0",
+  "version": "0.24.1",
   "type": "module",
   "description": "Windows, macOS and Android apps for Supstack (Tauri 2)",
   "scripts": {
