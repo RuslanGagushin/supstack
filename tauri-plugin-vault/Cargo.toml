@@ -1,6 +1,7 @@
 [package]
 name = "tauri-plugin-vault"
 version = "0.1.0"
+license = "MIT"
 edition = "2021"
 links = "tauri-plugin-vault"
 description = "Pick a vault folder and read/write files in it (desktop: std::fs, Android: Storage Access Framework)"

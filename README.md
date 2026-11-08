@@ -1,16 +1,72 @@
+<div align="center">
+
+<img src="icon.png" alt="Supstack icon" width="112" height="112">
+
 # Supstack
 
-**Supstack shows a folder of Markdown notes (a vault) as a board of nested cards, with tasks in six states, an agenda, and git sync between your devices.**
+**Your Markdown notes as a board of nested cards — with tasks, an agenda and git sync.**
 
-Every card is an ordinary Markdown note in your vault. Supstack adds nothing to your files except the frontmatter it needs to link cards together, so other editors, Git, Syncthing and any other tool keep working on the same folder.
+Supstack shows a folder of Markdown notes (a *vault*) as a board of nested cards, with tasks in six states, an agenda, and git sync between your devices. Every card is a plain `.md` file, so your notes stay yours.
 
-This repository wraps the Supstack page into native apps with [Tauri 2](https://v2.tauri.app):
+[![Latest release](https://img.shields.io/github/v/release/RuslanGagushin/supstack?sort=semver&label=release&color=3b82f6)](https://github.com/RuslanGagushin/supstack/releases/latest)
+[![Build apps](https://img.shields.io/github/actions/workflow/status/RuslanGagushin/supstack/apps.yml?label=build&logo=githubactions&logoColor=white)](https://github.com/RuslanGagushin/supstack/actions/workflows/apps.yml)
+[![Tests](https://img.shields.io/github/actions/workflow/status/RuslanGagushin/supstack/tests.yml?branch=main&label=tests&logo=githubactions&logoColor=white)](https://github.com/RuslanGagushin/supstack/actions/workflows/tests.yml)
+[![License: MIT](https://img.shields.io/github/license/RuslanGagushin/supstack?color=22c55e)](LICENSE)
+[![Downloads](https://img.shields.io/github/downloads/RuslanGagushin/supstack/total?color=8b5cf6)](https://github.com/RuslanGagushin/supstack/releases)
+
+[![Windows](https://img.shields.io/badge/Windows-10%2F11-0078D4?logo=windows&logoColor=white)](https://github.com/RuslanGagushin/supstack/releases/latest)
+[![macOS](https://img.shields.io/badge/macOS-11%2B-000000?logo=apple&logoColor=white)](https://github.com/RuslanGagushin/supstack/releases/latest)
+[![Android](https://img.shields.io/badge/Android-7%2B-3DDC84?logo=android&logoColor=white)](https://github.com/RuslanGagushin/supstack/releases/latest)
+[![Built with Tauri 2](https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri&logoColor=white)](https://v2.tauri.app)
+[![Rust](https://img.shields.io/badge/Rust-000000?logo=rust&logoColor=white)](https://www.rust-lang.org)
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES2022-F7DF1E?logo=javascript&logoColor=black)](web/src/js)
+[![CodeMirror 6](https://img.shields.io/badge/CodeMirror-6-D30707)](https://codemirror.net)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](CONTRIBUTING.md)
+
+[**Download**](https://github.com/RuslanGagushin/supstack/releases/latest) · [Features](#what-it-does) · [Screenshots](#screenshots) · [Install](#install) · [Build from source](#build-on-your-computer) · [Contributing](#contributing)
+
+<img src="docs/screenshots/board-light.png" alt="Supstack board with nested cards, tasks and a side tree" width="100%">
+
+</div>
+
+## Why Supstack
+
+- 🗂️ **A board, not a file list.** Notes nest as cards, and one card can live under several parents.
+- ✅ **Real task management in plain Markdown.** Six task states, priorities, `SCHEDULED` / `DEADLINE` dates with repeaters, and an agenda across the whole vault.
+- ✍️ **Live preview editor.** CodeMirror 6 renders Markdown as you type: callouts, tables, code blocks, task boxes.
+- 🔄 **Git sync built in.** Commit, merge and push from the app; conflicting edits are kept side by side, never lost.
+- 📂 **Your files, untouched.** Supstack adds only the frontmatter it needs, so Obsidian, any editor, Git and Syncthing keep working on the same folder.
+- 💻📱 **Native and small.** Windows, macOS and Android apps built with [Tauri 2](https://v2.tauri.app); the Windows installer is about 10 MB.
 
 | Platform | Download | Vault access |
 |---|---|---|
 | Windows 10/11 | `.msi` or `-setup.exe` (about 10 MB, uses the built-in WebView2) | any folder, read and written in place |
 | macOS 11+ | universal `.dmg` (Apple Silicon and Intel) | any folder, read and written in place |
 | Android 7+ | `.apk` (64-bit ARM) | any folder you pick with the system picker, kept across restarts |
+
+---
+
+## Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/board-dark.png" alt="The board in the dark theme"><br><sub><b>Dark theme.</b> The same board, with light and dark themes following the system.</sub></td>
+    <td width="50%"><img src="docs/screenshots/editor.png" alt="The live preview editor with tasks, priorities and dates"><br><sub><b>Live preview editor.</b> Tasks, priorities, deadlines and scheduled dates in plain Markdown.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/agenda.png" alt="The week agenda with scheduled, overdue and closed tasks"><br><sub><b>Agenda.</b> Tasks from the whole vault by day, with overdue items and a time grid.</sub></td>
+    <td width="50%"><img src="docs/screenshots/notes-layout.png" alt="The notes layout: a list of notes with the selected one open beside it"><br><sub><b>Notes layout.</b> A list of notes with the selected one open beside it, like a mail app.</sub></td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="docs/screenshots/phone-board.png" alt="Supstack on a phone: the board as a list" width="260">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/phone-editor.png" alt="Supstack on a phone: editing a note" width="260">
+  <br><sub><b>On Android.</b> A single-column layout with a bottom bar, and the editor full screen.</sub>
+</p>
+
+> Screenshots are taken from the built-in demo vault with `npm run screenshots`.
 
 ---
 
@@ -231,3 +287,41 @@ All platforms need **Rust** (<https://rustup.rs>) and **Node.js 20+** (<https://
 
 - **iPhone and iPad** aren't supported yet. Tauri can build for iOS, but the vault plugin has no iOS side.
 - The macOS app isn't notarized, hence the right-click → **Open** the first time.
+
+---
+
+## Contributing
+
+Contributions are welcome: bug reports, ideas, translations and pull requests alike.
+
+1. Fork the repository and create a branch from `main`.
+2. Run `npm install`, then `npm run dev` to start the desktop app.
+3. Make your change. Keep the [module layers](#how-the-app-is-put-together) intact (`core/` → `services/` → `ui/`).
+4. Run `npm test` (and `npm run test:rust` if you touched the vault plugin) and make sure everything passes.
+5. Open a pull request that describes what changed and why. Screenshots help for UI changes.
+
+Found a bug or have an idea? [Open an issue](https://github.com/RuslanGagushin/supstack/issues/new). See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+## Acknowledgements
+
+Supstack stands on the shoulders of these open-source projects:
+
+- [Tauri](https://tauri.app) — the native app shell
+- [CodeMirror 6](https://codemirror.net) and [Lezer](https://lezer.codemirror.net) — the editor
+- [marked](https://marked.js.org) and [DOMPurify](https://github.com/cure53/DOMPurify) — Markdown rendering and sanitizing
+- [js-yaml](https://github.com/nodeca/js-yaml) — frontmatter
+- [PDF.js](https://mozilla.github.io/pdf.js/) — PDF previews
+- [Lucide](https://lucide.dev) — icons
+- [Inter](https://rsms.me/inter/) — the typeface
+
+The task model and agenda are inspired by [Org mode](https://orgmode.org).
+
+## License
+
+Supstack is released under the [MIT License](LICENSE). Bundled third-party libraries keep their own licenses.
+
+<div align="center">
+
+If Supstack is useful to you, consider giving it a ⭐ on GitHub.
+
+</div>

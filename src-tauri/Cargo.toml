@@ -1,6 +1,7 @@
 [package]
 name = "supstack"
 version = "0.25.0"
+license = "MIT"
 description = "Supstack — a card board and Org-style agenda for folders of Markdown notes"
 edition = "2021"
 publish = false
