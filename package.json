@@ -2,7 +2,7 @@
   "name": "supstack-app",
   "private": true,
   "license": "MIT",
-  "version": "0.26.0",
+  "version": "0.26.1",
   "type": "module",
   "description": "Windows, macOS and Android apps for Supstack (Tauri 2)",
   "scripts": {
