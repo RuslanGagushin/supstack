@@ -101,6 +101,9 @@ export function renderBoard(resetScroll = false) {
   const scrollTop = resetScroll ? 0 : oldScroll?.scrollTop || 0;
   const active = document.activeElement;
   const focusComposer = active?.closest?.(".sn-composer") ? { value: active.value } : null;
+  // an unsent draft survives re-renders (a layout or depth button takes focus from the field), but not a move to another card
+  const oldDraft = root.querySelector(".sn-composer textarea")?.value || "";
+  const draft = oldDraft && composerTarget === board.target ? oldDraft : "";
   const focusSearch = active?.classList?.contains("sn-search-input") ? { pos: active.selectionStart } : null;
   const focusCard = active?.closest?.(".sn-card")?.dataset.path;
 
@@ -123,6 +126,7 @@ export function renderBoard(resetScroll = false) {
 
   const notes = board.layout === "notes";
   const composer = renderComposer();
+  composerTarget = board.target;
   const cards = notes ? renderRows(page, scroll, model, composer) : renderCards(page, scroll, model, composer);
   if (!notes) cards.forEach(setupClamp);
   if (!model.shown.length) page.append(h("div", { cls: "sn-empty", text: model.active ? t("noMatches") : t("noCards") }));
@@ -143,6 +147,7 @@ export function renderBoard(resetScroll = false) {
     if (el) { el.classList.add("is-new"); el.scrollIntoView({ block: "nearest" }); }
     board.flashPath = null;
   }
+  if (draft && !focusComposer) { composer.input.value = draft; composer.grow(); }
   if (focusComposer) { composer.input.value = focusComposer.value; composer.input.focus(); composer.grow(); }
   else if (focusSearch) { const si = $(".sn-search-input", root); si?.focus(); si?.setSelectionRange(focusSearch.pos, focusSearch.pos); }
   else if (focusCard) $(`.sn-card[data-path="${CSS.escape(focusCard)}"]`, root)?.focus({ preventScroll: true });
@@ -449,6 +454,7 @@ function renderHero(model) {
   hero.append(foot);
   return hero;
 }
+let composerTarget = null;
 function renderComposer() {
   const box = h("div", { cls: "sn-composer" });
   const ta = h("textarea", { rows: "1", placeholder: t("composerPlaceholder") });

@@ -88,6 +88,8 @@
   resize: none; overflow: hidden;
   border: 0; background: transparent; line-height: var(--line-height-normal);
 }
+/* the composer box draws the focus ring; the field's own ring would double it */
+.sn-board .sn-composer textarea:focus { box-shadow: none; outline: none; }
 .sn-board .sn-composer textarea::placeholder { color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sn-composer-hint { display: none; padding: 0 var(--size-4-3) var(--size-4-2); color: var(--text-faint); }
 .sn-composer:focus-within .sn-composer-hint { display: block; }

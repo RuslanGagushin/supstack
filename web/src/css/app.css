@@ -145,7 +145,7 @@ body.sn-app .sn-foot-meta, body.sn-app .sn-board .sn-count, body.sn-app .sn-boar
 body.sn-app .sn-composer { border-radius: 10px; background: var(--win); box-shadow: 0 0 0 1px var(--line); }
 body.sn-app .sn-composer:focus-within { box-shadow: 0 0 0 2px var(--accent); }
 body.sn-app .sn-board .sn-composer textarea { font-size: var(--fs-md); height: 44px; min-height: 44px; padding: 12px 16px; }
-body.sn-app .sn-composer-hint { font-size: var(--fs-sm); }
+body.sn-app .sn-composer-hint { font-size: var(--fs-sm); padding: 0 16px 10px; }
 body.sn-app .sn-board .sn-group-title { font-size: var(--fs-text); font-weight: 600; color: var(--ink); }
 body.sn-app .sn-group-icon { color: var(--muted); }
 body.sn-app .sn-group-count { color: var(--faint); }
