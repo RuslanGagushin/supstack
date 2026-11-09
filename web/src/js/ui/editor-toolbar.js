@@ -8,19 +8,19 @@ import { dumpYaml } from "../core/frontmatter.js";
 import { formatTable } from "../core/tables.js";
 import { board, editor, graph, PARENTS_FIELD, UI, vault } from "../services/state.js";
 import { cardIcon, makeComparator } from "../services/vault.js";
-import { txn, updateFM } from "../services/save.js";
 import { $, h, ic, isMod, setIcon } from "./dom.js";
 import { Menu } from "./ui.js";
-import { promptAddParent, promptIcon, removeParent, templateFor } from "./actions.js";
+import { addTags, fmTagList, promptAddParent, promptIcon, removeParent, removeTag, templateFor } from "./actions.js";
 import { parentChip } from "./cards.js";
 import { setTarget } from "./board.js";
 import { closeEditor, openEditor, renderEditor, saveEditor } from "./editor.js";
 import { liveActivateEnd } from "./live-preview.js";
 import { editorTable, editorTableKey, editorTableOp, tableMenu } from "./table-editor.js";
 import { edSetHeading } from "./format-bar.js";
-import { acKey, acUpdate, linkMention, pickAndAttach, setFocusMode, unlinkedMentions } from "./completion.js";
+import { acKey, acUpdate, linkMention, pickAndAttach, setFocusMode, tagInputSuggest, unlinkedMentions } from "./completion.js";
 import { orgEditorKey, orgLineIsEntry, orgToolbar } from "./org-editing.js";
 
+let tagFocus = false;
 export function renderEditorProps() {
   const path = editor.path;
   const n = vault.notes.get(path);
@@ -29,6 +29,9 @@ export function renderEditorProps() {
   if (!n) return;
   const field = PARENTS_FIELD;
   if (host && !n.fmError) {
+    const oldIn = host.dataset.path === path ? host.querySelector(".sn-prop-input") : null;
+    host.dataset.path = path;
+    const draft = oldIn?.value || "", hadFocus = !!oldIn && oldIn === document.activeElement;
     host.replaceChildren();
     const props = h("div", { cls: "sn-props" + (editor.propsCollapsed ? " is-collapsed" : "") });
     const ph = h("div", { cls: "sn-props-head" }, ic("", "chevron-down"), h("span", { text: t("properties") }));
@@ -47,34 +50,36 @@ export function renderEditorProps() {
     ip.addEventListener("click", () => promptIcon([path]));
     props.append(row("smile", "icon", ip));
     // tags (frontmatter)
-    const fmTags = Array.isArray(n.fm.tags) ? n.fm.tags.flat().map(String) : typeof n.fm.tags === "string" ? n.fm.tags.split(/[,\s]+/).filter(Boolean) : [];
+    const fmTags = fmTagList(n.fm);
     const tagVals = fmTags.map((tg) => {
-      const c = h("span", { cls: "sn-tag" }, "#" + tg.replace(/^#/, ""));
+      const c = h("span", { cls: "sn-tag" }, "#" + tg);
       const x = ic("sn-chip-x", "x");
-      x.addEventListener("click", () => txn(null, () => updateFM(path, (fm) => { const l = fmTags.filter((y) => y !== tg); if (l.length) fm.tags = l; else delete fm.tags; })));
+      x.addEventListener("click", () => removeTag(path, tg));
       c.append(x);
       return c;
     });
     const tagIn = h("input", { cls: "sn-prop-input", type: "text", placeholder: t("addTag") });
-    tagIn.addEventListener("keydown", (e) => {
-      if (e.key !== "Enter" && e.key !== ",") return;
-      e.preventDefault();
-      const v = tagIn.value.trim().replace(/^#/, "").replace(/\s+/g, "-");
-      if (!v) return;
-      txn(null, () => updateFM(path, (fm) => { fm.tags = [...new Set([...fmTags, v])]; })).then(() => $("#editor-props .sn-prop-input")?.focus());
+    // the panel redraws after the write: the new input takes the focus back, so tags can be typed one after another
+    const keepFocus = (p) => { tagFocus = true; p.finally(() => requestAnimationFrame(() => requestAnimationFrame(() => { if (tagFocus) $("#editor-props .sn-prop-input")?.focus(); tagFocus = false; }))); };
+    tagInputSuggest(tagIn, {
+      exclude: () => new Set(fmTags.map((x) => x.toLowerCase())),
+      onPick: (tag) => keepFocus(addTags([path], [tag])),
+      onBackspace: () => { if (fmTags.length) keepFocus(removeTag(path, fmTags[fmTags.length - 1])); },
     });
+    tagIn.value = draft;
     props.append(row("tags", "tags", ...tagVals, tagIn));
     // template
     const tpl = templateFor(path);
     if (tpl) props.append(row("layout-template", "child_template", h("a", { cls: "sn-chip", href: "#", onClick: (e) => { e.preventDefault(); openEditor(tpl); } }, ic("sn-chip-icon", "layout-template"), h("span", { text: baseName(tpl) }))));
     // others
-    const known = new Set([field, "icon", "tags", "child_template"]);
+    const known = new Set([field, "icon", "tags", "tag", "child_template"]);
     const others = Object.entries(n.fm).filter(([k]) => !known.has(k));
     for (const [k, v] of others) {
       const txt = typeof v === "object" && v !== null ? dumpYaml(v).trim() : String(v);
       props.append(row(k === "child_order" ? "list-ordered" : k === "order" ? "hash" : "text", k, h("span", { cls: "sn-prop-other", text: txt, title: t("otherProps") })));
     }
     host.append(props);
+    if (hadFocus || tagFocus) $("#editor-props .sn-prop-input")?.focus();
   }
   if (foot) {
     foot.replaceChildren();

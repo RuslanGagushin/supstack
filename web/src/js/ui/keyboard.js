@@ -6,7 +6,7 @@ import { manualCmp } from "../services/vault.js";
 import { undo } from "../services/save.js";
 import { $, $$, isMod } from "./dom.js";
 import { closeMenu, modalStack, openMenuEl } from "./ui.js";
-import { deleteCards, quickOpen } from "./actions.js";
+import { deleteCards, promptAddTag, quickOpen, tagTargets } from "./actions.js";
 import { goBack, lastFocused, renderBoard, setTarget, toggleSearch, toggleSelect } from "./board.js";
 import { closeEditor, openEditor } from "./editor.js";
 import { toggleReading } from "./editor-toolbar.js";
@@ -46,6 +46,7 @@ document.addEventListener("keydown", (e) => {
   if (isMod(e) && e.shiftKey && k === "d") { e.preventDefault(); openToday(); return; }
   if (isMod(e) && e.shiftKey && k === "k") { e.preventDefault(); board.view === "tasks" ? goBack() : openTasksView(); return; }
   if (isMod(e) && e.shiftKey && k === "f") { e.preventDefault(); setFocusMode(!UI.focus); return; }
+  if (isMod(e) && e.shiftKey && (k === "t" || e.code === "KeyT")) { const ps = tagTargets(tgt); if (ps.length) { e.preventDefault(); promptAddTag(ps); } return; }
   if (isMod(e) && e.shiftKey && k === "e") { e.preventDefault(); board.view === "files" ? goBack() : openFilesView(); return; }
   if (e.key === "Escape" && UI.focus && !inField) { e.preventDefault(); setFocusMode(false); return; }
   if (isMod(e) && k === "e" && editor.path && (tgt.closest?.(".sn-editor") || !inField)) { e.preventDefault(); toggleReading(); return; }

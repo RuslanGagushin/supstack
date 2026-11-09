@@ -10,7 +10,7 @@ import { attachmentUrl, firstImage } from "../services/attachments.js";
 import { $, h, ic, iconBtn, isMod } from "./dom.js";
 import { Menu, notice, promptModal } from "./ui.js";
 import { renderMarkdown, wireRendered } from "./markdown.js";
-import { createCard, deleteCards, promptAddParent, promptIcon, promptMove, promptRemoveParent, promptTemplate, removeParent, setChildTemplate, templateFor, togglePin } from "./actions.js";
+import { createCard, deleteCards, promptAddParent, promptAddTag, promptIcon, promptMove, promptRemoveParent, promptTemplate, removeParent, setChildTemplate, templateFor, togglePin } from "./actions.js";
 import { openTagView, setLastFocused, setTarget, toggleSelect } from "./board.js";
 import { dnd } from "./dnd.js";
 import { openEditor } from "./editor.js";
@@ -332,6 +332,7 @@ export function cardMenu(path, via = null) {
   if (via && graph.parentsOf(path).includes(via)) m.add(t("menuRemoveFrom", { name: baseName(via) }), "unlink", () => removeParent(path, via));
   else if (graph.parentsOf(path).length || graph.unresolvedParentsOf(path).length) m.add(t("menuRemoveParent"), "unlink", () => promptRemoveParent(path));
   m.add(t("menuIcon"), "smile", () => promptIcon([path]));
+  m.add(t("menuAddTag"), "tag", () => promptAddTag([path]));
   m.sep();
   m.add(S.pinned.includes(path) ? t("unpin") : t("pin"), S.pinned.includes(path) ? "pin-off" : "pin", () => togglePin(path));
   m.add(t("menuCopyLink"), "link", () => { navigator.clipboard?.writeText(`[[${linkText(path)}]]`); notice(t("linkCopied")); });

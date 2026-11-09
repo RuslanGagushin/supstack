@@ -16,7 +16,7 @@ import { dailyNotePath } from "../services/daily-notes.js";
 import { $, $$, h, ic } from "./dom.js";
 import { fuzzyScore, Menu, notice, openMenuEl, suggestModal } from "./ui.js";
 import { renderMarkdown, wireRendered } from "./markdown.js";
-import { createCard, sanitizeTitle } from "./actions.js";
+import { cleanTag, createCard, sanitizeTitle, vaultTags } from "./actions.js";
 import { masonries } from "./masonry.js";
 import { goBack, openTagView } from "./board.js";
 import { dnd } from "./dnd.js";
@@ -433,3 +433,66 @@ export function setFocusMode(on) {
 }
 
 
+
+/* ---------- tag suggestions under a plain input (the Properties panel's "Add tag…") */
+/** exclude(): lowercase tags to leave out; onPick(tag): add the tag; onBackspace(): the input was empty. */
+export function tagInputSuggest(input, { exclude = () => new Set(), onPick, onBackspace }) {
+  let pop = null, items = [], sel = 0;
+  const close = () => { pop?.remove(); pop = null; };
+  const pick = (v) => { const tag = cleanTag(v); close(); input.value = ""; if (tag) onPick(tag); };
+  const draw = () => {
+    const q = input.value.trim().replace(/^#+/, "");
+    const ex = exclude();
+    items = vaultTags().filter((x) => !ex.has(x.name.toLowerCase()))
+      .map((x) => ({ value: x.name, title: "#" + x.name, note: String(x.n), icon: "hash", s: fuzzyScore(q, x.name) })).filter((x) => x.s > 0);
+    if (q) items.sort((a, b) => b.s - a.s);
+    items = items.slice(0, 10);
+    const typed = cleanTag(q);
+    if (typed && !items.some((x) => x.value.toLowerCase() === typed.toLowerCase()) && !ex.has(typed.toLowerCase()))
+      items.push({ value: typed, title: "#" + typed, note: wt("newTag"), icon: "plus" });
+    if (!items.length) return close();
+    sel = Math.min(sel, items.length - 1);
+    if (!pop) { pop = h("div", { cls: "ac-pop", role: "listbox" }); document.body.append(pop); }
+    pop.replaceChildren();
+    items.forEach((it, i) => {
+      const row = h("div", { cls: "ac-item" + (i === sel ? " is-selected" : ""), role: "option" },
+        ic("ac-icon", it.icon), h("span", { cls: "ac-title", text: it.title }), h("span", { cls: "ac-note", text: it.note }));
+      row.addEventListener("mousedown", (e) => { e.preventDefault(); pick(it.value); });
+      row.addEventListener("mousemove", () => { if (sel !== i) { sel = i; mark(); } });
+      pop.append(row);
+    });
+    const r = input.getBoundingClientRect();
+    const hgt = Math.min(pop.scrollHeight, 320);
+    let top = r.bottom + 4;
+    if (top + hgt > innerHeight - 8) top = Math.max(8, r.top - hgt - 4);
+    Object.assign(pop.style, { left: Math.max(8, Math.min(r.left, innerWidth - 308)) + "px", top: top + "px" });
+    mark();
+  };
+  const mark = () => { pop?.querySelectorAll(".ac-item").forEach((r, j) => r.classList.toggle("is-selected", j === sel)); pop?.querySelector(".is-selected")?.scrollIntoView({ block: "nearest" }); };
+  input.setAttribute("autocomplete", "off");
+  input.setAttribute("spellcheck", "false");
+  input.addEventListener("focus", () => { sel = 0; draw(); });
+  input.addEventListener("input", () => { sel = 0; draw(); });
+  input.addEventListener("blur", close);
+  input.addEventListener("keydown", (e) => {
+    if (e.isComposing) return;
+    if ((e.key === "ArrowDown" || e.key === "ArrowUp") && pop) {
+      e.preventDefault();
+      sel = (sel + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+      mark();
+    } else if (e.key === "Enter" || (e.key === "Tab" && pop && input.value.trim())) {
+      e.preventDefault();
+      // Enter takes the highlighted row; with the list closed it adds what is typed
+      if (pop && items[sel]) pick(items[sel].value); else if (input.value.trim()) pick(input.value);
+    } else if (e.key === "," || e.key === " ") {
+      if (!input.value.trim()) return;
+      e.preventDefault();
+      pick(input.value);
+    } else if (e.key === "Escape" && pop) {
+      e.preventDefault(); e.stopPropagation(); close();
+    } else if (e.key === "Backspace" && !input.value && onBackspace) {
+      e.preventDefault(); close(); onBackspace();
+    }
+  });
+  return close;
+}

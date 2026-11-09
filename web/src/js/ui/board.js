@@ -9,7 +9,7 @@ import { boardModel, cardIcon, cardTags, makeComparator, persistBoard } from "..
 import { $, $$, h, ic, iconBtn, isMod, setIcon } from "./dom.js";
 import { Menu } from "./ui.js";
 import { wireRendered } from "./markdown.js";
-import { createCard, deleteCards, dropCards, promptAddParent, promptIcon, promptMove, saveCurrentView } from "./actions.js";
+import { createCard, deleteCards, dropCards, promptAddParent, promptAddTag, promptIcon, promptMove, saveCurrentView } from "./actions.js";
 import { boardResize, masonries, Masonry } from "./masonry.js";
 import { cardBodyText, cardMenu, parentChip, renderBody, renderCard, renderRow, setupClamp } from "./cards.js";
 import { dnd } from "./dnd.js";
@@ -477,6 +477,7 @@ function renderSelbar() {
   const btn = (icn, label, fn, warn) => { const b = h("button", { cls: "clickable-icon sn-selbar-btn" + (warn ? " is-warning" : ""), type: "button" }, ic("", icn), h("span", { text: label })); b.addEventListener("click", fn); bar.append(b); };
   const viaOf = (p) => $(`.sn-card[data-path="${CSS.escape(p)}"]`)?.dataset.via || null;
   btn("smile", t("icon"), () => promptIcon(sel));
+  btn("tag", t("selAddTag"), () => promptAddTag(sel));
   btn("git-merge", t("selAddParent"), () => promptAddParent(sel));
   btn("folder-input", t("selMove"), () => promptMove(sel.map((p) => ({ child: p, from: viaOf(p) }))));
   if (board.target) btn("unlink", t("selRemoveFrom"), () => dropCards(sel.filter((p) => graph.parentsOf(p).includes(board.target)).map((p) => ({ child: p, from: board.target })), null, true, null));

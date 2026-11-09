@@ -294,3 +294,66 @@ export async function quickOpen() {
   setTarget(pick.value);
 }
 
+
+/* ---------- tags */
+/** The tags a note's frontmatter lists (tags: or tag:), without the #. */
+export function fmTagList(fm) {
+  const v = fm?.tags ?? fm?.tag;
+  const raw = Array.isArray(v) ? v.flat() : typeof v === "string" ? v.split(/[,\s]+/) : [];
+  return raw.map((x) => String(x).trim().replace(/^#+/, "")).filter(Boolean);
+}
+/** A typed tag as it goes into the frontmatter: no #, spaces become dashes, only tag characters. */
+export function cleanTag(s) { return String(s).trim().replace(/^#+/, "").replace(/\s+/g, "-").replace(/[^\p{L}\p{N}_/-]/gu, ""); }
+/** Every tag in the vault with the number of notes that have it, most used first. */
+export function vaultTags() {
+  const counts = new Map();
+  for (const n of vault.notes.values()) for (const tg of n.tags) {
+    const name = tg.replace(/^#/, ""), k = name.toLowerCase();
+    const c = counts.get(k);
+    if (c) c.n++; else counts.set(k, { name, n: 1 });
+  }
+  return [...counts.values()].sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
+}
+export async function addTags(paths, tags) {
+  tags = tags.map(cleanTag).filter(Boolean);
+  if (!tags.length) return;
+  await txn(null, async () => {
+    for (const p of paths) await updateFM(p, (fm) => {
+      const cur = fmTagList(fm);
+      const have = new Set(cur.map((x) => x.toLowerCase()));
+      const add = tags.filter((x) => !have.has(x.toLowerCase()));
+      if (!add.length) return;
+      delete fm.tag;
+      fm.tags = [...cur, ...add];
+    });
+  });
+}
+export async function removeTag(path, tag) {
+  await txn(null, () => updateFM(path, (fm) => {
+    const l = fmTagList(fm).filter((x) => x.toLowerCase() !== tag.toLowerCase());
+    delete fm.tag;
+    if (l.length) fm.tags = l; else delete fm.tags;
+  }));
+}
+/** The notes a tag command acts on: the open note while typing in it, else the selection, the focused card, the open note, the board's card. */
+export function tagTargets(focusEl = document.activeElement) {
+  if (editor.path && focusEl?.closest?.(".sn-editor")) return [editor.path];
+  const sel = [...board.selection].filter((p) => vault.notes.has(p));
+  if (sel.length) return sel;
+  const card = focusEl?.closest?.(".sn-card")?.dataset.path;
+  if (card && vault.notes.has(card)) return [card];
+  return [editor.path, board.target].filter((p) => p && vault.notes.has(p)).slice(0, 1);
+}
+/** Pick a tag (an existing one or a new one) and add it to the notes. */
+export async function promptAddTag(paths) {
+  paths = paths.filter((p) => vault.notes.has(p));
+  if (!paths.length) return;
+  const hasAll = (k) => paths.every((p) => vault.notes.get(p).tags.some((x) => x.replace(/^#/, "").toLowerCase() === k));
+  const items = vaultTags().filter((x) => !hasAll(x.name.toLowerCase())).map((x) => ({ value: x.name, title: "#" + x.name, note: String(x.n), icon: "hash" }));
+  const pick = await suggestModal({ placeholder: t("pickTag"), items, allowCreate: true });
+  if (!pick) return;
+  const tag = cleanTag(pick.create ?? pick.value);
+  if (!tag) return;
+  await addTags(paths, [tag]);
+  notice(t("tagAdded", { tag: "#" + tag, n: paths.length }));
+}

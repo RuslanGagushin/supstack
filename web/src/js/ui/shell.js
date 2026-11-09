@@ -12,7 +12,7 @@ import { upd } from "../services/updates.js";
 import { lsGet, lsSet } from "../services/storage.js";
 import { $, h, ic, iconBtn, keyName, keyText } from "./dom.js";
 import { defaultEcho, echo, Menu, notice, openLayer, promptModal, suggestModal } from "./ui.js";
-import { createCard, quickOpen, saveCurrentView, togglePin } from "./actions.js";
+import { createCard, promptAddTag, quickOpen, saveCurrentView, tagTargets, togglePin } from "./actions.js";
 import { masonries } from "./masonry.js";
 import { goBack, LAYOUTS, patchBoard, renderBoard, setLayout, setTarget, toggleSearch } from "./board.js";
 import { renderTree, renderTreeSoft, revealInTree } from "./tree.js";
@@ -91,6 +91,8 @@ function commandList() {
   for (const [v, k] of [["manual", "sortManual"], ["name", "sortName"], ["modified", "sortModified"], ["created", "sortCreated"]]) add(t("cmdSort", { s: t(k) }), "arrow-up-down", () => { board.sort = v; persistBoard(); renderBoard(); }, null, board.sort === v);
   add(t("groupByParent"), "group", () => { board.grouped = !board.grouped; persistBoard(); renderBoard(); }, null, board.grouped);
   add(t("selectMode"), "check-square", () => { board.selectMode = !board.selectMode; if (!board.selectMode) board.selection.clear(); renderBoard(); }, null, board.selectMode);
+  const tagPaths = tagTargets();
+  if (tagPaths.length) add(t("menuAddTag"), "tag", () => promptAddTag(tagPaths), "Ctrl+Shift+T");
   add(t("saveView"), "bookmark-plus", saveCurrentView);
   if (board.target) add(t("pin"), "pin", () => togglePin(board.target), null, S.pinned.includes(board.target));
   add(t("revealCurrent"), "crosshair", () => revealInTree(board.target));
@@ -346,7 +348,7 @@ function hotkeyRows() {
     [kb("Space"), t("k_space")], [kb("Shift", "click"), t("k_shiftClick")], [kb("Delete"), t("k_delete")], [kb("a…z"), t("k_type")], [kb("Ctrl", "F"), t("k_find")],
     [kb("Ctrl", "A"), t("k_selectAll")], [kb("Ctrl", "Z"), t("k_undo")], [kb("Ctrl", "O"), t("k_open")], [kb("Esc"), t("k_esc")], [kb("Ctrl", "Alt"), t("k_drag")],
     [kb("[["), t("k_link")], [kb("Ctrl", "L"), t("k_link")], [kb("Ctrl", "E"), t("k_reading")],
-    [kb("/"), wt("slashHint")], [kb("#"), wt("tagsSection")], [kb("Ctrl", "Shift", "D"), wt("todayHint")], [kb("Ctrl", "Shift", "F"), wt("focus")],
+    [kb("/"), wt("slashHint")], [kb("#"), wt("tagsSection")], [kb("Ctrl", "Shift", "T"), t("menuAddTag").replace("…", "")], [kb("Ctrl", "Shift", "D"), wt("todayHint")], [kb("Ctrl", "Shift", "F"), wt("focus")],
     [kb("Ctrl", "Shift", "K"), tt("tasksHint")], [kb("Ctrl", "Shift", "E"), fvt("filesHint")], [kb("Ctrl", "Enter"), LANG === "ru" ? "Задача: следующее состояние (в редакторе)" : "Next task state (in the editor)"],
     [kb("Ctrl", "C", "…"), tt("keysEditor")], [kb(LANG === "ru" ? "агенда" : "agenda"), tt("keysAgenda")]];
 }
