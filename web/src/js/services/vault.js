@@ -2,6 +2,7 @@
    The vault: notes and their index, link resolution, the hierarchy graph, card sorting, the settings,
    reading a vault and picking up changes made outside the page.
    ========================================================= */
+import { t } from "../core/i18n.js";
 import { baseName, dirName } from "../core/util.js";
 import { fmInner, noteLinks, noteTags, parentLinkpaths, parseYaml, splitNote } from "../core/frontmatter.js";
 import { HierarchyGraph } from "../core/graph.js";
@@ -120,6 +121,24 @@ export function makeComparator(mode) {
 }
 export const manualCmp = (a, b, p) => makeComparator("manual")(a, b, p);
 
+/** A note's text. A file that is not UTF-8 is refused (the native side refuses it too): decoded with replacement
+ *  characters, it would be damaged by its next save. */
+const strictUtf8 = new TextDecoder("utf-8", { fatal: true });
+async function noteText(file) {
+  return file instanceof Blob ? strictUtf8.decode(await file.arrayBuffer()) : file.text();
+}
+/** Notes that could not be read, with the mtime they had: not tried again until they change. */
+const unreadable = new Map();
+function cannotRead(path, mtime, e) {
+  const fresh = !unreadable.has(path);
+  unreadable.set(path, mtime);
+  console.warn("read failed", path, e);
+  return fresh;
+}
+function reportUnreadable(paths) {
+  if (paths.length) emit("notice", t("notReadable", { names: paths.map(baseName).join(", ") }));
+}
+
 /** Read a vault: every note, the attachments' sizes and dates, the settings, and the board and tree as they were left.
  *  ui/shell.js loadVault shows it. */
 export async function readVault(fs) {
@@ -134,15 +153,18 @@ export async function readVault(fs) {
     else { addAttachment(f.path); if (f.mtime) vault.mtimes.set(f.path, f.mtime); if (f.handle) others.push(f); }
   }
   let i = 0;
+  const failed = [];
+  unreadable.clear();
   const worker = async () => {
     while (i < md.length) {
       const f = md[i++];
+      let file = null;
       try {
-        const file = f.handle ? await f.handle.getFile() : await fs.readFile(f.path);
-        const raw = await file.text();
+        file = f.handle ? await f.handle.getFile() : await fs.readFile(f.path);
+        const raw = await noteText(file);
         vault.notes.set(f.path, parseNote(f.path, raw, file.lastModified || Date.now()));
         vault.sizes.set(f.path, file.size);
-      } catch (e) { console.warn("read failed", f.path, e); }
+      } catch (e) { if (cannotRead(f.path, file?.lastModified ?? f.mtime ?? 0, e)) failed.push(f.path); }
     }
     while (others.length) {
       const f = others.pop();
@@ -150,6 +172,7 @@ export async function readVault(fs) {
     }
   };
   await Promise.all(Array.from({ length: 8 }, worker));
+  reportUnreadable(failed.sort());
   indexNames();
   await loadSettings();
   const moved = await gatherNotes();
@@ -245,6 +268,7 @@ export async function pollChanges() {
     const list = await vault.fs.list();
     const seen = new Set();
     let changed = false;
+    const failed = [];
     for (const f of list) {
       seen.add(f.path);
       if (!vault.allPaths.has(f.path)) {
@@ -255,7 +279,15 @@ export async function pollChanges() {
       const file = await f.handle.getFile();
       const n = vault.notes.get(f.path);
       if (n && n.mtime >= file.lastModified) continue;
-      const raw = await file.text();
+      if (unreadable.get(f.path) === file.lastModified) continue;
+      let raw;
+      // one file that cannot be read does not stop the others from being picked up
+      try { raw = await noteText(file); } catch (e) {
+        if (cannotRead(f.path, file.lastModified, e)) failed.push(f.path);
+        if (n) { vault.notes.delete(f.path); changed = true; } // its old text must not be saved over the file
+        continue;
+      }
+      unreadable.delete(f.path);
       if (n && n.raw === raw) { n.mtime = file.lastModified; continue; }
       vault.notes.set(f.path, parseNote(f.path, raw, file.lastModified));
       vault.sizes.set(f.path, file.size);
@@ -270,6 +302,7 @@ export async function pollChanges() {
       if (vault.notes.delete(p)) changed = true;
       syncHook("delete", p);
     }
+    reportUnreadable(failed);
     if (changed) {
       indexNames();
       emit("changed", { disk: true });

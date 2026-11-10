@@ -29,6 +29,16 @@ test("web/src/page.html includes every stylesheet and library once, the bundle t
   assert.doesNotMatch(readFileSync(at("web/supstack.html"), "utf8"), /<!-- (include|bundle):|__APP_VERSION__/);
 });
 
+test("web/src/vendor has marked and DOMPurify at the versions package.json pins (npm run vendor copies them)", () => {
+  const pkg = JSON.parse(readFileSync(at("package.json"), "utf8"));
+  for (const [name, file, header] of [["marked", "marked.js", /marked v(\S+) - a markdown parser/], ["dompurify", "dompurify.js", /DOMPurify (\S+) \|/]]) {
+    const pinned = pkg.devDependencies[name];
+    assert.match(pinned, /^\d+\.\d+\.\d+$/, `${name} is pinned to an exact version`);
+    assert.equal(header.exec(readFileSync(at("web/src/vendor/" + file), "utf8"))?.[1], pinned, `web/src/vendor/${file} is ${name} ${pinned}`);
+    assert.equal(JSON.parse(readFileSync(at(`node_modules/${name}/package.json`), "utf8")).version, pinned);
+  }
+});
+
 test("the page loads pdf.js from ./pdfjs/ before the CDN, at the installed version", () => {
   const page = readFileSync(at("web/src/js/ui/markdown.js"), "utf8");
   const version = JSON.parse(readFileSync(at("node_modules/pdfjs-dist/package.json"), "utf8")).version;

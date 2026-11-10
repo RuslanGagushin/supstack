@@ -13,7 +13,7 @@ use std::{
 
 use git2::{
     build::CheckoutBuilder, AnnotatedCommit, ConfigLevel, Cred, CredentialType, ErrorCode, FetchOptions, IndexEntry, MergeAnalysis,
-    MergeOptions, PushOptions, RemoteCallbacks, Repository, RepositoryInitOptions, Signature,
+    MergeOptions, PushOptions, RemoteCallbacks, Repository, RepositoryInitOptions, Signature, Status, StatusOptions,
 };
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Runtime};
@@ -137,6 +137,81 @@ pub(crate) fn install_roots() -> Result<usize> {
     Ok(added)
 }
 
+/// Where the access token is kept. On desktop: the system's keychain (the macOS Keychain, the Windows Credential
+/// Manager), under the repository's folder: the vault folder may sit in a cloud drive or a backup, and .git/config
+/// would take the token there in plain text. On Android the repository is a clone in the app's private storage,
+/// so the token stays in its config. Versions up to 0.26 kept it in the config on desktop too; it moves on the next save.
+mod secret {
+    use std::path::Path;
+
+    use crate::Result;
+
+    /// Does this platform keep tokens outside the repository?
+    pub fn supported() -> bool {
+        cfg!(desktop)
+    }
+
+    fn account(dir: &Path) -> String {
+        dir.canonicalize().unwrap_or_else(|_| dir.to_path_buf()).to_string_lossy().into_owned()
+    }
+
+    #[cfg(all(desktop, not(test)))]
+    mod store {
+        use crate::{Error, Result};
+
+        const SERVICE: &str = "Supstack git access token";
+
+        fn entry(account: &str) -> Result<keyring::Entry> {
+            keyring::Entry::new(SERVICE, account).map_err(|e| Error::Msg(format!("keychain: {e}")))
+        }
+        pub fn get(account: &str) -> Option<String> {
+            entry(account).ok()?.get_password().ok()
+        }
+        pub fn set(account: &str, token: &str) -> Result<()> {
+            entry(account)?.set_password(token).map_err(|e| Error::Msg(format!("keychain: {e}")))
+        }
+        pub fn delete(account: &str) -> Result<()> {
+            match entry(account)?.delete_credential() {
+                Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
+                Err(e) => Err(Error::Msg(format!("keychain: {e}"))),
+            }
+        }
+    }
+
+    /// The tests never touch the real keychain.
+    #[cfg(any(test, mobile))]
+    #[cfg_attr(mobile, allow(dead_code))]
+    mod store {
+        use std::{collections::HashMap, sync::Mutex};
+
+        use crate::Result;
+
+        static TOKENS: Mutex<Option<HashMap<String, String>>> = Mutex::new(None);
+
+        pub fn get(account: &str) -> Option<String> {
+            TOKENS.lock().ok()?.as_ref()?.get(account).cloned()
+        }
+        pub fn set(account: &str, token: &str) -> Result<()> {
+            TOKENS.lock().unwrap().get_or_insert_with(HashMap::new).insert(account.into(), token.into());
+            Ok(())
+        }
+        pub fn delete(account: &str) -> Result<()> {
+            if let Some(m) = TOKENS.lock().unwrap().as_mut() {
+                m.remove(account);
+            }
+            Ok(())
+        }
+    }
+
+    pub fn get(dir: &Path) -> Option<String> {
+        store::get(&account(dir))
+    }
+    /// An empty token removes the stored one.
+    pub fn set(dir: &Path, token: &str) -> Result<()> {
+        if token.is_empty() { store::delete(&account(dir)) } else { store::set(&account(dir), token) }
+    }
+}
+
 pub fn info<R: Runtime>(app: &AppHandle<R>, root: String) -> Result<GitInfo> {
     let dir = workdir(app, &root)?;
     #[cfg(mobile)]
@@ -172,11 +247,13 @@ pub(crate) fn read_settings(repo: &Repository) -> Option<GitSettings> {
     let (section, auto) = [SECTION, OLD_SECTION].into_iter().find_map(|s| Some((s, cfg.get_bool(&format!("{s}.auto")).ok()?)))?;
     let get = |key: &str| cfg.get_string(key).unwrap_or_default();
     let ours = |key: &str| get(&format!("{section}.{key}"));
+    // the keychain, or the config where it is kept there (Android) or was kept by an older version
+    let stored = if secret::supported() { repo.workdir().and_then(secret::get) } else { None };
     Some(GitSettings {
         remote: get("remote.origin.url"),
         branch: ours("branch"),
         username: ours("username"),
-        token: ours("token"),
+        token: stored.filter(|t| !t.is_empty()).unwrap_or_else(|| ours("token")),
         author_name: get("user.name"),
         author_email: get("user.email"),
         auto,
@@ -210,7 +287,13 @@ pub(crate) fn write_settings(repo: &Repository, s: &GitSettings) -> Result<()> {
     };
     put(&format!("{SECTION}.branch"), &s.branch)?;
     put(&format!("{SECTION}.username"), &s.username)?;
-    put(&format!("{SECTION}.token"), &s.token)?;
+    match repo.workdir() {
+        Some(dir) if secret::supported() => {
+            secret::set(dir, s.token.trim())?;
+            put(&format!("{SECTION}.token"), "")?;
+        }
+        _ => put(&format!("{SECTION}.token"), &s.token)?,
+    }
     put("user.name", &s.author_name)?;
     put("user.email", &s.author_email)?;
     for key in ["branch", "username", "token", "auto", "minutes"] {
@@ -225,8 +308,7 @@ pub fn sync<R: Runtime>(app: &AppHandle<R>, root: String, cfg: GitConfig) -> Res
     }
     #[cfg(desktop)]
     {
-        let _ = app;
-        sync_repo(Path::new(&root), &cfg)
+        sync_repo(&workdir(app, &root)?, &cfg)
     }
     #[cfg(mobile)]
     {
@@ -244,9 +326,11 @@ pub fn sync<R: Runtime>(app: &AppHandle<R>, root: String, cfg: GitConfig) -> Res
 }
 
 fn workdir<R: Runtime>(app: &AppHandle<R>, root: &str) -> Result<PathBuf> {
+    // the page may only use a folder the user picked (desktop::Roots); on Android the system enforces that
     #[cfg(desktop)]
     {
-        let _ = app;
+        use crate::VaultExt;
+        app.vault().check_root(root)?;
         Ok(PathBuf::from(root))
     }
     #[cfg(mobile)]
@@ -326,6 +410,44 @@ fn force_checkout(repo: &Repository) -> Result<()> {
     Ok(())
 }
 
+/// Checks HEAD out over the folder, keeping what changed there since `commit_local` (an autosave that landed while git
+/// fetched or merged): that text stays, and the version git brought is saved beside it as a conflict copy.
+/// The edit goes into the next sync's commit.
+fn checkout_keeping_edits(repo: &Repository, report: &mut GitReport) -> Result<()> {
+    let dir = repo.workdir().ok_or_else(|| Error::Msg("no working folder".into()))?.to_path_buf();
+    let mut opts = StatusOptions::new();
+    opts.include_untracked(true).recurse_untracked_dirs(true).include_ignored(false);
+    let mut edits = Vec::new();
+    for s in repo.statuses(Some(&mut opts))?.iter() {
+        if !s.status().intersects(Status::WT_MODIFIED | Status::WT_NEW) {
+            continue;
+        }
+        let Some(path) = s.path() else { continue };
+        if path.ends_with(".supstack-tmp") {
+            continue;
+        }
+        if let Ok(bytes) = std::fs::read(dir.join(path)) {
+            edits.push((path.to_owned(), bytes));
+        }
+    }
+    force_checkout(repo)?;
+    for (path, mine) in edits {
+        let file = dir.join(&path);
+        match std::fs::read(&file) {
+            Ok(now) if now == mine => {}
+            Ok(theirs) => {
+                let copy = conflict_path(&path);
+                std::fs::write(dir.join(&copy), theirs)?;
+                std::fs::write(&file, mine)?;
+                report.conflicts.push(copy);
+            }
+            // the checkout removed it
+            Err(_) => std::fs::write(&file, mine)?,
+        }
+    }
+    Ok(())
+}
+
 /// Merge `their` into HEAD. Files changed on both sides keep our text; theirs is saved beside it.
 fn merge(repo: &Repository, their: &AnnotatedCommit, sig: &Signature, report: &mut GitReport) -> Result<()> {
     let our = repo.head()?.peel_to_commit()?;
@@ -355,7 +477,7 @@ fn merge(repo: &Repository, their: &AnnotatedCommit, sig: &Signature, report: &m
     }
     let tree = repo.find_tree(idx.write_tree_to(repo)?)?;
     repo.commit(Some("HEAD"), sig, sig, &format!("Supstack merge {}", stamp()), &tree, &[&our, &their_commit])?;
-    force_checkout(repo)
+    checkout_keeping_edits(repo, report)
 }
 
 fn clone_entry(e: &IndexEntry) -> IndexEntry {
@@ -413,7 +535,7 @@ pub(crate) fn sync_repo(dir: &Path, cfg: &GitConfig) -> Result<GitReport> {
             // nothing here yet: take the remote branch as is
             repo.reference(&format!("refs/heads/{branch}"), their.id(), true, "supstack: first pull")?;
             repo.set_head(&format!("refs/heads/{branch}"))?;
-            force_checkout(&repo)?;
+            checkout_keeping_edits(&repo, &mut report)?;
             report.pulled = true;
         } else {
             let (analysis, _) = repo.merge_analysis(&[&their])?;
@@ -422,7 +544,7 @@ pub(crate) fn sync_repo(dir: &Path, cfg: &GitConfig) -> Result<GitReport> {
                 let head = repo.head()?;
                 let name = head.name().ok_or_else(|| Error::Msg("detached HEAD".into()))?.to_owned();
                 repo.reference(&name, their.id(), true, "supstack: fast-forward")?;
-                force_checkout(&repo)?;
+                checkout_keeping_edits(&repo, &mut report)?;
                 report.pulled = true;
             } else {
                 merge(&repo, &their, &sig, &mut report)?;
@@ -434,6 +556,8 @@ pub(crate) fn sync_repo(dir: &Path, cfg: &GitConfig) -> Result<GitReport> {
     trace("push");
     let Ok(head) = repo.head() else { return Ok(report) };
     let local = head.peel_to_commit()?.id();
+    // what was merged is HEAD, whatever the local branch is called (a vault that was a repository on another branch)
+    let local_ref = head.name().ok_or_else(|| Error::Msg("detached HEAD".into()))?.to_owned();
     let remote_id = repo.find_reference(&remote_ref).ok().and_then(|r| r.target());
     if remote_id != Some(local) {
         let rejected = Rc::new(RefCell::new(None::<String>));
@@ -447,7 +571,7 @@ pub(crate) fn sync_repo(dir: &Path, cfg: &GitConfig) -> Result<GitReport> {
         });
         let mut po = PushOptions::new();
         po.remote_callbacks(cb);
-        repo.find_remote("origin")?.push(&[format!("refs/heads/{branch}:refs/heads/{branch}")], Some(&mut po))?;
+        repo.find_remote("origin")?.push(&[format!("{local_ref}:refs/heads/{branch}")], Some(&mut po))?;
         if let Some(msg) = rejected.borrow().clone() {
             return Err(Error::Msg(format!("push rejected ({msg})")));
         }
@@ -478,9 +602,13 @@ mod mirror {
     use super::{conflict_path, sync_repo, trace, GitConfig, GitReport};
     use crate::{Error, Result};
 
+    /// The vault's settings (web/src/js/services/vault.js SETTINGS_PATH): the one hidden file that is synced,
+    /// as it is on desktop, where the vault folder is the repository.
+    pub(crate) const SETTINGS: &str = ".supstack/settings.json";
+
     /// The picked folder, as the mirror uses it.
     pub(crate) trait Folder {
-        /// every visible file (no name starting with a dot), with its stamp
+        /// every visible file (no name starting with a dot) and [`SETTINGS`] if there is one, with its stamp
         fn list(&self) -> Result<Listing>;
         fn read(&self, path: &str) -> Result<Vec<u8>>;
         /// writes the file, creating folders on the way; returns its new mtime
@@ -523,6 +651,12 @@ mod mirror {
         }
         let mut out = Snapshot::new();
         walk(dir, "", &mut out);
+        if let Ok(meta) = fs::metadata(dir.join(SETTINGS)) {
+            if meta.is_file() {
+                let m = meta.modified().ok().and_then(|t| t.duration_since(UNIX_EPOCH).ok()).map_or(0, |d| d.as_nanos() as u64);
+                out.insert(SETTINGS.to_owned(), (meta.len(), m));
+            }
+        }
         out
     }
 
@@ -650,7 +784,7 @@ mod mirror {
         use base64::{engine::general_purpose::STANDARD, Engine};
         use tauri::{AppHandle, Manager, Runtime};
 
-        use super::{sync_folder, Folder, Listing};
+        use super::{sync_folder, Folder, Listing, SETTINGS};
         use crate::{git::GitConfig, git::GitReport, Error, Result, VaultExt};
 
         fn fnv(s: &str) -> String {
@@ -677,7 +811,14 @@ mod mirror {
 
         impl<R: Runtime> Folder for AppFolder<'_, R> {
             fn list(&self) -> Result<Listing> {
-                Ok(self.app.vault().list(self.root.to_owned())?.into_iter().map(|e| (e.path, (e.mtime, e.size))).collect())
+                let vault = self.app.vault();
+                let mut out: Listing = vault.list(self.root.to_owned())?.into_iter().map(|e| (e.path, (e.mtime, e.size))).collect();
+                // the listing leaves hidden files out
+                if vault.exists(self.root.to_owned(), SETTINGS.to_owned()).unwrap_or(false) {
+                    let r = vault.read(self.root.to_owned(), SETTINGS.to_owned(), true)?;
+                    out.insert(SETTINGS.to_owned(), (r.mtime, r.size));
+                }
+                Ok(out)
             }
             fn read(&self, path: &str) -> Result<Vec<u8>> {
                 let data = self.app.vault().read(self.root.to_owned(), path.to_owned(), true)?.data;
@@ -769,11 +910,16 @@ mod tests {
         write_settings(&repo, &s).unwrap();
         assert_eq!(read_settings(&repo).as_ref(), Some(&s));
         assert_eq!(repo.find_remote("origin").unwrap().url(), Some("https://example.com/notes.git"));
+        let local = repo.config().unwrap().open_level(ConfigLevel::Local).unwrap();
+        assert!(local.get_string(&format!("{SECTION}.token")).is_err(), "the token is not in .git/config");
+        assert!(!fs::read_to_string(dir.join(".git/config")).unwrap().contains("secret"));
+        assert_eq!(secret::get(&dir).as_deref(), Some("secret"), "it is in the keychain");
 
         s.token.clear();
         s.remote = "https://example.com/other.git".into();
         write_settings(&repo, &s).unwrap();
         assert_eq!(read_settings(&repo).as_ref(), Some(&s), "a cleared field is removed");
+        assert_eq!(secret::get(&dir), None, "a cleared token leaves the keychain");
 
         s.remote.clear();
         write_settings(&repo, &s).unwrap();
@@ -799,7 +945,8 @@ mod tests {
         write_settings(&repo, &s).unwrap();
         let cfg = repo.config().unwrap().open_level(ConfigLevel::Local).unwrap();
         assert!(cfg.get_bool(&format!("{OLD_SECTION}.auto")).is_err(), "the old section is cleared");
-        assert_eq!(cfg.get_string(&format!("{SECTION}.token")).unwrap(), "secret");
+        assert!(cfg.get_string(&format!("{OLD_SECTION}.token")).is_err() && cfg.get_string(&format!("{SECTION}.token")).is_err());
+        assert_eq!(secret::get(&dir).as_deref(), Some("secret"), "the token moved to the keychain");
         assert_eq!(read_settings(&repo).as_ref(), Some(&s));
         let _ = fs::remove_dir_all(&dir);
     }
@@ -837,6 +984,62 @@ mod tests {
         assert_eq!(fs::read_to_string(a.join("Other.md")).unwrap(), "new\n");
         assert_eq!(fs::read_to_string(a.join("Note.md")).unwrap(), "from b\n");
         let _ = fs::remove_dir_all(&tmp);
+    }
+
+    #[test]
+    fn a_repository_on_another_branch_pushes_what_it_merged_to_the_configured_one() {
+        let tmp = std::env::temp_dir().join(format!("supstack-branch-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&tmp);
+        let (remote, a, b) = (tmp.join("remote.git"), tmp.join("a"), tmp.join("b"));
+        Repository::init_bare(&remote).unwrap();
+        init(&a, "master").unwrap();
+        fs::write(a.join("Note.md"), "on master\n").unwrap();
+        let c = cfg(&remote); // branch "main"
+        let r = sync_repo(&a, &c).unwrap();
+        assert!(r.committed && r.pushed);
+        let bare = Repository::open(&remote).unwrap();
+        assert!(bare.find_reference("refs/heads/main").is_ok(), "HEAD went to the configured branch");
+        assert!(bare.find_reference("refs/heads/master").is_err());
+
+        fs::create_dir_all(&b).unwrap();
+        sync_repo(&b, &c).unwrap();
+        fs::write(b.join("Note.md"), "from b\n").unwrap();
+        sync_repo(&b, &c).unwrap();
+        let r = sync_repo(&a, &c).unwrap();
+        assert!(r.pulled, "{r:?}");
+        assert_eq!(fs::read_to_string(a.join("Note.md")).unwrap(), "from b\n");
+        let _ = fs::remove_dir_all(&tmp);
+    }
+
+    #[test]
+    fn a_checkout_keeps_an_edit_made_after_the_commit() {
+        let dir = std::env::temp_dir().join(format!("supstack-checkout-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        let repo = init(&dir, "main").unwrap();
+        let sig = Signature::now("t", "t@localhost").unwrap();
+        fs::write(dir.join("Note.md"), "one\n").unwrap();
+        fs::write(dir.join("Same.md"), "same\n").unwrap();
+        commit_local(&repo, &sig).unwrap();
+        let first = repo.head().unwrap().peel_to_commit().unwrap().id();
+        fs::write(dir.join("Note.md"), "theirs\n").unwrap();
+        fs::write(dir.join("Same.md"), "same, theirs\n").unwrap();
+        commit_local(&repo, &sig).unwrap();
+        let theirs = repo.head().unwrap().peel_to_commit().unwrap().id();
+        // back to the first commit, then an autosave lands, then git moves HEAD to what it merged
+        repo.reference("refs/heads/main", first, true, "test").unwrap();
+        force_checkout(&repo).unwrap();
+        fs::write(dir.join("Note.md"), "mine\n").unwrap();
+        fs::write(dir.join("New.md"), "new\n").unwrap();
+        repo.reference("refs/heads/main", theirs, true, "test").unwrap();
+
+        let mut report = GitReport::default();
+        checkout_keeping_edits(&repo, &mut report).unwrap();
+        assert_eq!(fs::read_to_string(dir.join("Note.md")).unwrap(), "mine\n", "the edit stays");
+        assert_eq!(report.conflicts.len(), 1, "{report:?}");
+        assert_eq!(fs::read_to_string(dir.join(&report.conflicts[0])).unwrap(), "theirs\n");
+        assert_eq!(fs::read_to_string(dir.join("Same.md")).unwrap(), "same, theirs\n", "files not edited take git's version");
+        assert_eq!(fs::read_to_string(dir.join("New.md")).unwrap(), "new\n");
+        let _ = fs::remove_dir_all(&dir);
     }
 
     /// The picked folder of an Android vault, played by a plain folder: writes can be made to fail, and a file can be
@@ -884,6 +1087,9 @@ mod tests {
             }
             let mut out = mirror::Listing::new();
             walk(&self.dir, "", &mut out);
+            if let Ok(meta) = fs::metadata(self.dir.join(mirror::SETTINGS)) {
+                out.insert(mirror::SETTINGS.into(), (meta.modified().unwrap().duration_since(UNIX_EPOCH).unwrap().as_nanos() as f64 / 1e6, meta.len()));
+            }
             Ok(out)
         }
         fn read(&self, path: &str) -> Result<Vec<u8>> {
@@ -967,6 +1173,23 @@ mod tests {
         sync_repo(&a, &c).unwrap();
         assert_eq!(fs::read_to_string(a.join("Note.md")).unwrap(), "from the phone\n");
         assert_eq!(fs::read_to_string(a.join(&r.conflicts[0])).unwrap(), "from a\n");
+        let _ = fs::remove_dir_all(&tmp);
+    }
+
+    #[test]
+    fn the_vault_settings_travel_to_and_from_the_phone() {
+        let (tmp, c, a, phone, base) = phone_setup("settings");
+        fs::create_dir_all(a.join(".supstack")).unwrap();
+        fs::write(a.join(mirror::SETTINGS), "{\"pinned\":[\"a\"]}").unwrap();
+        sync_repo(&a, &c).unwrap();
+        mirror::sync_folder(&phone, &base, &c).unwrap();
+        assert_eq!(phone.text(mirror::SETTINGS), "{\"pinned\":[\"a\"]}");
+
+        fs::write(phone.dir.join(mirror::SETTINGS), "{\"pinned\":[\"b\"]}").unwrap();
+        mirror::sync_folder(&phone, &base, &c).unwrap();
+        sync_repo(&a, &c).unwrap();
+        assert_eq!(fs::read_to_string(a.join(mirror::SETTINGS)).unwrap(), "{\"pinned\":[\"b\"]}");
+        assert!(!phone.dir.join(".git").exists() && !base.join("tree/.trash").exists());
         let _ = fs::remove_dir_all(&tmp);
     }
 }

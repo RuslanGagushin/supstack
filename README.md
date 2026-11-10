@@ -111,7 +111,7 @@ Supstack shows a folder of Markdown notes (a *vault*) as a board of nested cards
 ### Sync
 - **Git sync:** the vault folder is a git repository. **Sync now** (or the automatic sync, after edits and every few minutes) commits your changes, merges the remote branch and pushes. Set the remote URL (HTTPS) and a personal access token in the sync button's panel.
 - If a note changed on two devices, your text stays in place and the other version is saved next to it as `Note (conflict …).md`, so nothing is lost.
-- The access token is kept in the app, not in the vault, so it is never committed. A `.gitignore` is created on the first sync for `.trash` and temporary files.
+- The access token is never in the vault, so it is never committed or copied with the folder: on Windows and macOS it is kept in the system's keychain (Credential Manager, Keychain), on Android in the app's private storage. A `.gitignore` is created on the first sync for `.trash` and temporary files.
 - On Android the repository lives in the app's private storage and is copied to and from the folder you picked on every sync, so the vault takes up space twice there.
 
 ### Look and keyboard

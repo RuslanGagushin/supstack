@@ -35,6 +35,8 @@ export const board = {
   history: [], selection: new Set(), selectMode: false, expanded: new Set(), rendered: 60,
 };
 export const tree = { expanded: new Set() };
-export const editor = { path: null, mode: "edit", dirty: false, saving: false, wide: true, propsCollapsed: true };
+// base: { path, raw } — the note's text the editor's text started from; when the note on disk differs at save time,
+// it changed outside the editor while there was unsaved typing (ui/editor.js saveEditor)
+export const editor = { path: null, mode: "edit", dirty: false, saving: false, wide: true, propsCollapsed: true, base: null };
 export const undoStack = [];
 

@@ -24,6 +24,9 @@ import app.tauri.plugin.JSArray
 import app.tauri.plugin.JSObject
 import app.tauri.plugin.Plugin
 import java.io.FileNotFoundException
+import java.nio.ByteBuffer
+import java.nio.charset.CharacterCodingException
+import java.nio.charset.CodingErrorAction
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
@@ -302,7 +305,7 @@ class VaultPlugin(private val activity: Activity) : Plugin(activity) {
                 ?: throw FileNotFoundException("can't read ${a.path}")
             val meta = query(a.root, id)
             JSObject().apply {
-                put("data", if (a.binary) Base64.encodeToString(bytes, Base64.NO_WRAP) else String(bytes, Charsets.UTF_8))
+                put("data", if (a.binary) Base64.encodeToString(bytes, Base64.NO_WRAP) else utf8(bytes, a.path))
                 put("mtime", meta?.mtime ?: 0L)
                 put("size", bytes.size.toLong())
             }
@@ -327,6 +330,17 @@ class VaultPlugin(private val activity: Activity) : Plugin(activity) {
             out.use { it.write(bytes) }
             JSObject().apply { put("mtime", query(a.root, id)?.mtime ?: System.currentTimeMillis()) }
         }
+    }
+
+    /** The text of a note; refuses bytes that are not UTF-8, which a lenient decoding would replace and the next save would lose. */
+    private fun utf8(bytes: ByteArray, path: String): String = try {
+        Charsets.UTF_8.newDecoder()
+            .onMalformedInput(CodingErrorAction.REPORT)
+            .onUnmappableCharacter(CodingErrorAction.REPORT)
+            .decode(ByteBuffer.wrap(bytes))
+            .toString()
+    } catch (e: CharacterCodingException) {
+        throw IllegalArgumentException("$path is not UTF-8 text")
     }
 
     private fun createFile(root: String, segs: List<String>): String {

@@ -8,7 +8,7 @@ import { lsGet, lsSet } from "../services/storage.js";
 import { IS_ANDROID, IS_NATIVE, TAURI } from "../services/native.js";
 import { board, editor, vault } from "../services/state.js";
 import { addAttachment, cardIcon, persistBoard } from "../services/vault.js";
-import { allAttachments, attachmentRefs, attachmentUrl, dropAttachment, FILE_MD_RE, FILE_WIKI_RE, fileExt, fileName, fileTarget, IMG_EXT, moveVaultFile, PDF_EXT, saveAttachment } from "../services/attachments.js";
+import { allAttachments, attachmentRefs, attachmentUrl, dropAttachment, FILE_MD_RE, FILE_WIKI_RE, fileExt, fileName, fileTarget, IMG_EXT, moveVaultFile, opensSafely, PDF_EXT, saveAttachment } from "../services/attachments.js";
 import { writeRaw } from "../services/save.js";
 import { syncHook } from "../services/sync.js";
 import { $, $$, h, ic, iconBtn, isMod, keyText } from "./dom.js";
@@ -154,7 +154,7 @@ function attachmentMenu(path, anchor) {
   m.add(fvt("rename"), "pencil", () => promptRenameAttachment(path));
   m.add(fvt("copyLink"), "link", () => copyAttachmentLink(path));
   m.add(fvt("download"), "download", () => downloadAttachment(path));
-  if (IS_NATIVE && vault.fs.root && !IS_ANDROID) m.add(fvt("reveal"), "folder-open", () => TAURI.invoke("plugin:opener|reveal_item_in_dir", { path: vault.fs.root.replace(/\/$/, "") + "/" + path }).catch((e) => notice(String(e?.message || e))));
+  if (IS_NATIVE && vault.fs.root && !IS_ANDROID) m.add(fvt("reveal"), "folder-open", () => revealFile(path).catch((e) => notice(String(e?.message || e))));
   m.sep();
   m.add(fvt("delete"), "trash-2", () => deleteAttachment(path), { warning: true });
   return m;
@@ -350,9 +350,18 @@ function fvRenderPreview() {
 }
 
 
+/** A vault file's path on disk (the desktop app). */
+const diskPath = (path) => vault.fs.root.replace(/[\\/]$/, "") + "/" + path;
+/** Show a vault file in the system's file manager (the desktop app). */
+export const revealFile = (path) => TAURI.invoke("plugin:opener|reveal_item_in_dir", { paths: [diskPath(path)] });
 export async function openAttachment(path) {
   try {
-    if (IS_NATIVE && vault.fs.root && !IS_ANDROID) { await TAURI.invoke("plugin:opener|open_path", { path: vault.fs.root.replace(/\/$/, "") + "/" + path }); return; }
+    if (IS_NATIVE && vault.fs.root && !IS_ANDROID) {
+      // a program or a script is shown in its folder, never run from a link in a note
+      if (opensSafely(path)) await TAURI.invoke("plugin:opener|open_path", { path: diskPath(path) });
+      else { await revealFile(path); notice(fvt("notOpened", { name: fileName(path) })); }
+      return;
+    }
     const url = await attachmentUrl(path);
     const a = h("a", { href: url, target: "_blank", rel: "noopener" });
     if (IS_NATIVE) a.download = baseName(path);

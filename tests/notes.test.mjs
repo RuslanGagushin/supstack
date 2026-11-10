@@ -189,3 +189,22 @@ describe("hierarchy", () => {
     ]), [["a", "d", "b", "c"], ["c", "a", "b", "d"], ["a", "b", "c"], ["b", "a"]]);
   });
 });
+
+describe("text that is not UTF-8", () => {
+  test("such a note is not opened (its next save would damage it), and the user is told which", async () => {
+    await openVault({ demo: false });
+    const r = await ev(async () => {
+      const told = [];
+      const off = on("notice", (text) => told.push(text));
+      const fs = new MemoryFS("Mixed", "demo");
+      fs.add("cards/Ok.md", "ok");
+      fs.add("cards/Latin1.md", new Blob([new Uint8Array([0x63, 0x61, 0x66, 0xe9])])); // "café" in Latin-1
+      await loadVault(fs);
+      off();
+      return { told, notes: [...vault.notes.keys()], file: [...new Uint8Array(await (await fs.readFile("cards/Latin1.md")).arrayBuffer())] };
+    });
+    assert.deepEqual(r.notes, ["cards/Ok.md"]);
+    assert.deepEqual(r.file, [0x63, 0x61, 0x66, 0xe9], "the file is left as it was");
+    assert.ok(r.told.some((x) => /not UTF-8.*Latin1/.test(x)), String(r.told));
+  });
+});

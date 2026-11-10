@@ -1,22 +1,83 @@
 use std::{
+    collections::HashSet,
     fs,
     path::{Component, Path, PathBuf},
+    sync::Mutex,
     time::UNIX_EPOCH,
 };
 
 use base64::{engine::general_purpose::STANDARD, Engine};
 use serde::de::DeserializeOwned;
-use tauri::{plugin::PluginApi, AppHandle, Runtime};
+use tauri::{plugin::PluginApi, AppHandle, Manager, Runtime};
 use tauri_plugin_dialog::DialogExt;
 
 use crate::{models::*, Error, Result};
 
 pub fn init<R: Runtime, C: DeserializeOwned>(app: &AppHandle<R>, _api: PluginApi<R, C>) -> Result<Vault<R>> {
-    Ok(Vault(app.clone()))
+    let file = app.path().app_config_dir().ok().map(|d| d.join("vaults.json"));
+    Ok(Vault { app: app.clone(), roots: Roots::load(file) })
 }
 
 /// Desktop implementation: plain files under the picked folder.
-pub struct Vault<R: Runtime>(AppHandle<R>);
+pub struct Vault<R: Runtime> {
+    app: AppHandle<R>,
+    roots: Roots,
+}
+
+/// The folders the user picked in the app's own folder dialog. The page names the vault by its path, and only those
+/// folders are served: a script that got into the page cannot reach the rest of the disk. They are kept in the
+/// app's config folder, so a vault opens again on the next launch without being picked again.
+pub(crate) struct Roots {
+    file: Option<PathBuf>,
+    /// None until the file exists: the first launch after an update from a version that kept no list
+    known: Mutex<Option<HashSet<String>>>,
+}
+
+impl Roots {
+    pub(crate) fn load(file: Option<PathBuf>) -> Self {
+        let known = file
+            .as_ref()
+            .and_then(|f| fs::read_to_string(f).ok())
+            .and_then(|s| serde_json::from_str::<Vec<String>>(&s).ok())
+            .map(|v| v.into_iter().collect());
+        Roots { file, known: Mutex::new(known) }
+    }
+
+    fn save(&self, known: &HashSet<String>) {
+        let Some(file) = &self.file else { return };
+        let mut list: Vec<_> = known.iter().collect();
+        list.sort();
+        if let Some(dir) = file.parent() {
+            let _ = fs::create_dir_all(dir);
+        }
+        let _ = fs::write(file, serde_json::to_string_pretty(&list).unwrap_or_default());
+    }
+
+    /// The user picked `root`.
+    pub(crate) fn add(&self, root: &str) {
+        let mut g = self.known.lock().unwrap_or_else(|e| e.into_inner());
+        let known = g.get_or_insert_with(HashSet::new);
+        if known.insert(root.to_owned()) {
+            self.save(known);
+        }
+    }
+
+    /// May the page use `root`? On the first launch after the update the app reopens the folder it had open,
+    /// which the user picked before there was a list: that one is taken as picked.
+    pub(crate) fn check(&self, root: &str) -> Result<()> {
+        let mut g = self.known.lock().unwrap_or_else(|e| e.into_inner());
+        match &mut *g {
+            Some(known) if known.contains(root) => Ok(()),
+            Some(_) => Err(Error::Msg(format!("open this folder from the app first: {root}"))),
+            None => {
+                let known = HashSet::from([root.to_owned()]);
+                self.save(&known);
+                *g = Some(known);
+                Ok(())
+            }
+        }
+    }
+}
 
 /// Join a vault-relative path ("a/b.md") onto the root, refusing anything that could leave it.
 fn join(root: &str, rel: &str) -> Result<PathBuf> {
@@ -64,7 +125,7 @@ fn walk(dir: &Path, prefix: &str, out: &mut Vec<Entry>) -> Result<()> {
 
 impl<R: Runtime> Vault<R> {
     pub fn pick(&self) -> Result<Option<Picked>> {
-        let Some(picked) = self.0.dialog().file().set_title("Open vault folder").blocking_pick_folder() else {
+        let Some(picked) = self.app.dialog().file().set_title("Open vault folder").blocking_pick_folder() else {
             return Ok(None);
         };
         let path = picked.into_path().map_err(|e| Error::Msg(e.to_string()))?;
@@ -72,34 +133,48 @@ impl<R: Runtime> Vault<R> {
             .file_name()
             .map(|n| n.to_string_lossy().into_owned())
             .unwrap_or_else(|| path.to_string_lossy().into_owned());
-        Ok(Some(Picked { root: path.to_string_lossy().into_owned(), name }))
+        let root = path.to_string_lossy().into_owned();
+        self.roots.add(&root);
+        Ok(Some(Picked { root, name }))
+    }
+
+    /// Refuses a folder the user did not pick (see [`Roots`]).
+    pub(crate) fn check_root(&self, root: &str) -> Result<()> {
+        self.roots.check(root)
     }
 
     pub fn list(&self, root: String) -> Result<Vec<Entry>> {
+        self.check_root(&root)?;
         list(&root)
     }
 
     pub fn read(&self, root: String, path: String, binary: bool) -> Result<ReadResult> {
+        self.check_root(&root)?;
         read(&root, &path, binary)
     }
 
     pub fn write(&self, root: String, path: String, text: Option<String>, base64: Option<String>) -> Result<f64> {
+        self.check_root(&root)?;
         write(&root, &path, text, base64)
     }
 
     pub fn remove(&self, root: String, path: String) -> Result<()> {
+        self.check_root(&root)?;
         remove(&root, &path)
     }
 
     pub fn remove_dir(&self, root: String, path: String) -> Result<()> {
+        self.check_root(&root)?;
         remove_dir(&root, &path)
     }
 
     pub fn list_dir(&self, root: String, path: String) -> Result<Vec<String>> {
+        self.check_root(&root)?;
         list_dir(&root, &path)
     }
 
     pub fn exists(&self, root: String, path: String) -> Result<bool> {
+        self.check_root(&root)?;
         exists(&root, &path)
     }
 }
@@ -116,8 +191,14 @@ fn read(root: &str, path: &str, binary: bool) -> Result<ReadResult> {
     let p = join(root, path)?;
     let bytes = fs::read(&p)?;
     let meta = fs::metadata(&p)?;
-    let data = if binary { STANDARD.encode(&bytes) } else { String::from_utf8_lossy(&bytes).into_owned() };
-    Ok(ReadResult { data, mtime: mtime_ms(&meta), size: bytes.len() as u64 })
+    let size = bytes.len() as u64;
+    let data = if binary {
+        STANDARD.encode(&bytes)
+    } else {
+        // replacing the bad bytes would damage the file on its next save
+        String::from_utf8(bytes).map_err(|_| Error::Msg(format!("{path} is not UTF-8 text")))?
+    };
+    Ok(ReadResult { data, mtime: mtime_ms(&meta), size })
 }
 
 /// Writes through a temporary file and a rename, so other apps never see a half-written note.
@@ -190,6 +271,25 @@ mod tests {
     }
 
     #[test]
+    fn only_picked_folders_are_served_and_the_list_is_kept() {
+        let t = Tmp::new("roots");
+        let file = t.0.join("config/vaults.json");
+        let roots = Roots::load(Some(file.clone()));
+        assert!(roots.check("/old/vault").is_ok(), "the first launch after the update keeps the folder the app reopens");
+        assert!(roots.check("/somewhere/else").is_err(), "then only picked folders");
+        roots.add("/picked");
+        assert!(roots.check("/picked").is_ok());
+
+        let again = Roots::load(Some(file));
+        assert!(again.check("/old/vault").is_ok() && again.check("/picked").is_ok(), "the list survives a restart");
+        assert!(again.check("/").is_err() && again.check("/old/vault/..").is_err());
+
+        let fresh = Roots::load(Some(t.0.join("none/vaults.json")));
+        fresh.add("/a");
+        assert!(fresh.check("/b").is_err(), "a list started by a pick trusts nothing else");
+    }
+
+    #[test]
     fn join_stays_inside_the_vault() {
         let root = if cfg!(windows) { r"C:\vault" } else { "/vault" };
         assert_eq!(join(root, "a/b.md").unwrap(), Path::new(root).join("a").join("b.md"));
@@ -227,10 +327,14 @@ mod tests {
     }
 
     #[test]
-    fn text_reads_replace_invalid_utf8() {
+    fn text_reads_refuse_what_is_not_utf8() {
         let t = Tmp::new("utf8");
         fs::write(t.0.join("a.md"), [b'o', b'k', 0xff]).unwrap();
-        assert_eq!(read(t.root(), "a.md", false).unwrap().data, "ok\u{fffd}");
+        let e = read(t.root(), "a.md", false).unwrap_err().to_string();
+        assert!(e.contains("not UTF-8"), "{e}");
+        assert_eq!(STANDARD.decode(read(t.root(), "a.md", true).unwrap().data).unwrap(), [b'o', b'k', 0xff], "as binary it reads");
+        fs::write(t.0.join("b.md"), "привет").unwrap();
+        assert_eq!(read(t.root(), "b.md", false).unwrap().data, "привет");
         assert!(read(t.root(), "missing.md", false).is_err());
     }
 

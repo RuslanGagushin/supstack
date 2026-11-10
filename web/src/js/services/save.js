@@ -5,6 +5,7 @@
    ========================================================= */
 import { t } from "../core/i18n.js";
 import { baseName } from "../core/util.js";
+import { formatMoment } from "../core/dates.js";
 import { dumpYaml, splitNote } from "../core/frontmatter.js";
 import { emit } from "./events.js";
 import { undoStack, vault } from "./state.js";
@@ -24,6 +25,14 @@ export async function writeRaw(path, raw, { silentEditor = false, fromSync = fal
   if (isNew) indexNames();
   if (!fromSync) syncHook(isNew ? "create" : "modify", path);
   emit("written", path, { silentEditor });
+}
+/** "cards/Note.md" → "cards/Note (conflict 2026-11-10 10.00.00).md", as git sync names the other side of a conflict. */
+export function conflictPath(path, date = new Date()) {
+  const name = path.slice(path.lastIndexOf("/") + 1), dot = name.lastIndexOf(".");
+  const [stem, ext] = dot > 0 ? [name.slice(0, dot), name.slice(dot)] : [name, ""];
+  let p = path.slice(0, path.length - name.length) + `${stem} (conflict ${formatMoment(date, "YYYY-MM-DD HH.mm.ss")})${ext}`;
+  for (let i = 2; vault.allPaths.has(p); i++) p = p.replace(/(\)| \d+\))(\.[^./]*)?$/, (m, close, e = "") => ` ${i})${e}`);
+  return p;
 }
 export async function updateFM(path, fn) {
   await emit("flush", path);

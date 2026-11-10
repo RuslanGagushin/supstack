@@ -7,9 +7,10 @@ import { splitNote } from "../core/frontmatter.js";
 import { on } from "../services/events.js";
 import { board, editor, UI, vault } from "../services/state.js";
 import { cardIcon } from "../services/vault.js";
-import { writeRaw } from "../services/save.js";
+import { conflictPath, writeRaw } from "../services/save.js";
 import { syncHook } from "../services/sync.js";
 import { $, $$, h, ic, iconBtn } from "./dom.js";
+import { notice } from "./ui.js";
 import { renderMarkdown, wireRendered } from "./markdown.js";
 import { promptIcon, renameCard } from "./actions.js";
 import { masonries } from "./masonry.js";
@@ -71,9 +72,20 @@ export async function saveEditor() {
   editor.dirty = false;
   editor.saving = true;
   setSaveState();
-  const raw = editor.mode === "source" ? ta.value : splitNote(n.raw).fm + (editor.mode === "edit" ? liveText() : ta.value);
-  try { if (raw !== n.raw) await writeRaw(path, raw, { silentEditor: true }); }
-  catch { editor.dirty = true; }
+  // the note changed on disk (another app, git sync) while there was unsaved typing: the typing is saved, and the
+  // other text is kept beside it, as git sync does with a conflict
+  const base = editor.base?.path === path ? editor.base.raw : n.raw;
+  const theirs = n.raw !== base ? n.raw : null;
+  const raw = editor.mode === "source" ? ta.value : splitNote(base).fm + (editor.mode === "edit" ? liveText() : ta.value);
+  try {
+    if (theirs != null && theirs !== raw) {
+      const copy = conflictPath(path);
+      await writeRaw(copy, theirs);
+      notice(t("editConflict", { name: baseName(path), copy: baseName(copy) }));
+    }
+    if (raw !== n.raw) await writeRaw(path, raw, { silentEditor: true });
+    if (editor.path === path) editor.base = { path, raw };
+  } catch { editor.dirty = true; }
   editor.saving = false;
   setSaveState();
   refresh({ keepEditor: true });
@@ -88,6 +100,7 @@ export function syncEditorFromDisk() {
   const ta = $(".sn-editor-text");
   const n = vault.notes.get(editor.path);
   if (!n) { renderEditor(); return; }
+  if (!editor.dirty) editor.base = { path: editor.path, raw: n.raw };
   if (editor.mode === "edit" && editor.live && !editor.dirty) {
     const L = editor.live;
     if (L.body !== n.body || liveText() !== n.body) {
@@ -132,6 +145,7 @@ export function renderEditor() {
   host.replaceChildren();
   if (!path) return;
   const n = vault.notes.get(path);
+  if (n && (!editor.dirty || editor.base?.path !== path)) editor.base = { path, raw: n.raw };
   const head = h("div", { cls: "sn-editor-head" });
   head.append(iconBtn("x", t("closeEditor"), () => closeEditor()));
   const boardNote = isBoardNote(path);

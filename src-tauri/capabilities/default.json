@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "What the Supstack window may do: open the vault folder, read and write inside it, open links outside the app.",
+  "description": "What the Supstack window may do: open the vault folder, read and write inside it, open links outside the app, open vault files with their default app (never programs, scripts or shortcuts: web/src/js/services/attachments.js RUNNABLE_EXTS).",
   "windows": [
     "main"
   ],
@@ -15,6 +15,164 @@
       "allow": [
         {
           "path": "**"
+        }
+      ],
+      "deny": [
+        {
+          "path": "**/*.[eE][xX][eE]"
+        },
+        {
+          "path": "**/*.[cC][oO][mM]"
+        },
+        {
+          "path": "**/*.[bB][aA][tT]"
+        },
+        {
+          "path": "**/*.[cC][mM][dD]"
+        },
+        {
+          "path": "**/*.[mM][sS][iI]"
+        },
+        {
+          "path": "**/*.[mM][sS][pP]"
+        },
+        {
+          "path": "**/*.[sS][cC][rR]"
+        },
+        {
+          "path": "**/*.[pP][iI][fF]"
+        },
+        {
+          "path": "**/*.[cC][pP][lL]"
+        },
+        {
+          "path": "**/*.[pP][sS]1"
+        },
+        {
+          "path": "**/*.[pP][sS][mM]1"
+        },
+        {
+          "path": "**/*.[vV][bB][sS]"
+        },
+        {
+          "path": "**/*.[vV][bB][eE]"
+        },
+        {
+          "path": "**/*.[jJ][sS]"
+        },
+        {
+          "path": "**/*.[jJ][sS][eE]"
+        },
+        {
+          "path": "**/*.[wW][sS][fF]"
+        },
+        {
+          "path": "**/*.[wW][sS][hH]"
+        },
+        {
+          "path": "**/*.[hH][tT][aA]"
+        },
+        {
+          "path": "**/*.[lL][nN][kK]"
+        },
+        {
+          "path": "**/*.[uU][rR][lL]"
+        },
+        {
+          "path": "**/*.[rR][eE][gG]"
+        },
+        {
+          "path": "**/*.[jJ][aA][rR]"
+        },
+        {
+          "path": "**/*.[aA][pP][pP][rR][eE][fF]-[mM][sS]"
+        },
+        {
+          "path": "**/*.[mM][sS][cC]"
+        },
+        {
+          "path": "**/*.[iI][nN][fF]"
+        },
+        {
+          "path": "**/*.[aA][pP][pP]"
+        },
+        {
+          "path": "**/*.[cC][oO][mM][mM][aA][nN][dD]"
+        },
+        {
+          "path": "**/*.[tT][oO][oO][lL]"
+        },
+        {
+          "path": "**/*.[sS][hH]"
+        },
+        {
+          "path": "**/*.[zZ][sS][hH]"
+        },
+        {
+          "path": "**/*.[bB][aA][sS][hH]"
+        },
+        {
+          "path": "**/*.[cC][sS][hH]"
+        },
+        {
+          "path": "**/*.[kK][sS][hH]"
+        },
+        {
+          "path": "**/*.[fF][iI][sS][hH]"
+        },
+        {
+          "path": "**/*.[pP][kK][gG]"
+        },
+        {
+          "path": "**/*.[mM][pP][kK][gG]"
+        },
+        {
+          "path": "**/*.[dD][mM][gG]"
+        },
+        {
+          "path": "**/*.[sS][cC][pP][tT]"
+        },
+        {
+          "path": "**/*.[sS][cC][pP][tT][dD]"
+        },
+        {
+          "path": "**/*.[aA][pP][pP][lL][eE][sS][cC][rR][iI][pP][tT]"
+        },
+        {
+          "path": "**/*.[wW][oO][rR][kK][fF][lL][oO][wW]"
+        },
+        {
+          "path": "**/*.[tT][eE][rR][mM][iI][nN][aA][lL]"
+        },
+        {
+          "path": "**/*.[wW][eE][bB][lL][oO][cC]"
+        },
+        {
+          "path": "**/*.[iI][nN][eE][tT][lL][oO][cC]"
+        },
+        {
+          "path": "**/*.[fF][iI][lL][eE][lL][oO][cC]"
+        },
+        {
+          "path": "**/*.[aA][cC][tT][iI][oO][nN]"
+        },
+        {
+          "path": "**/*.[pP][rR][eE][fF][pP][aA][nN][eE]"
+        },
+        {
+          "path": "**/*.[dD][eE][sS][kK][tT][oO][pP]"
+        },
+        {
+          "path": "**/*.[rR][uU][nN]"
+        },
+        {
+          "path": "**/*.[bB][iI][nN]"
+        },
+        {
+          "path": "**/*.[aA][pP][pP][iI][mM][aA][gG][eE]"
+        },
+        {
+          "path": "**/*.[aA][pP][pP]/**"
         }
       ]
     },

@@ -4,9 +4,11 @@
    Files changed on both sides keep this device's text; the other side is saved next to it
    as "name (conflict …).md". On Android the repository is a clone in the app's private
    storage that is mirrored to and from the picked folder.
-   Settings (remote, access token…) are saved in the repository's own .git/config, which is
+   Settings (remote, branch, author…) are saved in the repository's own .git/config, which is
    never pushed, so they stay with the vault folder; this app keeps a copy for vaults
-   that are not repositories yet.
+   that are not repositories yet. The access token is kept by the native side (the system's
+   keychain on desktop, the clone's config in the app's private storage on Android), never in
+   this page's storage.
    ========================================================= */
 import { st } from "../core/i18n.js";
 import { lsGet, lsSet } from "./storage.js";
@@ -26,7 +28,9 @@ const gitConfigured = () => !!SS.remote.trim();
 export const syncConfigured = () => syncAvailable() && gitConfigured();
 
 function loadSyncSettings(saved) { Object.assign(SS, GIT_DEFAULTS, lsGet(gitKey(), {}) || {}, saved || {}); }
-export function saveSyncSettings() { lsSet(gitKey(), SS); saveRepoSettings(); scheduleAuto(); syncChanged(); }
+/** This device's copy of the settings, without the token (versions up to 0.26 kept it here too). */
+const saveLocal = () => lsSet(gitKey(), { ...SS, token: "" });
+export function saveSyncSettings() { saveLocal(); saveRepoSettings(); scheduleAuto(); syncChanged(); }
 /** Writes the settings into the repository's .git/config (creating the repository once there is a remote). */
 async function saveRepoSettings() {
   const settings = { remote: SS.remote.trim(), branch: SS.branch.trim(), username: SS.username.trim(), token: SS.token,
@@ -56,14 +60,15 @@ export async function syncBoot() {
   try {
     const info = await vinvoke("git_info", { root: vault.fs.root });
     sync.crash = info.previousCrash || "";
-    if (info.settings) { loadSyncSettings(info.settings); lsSet(gitKey(), SS); }
+    if (info.settings) { loadSyncSettings(info.settings); saveLocal(); }
     else {
       // a vault that is already a repository: take its remote
       if (!SS.remote && info.remote) { SS.remote = info.remote; if (info.branch) SS.branch = info.branch; }
       // settings from before they were kept in the repository move there
-      if (gitConfigured()) { lsSet(gitKey(), SS); await saveRepoSettings(); }
+      if (gitConfigured()) { saveLocal(); await saveRepoSettings(); }
     }
   } catch { /* not a repository yet */ }
+  if (lsGet(gitKey(), {})?.token) saveLocal(); // a token an older version left in this page's storage
   scheduleAuto();
   syncChanged();
   // after a crash, wait for the user instead of crashing again at every launch

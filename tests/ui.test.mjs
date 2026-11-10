@@ -565,7 +565,7 @@ describe("rendering", () => {
 
   test("wiki links, tags, highlights, callouts, tasks and embeds", async () => {
     const html = await render("[[Target|go]] [[Missing]] #tag ==hi==\n\n> [!warning] Careful\n> body\n\n- [ ] task\n\n![[p.svg]]");
-    assert.match(html, /<a data-href="Target" class="internal-link">go<\/a>/);
+    assert.match(html, /<a (data-href="Target" class="internal-link"|class="internal-link" data-href="Target")>go<\/a>/);
     assert.match(html, /internal-link is-unresolved/);
     assert.match(html, /class="tag"[^>]*>#tag</);
     assert.match(html, /<mark>hi<\/mark>/);
@@ -877,6 +877,20 @@ describe("the app", () => {
   });
 });
 
+describe("git sync settings", () => {
+  test("the access token is handed to the native side and never kept in the page's storage", async () => {
+    const old = { remote: "https://example.com/notes.git", branch: "main", username: "git", token: "tok", authorName: "", authorEmail: "", auto: false, minutes: 5 };
+    await H.openNativeApp({ storage: { "sn-git:/vault": old } });
+    await page().waitForFunction(() => window.__invokes.some(([c]) => c === "plugin:vault|git_save_settings"));
+    const saved = await ev(() => window.__invokes.find(([c]) => c === "plugin:vault|git_save_settings")[1].settings);
+    assert.equal(saved.token, "tok", "the token an older version kept in the page moves to the repository's settings");
+    const local = await ev(() => JSON.parse(localStorage.getItem("sn-git:/vault")));
+    assert.equal(local.token, "", "and leaves the page's storage");
+    assert.equal(local.remote, old.remote);
+    noErrors();
+  });
+});
+
 describe("phone layout", () => {
   beforeEach(() => openVault({ viewport: { width: 390, height: 800 } }));
 
@@ -1019,6 +1033,54 @@ describe("list of notes", () => {
     await page().keyboard.press("ArrowRight");
     assert.equal(await ev(() => board.target), "cards/Roman Empire.md");
     assert.ok(await ev(() => document.activeElement.classList.contains("sn-row")), "a row of the new list has the focus, so the arrows go on");
+    noErrors();
+  });
+});
+
+describe("editing a note that changes on disk", () => {
+  beforeEach(() => openVault({ demo: false, notes: { "cards/A.md": "---\ntags: x\n---\nold\n" } }));
+  const type = (text) => ev((text) => {
+    openEditor("cards/A.md"); editor.mode = "source"; renderEditor();
+    const ta = $(".sn-editor-text"); ta.value = text; editor.dirty = true;
+  }, text);
+  const changeOnDisk = (text) => ev(async (text) => {
+    const p = "cards/A.md";
+    await vault.fs.write(p, text);
+    vault.notes.set(p, parseNote(p, text, Date.now()));
+  }, text);
+
+  test("unsaved typing is saved and the text from outside is kept beside it", async () => {
+    await type("---\ntags: x\n---\nmine\n");
+    await changeOnDisk("---\ntags: x\n---\ntheirs\n");
+    await ev(() => saveEditor());
+    assert.equal(await H.fsText("cards/A.md"), "---\ntags: x\n---\nmine\n");
+    const copies = await ev(() => [...vault.notes.keys()].filter((p) => p.includes("(conflict ")));
+    assert.equal(copies.length, 1, String(copies));
+    assert.match(copies[0], /^cards\/A \(conflict \d{4}-\d\d-\d\d \d\d\.\d\d\.\d\d\)\.md$/);
+    assert.equal(await H.fsText(copies[0]), "---\ntags: x\n---\ntheirs\n");
+    assert.match(await page().textContent(".sn-toast-text"), /changed outside the app/);
+    // typing on goes on from the saved text, without another copy
+    await ev(() => { const ta = $(".sn-editor-text"); ta.value = ta.value + "more\n"; editor.dirty = true; return saveEditor(); });
+    assert.equal(await ev(() => [...vault.notes.keys()].filter((p) => p.includes("(conflict ")).length), 1);
+    noErrors();
+  });
+
+  test("in the live editor too, with the frontmatter the typing started from", async () => {
+    await ev(() => { openEditor("cards/A.md"); $(".sn-editor-text.is-live").value = "mine\n"; editor.dirty = true; });
+    await changeOnDisk("---\ntags: y\n---\ntheirs\n");
+    await ev(() => saveEditor());
+    assert.equal(await H.fsText("cards/A.md"), "---\ntags: x\n---\nmine\n");
+    const copy = await ev(() => [...vault.notes.keys()].find((p) => p.includes("(conflict ")));
+    assert.equal(await H.fsText(copy), "---\ntags: y\n---\ntheirs\n");
+    noErrors();
+  });
+
+  test("a save with nothing changed outside writes no copy, and a second copy gets its own name", async () => {
+    await type("---\ntags: x\n---\nmine\n");
+    await ev(() => saveEditor());
+    assert.equal(await ev(() => [...vault.notes.keys()].length), 1);
+    const names = await ev(() => { const d = new Date(2026, 10, 10, 10, 0, 0); const a = conflictPath("cards/A.md", d); vault.allPaths.add(a); const b = conflictPath("cards/A.md", d); vault.allPaths.add(b); return [a, b, conflictPath("cards/A.md", d)]; });
+    assert.deepEqual(names, ["cards/A (conflict 2026-11-10 10.00.00).md", "cards/A (conflict 2026-11-10 10.00.00 2).md", "cards/A (conflict 2026-11-10 10.00.00 3).md"]);
     noErrors();
   });
 });

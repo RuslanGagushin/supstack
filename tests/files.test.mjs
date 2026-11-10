@@ -2,6 +2,7 @@
 // Runs the real page in headless Chrome on the in-memory demo vault: `npm test`.
 import { beforeEach, describe, test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { openVault as open, ev, raw, tick as frame, SVG } from "./harness.mjs";
 import * as H from "./harness.mjs";
 
@@ -171,5 +172,32 @@ describe("phone layout", () => {
     await page.click(".fv-close");
     assert.equal(await page.isVisible(".fv-pane"), true);
     assert.equal(errors.length, 0, errors.join("\n"));
+  });
+});
+
+describe("opening files in the desktop app", () => {
+  test("a document opens with its app; a program, a script or a shortcut is only shown in its folder", async () => {
+    page = await H.openNativeApp({ expose: true, notes: { "Home.md": "# Home", "attachments/doc.pdf": "%PDF", "attachments/run.SH": "echo", "attachments/tool": "x", "attachments/Some.app/Contents/x.png": "x" } });
+    const opened = (p) => ev(async (p) => {
+      window.__invokes.length = 0;
+      await openAttachment(p);
+      return window.__invokes.filter(([c]) => c.startsWith("plugin:opener|")).map(([c, a]) => [c.split("|")[1], a.path ?? a.paths]);
+    }, p);
+    assert.deepEqual(await opened("attachments/doc.pdf"), [["open_path", "/vault/attachments/doc.pdf"]]);
+    for (const p of ["attachments/run.SH", "attachments/tool", "attachments/Some.app/Contents/x.png"]) {
+      assert.deepEqual(await opened(p), [["reveal_item_in_dir", ["/vault/" + p]]], p);
+    }
+    assert.match(await page.textContent(".sn-toast-text"), /could run a program/);
+    assert.deepEqual(H.errors, []);
+  });
+
+  test("the window's permissions refuse to open every kind of file the page only shows in its folder", async () => {
+    await openVault({ demo: false });
+    const exts = await ev(() => RUNNABLE_EXTS);
+    const cap = JSON.parse(readFileSync(new URL("../src-tauri/capabilities/default.json", import.meta.url), "utf8"));
+    const deny = cap.permissions.find((p) => p.identifier === "opener:allow-open-path").deny.map((d) => d.path);
+    const cls = (e) => [...e].map((ch) => (/[a-z]/i.test(ch) ? `[${ch.toLowerCase()}${ch.toUpperCase()}]` : ch)).join("");
+    assert.deepEqual(exts.filter((e) => !deny.includes(`**/*.${cls(e)}`)), []);
+    assert.ok(deny.includes("**/*.[aA][pP][pP]/**"), "nothing inside an app bundle");
   });
 });

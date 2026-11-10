@@ -18,6 +18,19 @@ export async function attachmentUrl(path) {
   return p;
 }
 export const PDF_EXT = /\.pdf$/i;
+/** Files the system would run rather than show: programs, scripts, installers, shortcuts. The desktop app shows them in
+ *  their folder instead of opening them (one may have come in through git from someone else's repository), and
+ *  src-tauri/capabilities/default.json refuses to open them as well (tests/files.test.mjs checks the two lists agree). */
+export const RUNNABLE_EXTS = [
+  "exe", "com", "bat", "cmd", "msi", "msp", "scr", "pif", "cpl", "ps1", "psm1", "vbs",
+  "vbe", "js", "jse", "wsf", "wsh", "hta", "lnk", "url", "reg", "jar", "appref-ms", "msc",
+  "inf", "app", "command", "tool", "sh", "zsh", "bash", "csh", "ksh", "fish", "pkg", "mpkg",
+  "dmg", "scpt", "scptd", "applescript", "workflow", "terminal", "webloc", "inetloc", "fileloc", "action", "prefpane", "desktop",
+  "run", "bin", "appimage",
+];
+const RUNNABLE_RE = new RegExp(`\\.(${RUNNABLE_EXTS.join("|")})$`, "i");
+/** May the system's default app open this vault file? Not a runnable one, nor a name without an extension (a program may have none), nor anything inside a macOS app bundle. */
+export const opensSafely = (path) => { const name = fileName(path); return /.\.[^.]+$/.test(name) && !RUNNABLE_RE.test(name) && !/\.app\//i.test(path); };
 export const fileExt = (p) => (/\.([^./]+)$/.exec(p)?.[1] || "").toLowerCase();
 export const fileName = (p) => p.split("/").pop();
 export function allAttachments() { return [...vault.allPaths].filter((p) => !isMd(p)); }

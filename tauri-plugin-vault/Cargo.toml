@@ -23,6 +23,8 @@ libgit2-sys = "0.18"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-dialog = "2.8"
+# the git access token goes to the system's keychain (macOS Keychain, Windows Credential Manager, the Linux kernel keyring)
+keyring = { version = "3.6", features = ["apple-native", "windows-native", "linux-native"] }
 
 [build-dependencies]
 tauri-plugin = { version = "2.7", features = ["build"] }
