@@ -319,7 +319,7 @@ button.sn-row-enter:hover, .sn-row:focus-visible button.sn-row-enter { backgroun
   body.sn-app #app { grid-template-columns: minmax(0, 1fr); }
   body.sn-app .sn-main { grid-column: 1; }
   body.sn-app .sn-side { box-shadow: var(--shadow-l); }
-  body.sn-app .sn-editor.win { border-radius: 0; border: 0; }
+  body.sn-app .sn-editor.win { margin-top: 0; border-radius: 0; border: 0; } /* the note over the board fills the screen */
   body.sn-app .sn-page { padding: 12px 14px 60px; }
   body.sn-app .sn-editor-page { padding: 12px 14px 40vh; }
 }
@@ -360,15 +360,15 @@ html.is-android { --safe-top: max(env(safe-area-inset-top, 0px), 44px); --safe-b
 /* the app's own controls are not text: a long press or a drag over them selects nothing */
 html.is-native :is(.sn-side, .sn-tabbar, .sn-topbar, .agbar, .ag-strip, .sn-seg, button) { -webkit-user-select: none; user-select: none; }
 html.is-android { -webkit-tap-highlight-color: transparent; }
-/* edge-to-edge screens: keep the top bar and the sides clear of the status bar and rounded corners */
-/* with no top bar, the board's own bar keeps clear of the status bar */
-html.is-native body.sn-app .sn-main { padding-top: max(6px, env(safe-area-inset-top)); }
-html.is-android body.sn-app .sn-main { padding-top: var(--safe-top); }
-html.is-native body.sn-app .sn-main { padding-right: env(safe-area-inset-right); }
+/* edge-to-edge screens: the board's own bar keeps clear of the status bar and rounded corners. On Android the vault
+   plugin already moves #app below the status bar (VaultPlugin.kt, --sn-inset-*), so nothing more is added here */
+html.is-native body.sn-app .sn-main { padding-top: max(6px, env(safe-area-inset-top)); padding-right: env(safe-area-inset-right); }
 @media (max-width: 820px) {
   /* the drawer and the note over the board start below the status bar and end above the gesture bar */
   html.is-android body.sn-app .sn-side { padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
-  html.is-android body.sn-app .sn-editor.win { top: 0; padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
+  /* the note covers the whole screen, its sheet under the bars and its text clear of them: the plugin's own rule
+     (.sn-editor.win, 8px in from the edges) is outweighed here, and its measured insets used when it has sent them */
+  html.is-android body.sn-app .sn-editor.win { inset: 0 !important; padding-top: var(--sn-inset-top, var(--safe-top)) !important; padding-bottom: var(--sn-inset-bottom, var(--safe-bottom)) !important; }
 }
 
 /* ---------- The welcome screen: the app's icon and name on a card, the ways in below */
