@@ -353,6 +353,17 @@ export function openEditorAtLine(path, lineIndex) {
 /* ---------- reading view: show priorities, tags and dates like Org does */
 /** A timestamp as its pill shows it: without the < > or [ ] around it, a range as "from – to". */
 export const orgTsLabel = (s) => s.replace(/>--</, " – ").replace(/^[<[]|[>\]]$/g, "");
+/** A timestamp as a card's face shows it: "11 Nov", "10 Nov, 10:00", a range as "9 Nov – 11 Nov"; the year only when it
+ *  is not this one, the weekday and the repeater left to the note */
+export function orgTsShort(s) {
+  return s.split(/>--</).map((part) => {
+    const m = /(\d{4})-(\d{2})-(\d{2})(?:[^\d\]>]*?(\d{1,2}:\d{2}))?/.exec(part);
+    if (!m) return orgTsLabel(part);
+    const d = new Date(+m[1], +m[2] - 1, +m[3]);
+    const day = d.toLocaleDateString(LANG, d.getFullYear() === new Date().getFullYear() ? { day: "numeric", month: "short" } : { day: "numeric", month: "short", year: "numeric" });
+    return m[4] ? `${day}, ${m[4]}` : day;
+  }).join(" – ");
+}
 export const ORG_DECOR_RE = /(SCHEDULED:|DEADLINE:|CLOSED:)|(<\d{4}-\d{2}-\d{2}[^>\n]*>(?:--<\d{4}-\d{2}-\d{2}[^>\n]*>)?)|(\[\d{4}-\d{2}-\d{2}[^\]\n]*\])/g;
 export function orgDecorate(el, path) {
   for (const blk of el.querySelectorAll("li.task-list-item")) {
@@ -384,7 +395,7 @@ export function orgDecorate(el, path) {
     while ((m = re.exec(n.data))) {
       frag.append(n.data.slice(last, m.index));
       if (m[1]) frag.append(h("span", { cls: "org-plan k-" + m[1].slice(0, -1).toLowerCase(), text: m[1].slice(0, -1) }));
-      else frag.append(h("span", { cls: "org-ts" + (m[3] ? " is-inactive" : ""), title: m[0], text: orgTsLabel(m[0]) }));
+      else frag.append(h("span", { cls: "org-ts" + (m[3] ? " is-inactive" : ""), title: m[0], text: orgTsLabel(m[0]), "data-short": orgTsShort(m[0]) })); // cards show data-short (writing.css)
       last = m.index + m[0].length;
     }
     frag.append(n.data.slice(last));

@@ -142,12 +142,15 @@ export function suggestModal({ placeholder, items, allowCreate = false, grid = f
       shown = shown.slice(0, limit).map((x) => x.it);
       if (allowCreate && q && !items.some((it) => norm(it.title) === norm(q))) shown.push({ create: q, title: t("createNew", { name: q }), icon: "plus" });
       sel = Math.min(sel, Math.max(0, shown.length - 1));
+      // a note every result shares (all in one folder, say) tells nothing: show notes only where they differ
+      const real = shown.filter((it) => !it.create);
+      const notesDiffer = real.length < 2 || real.some((it) => (it.note || "") !== (real[0].note || ""));
       results.replaceChildren();
       if (!shown.length) results.append(h("div", { cls: "suggestion-empty", text: t("noResults") }));
       shown.forEach((it, i) => {
         if (!q && it.group && it.group !== shown[i - 1]?.group) results.append(h("div", { cls: "suggestion-group", text: it.group }));
         const row = render ? render(it) : h("div", { cls: "suggestion-item" },
-          it.icon ? ic("suggestion-icon", it.icon) : null, h("span", { cls: "suggestion-title", text: it.title }), it.note ? h("span", { cls: "suggestion-note", text: it.note }) : null,
+          it.icon ? ic("suggestion-icon", it.icon) : null, h("span", { cls: "suggestion-title", text: it.title }), it.note && notesDiffer ? h("span", { cls: "suggestion-note", text: it.note }) : null,
           it.checked ? ic("suggestion-check", "check") : null,
           it.keys ? h("span", { cls: "suggestion-keys" }, it.keys.map((k) => h("kbd", { text: keyName(k) }))) : null);
         row.classList.add("suggestion-item");

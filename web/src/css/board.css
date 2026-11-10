@@ -151,6 +151,10 @@
 /* Footer */
 .sn-foot-meta { display: flex; align-items: center; gap: var(--size-2-3); min-width: 0; }
 .sn-foot-actions { display: flex; align-items: center; gap: 0; margin-right: calc(-1 * var(--size-2-3)); }
+/* the card's "⋯" shows with the pointer over the card or the focus in it; touch screens always show it */
+.sn-board .sn-card .sn-card-menu { opacity: 0; transition: opacity 120ms ease; }
+.sn-board .sn-card:is(:hover, :focus-within, .is-editing) .sn-card-menu, .sn-board .sn-card .sn-card-menu:focus-visible { opacity: 1; }
+@media (hover: none) { .sn-board .sn-card .sn-card-menu { opacity: 1; } }
 .sn-board .sn-count { font-variant-numeric: tabular-nums; }
 .sn-board .sn-count svg { width: var(--icon-xs); height: var(--icon-xs); }
 

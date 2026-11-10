@@ -22,7 +22,9 @@ export function formatDate(ms) {
   if (diff < 60_000) return rtf.format(0, "second");
   if (diff < 3_600_000) return rtf.format(-Math.round(diff / 60_000), "minute");
   if (diff < 86_400_000) return rtf.format(-Math.round(diff / 3_600_000), "hour");
-  return new Date(ms).toLocaleDateString(LANG, { day: "numeric", month: "short", year: "numeric" });
+  // "23 Oct": the year only when it is not this one
+  const d = new Date(ms), sameYear = d.getFullYear() === new Date().getFullYear();
+  return d.toLocaleDateString(LANG, sameYear ? { day: "numeric", month: "short" } : { day: "numeric", month: "short", year: "numeric" });
 }
 export function parentChip(parentPath, onRemove) {
   const chip = h("a", { cls: "sn-chip", href: "#", title: parentPath });
@@ -152,7 +154,7 @@ export function renderCard(path, via, depth = 1) {
     });
     actions.append(b);
   }
-  actions.append(iconBtn("more-horizontal", t("more"), (e) => { e.stopPropagation(); cardMenu(path, via).showAtEvent(e); }));
+  actions.append(iconBtn("more-horizontal", t("more"), (e) => { e.stopPropagation(); cardMenu(path, via).showAtEvent(e); }, "sn-card-menu"));
   foot.append(actions);
   card.append(foot);
 

@@ -149,6 +149,18 @@ body.sn-app .sn-card.face-compact .sn-card-body img { display: none; }
 body.sn-app .sn-card.face-title .sn-chips { margin-top: 2px; }
 body.sn-app .sn-card-body { line-height: 1.55; color: var(--muted); margin-top: 4px; }
 body.sn-app .sn-card-body :is(h1, h2, h3, h4, h5, h6, strong, b) { color: var(--fg); }
+/* A task's dates on a card's face: one short line, an icon for each kind (a flag for the deadline, a calendar for the
+   plan, a tick for closed) and the date as "11 Nov"; the note keeps the full words and timestamps (org-editing.js data-short) */
+body.sn-app .sn-card-body .org-plan { display: inline-block; width: 12px; height: 12px; margin: 0 4px 0 8px; padding: 0; font-size: 0; line-height: 0; vertical-align: middle;
+  background: currentColor; -webkit-mask: var(--plan-icon) center / contain no-repeat; mask: var(--plan-icon) center / contain no-repeat; }
+body.sn-app .sn-card-body .org-plan:first-child { margin-left: 0; }
+body.sn-app .sn-card-body .org-plan.k-deadline { --plan-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z'/%3E%3Cpath d='M4 22v-7'/%3E%3C/svg%3E"); }
+body.sn-app .sn-card-body .org-plan.k-scheduled { --plan-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='4' rx='2'/%3E%3Cpath d='M16 2v4M8 2v4M3 10h18'/%3E%3C/svg%3E"); }
+body.sn-app .sn-card-body .org-plan.k-closed { --plan-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E"); }
+/* the date is an inline-block centred on the line like the icon beside it (its own text is hidden, so it has no baseline to share) */
+body.sn-app .sn-card-body .org-ts[data-short] { display: inline-block; vertical-align: middle; padding: 0; background: none; box-shadow: none; font-size: 0; line-height: 0; }
+body.sn-app .sn-card-body .org-ts[data-short]::after { content: attr(data-short); color: var(--muted); font-size: var(--fs-sm); font-weight: 500; line-height: 1.5; }
+body.sn-app .sn-card-body .org-plan.k-deadline + .org-ts[data-short]::after { color: var(--todo); }
 body.sn-app .sn-tags { gap: 6px; margin-top: 8px; }
 body.sn-app .sn-tag, body.sn-app .markdown-rendered a.tag { padding: 1px 8px; border-radius: var(--r-pill); background: var(--panel); color: var(--tag); font-size: var(--fs-xs); line-height: 16px; }
 body.sn-app .sn-tag:hover { background: color-mix(in srgb, var(--panel) 80%, var(--fg) 10%); }
