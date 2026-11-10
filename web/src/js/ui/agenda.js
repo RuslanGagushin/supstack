@@ -119,7 +119,7 @@ export function renderTasksView(root) {
   const crumbs = h("div", { cls: "sn-crumbs" });
   const home = h("a", { cls: "sn-crumb", href: "#" }, ic("sn-crumb-icon", "home"), h("span", { text: t("allCards") }));
   home.addEventListener("click", (e) => { e.preventDefault(); setTarget(null); });
-  crumbs.append(home, h("span", { cls: "sn-crumb-sep", text: "/" }), h("span", { cls: "sn-crumb is-current" }, ic("sn-crumb-icon", "calendar-check"), h("span", { text: "*Org Agenda*" })));
+  crumbs.append(home, h("span", { cls: "sn-crumb-sep", text: "/" }), h("span", { cls: "sn-crumb is-current" }, ic("sn-crumb-icon", "calendar-check"), h("span", { text: tt("tasks") })));
   bar.append(crumbs);
   const tools = h("div", { cls: "sn-tools" });
   const seg = h("div", { cls: "sn-seg ag-views", role: "tablist" });

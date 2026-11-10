@@ -69,7 +69,7 @@ export function renderTree() {
   tagsSection(box);
   box.append(h("div", { cls: "sn-tree-section", text: t("tree") }));
   const allRow = h("div", { cls: "tree-item-self is-clickable sn-tree-row" + (!board.target && !board.tagView ? " is-active" : "") }, h("span", { cls: "sn-tree-toggle is-leaf" }), ic("sn-tree-icon", "home"), h("div", { cls: "tree-item-inner sn-tree-label", text: t("allCards") }),
-    h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair sn-tree-count", text: String(graph.nodes.size) })));
+    h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair sn-tree-count", text: String(graph.collect(null, 0, cmp).cards.length) }))); // the cards the board reaches, as its "of N" says
   allRow.addEventListener("click", () => setTarget(null));
   dnd.dropTarget(allRow, () => ({ path: null, parent: null, zones: ["inside"], root: true }));
   box.append(h("div", { cls: "tree-item" }, allRow));
@@ -93,10 +93,10 @@ export function renderTreeSoft() {
 }
 function shortAgo(ms) {
   const d = (Date.now() - ms) / 1000;
-  if (d < 60) return "now";
-  if (d < 3600) return Math.round(d / 60) + "m";
-  if (d < 86400) return Math.round(d / 3600) + "h";
-  if (d < 86400 * 30) return Math.round(d / 86400) + "d";
+  if (d < 60) return t("agoNow");
+  if (d < 3600) return t("agoMin", { n: Math.round(d / 60) });
+  if (d < 86400) return t("agoHour", { n: Math.round(d / 3600) });
+  if (d < 86400 * 30) return t("agoDay", { n: Math.round(d / 86400) });
   return new Date(ms).toLocaleDateString(LANG, { day: "numeric", month: "short" });
 }
 function treeNode(path, chain, cmp, o) {

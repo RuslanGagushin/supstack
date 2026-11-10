@@ -51,9 +51,12 @@ export function defaultEcho() {
   if (vault.fs?.kind === "copy") return t("volatileBanner");
   return ""; // the line stays hidden until there is a message
 }
+/** The vault whose standing note has had its turn: the note shows once per vault, as a quiet pill that goes after a
+   few seconds, and then only the sidebar's vault row carries it, so it never sits over the cards. */
+let standingShownFor = null;
 /** The toast: one message at a time, floating over the page (bottom centre; at the top on phones). A new message replaces
    the last; it goes after a few seconds unless it keeps (o.keep) or offers an action. With nothing to say it shows the
-   vault's standing note (a demo or a copy) as a quiet pill, or nothing. */
+   vault's standing note (a demo or a copy) once, as a quiet pill, or nothing. */
 function toastBox() {
   let box = $("#toast");
   if (!box) document.body.append((box = h("div", { id: "toast", cls: "sn-toast is-blank", role: "status", "aria-live": "polite" })));
@@ -63,7 +66,11 @@ export function echo(text, o = {}) {
   const box = toastBox();
   text = keyText(text || "");
   clearTimeout(echoTimer);
-  const isDefault = text === defaultEcho();
+  let isDefault = !!text && text === defaultEcho();
+  if (isDefault && !o.undo && !o.action) {
+    if (standingShownFor === vault.fs) { text = ""; isDefault = false; } // already shown for this vault: back to nothing
+    else { standingShownFor = vault.fs; echoTimer = setTimeout(() => echo(""), 8000); }
+  }
   const quiet = isDefault || !!o.hint;
   box.replaceChildren();
   box.classList.toggle("is-quiet", quiet);
@@ -72,7 +79,7 @@ export function echo(text, o = {}) {
   if (o.undo) box.append(h("button", { cls: "sn-toast-btn", type: "button", onClick: () => { echo(defaultEcho(), { keep: true }); undo(); } }, t("undo"), h("kbd", { text: keyText("Ctrl+Z") })));
   if (o.action) box.append(h("button", { cls: "sn-toast-btn", type: "button", text: o.action.label, onClick: () => { echo(defaultEcho(), { keep: true }); o.action.run(); } }));
   if (text && !isDefault && (o.keep || o.action)) box.append(h("button", { cls: "sn-toast-x", type: "button", "aria-label": t("close"), title: t("close"), text: "×", onClick: () => echo(defaultEcho(), { keep: true }) }));
-  if (!quiet) { box.classList.remove("is-new"); void box.offsetWidth; box.classList.add("is-new"); }
+  if (!quiet && (text || o.undo || o.action)) { box.classList.remove("is-new"); void box.offsetWidth; box.classList.add("is-new"); }
   if (!o.keep && !o.action && !isDefault && (text || o.undo)) echoTimer = setTimeout(() => echo(defaultEcho(), { keep: true }), o.undo ? 9000 : o.hint ? 12000 : 6000);
   return true;
 }

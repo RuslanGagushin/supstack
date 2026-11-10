@@ -215,7 +215,7 @@ button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--f
   .wb-brand small, .hide-narrow, .wb-btn kbd { display: none !important; }
   .wb-btn .wb-label { display: none; }
   .sn-side { position: fixed; z-index: 30; top: 0; bottom: 0; left: 0; width: min(300px, 86vw); border-right: 1px solid var(--line); }
-  .sn-editor.win { position: fixed; inset: 8px 8px 0; }
+  .sn-editor.win { position: fixed; inset: 0; } /* the note covers the board edge to edge */
   .sn-filterbar { padding: 6px 8px; }
 }
 .wb-btn > span { display: inline-flex; align-items: center; }

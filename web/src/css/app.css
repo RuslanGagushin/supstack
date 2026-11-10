@@ -58,7 +58,10 @@ button.sb-account { justify-content: flex-start; gap: 9px; width: 100%; height: 
 }
 button.sb-account:hover { background: var(--hover-bg); }
 .sb-avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--sb-avatar); color: #fff; font-size: var(--fs-sm); font-weight: 600; }
-.sb-account-name { flex: 1; min-width: 0; text-align: left; overflow: hidden; text-overflow: ellipsis; }
+.sb-account-name { flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: left; line-height: 1.25; }
+.sb-account-name > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sb-account-note { color: var(--muted); font-size: var(--fs-xs); font-weight: 400; }
+button.sb-account.has-note { height: 42px; }
 
 body.sn-app .sn-tree-header { padding: 0 12px 4px 14px; gap: 2px; }
 body.sn-app .sn-tree-header .clickable-icon { width: 28px; height: 26px; border-radius: 6px; color: var(--faint); }
@@ -326,6 +329,7 @@ html.is-native body.sn-app .sn-main { padding-right: env(safe-area-inset-right);
 .sn-welcome { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: calc(16px + var(--safe-top)) 16px calc(16px + var(--safe-bottom)); overflow-y: auto; background: var(--bg); }
 .sn-welcome-card { width: min(440px, 100%); padding: 40px 32px 28px; border: 1px solid var(--line); border-radius: 16px; background: var(--win); box-shadow: 0 12px 40px color-mix(in srgb, var(--shade) 6%, transparent); text-align: center; }
 .sn-welcome-logo { display: block; width: 72px; height: 72px; margin: 0 auto 14px; }
+body.theme-dark .sn-welcome-logo { filter: brightness(.82); } /* the icon's white tile, toned down so it does not glare on the dark card */
 .sn-welcome-title { margin: 0 0 6px; color: var(--ink); font-family: var(--font-display); font-size: var(--fs-xl); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
 .sn-welcome-sub { max-width: 340px; margin: 0 auto 26px; color: var(--muted); font-size: var(--fs-md); line-height: 1.5; }
 .sn-welcome-actions { display: flex; flex-direction: column; align-items: stretch; gap: 8px; max-width: 300px; margin: 0 auto; }

@@ -174,8 +174,12 @@ function renderAll() {
       wbBtn("plus", t("newShort"), newCard, "sb-new"),
       iconBtn("calendar-days", wt("today"), () => openToday(), "sb-round"),
       iconBtn("terminal", t("commands") + " · Ctrl+P", () => commandPalette(), "sb-round")));
-  const account = h("button", { cls: "sb-account", type: "button", title: vault.fs.name },
-    h("span", { cls: "sb-avatar", text: (vault.fs.name || "S").trim().charAt(0).toUpperCase() }), h("span", { cls: "sb-account-name", text: vault.fs.name }), ic("wb-caret", "chevron-down"));
+  // a demo or a copy says so under its name for as long as it is open (the toast shows it only once)
+  const standing = defaultEcho();
+  const note = vault.fs.kind === "demo" ? t("demoShort") : vault.fs.kind === "copy" ? t("copyShort") : "";
+  const account = h("button", { cls: "sb-account" + (note ? " has-note" : ""), type: "button", title: standing ? vault.fs.name + " — " + standing : vault.fs.name },
+    h("span", { cls: "sb-avatar", text: (vault.fs.name || "S").trim().charAt(0).toUpperCase() }),
+    h("span", { cls: "sb-account-name" }, h("span", { text: vault.fs.name }), note ? h("small", { cls: "sb-account-note", text: note }) : null), ic("wb-caret", "chevron-down"));
   account.addEventListener("click", vaultMenu);
   const side = h("div", { cls: "sn-side" }, sideHead, h("div", { cls: "sn-outline", id: "tree" }), h("div", { cls: "sb-foot" }, account));
   const sideRes = h("div", { cls: "sn-resizer is-side" });
