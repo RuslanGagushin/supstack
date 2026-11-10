@@ -571,6 +571,7 @@ describe("rendering", () => {
     assert.match(html, /<mark>hi<\/mark>/);
     assert.match(html, /callout/);
     assert.match(html, /<li class="task-list-item is-state-todo[^"]*" data-task=" "><button type="button" class="task-box s-todo"/);
+    assert.match(html, /class="task-box s-todo"[^>]*><svg class="task-svg"[^>]*><circle /, "a round box, as in the agenda");
     await H.page.waitForFunction(() => [...document.querySelectorAll("img")].some((i) => i.src.startsWith("blob:") && i.naturalWidth === 40));
   });
 

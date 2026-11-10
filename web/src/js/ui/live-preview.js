@@ -114,7 +114,7 @@ class LpBox extends CM.WidgetType {
   constructor(ch) { super(); this.ch = ch; }
   eq(o) { return o.ch === this.ch; }
   toDOM(view) {
-    const el = taskBox(this.ch, {}, { square: true });
+    const el = taskBox(this.ch);
     el.addEventListener("mousedown", (e) => e.preventDefault());
     el.addEventListener("click", (e) => { e.preventDefault(); lpSetState(view, view.posAtDOM(el), (cur) => (taskState(cur)?.open ? "x" : " ")); });
     el.addEventListener("contextmenu", async (e) => {

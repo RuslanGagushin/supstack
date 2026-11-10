@@ -150,7 +150,6 @@ button.task-box, button.task-box:not(.clickable-icon) { flex: none; width: 1.05e
 button.task-box:not(.clickable-icon):hover { background: transparent; filter: brightness(.85); }
 body.theme-dark button.task-box:not(.clickable-icon):hover { filter: brightness(1.25); }
 button.task-box:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-button.task-box[data-shape="square"] { border-radius: 4px; }
 .task-icon, .task-icon.suggestion-icon { display: inline-flex; flex: none; color: var(--task-c); }
 .task-box svg.task-svg, .task-icon svg.task-svg { width: 100%; height: 100%; }
 .s-todo { --task-c: var(--muted); } .s-doing { --task-c: var(--accent); } .s-wait { --task-c: var(--muted); }

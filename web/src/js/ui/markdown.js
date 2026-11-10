@@ -256,7 +256,7 @@ export function renderMarkdown(md, sourcePath, opts = {}) {
     }
     const st = ch != null && taskState(ch);
     if (!st) continue;
-    host.prepend(taskBox(st.ch, { dataset: { task: String(ti++) } }, { square: true }));
+    host.prepend(taskBox(st.ch, { dataset: { task: String(ti++) } }));
     li.classList.add("task-list-item", "is-state-" + st.id);
     li.dataset.task = st.ch; // the state's character, as Obsidian themes and snippets expect (li[data-task="/"])
     if (!st.open) li.classList.add("is-checked");
