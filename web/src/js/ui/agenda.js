@@ -112,7 +112,7 @@ export function renderTasksView(root) {
   const all = orgAll();
   if (AG.anchor == null) AG.anchor = T;
 
-  // top bar
+  // the view's own bar
   const bar = h("div", { cls: "sn-topbar" });
   const back = iconBtn("arrow-left", t("back"), () => goBack()); back.disabled = !board.history.length;
   bar.append(h("div", { cls: "sn-nav" }, sideToggle(), back));

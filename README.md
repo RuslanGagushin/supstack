@@ -109,17 +109,17 @@ Supstack shows a folder of Markdown notes (a *vault*) as a board of nested cards
 - `Ctrl+O` opens any card by name; `Ctrl+P` opens the command list.
 
 ### Sync
-- **Git sync:** the vault folder is a git repository. **Sync now** (or the automatic sync, after edits and every few minutes) commits your changes, merges the remote branch and pushes. Set the remote URL (HTTPS) and a personal access token in the sync button's panel.
+- **Git sync:** the vault folder is a git repository. **Sync now** (or the automatic sync, after edits and every few minutes) commits your changes, merges the remote branch and pushes. Set the remote URL (HTTPS) and a personal access token in **Settings › Git**; once sync is set up, the *Git* row in the sidebar shows its state and opens it.
 - If a note changed on two devices, your text stays in place and the other version is saved next to it as `Note (conflict …).md`, so nothing is lost.
 - The access token is never in the vault, so it is never committed or copied with the folder: on Windows and macOS it is kept in the system's keychain (Credential Manager, Keychain), on Android in the app's private storage. A `.gitignore` is created on the first sync for `.trash` and temporary files.
 - On Android the repository lives in the app's private storage and is copied to and from the folder you picked on every sync, so the vault takes up space twice there.
 
 ### Look and keyboard
-- A full-height sidebar with search, a blue *New card* button and the vault at the bottom; Inter type, white cards on warm grey.
+- No top bar: a full-height sidebar holds search, a blue *New card* button, the agenda, Files and Git sync, and the vault and settings at the bottom; it folds away and each view's own bar brings it back. Inter type, white cards on warm grey.
 - Light and dark themes; English and Russian interface.
 - Emacs-flavoured details: a mode line under each board (layout, depth, sort, card count) and a minibuffer with key hints. Most actions have shortcuts. Org-style `C-c` chords work in the editor, for example `C-c C-t` to step a task's state and `C-c C-s` / `C-c C-d` to schedule or set a deadline.
 - On phones the layout switches to a single column, the side tree becomes a drawer, and the Android **Back** button closes the editor, menus and dialogs before leaving the app.
-- **Settings** has a tab per group: Appearance, Cards, Board, Git (in the app) and About, which shows the version and checks for updates.
+- **Settings** has a section per group: Appearance (language, theme, the board's defaults and its cards), Keyboard shortcuts, Git (in the app) and About, which shows the version and checks for updates.
 
 ### Updates
 - The Windows and macOS apps check GitHub Releases when they start and twice a day. When a new version is out, a note appears in the minibuffer. **Settings → About → Install and restart** downloads it, checks its signature, installs it and restarts the app. Nothing is installed without asking, and the automatic check can be turned off there.
