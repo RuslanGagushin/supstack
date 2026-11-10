@@ -3,7 +3,7 @@
    ========================================================= */
 .wb-tasks .wb-count { min-width: 18px; height: 17px; padding: 0 5px; border-radius: 9px; font-size: var(--fs-xs); line-height: 17px; font-variant-numeric: tabular-nums; }
 .wb-tasks .wb-count.is-today { background: color-mix(in srgb, var(--next) 18%, transparent); color: var(--next); }
-.wb-tasks .wb-count.is-overdue { background: var(--todo); color: #fff; }
+.wb-tasks .wb-count.is-overdue { background: var(--todo); color: var(--win); } /* --win: white in light themes, near-black on the dark theme's lighter red */
 button.wb-btn.wb-tasks.is-active { border-color: var(--accent); }
 .sn-task-prog { display: inline-flex; align-items: center; gap: 3px; padding-left: 8px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .sn-task-prog svg { width: 12px; height: 12px; }
@@ -12,7 +12,7 @@ button.wb-btn.wb-tasks.is-active { border-color: var(--accent); }
 /* agenda (after Emacs's *Org Agenda* buffer) */
 /* its colours (--wait, --cancel, --pri-*, --now) are in the palette, base.css */
 /* priorities, tags and timestamps are pills, like the tags on cards */
-.pri { font-size: var(--fs-xs); font-weight: 700; padding: 1px 6px; border-radius: 48px; background: color-mix(in srgb, currentColor 12%, transparent); line-height: 1.5; white-space: nowrap; }
+.pri { font-size: var(--fs-xs); font-weight: 700; padding: 1px 6px; border-radius: 48px; background: color-mix(in srgb, currentColor 8%, transparent); line-height: 1.5; white-space: nowrap; }
 .pri.A { color: var(--pri-a); } .pri.B { color: var(--pri-b); } .pri.C { color: var(--pri-c); }
 .tags { display: inline-flex; gap: 4px; flex-wrap: wrap; }
 .tags .tag { font-size: var(--fs-xs); color: var(--tag); background: var(--panel); padding: 1px 8px; border-radius: 48px; line-height: 16px; }
@@ -41,7 +41,7 @@ button.fchip.exc { background: color-mix(in srgb, var(--todo) 12%, transparent);
 .ag-card.is-empty > .ag-day { color: var(--muted); font-weight: 500; }
 .ag-day .num { font-weight: 400; color: var(--muted); font-size: var(--fs-ui); font-variant-numeric: tabular-nums; text-transform: none; }
 .ag-day.weekend:not(.today) { color: var(--muted); }
-.today-pill { font-size: var(--fs-xs); background: var(--accent); color: var(--text-on-accent, #fff); padding: 1px 8px; border-radius: 48px; }
+.today-pill { font-size: var(--fs-xs); background: var(--accent); color: var(--win); padding: 1px 8px; border-radius: 48px; }
 .ag-row, .ag-grid { display: grid; grid-template-columns: 10ch 11ch 16ch minmax(0, 1fr); align-items: baseline; column-gap: 8px; padding: 7px 14px; font-variant-numeric: tabular-nums; }
 .ag-meta { display: contents; }
 .ag-row { cursor: pointer; position: relative; border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
@@ -56,7 +56,7 @@ button.fchip.exc { background: color-mix(in srgb, var(--todo) 12%, transparent);
 .ag-chip > span { overflow: hidden; text-overflow: ellipsis; }
 .ag-chip svg { flex: none; width: 12px; height: 12px; }
 .ag-chip.is-due { background: color-mix(in srgb, var(--todo) 11%, transparent); color: var(--todo); }
-.ag-chip.is-soon { background: color-mix(in srgb, var(--next) 13%, transparent); color: var(--next); }
+.ag-chip.is-soon { background: color-mix(in srgb, var(--next) 10%, transparent); color: color-mix(in srgb, var(--next) 75%, var(--ink)); }
 .k-closed .ag-chip { color: var(--done); }
 /* overdue entries, gathered above today */
 .ag-overdue { border-color: color-mix(in srgb, var(--todo) 35%, var(--line)); }
@@ -65,13 +65,10 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: 8px; paddin
 .ag-over-chev { display: inline-flex; }
 .ag-over-chev svg { width: 14px; height: 14px; transition: transform 120ms; }
 .ag-overdue.is-closed .ag-over-chev svg { transform: rotate(-90deg); }
-.ag-over-n { padding: 0 7px; border-radius: 48px; background: var(--todo); color: #fff; font-size: var(--fs-xs); line-height: 17px; }
+.ag-over-n { padding: 0 7px; border-radius: 48px; background: var(--todo); color: var(--win); font-size: var(--fs-xs); line-height: 17px; }
 /* the day's summary under its date */
 .ag-sum { margin-left: auto; color: var(--muted); font-size: var(--fs-sm); font-weight: 400; text-transform: none; white-space: nowrap; }
-/* a task's priority colours its open box */
-.ag-main .task-box.pri-A:is(.s-todo, .s-doing, .s-wait) { --task-c: var(--pri-a); }
-.ag-main .task-box.pri-B:is(.s-todo, .s-doing, .s-wait) { --task-c: var(--pri-b); }
-.ag-main .task-box.pri-C:is(.s-todo, .s-doing, .s-wait) { --task-c: var(--pri-c); }
+/* a task's box is coloured by its state, as on the board and in the note; the priority shows on its own .pri badge */
 .ag-main { min-width: 0; line-height: 1.6; padding-right: 4px; }
 .ag-main > * { margin-right: 6px; }
 .ag-main button.task-box { width: 15px; height: 15px; margin-right: 7px; vertical-align: -3px; }

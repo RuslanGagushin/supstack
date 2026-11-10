@@ -2,7 +2,7 @@ html, body { margin: 0; height: 100%; }
 * { box-sizing: border-box; }
 body.theme-dark {
   --shade: #000;
-  --bg:#1b1b1b; --win:#262626; --panel:#333333; --fg:#e8e8e8; --muted:#a8a4a3; --faint:#908c8b; --line:#444444;
+  --bg:#151515; --win:#262626; --panel:#333333; --fg:#e8e8e8; --muted:#b4b0af; --faint:#99958f; --line:#3a3a3a;
   --accent:#7c8eff; --accent-soft:#1f2547; --sel:#383838; --flash:#4a3f12; --code-bg:#2e2e2e;
   --ink:#f2f2f2; --cta:#4d64ff; --cta-hover:#7c8eff; --hover-bg:#2c2c2c;
   --tag:#d6d6d6; --tbl-head:#2e2e2e; --tbl-head-line:#3a3a3a;
@@ -14,10 +14,12 @@ body.theme-dark {
 body {
   --shade: var(--fg); /* dims and shadows; black in dark themes, where --fg is light and would glow */
   /* The palette, the one source of colour: white notes on warm grey, neutral ink, one blue accent.
-     The --l1 to --l8 levels, --todo, --next and --done, and the agenda's priority and now colours carry meaning. */
-  --bg:#f6f5f4; --win:#ffffff; --panel:#e7e6e5; --fg:#212121; --muted:#696564; --faint:#726e6c; --line:#d4d1ce;
+     The --l1 to --l8 levels, --todo, --next and --done, and the agenda's priority and now colours carry meaning.
+     Three steps of text: --fg, --muted (secondary, readable on every surface, plates included) and --faint (optional
+     detail, 4.5:1 on --bg and --win only — never on --panel, --sel or --hover-bg). */
+  --bg:#f6f5f4; --win:#ffffff; --panel:#e7e6e5; --fg:#212121; --muted:#5c5856; --faint:#726e6c; --line:#d4d1ce;
   --accent:#4d64ff; --accent-soft:#ebeeff; --sel:#dfddda; --flash:#fff1a8; --code-bg:#f4f3f2; --ink:#141414; --cta:#4d64ff;
-  --cta-hover:#3245bb; --hover-bg:#edeceb; --sb-avatar:#7c5cdb; --tag:#3e3e3e; --tbl-head:#f4f3f2; --tbl-head-line:#d4d1ce; --l1:#2f4fb5;
+  --cta-hover:#3245bb; --hover-bg:#edeceb; --sb-avatar:var(--muted);--tag:#3e3e3e; --tbl-head:#f4f3f2; --tbl-head-line:#d4d1ce; --l1:#2f4fb5;
   --l2:#9a5524; --l3:#7a3fb0; --l5:#2d7a3a; --l7:#946500; --l8:#1d7385; --todo:#c42f27; --next:#b25f06;
   --done:#2d7a3a; --pri-a:#c42f27; --pri-b:#b25f06; --pri-c:#696564; --now:#c42f27;
   --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; --font-inter: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --fs-xs: 11px;

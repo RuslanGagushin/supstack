@@ -57,7 +57,7 @@ button.sb-account { justify-content: flex-start; gap: 9px; width: 100%; height: 
   border: 0; border-radius: 8px; background: transparent; font-weight: 400;
 }
 button.sb-account:hover { background: var(--hover-bg); }
-.sb-avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--sb-avatar); color: #fff; font-size: var(--fs-sm); font-weight: 600; }
+.sb-avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--sb-avatar); color: var(--win); font-size: var(--fs-sm); font-weight: 600; }
 .sb-account-name { flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: left; line-height: 1.25; }
 .sb-account-name > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sb-account-note { color: var(--muted); font-size: var(--fs-xs); font-weight: 400; }
@@ -79,6 +79,8 @@ body.sn-app .sn-tree-row .sn-tree-label { font-weight: 400; }
 body.sn-app .sn-tree-icon { color: var(--muted); }
 body.sn-app .sn-tree-icon svg { width: 16px; height: 16px; }
 body.sn-app .tree-item-flair { font-size: var(--fs-sm); color: var(--faint); }
+/* on a hovered or current row's grey, the counts and times step up to --muted to stay readable */
+body.sn-app .sn-tree-row:is(:hover, .is-active) .tree-item-flair { color: var(--muted); }
 body.sn-app .tree-item-children { margin-inline-start: 11px; border-color: transparent; }
 body.sn-app .sn-tag-pill { padding: 1px 9px; border: 0; border-radius: 48px; background: var(--panel); color: var(--tag); font-size: var(--fs-sm); }
 body.sn-app .sn-tag-pill:hover { background: color-mix(in srgb, var(--panel) 80%, var(--fg) 10%); }

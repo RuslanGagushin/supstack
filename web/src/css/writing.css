@@ -92,7 +92,7 @@ button.sn-table-add-row:hover, button.sn-table-add-col:hover { background: color
 button.sn-tag-pill { gap: 5px; height: 22px; font-weight: 400; cursor: pointer;
 }
 button.sn-tag-pill:hover { border-color: var(--faint); background: var(--panel); color: var(--fg); }
-button.sn-tag-pill .n { color: var(--faint); font-size: var(--fs-xs); }
+button.sn-tag-pill .n { color: var(--muted); font-size: var(--fs-xs); } /* on the pill's --panel, where --faint is too light */
 
 /* Unlinked mentions */
 .sn-unlinked { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
