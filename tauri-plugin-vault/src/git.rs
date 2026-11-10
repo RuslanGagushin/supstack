@@ -456,38 +456,50 @@ pub(crate) fn sync_repo(dir: &Path, cfg: &GitConfig) -> Result<GitReport> {
     Ok(report)
 }
 
-#[cfg(mobile)]
+/// Android: the vault is a `content://` folder that git cannot open, so git works on a clone in the app's
+/// storage. The picked folder is copied into the clone before git runs and git's changes are copied back out after.
+///
+/// Nothing may be lost between the two copies:
+///  - `pending.json` is written before git runs and removed once git's changes are in the picked folder. A sync
+///    that dies in between (the app killed, a write that fails, a push that is rejected after the merge) leaves it,
+///    and the next sync finishes copying out before it copies anything in. Without it the folder would keep the old
+///    text while the manifest says it is in step with the clone, and the next edit there would undo the other
+///    device's change without a conflict.
+///  - a file edited in the picked folder while git ran keeps the edit: git's version is saved next to it as a
+///    conflict copy, and the edit goes to git on the next sync.
+///
+/// The copying works on any [`Folder`], so the desktop tests run it on a plain folder.
+#[cfg_attr(desktop, allow(dead_code))]
 mod mirror {
-    use std::{
-        collections::{HashMap, HashSet},
-        fs,
-        path::{Path, PathBuf},
-        time::UNIX_EPOCH,
-    };
+    use std::{collections::HashMap, fs, path::Path, time::UNIX_EPOCH};
 
-    use base64::{engine::general_purpose::STANDARD, Engine};
-    use tauri::{AppHandle, Manager, Runtime};
+    use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-    use super::{sync_repo, GitConfig, GitReport};
-    use crate::{Error, Result, VaultExt};
+    use super::{conflict_path, sync_repo, trace, GitConfig, GitReport};
+    use crate::{Error, Result};
 
-    type Snapshot = HashMap<String, (u64, u128)>;
-
-    fn fnv(s: &str) -> String {
-        let mut h: u64 = 0xcbf29ce484222325;
-        for b in s.bytes() {
-            h = (h ^ u64::from(b)).wrapping_mul(0x100000001b3);
-        }
-        format!("{h:016x}")
+    /// The picked folder, as the mirror uses it.
+    pub(crate) trait Folder {
+        /// every visible file (no name starting with a dot), with its stamp
+        fn list(&self) -> Result<Listing>;
+        fn read(&self, path: &str) -> Result<Vec<u8>>;
+        /// writes the file, creating folders on the way; returns its new mtime
+        fn write(&self, path: &str, bytes: Vec<u8>) -> Result<f64>;
+        fn remove(&self, path: &str) -> Result<()>;
     }
 
-    fn base<R: Runtime>(app: &AppHandle<R>, root: &str) -> Result<PathBuf> {
-        let dir = app.path().app_data_dir().map_err(|e| Error::Msg(e.to_string()))?;
-        Ok(dir.join("git").join(fnv(root)))
-    }
+    /// path → (mtime in ms, size) of the picked folder's files
+    pub(crate) type Listing = HashMap<String, (f64, u64)>;
+    /// path → (size, mtime in ns) of the clone's files
+    type Snapshot = HashMap<String, (u64, u64)>;
 
-    pub fn tree<R: Runtime>(app: &AppHandle<R>, root: &str) -> Result<PathBuf> {
-        Ok(base(app, root)?.join("tree"))
+    /// What a sync in progress needs to finish copying out, should it die after git changed the clone.
+    #[derive(Serialize, Deserialize)]
+    struct Pending {
+        /// the clone before git changed it
+        before: Snapshot,
+        /// the picked folder as it was copied into the clone
+        folder: Listing,
     }
 
     /// Visible files under `dir` with size and mtime, like the vault listing.
@@ -504,7 +516,7 @@ mod mirror {
                 if meta.is_dir() {
                     walk(&item.path(), &rel, out);
                 } else if meta.is_file() {
-                    let m = meta.modified().ok().and_then(|t| t.duration_since(UNIX_EPOCH).ok()).map_or(0, |d| d.as_nanos());
+                    let m = meta.modified().ok().and_then(|t| t.duration_since(UNIX_EPOCH).ok()).map_or(0, |d| d.as_nanos() as u64);
                     out.insert(rel, (meta.len(), m));
                 }
             }
@@ -514,34 +526,87 @@ mod mirror {
         out
     }
 
-    fn load_manifest(path: &Path) -> HashMap<String, (f64, u64)> {
-        fs::read_to_string(path).ok().and_then(|s| serde_json::from_str(&s).ok()).unwrap_or_default()
+    fn load<T: DeserializeOwned>(path: &Path) -> Option<T> {
+        fs::read_to_string(path).ok().and_then(|s| serde_json::from_str(&s).ok())
     }
 
-    pub fn sync<R: Runtime>(app: &AppHandle<R>, root: String, cfg: GitConfig) -> Result<GitReport> {
-        let vault = app.vault();
-        let base = base(app, &root)?;
-        let work = base.join("tree");
-        fs::create_dir_all(&work)?;
-        static ROOTS: std::sync::Once = std::sync::Once::new();
-        let mut roots = Ok(0);
-        ROOTS.call_once(|| roots = super::install_roots());
-        roots?;
-        let manifest_path = base.join("manifest.json");
-        let manifest = load_manifest(&manifest_path);
+    /// Through a temporary file and a rename: a sync killed while saving leaves the old file, never half of one.
+    fn save<T: Serialize>(path: &Path, value: &T) -> Result<()> {
+        let tmp = path.with_extension("json.tmp");
+        fs::write(&tmp, serde_json::to_string(value).map_err(|e| Error::Msg(e.to_string()))?)?;
+        fs::rename(&tmp, path)?;
+        Ok(())
+    }
 
-        // 1. the picked folder → the clone, so git sees the edits made since the last sync
-        super::trace("list");
-        let listing = vault.list(root.clone())?;
-        let mut present = HashSet::new();
-        for e in &listing {
-            present.insert(e.path.clone());
-            let dest = work.join(&e.path);
-            if manifest.get(&e.path) == Some(&(e.mtime, e.size)) && dest.exists() {
+    /// Git's changes to the clone (against `p.before`) → the picked folder. A file that changed in the folder since it
+    /// was copied in (`p.folder`) keeps that change, and git's version is saved beside it as a conflict copy.
+    /// `manifest` gets the folder's new stamps for what was copied. Returns whether anything changed in the folder.
+    fn copy_out(folder: &impl Folder, work: &Path, p: &Pending, manifest: &mut Listing, conflicts: &mut Vec<String>) -> Result<bool> {
+        let after = snapshot(work);
+        let changed: Vec<&String> = after.iter().filter(|(path, stamp)| p.before.get(*path) != Some(*stamp)).map(|(path, _)| path).collect();
+        let gone: Vec<&String> = p.before.keys().filter(|path| !after.contains_key(*path)).collect();
+        if changed.is_empty() && gone.is_empty() {
+            return Ok(false);
+        }
+        let now = folder.list()?;
+        let edited = |path: &str| now.get(path) != p.folder.get(path);
+        for path in changed {
+            let bytes = fs::read(work.join(path))?;
+            if edited(path) {
+                // the manifest keeps the old stamp, so the edit is copied in and committed next time
+                let copy = conflict_path(path);
+                trace(&format!("copy-out {path} → {copy}"));
+                folder.write(&copy, bytes)?;
+                conflicts.push(copy);
+            } else {
+                trace(&format!("copy-out {path}"));
+                let size = bytes.len() as u64;
+                let mtime = folder.write(path, bytes)?;
+                manifest.insert(path.clone(), (mtime, size));
+            }
+        }
+        for path in gone {
+            // edited here while the other side removed it: the edit stays
+            if edited(path) {
                 continue;
             }
-            super::trace(&format!("copy-in {} ({} bytes)", e.path, e.size));
-            let bytes = STANDARD.decode(vault.read(root.clone(), e.path.clone(), true)?.data).map_err(|e| Error::Msg(e.to_string()))?;
+            trace(&format!("remove {path}"));
+            let _ = folder.remove(path);
+            manifest.remove(path);
+        }
+        Ok(true)
+    }
+
+    /// One sync of `folder` through the clone kept in `base` (`base/tree`, with `manifest.json` and `pending.json` beside it).
+    pub(crate) fn sync_folder(folder: &impl Folder, base: &Path, cfg: &GitConfig) -> Result<GitReport> {
+        let work = base.join("tree");
+        fs::create_dir_all(&work)?;
+        let manifest_path = base.join("manifest.json");
+        let pending_path = base.join("pending.json");
+        // the picked folder's stamps when it was last in step with the clone: unchanged files are not read again
+        let mut manifest: Listing = load(&manifest_path).unwrap_or_default();
+        let mut conflicts = Vec::new();
+        let mut pulled = false;
+
+        // 0. an earlier sync died after git changed the clone: finish copying out before anything is copied in
+        if let Some(p) = load::<Pending>(&pending_path) {
+            trace("recover");
+            manifest = p.folder.clone();
+            pulled |= copy_out(folder, &work, &p, &mut manifest, &mut conflicts)?;
+            save(&manifest_path, &manifest)?;
+            fs::remove_file(&pending_path)?;
+        }
+
+        // 1. the picked folder → the clone, so git sees the edits made since the last sync
+        trace("list");
+        let listing = folder.list()?;
+        for (path, stamp) in &listing {
+            let dest = work.join(path);
+            if manifest.get(path) == Some(stamp) && dest.exists() {
+                continue;
+            }
+            trace(&format!("copy-in {path} ({} bytes)", stamp.1));
+            let bytes = folder.read(path)?;
             if fs::read(&dest).map_or(true, |old| old != bytes) {
                 if let Some(parent) = dest.parent() {
                     fs::create_dir_all(parent)?;
@@ -550,35 +615,89 @@ mod mirror {
             }
         }
         for path in snapshot(&work).keys() {
-            if !present.contains(path) {
+            if !listing.contains_key(path) {
                 let _ = fs::remove_file(work.join(path));
             }
         }
 
         // 2. git
-        super::trace("git");
-        let before = snapshot(&work);
-        let report = sync_repo(&work, &cfg)?;
-        let after = snapshot(&work);
+        trace("git");
+        let pending = Pending { before: snapshot(&work), folder: listing };
+        save(&pending_path, &pending)?;
+        let result = sync_repo(&work, cfg);
 
-        // 3. what git changed in the clone → the picked folder
-        for (path, stamp) in &after {
-            if before.get(path) != Some(stamp) {
-                super::trace(&format!("copy-out {path}"));
-                let bytes = fs::read(work.join(path))?;
-                vault.write(root.clone(), path.clone(), None, Some(STANDARD.encode(bytes)))?;
-            }
-        }
-        for path in before.keys() {
-            if !after.contains_key(path) {
-                let _ = vault.remove(root.clone(), path.clone());
-            }
-        }
+        // 3. what git changed in the clone → the picked folder, also when git failed after it merged
+        let mut manifest = pending.folder.clone();
+        pulled |= copy_out(folder, &work, &pending, &mut manifest, &mut conflicts)?;
+        trace("manifest");
+        save(&manifest_path, &manifest)?;
+        fs::remove_file(&pending_path)?;
 
-        super::trace("manifest");
-        let fresh: HashMap<String, (f64, u64)> = vault.list(root)?.into_iter().map(|e| (e.path, (e.mtime, e.size))).collect();
-        fs::write(&manifest_path, serde_json::to_string(&fresh).unwrap_or_default())?;
+        let mut report = result?;
+        report.pulled |= pulled;
+        report.conflicts.extend(conflicts);
         Ok(report)
+    }
+
+    #[cfg(mobile)]
+    pub use app::{sync, tree};
+
+    /// The picked folder through the vault plugin (the Storage Access Framework).
+    #[cfg(mobile)]
+    mod app {
+        use std::path::PathBuf;
+
+        use base64::{engine::general_purpose::STANDARD, Engine};
+        use tauri::{AppHandle, Manager, Runtime};
+
+        use super::{sync_folder, Folder, Listing};
+        use crate::{git::GitConfig, git::GitReport, Error, Result, VaultExt};
+
+        fn fnv(s: &str) -> String {
+            let mut h: u64 = 0xcbf29ce484222325;
+            for b in s.bytes() {
+                h = (h ^ u64::from(b)).wrapping_mul(0x100000001b3);
+            }
+            format!("{h:016x}")
+        }
+
+        fn base<R: Runtime>(app: &AppHandle<R>, root: &str) -> Result<PathBuf> {
+            let dir = app.path().app_data_dir().map_err(|e| Error::Msg(e.to_string()))?;
+            Ok(dir.join("git").join(fnv(root)))
+        }
+
+        pub fn tree<R: Runtime>(app: &AppHandle<R>, root: &str) -> Result<PathBuf> {
+            Ok(base(app, root)?.join("tree"))
+        }
+
+        struct AppFolder<'a, R: Runtime> {
+            app: &'a AppHandle<R>,
+            root: &'a str,
+        }
+
+        impl<R: Runtime> Folder for AppFolder<'_, R> {
+            fn list(&self) -> Result<Listing> {
+                Ok(self.app.vault().list(self.root.to_owned())?.into_iter().map(|e| (e.path, (e.mtime, e.size))).collect())
+            }
+            fn read(&self, path: &str) -> Result<Vec<u8>> {
+                let data = self.app.vault().read(self.root.to_owned(), path.to_owned(), true)?.data;
+                STANDARD.decode(data).map_err(|e| Error::Msg(e.to_string()))
+            }
+            fn write(&self, path: &str, bytes: Vec<u8>) -> Result<f64> {
+                self.app.vault().write(self.root.to_owned(), path.to_owned(), None, Some(STANDARD.encode(bytes)))
+            }
+            fn remove(&self, path: &str) -> Result<()> {
+                self.app.vault().remove(self.root.to_owned(), path.to_owned())
+            }
+        }
+
+        pub fn sync<R: Runtime>(app: &AppHandle<R>, root: String, cfg: GitConfig) -> Result<GitReport> {
+            static ROOTS: std::sync::Once = std::sync::Once::new();
+            let mut roots = Ok(0);
+            ROOTS.call_once(|| roots = super::super::install_roots());
+            roots?;
+            sync_folder(&AppFolder { app, root: &root }, &base(app, &root)?, &cfg)
+        }
     }
 }
 
@@ -717,6 +836,137 @@ mod tests {
         assert!(r.pulled);
         assert_eq!(fs::read_to_string(a.join("Other.md")).unwrap(), "new\n");
         assert_eq!(fs::read_to_string(a.join("Note.md")).unwrap(), "from b\n");
+        let _ = fs::remove_dir_all(&tmp);
+    }
+
+    /// The picked folder of an Android vault, played by a plain folder: writes can be made to fail, and a file can be
+    /// edited "by the user" at the n-th listing (the one copy_out makes while git's changes go out).
+    struct TestFolder {
+        dir: PathBuf,
+        fail_writes: Cell<bool>,
+        lists: Cell<usize>,
+        edit_at_list: RefCell<Option<(usize, &'static str, &'static str)>>,
+    }
+
+    impl TestFolder {
+        fn new(dir: PathBuf) -> Self {
+            fs::create_dir_all(&dir).unwrap();
+            TestFolder { dir, fail_writes: Cell::new(false), lists: Cell::new(0), edit_at_list: RefCell::new(None) }
+        }
+        fn text(&self, path: &str) -> String {
+            fs::read_to_string(self.dir.join(path)).unwrap()
+        }
+    }
+
+    impl mirror::Folder for TestFolder {
+        fn list(&self) -> Result<mirror::Listing> {
+            self.lists.set(self.lists.get() + 1);
+            if let Some((at, path, text)) = *self.edit_at_list.borrow() {
+                if at == self.lists.get() {
+                    fs::write(self.dir.join(path), text)?;
+                }
+            }
+            fn walk(dir: &Path, prefix: &str, out: &mut mirror::Listing) {
+                for item in fs::read_dir(dir).unwrap().flatten() {
+                    let name = item.file_name().to_string_lossy().into_owned();
+                    if name.starts_with('.') {
+                        continue;
+                    }
+                    let rel = if prefix.is_empty() { name } else { format!("{prefix}/{name}") };
+                    let meta = item.metadata().unwrap();
+                    if meta.is_dir() {
+                        walk(&item.path(), &rel, out);
+                    } else {
+                        let ms = meta.modified().unwrap().duration_since(UNIX_EPOCH).unwrap().as_nanos() as f64 / 1e6;
+                        out.insert(rel, (ms, meta.len()));
+                    }
+                }
+            }
+            let mut out = mirror::Listing::new();
+            walk(&self.dir, "", &mut out);
+            Ok(out)
+        }
+        fn read(&self, path: &str) -> Result<Vec<u8>> {
+            Ok(fs::read(self.dir.join(path))?)
+        }
+        fn write(&self, path: &str, bytes: Vec<u8>) -> Result<f64> {
+            if self.fail_writes.get() {
+                return Err(Error::Msg("disk full".into()));
+            }
+            let p = self.dir.join(path);
+            fs::create_dir_all(p.parent().unwrap())?;
+            fs::write(&p, bytes)?;
+            Ok(fs::metadata(&p)?.modified()?.duration_since(UNIX_EPOCH).unwrap().as_nanos() as f64 / 1e6)
+        }
+        fn remove(&self, path: &str) -> Result<()> {
+            Ok(fs::remove_file(self.dir.join(path))?)
+        }
+    }
+
+    /// A desktop device `a`, a phone (its picked folder and its clone in `base`) and the remote they share.
+    fn phone_setup(name: &str) -> (PathBuf, GitConfig, PathBuf, TestFolder, PathBuf) {
+        let tmp = std::env::temp_dir().join(format!("supstack-mirror-{name}-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&tmp);
+        let remote = tmp.join("remote.git");
+        Repository::init_bare(&remote).unwrap();
+        let a = tmp.join("a");
+        fs::create_dir_all(&a).unwrap();
+        let c = cfg(&remote);
+        fs::write(a.join("Note.md"), "one\n").unwrap();
+        sync_repo(&a, &c).unwrap();
+        let phone = TestFolder::new(tmp.join("phone"));
+        let base = tmp.join("base");
+        let r = mirror::sync_folder(&phone, &base, &c).unwrap();
+        assert!(r.pulled);
+        assert_eq!(phone.text("Note.md"), "one\n");
+        (tmp, c, a, phone, base)
+    }
+
+    #[test]
+    fn a_sync_that_dies_while_copying_out_is_finished_by_the_next_one() {
+        let (tmp, c, a, phone, base) = phone_setup("recover");
+        fs::write(a.join("Note.md"), "two\n").unwrap();
+        sync_repo(&a, &c).unwrap();
+
+        // git merges "two" into the clone, then writing it into the picked folder fails
+        phone.fail_writes.set(true);
+        assert!(mirror::sync_folder(&phone, &base, &c).is_err());
+        assert_eq!(phone.text("Note.md"), "one\n");
+
+        phone.fail_writes.set(false);
+        let r = mirror::sync_folder(&phone, &base, &c).unwrap();
+        assert!(r.pulled, "{r:?}");
+        assert_eq!(phone.text("Note.md"), "two\n", "the change that was left in the clone reaches the folder");
+
+        // an edit on the phone now builds on "two" instead of quietly putting "one" back
+        fs::write(phone.dir.join("Other.md"), "new\n").unwrap();
+        mirror::sync_folder(&phone, &base, &c).unwrap();
+        sync_repo(&a, &c).unwrap();
+        assert_eq!(fs::read_to_string(a.join("Note.md")).unwrap(), "two\n");
+        assert_eq!(fs::read_to_string(a.join("Other.md")).unwrap(), "new\n");
+        let _ = fs::remove_dir_all(&tmp);
+    }
+
+    #[test]
+    fn an_edit_made_while_git_runs_is_kept_and_the_other_side_saved_beside_it() {
+        let (tmp, c, a, phone, base) = phone_setup("edit");
+        fs::write(a.join("Note.md"), "from a\n").unwrap();
+        sync_repo(&a, &c).unwrap();
+
+        // listing 1 copies in, listing 2 is copy_out's: the user saves the note in between
+        phone.lists.set(0);
+        *phone.edit_at_list.borrow_mut() = Some((2, "Note.md", "from the phone\n"));
+        let r = mirror::sync_folder(&phone, &base, &c).unwrap();
+        *phone.edit_at_list.borrow_mut() = None;
+        assert_eq!(phone.text("Note.md"), "from the phone\n", "the edit is not overwritten");
+        assert_eq!(r.conflicts.len(), 1, "{r:?}");
+        assert_eq!(phone.text(&r.conflicts[0]), "from a\n", "the other side is beside it");
+
+        // the next sync sends both to the remote
+        mirror::sync_folder(&phone, &base, &c).unwrap();
+        sync_repo(&a, &c).unwrap();
+        assert_eq!(fs::read_to_string(a.join("Note.md")).unwrap(), "from the phone\n");
+        assert_eq!(fs::read_to_string(a.join(&r.conflicts[0])).unwrap(), "from a\n");
         let _ = fs::remove_dir_all(&tmp);
     }
 }
