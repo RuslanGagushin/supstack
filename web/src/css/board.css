@@ -201,8 +201,7 @@
 
 /* ---------- Search and filters */
 .sn-search:focus-within { border-color: var(--background-modifier-border-focus); box-shadow: 0 0 0 2px var(--background-modifier-border-focus); }
-.sn-search-icon { display: inline-flex; color: var(--text-faint); }
-.sn-search-icon svg { width: var(--icon-xs); height: var(--icon-xs); }
+.sn-search-icon { display: inline-flex; color: var(--text-muted); }
 .sn-board .sn-search-input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; box-shadow: none !important; }
 .sn-board .sn-filter-btn, .sn-board .sn-filter-chip { gap: var(--size-2-3); }
 .sn-board .sn-filter-btn svg, .sn-board .sn-filter-chip svg { width: var(--icon-xs); height: var(--icon-xs); }

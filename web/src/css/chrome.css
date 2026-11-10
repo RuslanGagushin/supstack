@@ -103,7 +103,7 @@
 .suggestion-check { display: inline-flex; flex: 0 0 auto; color: var(--text-accent); }
 .suggestion-check svg { width: var(--icon-s, 16px); height: var(--icon-s, 16px); }
 .suggestion-keys { display: inline-flex; gap: 3px; flex: 0 0 auto; }
-.suggestion-keys kbd, .prompt-instructions kbd { min-width: 18px; padding: 0 5px; border: 1px solid var(--background-modifier-border); border-radius: 5px; font-family: inherit; font-size: var(--fs-xs); line-height: 15px; text-align: center; color: var(--text-muted); background: var(--background-secondary); }
+.suggestion-keys kbd, .prompt-instructions kbd { min-width: 18px; padding: 0 5px; border: 1px solid var(--background-modifier-border); border-radius: var(--r-xs); font-family: inherit; font-size: var(--fs-xs); line-height: 15px; text-align: center; color: var(--text-muted); background: var(--background-secondary); }
 .prompt-instructions kbd { margin-inline-end: 5px; }
 .suggestion-empty { padding: var(--size-4-3) var(--size-4-4); color: var(--text-faint); font-size: var(--font-ui-small); }
 
@@ -117,7 +117,7 @@
 .setting-item-control { flex: 0 0 auto; display: flex; align-items: center; gap: var(--size-2-3); }
 .setting-item-control input[type="text"], .setting-item-control input[type="number"] { width: 170px; }
 .setting-heading { margin: var(--size-4-5) 0 var(--size-2-2); font-size: var(--font-ui-small); font-weight: var(--font-semibold); color: var(--text-faint); text-transform: uppercase; letter-spacing: .04em; }
-.checkbox-container { position: relative; width: 40px; height: 22px; border-radius: 11px; background: var(--background-modifier-border-hover); cursor: var(--cursor, default); transition: background 150ms; flex: 0 0 auto; }
+.checkbox-container { position: relative; width: 40px; height: 22px; border-radius: var(--r-pill); background: var(--background-modifier-border-hover); cursor: var(--cursor, default); transition: background 150ms; flex: 0 0 auto; }
 .checkbox-container::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); transition: transform 150ms; }
 .checkbox-container.is-enabled { background: var(--interactive-accent); }
 .checkbox-container.is-enabled::after { transform: translateX(18px); }
@@ -127,14 +127,14 @@
 .sn-toast {
   position: fixed; left: 50%; bottom: calc(16px + var(--safe-bottom)); z-index: 80; transform: translateX(-50%);
   display: flex; align-items: center; gap: 8px; max-width: min(560px, calc(100vw - 32px)); padding: 7px 8px 7px 14px;
-  border: 1px solid var(--line); border-radius: 10px; background: var(--win); color: var(--fg);
+  border: 1px solid var(--line); border-radius: var(--r-m); background: var(--win); color: var(--fg);
   box-shadow: 0 8px 24px color-mix(in srgb, var(--shade) 14%, transparent); font-family: var(--font-ui); font-size: var(--fs-ui); line-height: 1.4;
 }
 .sn-toast.is-blank { display: none; }
-.sn-toast.is-quiet { left: auto; right: 16px; transform: none; padding: 3px 12px; border-color: transparent; border-radius: 48px; background: var(--panel); color: var(--muted); box-shadow: none; font-size: var(--fs-sm); }
+.sn-toast.is-quiet { left: auto; right: 16px; transform: none; padding: 3px 12px; border-color: transparent; border-radius: var(--r-pill); background: var(--panel); color: var(--muted); box-shadow: none; font-size: var(--fs-sm); }
 .sn-toast.is-new { animation: sn-in 160ms ease-out; }
 .sn-toast-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-button.sn-toast-btn, button.sn-toast-x { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--win); box-shadow: none; color: var(--fg); font-size: var(--fs-sm); font-weight: 500; cursor: pointer; }
+button.sn-toast-btn, button.sn-toast-x { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); box-shadow: none; color: var(--fg); font-size: var(--fs-sm); font-weight: 500; cursor: pointer; }
 button.sn-toast-btn kbd { color: var(--muted); font-size: var(--fs-xs); }
 button.sn-toast-x { width: 26px; padding: 0; justify-content: center; border-color: transparent; color: var(--muted); font-size: var(--fs-text); }
 button.sn-toast-btn:hover, button.sn-toast-x:hover { background: var(--hover-bg); }

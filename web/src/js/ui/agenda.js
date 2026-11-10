@@ -183,7 +183,7 @@ export function renderTasksView(root) {
   const pass = (e) => orgTagPass(e);
   if (AG.view === "agenda") {
     const days = AG.span === "day" ? [AG.anchor] : Array.from({ length: 7 }, (_, i) => AG.anchor - ((oymd(AG.anchor).w + 6) % 7) + i);
-    body.append(h("div", { cls: "ag-title" }, h("b", { text: tt(AG.span === "week" ? "weekAgenda" : "dayAgenda") }), ` (W${opad(oisoWeek(days[0]))})`, AG.log ? h("span", { cls: "ag-flag", text: " · " + tt("log") }) : null));
+    body.append(h("div", { cls: "ag-title" }, ic("sn-list-badge", "calendar-check"), h("b", { text: tt(AG.span === "week" ? "weekAgenda" : "dayAgenda") }), ` (W${opad(oisoWeek(days[0]))})`, AG.log ? h("span", { cls: "ag-flag", text: " · " + tt("log") }) : null));
     // on a phone: the week as a strip of days (a dot where something is on), a tap opens that day; the month is one more tap
     const week0 = AG.anchor - ((oymd(AG.anchor).w + 6) % 7);
     const strip = h("div", { cls: "ag-strip", role: "toolbar", "aria-label": tt("week") });
@@ -222,19 +222,19 @@ export function renderTasksView(root) {
   } else if (AG.view === "todo") {
     const items = all.filter((e) => e.isTodo && !e.done && !orgSkip(e) && (AG.todoKw === "ALL" || e.kw === AG.todoKw) && pass(e))
       .sort((a, b) => orgPriRank(b) - orgPriRank(a) || (a.category < b.category ? -1 : a.category > b.category ? 1 : a.line - b.line));
-    body.append(h("div", { cls: "ag-title" }, tt("todoTitle") + " ", h("b", { text: AG.todoKw === "ALL" ? tt("stAll") : tt("st_" + AG.todoKw) }), ` · ${items.length}`));
+    body.append(h("div", { cls: "ag-title" }, ic("sn-list-badge", "list-todo"), tt("todoTitle") + " ", h("b", { text: AG.todoKw === "ALL" ? tt("stAll") : tt("st_" + AG.todoKw) }), ` · ${items.length}`));
     if (items.length) body.append(h("section", { cls: "ag-card" }, items.map((e) => orgRow({ e, kind: "todo", label: "", time: null, dn: null }))));
     if (!items.length) body.append(h("div", { cls: "ag-help", text: tt("noTodo") }));
   } else if (AG.view === "match") {
     const fn = orgMatcher(AG.match);
     const items = all.filter((e) => !orgSkip(e) && e.kind !== "event" && fn(e) && pass(e));
-    body.append(h("div", { cls: "ag-title" }, tt("matchTitle") + " ", h("b", { text: AG.match || tt("everything") }), ` · ${items.length}`));
+    body.append(h("div", { cls: "ag-title" }, ic("sn-list-badge", "filter"), tt("matchTitle") + " ", h("b", { text: AG.match || tt("everything") }), ` · ${items.length}`));
     if (items.length) body.append(h("section", { cls: "ag-card" }, items.map((e) => orgRow({ e, kind: "match", label: "", time: null, dn: null }))));
     if (!items.length) body.append(h("div", { cls: "ag-help", text: tt("noMatch") }));
     body.append(h("div", { cls: "ag-help", text: tt("matchHelp") }));
   } else {
     const words = norm(AG.search).split(/\s+/).filter(Boolean);
-    body.append(h("div", { cls: "ag-title" }, tt("searchTitle") + " ", h("b", { text: AG.search || tt("typeSomething") })));
+    body.append(h("div", { cls: "ag-title" }, ic("sn-list-badge", "search"), tt("searchTitle") + " ", h("b", { text: AG.search || tt("typeSomething") })));
     if (words.length) {
       const items = all.filter((e) => {
         if (orgSkip(e) || !pass(e)) return false;

@@ -245,8 +245,8 @@ export function renderFilesView(root) {
     for (const [v, k] of [["name", "sName"], ["modified", "sModified"], ["size", "sSize"], ["type", "sType"], ["folder", "sFolder"]]) m.add(fvt(k), null, () => { FV.sort = v; saveFV(); fvRenderList(); }, { checked: FV.sort === v });
     m.showBelow(e.currentTarget);
   }, "fv-sort");
-  head.append(h("div", { cls: "fv-title" }, h("b", { text: fvt("files") }), h("span", { cls: "fv-count" }), h("span", { cls: "fv-total" })),
-    h("div", { cls: "fv-search-row" }, search, sortBtn), h("div", { cls: "fv-filters" }, seg, unused));
+  head.append(h("div", { cls: "fv-title" }, ic("sn-list-badge", "paperclip"), h("b", { text: fvt("files") }), h("span", { cls: "fv-count" }), h("span", { cls: "fv-total" })),
+    h("div", { cls: "fv-search-row" }, h("div", { cls: "fv-search-wrap" }, ic("fv-search-icon", "search"), search), sortBtn), h("div", { cls: "fv-filters" }, seg, unused));
   const list = h("div", { cls: "fv-list", tabindex: "0", role: "listbox", "aria-label": fvt("files") });
   list.addEventListener("keydown", fvListKey);
   listPane.append(head, list);

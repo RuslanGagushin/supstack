@@ -24,7 +24,7 @@ body {
   --done:#2d7a3a; --pri-a:#c42f27; --pri-b:#b25f06; --pri-c:#696564; --now:#c42f27;
   --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; --font-inter: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --fs-xs: 11px;
   --fs-sm: 12px; --fs-ui: 13px; --fs-md: 14px;
-  --fs-text: 15px; --fs-lg: 20px; --fs-xl: 28px;
+  --fs-text: 15px; --fs-note: 16px; --fs-lg: 20px; --fs-xl: 28px;
   --font-ui: var(--font-inter); --font-display: var(--font-inter);
   /* theme variables the board styles use, mapped onto the base palette */
   --font-interface: var(--font-mono);
@@ -37,15 +37,19 @@ body {
   --line-height-normal: 1.6; --line-height-tight: 1.3;
   --size-2-1: 2px; --size-2-2: 4px; --size-2-3: 6px;
   --size-4-1: 4px; --size-4-2: 8px; --size-4-3: 12px; --size-4-4: 16px; --size-4-5: 20px; --size-4-6: 24px; --size-4-8: 32px; --size-4-12: 48px;
-  --radius-s: 4px; --radius-m: 6px;
+  /* The corner scale, the only radii in the styles (besides circles, 50%, and 1–2px hairlines):
+     xs for tiny inline things (kbd, inline code), s for controls (buttons, fields, rows, menu items),
+     m for surfaces (cards, menus, popups, the note's sheet), l for dialogs, pill for tags, badges and pill buttons. */
+  --r-xs: 4px; --r-s: 8px; --r-m: 12px; --r-l: 16px; --r-pill: 999px;
+  --radius-s: var(--r-xs); --radius-m: var(--r-s);
   --border-width: 1px;
   --icon-xs: 13px; --icon-s: 15px; --icon-m: 16px; --icon-xl: 26px;
   --icon-stroke: 1.75px;
   --icon-s-stroke-width: 1.9px; --icon-m-stroke-width: 1.9px; --icon-xl-stroke-width: 1.5px;
   --icon-opacity-hover: 1;
-  --clickable-icon-radius: 5px;
+  --clickable-icon-radius: var(--r-s);
   --header-height: 40px;
-  --input-height: 28px; --input-radius: 5px; --button-radius: 6px;
+  --input-height: 28px; --input-radius: var(--r-s); --button-radius: var(--r-s);
   --file-line-width: 72ch;
   --h1-size: 1.8em; --h2-size: 1.45em; --h3-size: 1.2em; --h4-size: 1.05em; --h5-size: 1em; --h6-size: 1em;
 
@@ -60,7 +64,7 @@ body {
   --pill-padding-x: 6px; --pill-padding-y: 1px;
   --tag-color: var(--tag);
   --tag-background: var(--panel); --tag-background-hover: var(--line);
-  --tag-radius: 3px;
+  --tag-radius: var(--r-xs);
   --nav-item-color-hover: var(--fg);
   --nav-item-background-hover: var(--panel);
   --nav-item-weight-active: 500;
@@ -94,7 +98,7 @@ body {
 }
 ::selection { background: var(--text-selection); }
 ::-webkit-scrollbar { width: 12px; height: 12px; background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 12px; border: 3px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: var(--r-m); border: 3px solid transparent; background-clip: padding-box; }
 ::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover); }
 
 /* ---------- Base elements */

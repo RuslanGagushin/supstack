@@ -2,7 +2,7 @@
    Writing experience
    ========================================================= */
 /* Comfortable measure and rhythm for long text */
-.sn-editor-text.is-file-over { outline: 2px dashed var(--accent); outline-offset: 6px; border-radius: 4px; }
+.sn-editor-text.is-file-over { outline: 2px dashed var(--accent); outline-offset: 6px; border-radius: var(--r-xs); }
 .sn-editor-text::placeholder { color: var(--faint); }
 .sn-live { min-height: 40vh; cursor: text; }
 /* live preview (lpInline, lpBlocks): away from the caret the Markdown reads as in reading mode */
@@ -12,13 +12,13 @@
 .sn-live .cm-sn-em { font-style: italic; }
 .sn-live .cm-sn-strike { text-decoration: line-through; }
 .sn-live .cm-sn-mark { background: var(--flash); }
-.sn-live .cm-sn-code { font-family: var(--font-code, var(--font-monospace)); font-size: .92em; background: var(--code-bg); padding: 0 3px; border-radius: 3px; color: var(--ink); }
+.sn-live .cm-sn-code { font-family: var(--font-code, var(--font-monospace)); font-size: .92em; background: var(--code-bg); padding: 0 3px; border-radius: var(--r-xs); color: var(--ink); }
 .sn-live .cm-sn-fmt { color: var(--faint); }
 .sn-live .cm-sn-link { color: var(--accent); cursor: pointer; }
 .sn-live .cm-sn-link:hover { text-decoration: underline; }
 .sn-live .cm-sn-link:not(.cm-sn-wikilink) { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent); }
 .sn-live .cm-sn-link.is-unresolved { opacity: .6; }
-.sn-live .cm-sn-tag { padding: 1px 8px; border-radius: 48px; background: var(--panel); color: var(--tag); font-size: .8em; cursor: pointer; }
+.sn-live .cm-sn-tag { padding: 1px 8px; border-radius: var(--r-pill); background: var(--panel); color: var(--tag); font-size: .8em; cursor: pointer; }
 .sn-live .cm-sn-bullet { display: inline-block; min-width: .8em; color: var(--muted); }
 .sn-live .cm-sn-olmark { color: var(--muted); }
 .sn-live .cm-sn-task.s-done, .sn-live .cm-sn-task.s-fwd { color: var(--muted); }
@@ -36,7 +36,7 @@
 .sn-table-host :is(td, th).is-editing { box-shadow: inset 0 0 0 2px var(--accent); }
 .sn-cell-edit { display: inline-block; min-width: 1ch; min-height: 1lh; outline: none; white-space: pre-wrap; overflow-wrap: anywhere; }
 button.sn-table-add-row, button.sn-table-add-col {
-  position: absolute; padding: 0; border: 0; border-radius: 4px;
+  position: absolute; padding: 0; border: 0; border-radius: var(--r-xs);
   background: color-mix(in srgb, var(--fg) 6%, transparent); color: var(--faint); cursor: pointer; opacity: 0; transition: opacity 120ms;
 }
 button.sn-table-add-row { left: 0; right: 17px; bottom: 0; height: 13px; }
@@ -48,7 +48,7 @@ button.sn-table-add-row:hover, button.sn-table-add-col:hover { background: color
 /* the floating format bar over a text selection */
 .sn-fmtbar {
   position: fixed; z-index: 74; display: flex; align-items: center; gap: 1px; padding: 3px;
-  background: var(--win); border: 1px solid var(--line); border-radius: 8px;
+  background: var(--win); border: 1px solid var(--line); border-radius: var(--r-s);
   box-shadow: 0 6px 20px color-mix(in srgb, var(--shade) 14%, transparent);
 }
 .sn-fmtbar .sn-tb-sep { margin: 0 3px; }
@@ -56,11 +56,11 @@ button.sn-table-add-row:hover, button.sn-table-add-col:hover { background: color
 /* Inline completion at the caret */
 .ac-pop {
   position: fixed; z-index: 75; width: 300px; max-height: 320px; overflow-y: auto; padding: 4px;
-  background: var(--win); border: 1px solid var(--line); border-radius: 8px;
+  background: var(--win); border: 1px solid var(--line); border-radius: var(--r-s);
   box-shadow: 0 12px 32px color-mix(in srgb, var(--shade) 16%, transparent); font-family: var(--font-mono); font-size: var(--fs-ui);
 }
 .ac-head { padding: 3px 8px 5px; font-size: var(--fs-xs); color: var(--accent); border-bottom: 1px solid var(--line); margin-bottom: 3px; }
-.ac-item { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 5px; cursor: pointer; }
+.ac-item { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: var(--r-xs); cursor: pointer; }
 .ac-item.is-selected { background: var(--sel); }
 .ac-icon { display: inline-flex; color: var(--muted); flex: 0 0 auto; }
 .ac-icon svg { width: 14px; height: 14px; }
@@ -69,7 +69,7 @@ button.sn-table-add-row:hover, button.sn-table-add-col:hover { background: color
 .ac-empty { padding: 6px 8px; color: var(--faint); }
 
 /* Link hover preview */
-.hp-pop { position: fixed; z-index: 74; width: min(420px, calc(100vw - 16px)); max-height: 360px; overflow: hidden; display: flex; flex-direction: column; background: var(--win); border: 1px solid color-mix(in srgb, var(--line) 35%, var(--line)); border-radius: 8px; box-shadow: 0 14px 40px color-mix(in srgb, var(--shade) 18%, transparent); cursor: pointer; animation: hp-in 120ms ease-out; --sn-surface: var(--win); }
+.hp-pop { position: fixed; z-index: 74; width: min(420px, calc(100vw - 16px)); max-height: 360px; overflow: hidden; display: flex; flex-direction: column; background: var(--win); border: 1px solid color-mix(in srgb, var(--line) 35%, var(--line)); border-radius: var(--r-s); box-shadow: 0 14px 40px color-mix(in srgb, var(--shade) 18%, transparent); cursor: pointer; animation: hp-in 120ms ease-out; --sn-surface: var(--win); }
 @keyframes hp-in { from { opacity: 0; transform: translateY(-3px); } }
 .hp-head { display: flex; align-items: baseline; gap: 8px; padding: 10px 14px 6px; border-bottom: 1px solid var(--line); }
 .hp-icon { display: inline-flex; align-self: center; color: var(--l1); }
