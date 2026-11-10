@@ -699,13 +699,14 @@ describe("palettes, settings, language and themes", () => {
   test("settings list their sections on the side, arrow keys move between them, the last one is remembered and the search finds rows", async () => {
     await ev(() => settingsModal("appearance"));
     const tabs = () => page().$$eval(".sn-set-tab", (b) => b.map((x) => [x.textContent, x.getAttribute("aria-selected")]));
-    assert.deepEqual((await tabs()).map((x) => x[0]), ["Appearance", "Board", "Keyboard shortcuts", "About"], "no Git section outside the app");
+    assert.deepEqual((await tabs()).map((x) => x[0]), ["Appearance", "Keyboard shortcuts", "About"], "no Git section outside the app; the board's options are in Appearance");
     assert.match(await page().textContent(".sn-set-body"), /Theme/);
+    assert.match(await page().textContent(".sn-set-body"), /Default depth/, "the interface and the board's defaults in one section");
     assert.doesNotMatch(await page().textContent(".sn-set-body"), /Parents field/, "one group at a time");
     const height = await page().$eval(".modal", (m) => m.offsetHeight);
-    await page().click(".sn-set-tab:has-text('Board')");
-    assert.match(await page().textContent(".sn-set-body"), /Default depth/);
+    await page().click(".sn-set-tab:has-text('Keyboard shortcuts')");
     assert.equal(await page().$eval(".modal", (m) => m.offsetHeight), height, "the dialog keeps its size between tabs");
+    await page().click(".sn-set-tab:has-text('Appearance')");
     await page().focus(".sn-set-tab.is-active");
     await page().keyboard.press("ArrowDown");
     assert.equal((await tabs()).find((x) => x[1] === "true")[0], "Keyboard shortcuts");
@@ -801,7 +802,8 @@ describe("sidebar", () => {
     assert.deepEqual(await ev(() => [UI.style, UI.font, UI.writeFont, /\b(font|write)-/.test(document.body.className)]), [undefined, undefined, undefined, false]);
     assert.equal(await ev(() => document.body.classList.contains("sn-app")), true);
     await ev(() => settingsModal("appearance"));
-    assert.equal(await page().$$eval(".sn-set-body select", (s) => s.length), 2, "language and theme only");
+    const interfaceRows = await page().$$eval(".sn-set-body .sn-set-group:first-of-type .setting-item-name", (n) => n.map((x) => x.textContent));
+    assert.deepEqual(interfaceRows, ["Language", "Theme"], "the interface is language and theme only");
     assert.doesNotMatch(await page().textContent(".sn-set-body"), /font/i);
   });
 

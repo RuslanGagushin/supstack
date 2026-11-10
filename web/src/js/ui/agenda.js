@@ -134,12 +134,12 @@ export function renderTasksView(root) {
 
   // agenda bar
   const agbar = h("div", { cls: "agbar" });
-  const btn = (text, title, fn, pressed) => { const b = h("button", { cls: "wb-btn ag-btn", type: "button", text, title, "aria-pressed": pressed == null ? null : String(!!pressed) }); b.addEventListener("click", fn); return b; };
+  const btn = (text, title, fn, pressed, cls = "") => { const b = h("button", { cls: "wb-btn ag-btn " + cls, type: "button", text, title, "aria-pressed": pressed == null ? null : String(!!pressed) }); b.addEventListener("click", fn); return b; };
   if (AG.view === "agenda") {
     const sp = h("div", { cls: "sn-seg" });
     for (const [v, k] of [["day", "day"], ["week", "week"]]) { const b = h("button", { cls: "clickable-icon" + (AG.span === v ? " is-active" : ""), type: "button", text: tt(k), title: `${tt(k)} (${v[0]})` }); b.addEventListener("click", () => { AG.span = v; saveAG(); renderBoard(); }); sp.append(b); }
     agbar.append(sp, btn("‹", tt("earlier"), () => orgNav(-1)), btn(tt("today"), tt("today") + " (.)", () => orgNav(0)), btn("›", tt("later"), () => orgNav(1)),
-      btn(tt("goTo"), tt("goTo") + " (j)", () => orgNav("jump")), btn(tt("log"), tt("log") + " (l)", () => { AG.log = !AG.log; saveAG(); renderBoard(); }, AG.log));
+      btn(tt("goTo"), tt("goTo") + " (j)", () => orgNav("jump"), null, "ag-wide-only"), btn(tt("log"), tt("log") + " (l)", () => { AG.log = !AG.log; saveAG(); renderBoard(); }, AG.log, "ag-wide-only"));
   } else if (AG.view === "todo") {
     const sp = h("div", { cls: "sn-seg" });
     for (const k of TODO_FILTERS) {
@@ -172,6 +172,25 @@ export function renderTasksView(root) {
     }
     agbar.append(chips);
   }
+  // on a phone the log and the tag filters go under one button, so the controls take two rows, not four
+  // (the week strip below has the date picker, so "Go to…" goes too)
+  const narrowItems = AG.view === "agenda" || tags.length;
+  if (narrowItems) {
+    const active = (AG.view === "agenda" && AG.log) || Object.keys(AG.filter).length > 0;
+    const fb = iconBtn("sliders-horizontal", tt("filters"), (e) => {
+      const m = new Menu();
+      if (AG.view === "agenda") m.add(tt("log"), "history", () => { AG.log = !AG.log; saveAG(); renderBoard(); }, { checked: !!AG.log });
+      if (tags.length) {
+        m.sep(); m.label(tt("filterTags"));
+        for (const tg of tags) {
+          const v = AG.filter[tg];
+          m.add((v === 1 ? "+" : v === -1 ? "−" : "") + tg, v === -1 ? "minus" : "tag", () => { if (v === 1) AG.filter[tg] = -1; else if (v === -1) delete AG.filter[tg]; else AG.filter[tg] = 1; renderBoard(); }, { checked: v === 1 });
+        }
+      }
+      m.showBelow(e.currentTarget);
+    }, "ag-filters ag-narrow-only" + (active ? " is-active" : ""));
+    agbar.append(fb);
+  }
   root.append(agbar);
 
   // body
@@ -196,19 +215,20 @@ export function renderTasksView(root) {
     }
     strip.append(h("button", { type: "button", cls: "ag-strip-month", title: tt("month"), "aria-label": tt("month"), onClick: () => orgNav("jump") }, ic("", "calendar-days")));
     body.append(strip);
+    // what is overdue is carried into today (as Org does) and gathered in a section of its own, above the days
+    // (in a week, above Monday rather than between two days)
+    const late = days.includes(T) ? orgDayEntries(T, all, T, { log: AG.log }).filter((x) => pass(x.e) && x.overdue) : [];
+    if (late.length) {
+      const head = h("button", { cls: "ag-over-head", type: "button", "aria-expanded": String(!!AG.overOpen) }, ic("ag-over-chev", "chevron-down"), h("span", { text: tt("overdue") }), h("span", { cls: "ag-over-n", text: String(late.length) }));
+      head.addEventListener("click", () => { AG.overOpen = !AG.overOpen; saveAG(); renderBoard(); });
+      const sec = h("section", { cls: "ag-card ag-overdue" + (AG.overOpen ? "" : " is-closed") }, h("div", { cls: "ag-day" }, head));
+      if (AG.overOpen) for (const x of late) sec.append(orgRow(x));
+      body.append(sec);
+    }
     for (const dn of days) {
       const o = oymd(dn);
       let ents = orgDayEntries(dn, all, T, { log: AG.log }).filter((x) => pass(x.e));
-      // what is overdue is carried into today (as Org does) and gathered above it, in a section of its own
-      const late = dn === T ? ents.filter((x) => x.overdue) : [];
-      if (late.length) {
-        ents = ents.filter((x) => !x.overdue);
-        const head = h("button", { cls: "ag-over-head", type: "button", "aria-expanded": String(!!AG.overOpen) }, ic("ag-over-chev", "chevron-down"), h("span", { text: tt("overdue") }), h("span", { cls: "ag-over-n", text: String(late.length) }));
-        head.addEventListener("click", () => { AG.overOpen = !AG.overOpen; saveAG(); renderBoard(); });
-        const sec = h("section", { cls: "ag-card ag-overdue" + (AG.overOpen ? "" : " is-closed") }, h("div", { cls: "ag-day" }, head));
-        if (AG.overOpen) for (const x of late) sec.append(orgRow(x));
-        body.append(sec);
-      }
+      if (dn === T) ents = ents.filter((x) => !x.overdue);
       const sum = daySummary(ents);
       const card = h("section", { cls: "ag-card" + (dn === T ? " is-today" : "") + (ents.length ? "" : " is-empty") });
       card.append(h("div", { cls: "ag-day" + (dn === T ? " today" : "") + (o.w === 0 || o.w === 6 ? " weekend" : "") },
@@ -246,6 +266,8 @@ export function renderTasksView(root) {
       if (!items.length) body.append(h("div", { cls: "ag-help", text: tt("nothingFound") }));
     }
   }
+  // the category ("Week:", from the note) only tells something when the rows come from more than one
+  body.classList.toggle("one-cat", new Set(AGROWS.map((x) => x.e.category)).size <= 1);
   body.append(h("div", { cls: "ag-help ag-keys", text: tt("keysAgenda") }));
   body.addEventListener("keydown", orgAgendaKey);
   body.addEventListener("click", (e) => {

@@ -225,7 +225,7 @@ body.sn-app .modal-buttons button.mod-cta, body.sn-app .setting-item-control .wb
 body.sn-app .setting-heading { letter-spacing: 0; text-transform: none; font-size: var(--fs-sm); font-weight: 600; color: var(--muted); }
 body.sn-app .setting-item-name { font-size: var(--fs-md); }
 body.sn-app .setting-item-description { font-size: var(--fs-sm); }
-body.sn-app .setting-item-control select, body.sn-app .setting-item-control input { height: 32px; border-radius: var(--r-s); background: var(--win); }
+body.sn-app .setting-item-control select, body.sn-app .setting-item-control input { height: 32px; border-radius: var(--r-s); background-color: var(--win); }
 body.sn-app .checkbox-container.is-enabled { background: var(--cta); }
 body.sn-app .sn-about-name { font-family: var(--font-inter); font-weight: 700; }
 body.sn-app .prompt { border-radius: var(--r-l); }

@@ -259,13 +259,14 @@ export function settingsModal(tab) {
     return c;
   };
   const save = () => { saveSettings(); setGraph(buildGraph()); };
-  const storedIn = () => h("p", { cls: "sn-set-note", text: vault.fs.kind === "disk" ? t("settingsShared") : t("settingsLocal") });
+  // where the board's options are kept; nothing to say before a vault is open (Appearance opens without one)
+  const storedIn = () => (vault.fs ? h("p", { cls: "sn-set-note", text: vault.fs.kind === "disk" ? t("settingsShared") : t("settingsLocal") }) : null);
   const sections = [
+    // one section for how things look: the interface (language, theme), then the board's defaults and its cards
     ["appearance", t("sectionAppearance"), "palette", "options", () => [
+      heading(t("setGroupUi")),
       item(t("setLanguage"), null, select(UI.lang, [["auto", "Auto"], ["en", "English"], ["ru", "Русский"]], (v) => { UI.lang = v; saveUI(); applyLanguage(); close(); settingsModal("appearance"); })),
       item(t("setTheme"), null, select(UI.theme, [["auto", t("themeAuto")], ["light", t("themeLight")], ["dark", t("themeDark")]], (v) => { UI.theme = v; saveUI(); applyTheme(); })),
-    ]],
-    ["board", t("sectionBoard"), "layout-grid", "options", () => [
       heading(t("setGroupView")),
       item(t("setDefaultDepth"), null, select(normDepth(S.defaultDepth), DEPTHS.map((d) => [d, d ? String(d) : "∞"]), (v) => { S.defaultDepth = Number(v); save(); })),
       item(t("setDefaultLayout"), null, select(S.defaultLayout, LAYOUTS().map(([v, , l]) => [v, l]), (v) => { S.defaultLayout = v; save(); })),
@@ -297,6 +298,7 @@ export function settingsModal(tab) {
   const buttons = new Map();
   const mark = (id) => { for (const [k, b] of buttons) { b.classList.toggle("is-active", k === id); b.setAttribute("aria-selected", String(k === id)); b.tabIndex = k === id ? 0 : -1; } };
   const show = (id) => {
+    if (id === "board") id = "appearance"; // the board options moved into Appearance: old links and a remembered tab land there
     const sec = sections.find((x) => x[0] === id) || sections[0];
     leaveTab();
     if (search.value) search.value = "";

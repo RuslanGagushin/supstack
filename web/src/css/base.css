@@ -114,6 +114,14 @@ input[type="text"], input[type="search"], input[type="number"], input:not([type]
   padding: var(--size-4-1) var(--size-4-2); outline: none; height: var(--input-height);
 }
 textarea { height: auto; }
+/* drop-downs drawn by the app rather than the system: the field's own look and a chevron in the muted colour */
+select {
+  -webkit-appearance: none; appearance: none; padding-right: 28px; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235c5856' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 9px center; background-size: 12px;
+}
+body.theme-dark select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b4b0af' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); }
+select:hover { border-color: var(--background-modifier-border-hover); }
 input:focus, textarea:focus, select:focus { border-color: var(--background-modifier-border-focus); box-shadow: 0 0 0 2px var(--background-modifier-border-focus); }
 input[type="checkbox"] { accent-color: var(--interactive-accent); }
 .clickable-icon {
