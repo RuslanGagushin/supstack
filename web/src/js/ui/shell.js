@@ -126,22 +126,8 @@ export function wbBtn(iconName, label, onClick, cls = "", kbd = null) {
   if (onClick) b.addEventListener("click", onClick);
   return b;
 }
-/* The bar's width depends on the language, the vault name and the sync status, so it is measured, not guessed from the window width */
-export const TOP_FIT_STEPS = [1, 2, 3];
-function fitTopBar(top) {
-  for (const i of TOP_FIT_STEPS) top.classList.remove(`fit-${i}`);
-  for (const i of TOP_FIT_STEPS) { if (top.scrollWidth <= top.clientWidth) break; top.classList.add(`fit-${i}`); }
-}
-let topBarWatch = null;
-function watchTopBar(top) {
-  topBarWatch?.();
-  const fit = () => fitTopBar(top);
-  const resize = new ResizeObserver(fit), changes = new MutationObserver(fit);
-  resize.observe(top);
-  changes.observe(top, { childList: true, subtree: true, characterData: true });
-  document.fonts?.ready.then(() => { if (top.isConnected) fit(); });
-  topBarWatch = () => { resize.disconnect(); changes.disconnect(); };
-}
+/** The button that opens the sidebar from a view's own bar; it shows only while the sidebar is closed (board.css) */
+export function sideToggle() { return iconBtn("panel-left", t("toggleSidebar"), () => setSide(true), "sn-side-toggle"); }
 function renderAll() {
   applyLanguage();
   const app = $("#app");
@@ -159,14 +145,8 @@ function renderAll() {
     m.showBelow(e.currentTarget);
   };
   const newCard = async () => { const title = await promptModal(t("newCard")); if (title) createCard(title, board.target, "", undefined, { open: true }); };
-  const top = h("div", { cls: "wb-top" },
-    iconBtn("panel-left", t("toggleSidebar"), () => setSide($("#app").classList.contains("side-closed")), "wb-icon"),
-    h("div", { cls: "wb-spacer" }),
-    syncButton(),
-    tasksButton(),
-    filesButton(),
-    iconBtn("settings", t("settings"), () => settingsModal(), "wb-icon"));
-  // search, the new-card button and the vault live in the sidebar
+  // there is no top bar: search, the new-card button, the agenda, Files, sync, settings and the vault live in the sidebar,
+  // and each view's own bar opens the sidebar when it is closed (sideToggle)
   const search = h("button", { cls: "sb-search", type: "button", title: t("openShort") + " · Ctrl+O" }, ic("", "search"), h("span", { text: t("searchShort") }));
   search.addEventListener("click", () => quickOpen());
   const sideHead = h("div", { cls: "sb-head" }, search,
@@ -181,7 +161,11 @@ function renderAll() {
     h("span", { cls: "sb-avatar", text: (vault.fs.name || "S").trim().charAt(0).toUpperCase() }),
     h("span", { cls: "sb-account-name" }, h("span", { text: vault.fs.name }), note ? h("small", { cls: "sb-account-note", text: note }) : null), ic("wb-caret", "chevron-down"));
   account.addEventListener("click", vaultMenu);
-  const side = h("div", { cls: "sn-side" }, sideHead, h("div", { cls: "sn-outline", id: "tree" }), h("div", { cls: "sb-foot" }, account));
+  const sideNav = h("nav", { cls: "sb-nav", "aria-label": t("tabbar") }, tasksButton(), filesButton(), syncButton());
+  const foot = h("div", { cls: "sb-foot" }, account,
+    iconBtn("settings", t("settings"), () => settingsModal(), "sb-foot-btn"),
+    iconBtn("panel-left-close", t("toggleSidebar"), () => setSide(false), "sb-foot-btn sb-collapse"));
+  const side = h("div", { cls: "sn-side" }, sideHead, sideNav, h("div", { cls: "sn-outline", id: "tree" }), foot);
   const sideRes = h("div", { cls: "sn-resizer is-side" });
   makeResizer(sideRes, (dx, start) => { UI.sideW = Math.max(180, Math.min(520, start + dx)); document.documentElement.style.setProperty("--side-w", UI.sideW + "px"); }, () => UI.sideW);
   const main = h("div", { cls: "sn-main win" }, h("div", { cls: "sn-board-host" }, h("div", { id: "board", cls: "sn-board", tabindex: "0" })));
@@ -196,8 +180,7 @@ function renderAll() {
   const ed = h("div", { cls: "sn-editor win", id: "editor" });
   const scrim = h("div", { cls: "sn-side-scrim", onClick: () => setSide(false) });
   const frame = h("div", { cls: "wb-frame" }, side, scrim, sideRes, main, edRes, ed);
-  app.append(top, frame, tabBar());
-  watchTopBar(top);
+  app.append(frame, tabBar());
   echo(defaultEcho(), { keep: true });
   renderTree();
   renderBoard(true);

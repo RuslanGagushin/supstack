@@ -748,29 +748,20 @@ describe("palettes, settings, language and themes", () => {
   });
 });
 
-describe("top bar", () => {
-  const state = () => ev(async () => {
-    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-    const top = $(".wb-top");
-    return { fits: top.scrollWidth <= top.clientWidth, step: TOP_FIT_STEPS.filter((i) => top.classList.contains(`fit-${i}`)).length };
-  });
-
-  for (const lang of ["en", "ru"]) test(`always fits, and gets its labels back when the window widens (${lang})`, async () => {
-    await openVault({ viewport: { width: 1700, height: 800 }, lang });
-    assert.deepEqual(await state(), { fits: true, step: 0 });
-    for (const width of [1250, 1000, 821, 700, 500, 390, 320]) {
-      await H.page.setViewportSize({ width, height: 800 });
-      assert.equal((await state()).fits, true, `overflows at ${width}px`);
-    }
-    await H.page.setViewportSize({ width: 1700, height: 800 });
-    assert.equal((await state()).step, 0);
-  });
-
-  test("refits when a button's text changes", async () => {
-    await openVault({ viewport: { width: 1250, height: 800 } });
-    const before = (await state()).step;
-    await ev(() => { $("#files-btn .wb-label").textContent = "A very long label ".repeat(12); });
-    assert.ok((await state()).step > before);
+describe("no top bar", () => {
+  test("the agenda, Files and settings are in the sidebar; a view's own bar opens the sidebar when it is closed", async () => {
+    await openVault({ viewport: { width: 1280, height: 800 } });
+    assert.equal(await ev(() => !!$(".wb-top")), false, "no top bar");
+    assert.deepEqual(await ev(() => ["#tasks-btn", "#files-btn"].map((s) => !!$(s)?.closest(".sn-side .sb-nav"))), [true, true]);
+    assert.equal(await ev(() => !!$(".sn-side .sb-foot [aria-label='" + t("settings") + "']")), true, "settings at the sidebar's foot");
+    const toggleShown = () => ev(() => { const b = $(".sn-board .sn-side-toggle"); return !!b && getComputedStyle(b).display !== "none"; });
+    assert.equal(await toggleShown(), false, "no opener while the sidebar is open");
+    await page().click(".sb-collapse");
+    assert.equal(await ev(() => $("#app").classList.contains("side-closed")), true);
+    assert.equal(await toggleShown(), true);
+    await page().click(".sn-board .sn-side-toggle");
+    assert.equal(await ev(() => $("#app").classList.contains("side-closed")), false);
+    noErrors();
   });
 });
 
@@ -781,10 +772,10 @@ describe("sidebar", () => {
     await openVault({ viewport: { width: 1280, height: 800 } });
     for (const sel of [".sb-search", ".sb-new", ".sb-account"]) assert.equal(await shown(sel), true, sel);
     assert.match(await page().textContent(".sb-account"), /Demo|vault/i);
-    // the sidebar runs the full height, the top bar starts to its right
-    const box = await ev(() => ({ side: $(".sn-side").getBoundingClientRect().toJSON(), top: $(".wb-top").getBoundingClientRect().toJSON() }));
+    // the sidebar runs the full height, the board starts to its right
+    const box = await ev(() => ({ side: $(".sn-side").getBoundingClientRect().toJSON(), main: $(".sn-main").getBoundingClientRect().toJSON() }));
     assert.equal(box.side.top, 0);
-    assert.ok(box.top.left >= box.side.right - 1);
+    assert.ok(box.main.left >= box.side.right - 1);
     noErrors();
   });
 

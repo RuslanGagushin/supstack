@@ -151,7 +151,7 @@ describe("list", () => {
     await page.click("#files-btn");
     assert.equal(await ev(() => board.view), "files");
     assert.equal(await page.getAttribute("#files-btn", "class").then((c) => c.includes("is-active")), true);
-    await page.click(".sn-topbar .sn-nav button");
+    await page.click(".sn-topbar .sn-nav button:not(.sn-side-toggle)"); // Back (the sidebar opener shows only while it is closed)
     assert.equal(await ev(() => board.view), null);
     await page.keyboard.press("Control+Shift+E");
     assert.equal(await ev(() => board.view), "files");

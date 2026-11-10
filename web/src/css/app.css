@@ -12,7 +12,7 @@ body.sn-app {
   font-size: var(--fs-ui);
 }
 
-/* Layout: the sidebar runs full height; the top bar sits over the board, not over the sidebar */
+/* Layout: the sidebar runs full height beside the board and the note; there is no top bar (row 1 stays empty) */
 body.sn-app #app {
   display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto auto; grid-template-rows: auto minmax(0, 1fr);
   gap: 0;
@@ -20,7 +20,7 @@ body.sn-app #app {
 body.sn-app .wb-frame { display: contents; }
 body.sn-app .sn-side { grid-column: 1; grid-row: 1 / 3; background: var(--bg); }
 body.sn-app .sn-resizer.is-side { grid-column: 2; grid-row: 1 / 3; }
-body.sn-app .wb-top { grid-column: 3 / 6; grid-row: 1; padding: 10px 14px 6px 8px; min-height: 48px; }
+body.sn-app .sn-main { padding-top: 6px; }
 body.sn-app .sn-main { grid-column: 3; grid-row: 2; }
 body.sn-app .sn-editor { grid-column: 5; grid-row: 2; }
 body.sn-app #app.editor-wide .sn-editor { grid-column: 3 / 6; }
@@ -29,7 +29,7 @@ body.sn-app #app.focus-mode .sn-editor { grid-column: 3 / 6; }
 /* the board sits on the grey; the note opens on a white sheet */
 body.sn-app .win { border: 0; }
 body.sn-app .sn-editor.win {
-  background: var(--win); border: 1px solid var(--line); border-right: 0; border-bottom: 0; border-radius: 12px 0 0 0;
+  margin-top: 8px; background: var(--win); border: 1px solid var(--line); border-right: 0; border-bottom: 0; border-radius: var(--r-m) 0 0 0;
   box-shadow: -2px 0 12px rgba(0,0,0,.03);
 }
 body.sn-app #app.editor-wide .sn-editor.win { border-radius: var(--r-m) 0 0 0; }
@@ -37,7 +37,23 @@ body.sn-app .sn-resizer.is-editor { grid-column: 4; grid-row: 2; flex-basis: 8px
 
 /* ---------- Sidebar */
 body.sn-app .sb-head { display: flex; flex-direction: column; gap: 12px; padding: 14px 12px 10px 14px; }
-body.sn-app .sb-foot { display: flex; padding: 8px 10px 12px 12px; }
+body.sn-app .sb-foot { display: flex; align-items: center; gap: 2px; padding: 8px 10px 12px 12px; }
+body.sn-app .sb-foot button.sb-account { flex: 1 1 auto; min-width: 0; width: auto; }
+body.sn-app button.clickable-icon.sb-foot-btn { flex: none; width: 32px; height: 32px; padding: 0; border-radius: var(--r-s); color: var(--muted); }
+body.sn-app button.clickable-icon.sb-foot-btn:hover { background: var(--hover-bg); color: var(--fg); }
+body.sn-app .sb-foot-btn svg { width: 16px; height: 16px; }
+@media (max-width: 820px) { body.sn-app .sb-collapse { display: none; } } /* the drawer closes on the grey around it */
+/* The sidebar's places: the agenda, Files and sync, as rows like the tree's, each with its count or state at the right */
+body.sn-app .sb-nav { display: flex; flex-direction: column; gap: 1px; padding: 0 12px 6px 14px; }
+body.sn-app .sb-nav button.wb-btn { justify-content: flex-start; gap: 8px; width: 100%; height: 32px; padding: 0 8px; border: 0; border-radius: var(--r-s);
+  background: transparent; color: var(--fg); font-size: var(--fs-md); font-weight: 400; }
+body.sn-app .sb-nav button.wb-btn:hover { background: var(--hover-bg); }
+body.sn-app .sb-nav button.wb-btn.is-active { background: var(--sel); color: var(--ink); }
+body.sn-app .sb-nav button.wb-btn svg { width: 16px; height: 16px; color: var(--muted); }
+body.sn-app .sb-nav .wb-label { display: inline !important; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+body.sn-app .sb-nav .wb-count { margin-left: auto; }
+body.sn-app .sb-nav button.wb-btn.wb-sync { max-width: none; }
+.sb-nav .wb-sync[hidden] { display: none; }
 /* Search fields share one look: 34px, white on the grey with a hairline border, a 14px icon, the accent ring on focus
    (the sidebar's launcher, the board's filter, Files and Settings) */
 body.sn-app :is(button.sb-search, .sn-search, input.sn-set-search, input.fv-search) {
@@ -71,9 +87,14 @@ button.sb-account:hover { background: var(--hover-bg); }
 .sb-account-note { color: var(--muted); font-size: var(--fs-xs); font-weight: 400; }
 button.sb-account.has-note { height: 42px; }
 
-body.sn-app .sn-tree-header { padding: 0 12px 4px 14px; gap: 2px; }
-body.sn-app .sn-tree-header .clickable-icon { width: 28px; height: 26px; border-radius: 6px; color: var(--faint); }
-body.sn-app .sn-tree-header .clickable-icon:hover { background: var(--hover-bg); color: var(--fg); }
+/* the tree's tools on its "Cards" heading: they show with the pointer over the sidebar or the focus in them; touch shows them always */
+body.sn-app .sn-tree-section.has-tools { display: flex; align-items: center; gap: 4px; min-height: 24px; }
+.sn-sec-tools { display: flex; gap: 2px; margin-left: auto; opacity: 0; transition: opacity 120ms ease; }
+.sn-side:hover .sn-sec-tools, .sn-sec-tools:focus-within { opacity: 1; }
+@media (hover: none) { .sn-sec-tools { opacity: 1; } }
+body.sn-app .sn-sec-tools .clickable-icon { width: 26px; height: 24px; padding: 0; border-radius: var(--r-s); color: var(--muted); }
+body.sn-app .sn-sec-tools .clickable-icon:hover { background: var(--hover-bg); color: var(--fg); }
+body.sn-app .sn-sec-tools .clickable-icon svg { width: 14px; height: 14px; }
 body.sn-app .sn-tree { padding: 0 12px 16px 14px; }
 body.sn-app .sn-tree-section, body.sn-app .sn-tree-section:first-child {
   margin: 18px 0 4px; padding-left: 8px; font-size: var(--fs-sm); font-weight: 500; color: var(--muted);
@@ -296,7 +317,7 @@ button.sn-row-enter:hover, .sn-row:focus-visible button.sn-row-enter { backgroun
 
 @media (max-width: 820px) {
   body.sn-app #app { grid-template-columns: minmax(0, 1fr); }
-  body.sn-app :is(.wb-top, .sn-main) { grid-column: 1; }
+  body.sn-app .sn-main { grid-column: 1; }
   body.sn-app .sn-side { box-shadow: var(--shadow-l); }
   body.sn-app .sn-editor.win { border-radius: 0; border: 0; }
   body.sn-app .sn-page { padding: 12px 14px 60px; }
@@ -337,10 +358,12 @@ button.sn-row-enter:hover, .sn-row:focus-visible button.sn-row-enter { backgroun
 :root { --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px); }
 html.is-android { --safe-top: max(env(safe-area-inset-top, 0px), 44px); --safe-bottom: max(env(safe-area-inset-bottom, 0px), 24px); }
 /* the app's own controls are not text: a long press or a drag over them selects nothing */
-html.is-native :is(.wb-top, .sn-side, .sn-tabbar, .sn-topbar, .agbar, .ag-strip, .sn-seg, button) { -webkit-user-select: none; user-select: none; }
+html.is-native :is(.sn-side, .sn-tabbar, .sn-topbar, .agbar, .ag-strip, .sn-seg, button) { -webkit-user-select: none; user-select: none; }
 html.is-android { -webkit-tap-highlight-color: transparent; }
 /* edge-to-edge screens: keep the top bar and the sides clear of the status bar and rounded corners */
-html.is-native body.sn-app .wb-top { padding-top: max(10px, env(safe-area-inset-top)); padding-right: max(14px, env(safe-area-inset-right)); }
+/* with no top bar, the board's own bar keeps clear of the status bar */
+html.is-native body.sn-app .sn-main { padding-top: max(6px, env(safe-area-inset-top)); }
+html.is-android body.sn-app .sn-main { padding-top: var(--safe-top); }
 html.is-native body.sn-app .sn-main { padding-right: env(safe-area-inset-right); }
 @media (max-width: 820px) {
   /* the drawer and the note over the board start below the status bar and end above the gesture bar */

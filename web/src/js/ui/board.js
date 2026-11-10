@@ -15,7 +15,7 @@ import { cardBodyText, cardMenu, parentChip, renderBody, renderCard, renderRow, 
 import { dnd } from "./dnd.js";
 import { renderTree } from "./tree.js";
 import { closeEditor, openEditor } from "./editor.js";
-import { setSide } from "./shell.js";
+import { setSide, sideToggle } from "./shell.js";
 import { openTasksView, renderTasksView } from "./agenda.js";
 import { fvRenderList, openFilesView, renderFilesView } from "./files.js";
 
@@ -302,10 +302,11 @@ function renderToolbar() {
     for (const p of parents) m.add(baseName(p), cardIcon(p) || "layers", () => setTarget(p));
     m.showBelow(e.currentTarget);
   });
-  // only the moves that can be made: at the top with no history the bar starts with the tools
+  // the sidebar's opener (only while it is closed), then only the moves that can be made
+  nav.append(sideToggle());
   if (board.history.length) nav.append(backBtn);
   if (target) nav.append(upBtn);
-  if (nav.childElementCount) bar.append(nav);
+  bar.append(nav);
 
   const crumbs = h("div", { cls: "sn-crumbs" });
   const crumb = (path, current) => {
@@ -349,19 +350,31 @@ function renderToolbar() {
     const m = new Menu();
     for (const [v, label, icn] of sortOpts) m.add(label, icn, () => { board.sort = v; persistBoard(); renderBoard(); }, { checked: v === board.sort });
     m.showBelow(e.currentTarget);
-  }));
+  }, "sn-wide-only"));
+  const groupToggle = () => { board.grouped = !board.grouped; persistBoard(); renderBoard(); };
   if (board.depth !== 1) {
-    const gb = iconBtn("group", t("groupByParent"), () => { board.grouped = !board.grouped; persistBoard(); renderBoard(); });
+    const gb = iconBtn("group", t("groupByParent"), groupToggle, "sn-wide-only");
     if (board.grouped) gb.classList.add("is-active");
     opts.append(gb);
   }
-  const lay = h("div", { cls: "sn-seg" });
+  const lay = h("div", { cls: "sn-seg sn-wide-only" });
   for (const [v, icn, label] of LAYOUTS()) {
     const b = iconBtn(icn, label, () => setLayout(v));
     if (v === board.layout) b.classList.add("is-active");
     lay.append(b);
   }
   tools.append(lay);
+  // on a phone the layout, the sort and grouping are one "View" button (the depths and search stay in the bar)
+  const curLayout = LAYOUTS().find(([v]) => v === board.layout) || LAYOUTS()[0];
+  tools.append(iconBtn(curLayout[1], t("viewMenu"), (e) => {
+    const m = new Menu();
+    m.label(t("viewMenu"));
+    for (const [v, icn, label] of LAYOUTS()) m.add(label, icn, () => setLayout(v), { checked: v === board.layout });
+    m.sep(); m.label(t("sorting"));
+    for (const [v, label, icn] of sortOpts) m.add(label, icn, () => { board.sort = v; persistBoard(); renderBoard(); }, { checked: v === board.sort });
+    if (board.depth !== 1) { m.sep(); m.add(t("groupByParent"), "group", groupToggle, { checked: !!board.grouped }); }
+    m.showBelow(e.currentTarget);
+  }, "sn-narrow-only sn-view-btn"));
   bar.append(tools);
   return bar;
 }

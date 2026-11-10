@@ -3,11 +3,11 @@
    ========================================================= */
 import { LANG, t } from "../core/i18n.js";
 import { baseName } from "../core/util.js";
-import { board, editor, graph, S, tree, vault } from "../services/state.js";
+import { board, editor, graph, S, saveUI, tree, UI, vault } from "../services/state.js";
 import { cardIcon, makeComparator, persistBoard, saveSettings } from "../services/vault.js";
 import { $, h, ic, iconBtn, isMod, setIcon } from "./dom.js";
 import { Menu, promptModal } from "./ui.js";
-import { applyView, createCard } from "./actions.js";
+import { applyView } from "./actions.js";
 import { cardMenu } from "./cards.js";
 import { setTarget } from "./board.js";
 import { dnd } from "./dnd.js";
@@ -21,9 +21,9 @@ export function renderTree() {
   if (!host || !vault.fs) return;
   const scroll = host.querySelector(".sn-tree")?.scrollTop || 0;
   host.replaceChildren();
-  const header = h("div", { cls: "sn-tree-header" });
+  // the tree's tools sit on its own heading ("Cards"), shown with the pointer over it; "New card" is the blue button above
+  const header = h("div", { cls: "sn-sec-tools" });
   const sortOpts = [["manual", t("sortManual"), "list-ordered"], ["name", t("sortName"), "arrow-down-a-z"], ["modified", t("sortModified"), "clock"], ["created", t("sortCreated"), "calendar-plus"]];
-  header.append(iconBtn("plus-square", t("newCard"), async () => { const title = await promptModal(t("newCard")); if (title) createCard(title, board.target, "", undefined, { open: true }); }));
   header.append(iconBtn(sortOpts.find(([v]) => v === S.outlineSort)?.[2] || "arrow-up-down", t("treeSort"), (e) => {
     const m = new Menu();
     for (const [v, label, icn] of sortOpts) m.add(label, icn, () => { S.outlineSort = v; saveSettings(); renderTree(); }, { checked: v === S.outlineSort });
@@ -41,8 +41,12 @@ export function renderTree() {
   }
   const recent = [...graph.nodes].sort((a, b) => (vault.notes.get(b)?.mtime || 0) - (vault.notes.get(a)?.mtime || 0)).slice(0, 5);
   if (recent.length > 3) {
-    box.append(h("div", { cls: "sn-tree-section", text: t("recent") }));
-    for (const p of recent) {
+    // folds like Tags, so the five rows need not sit above the tree for good
+    const open = UI.recentOpen !== false;
+    const head = h("div", { cls: "sn-tree-section is-toggle" + (open ? " is-open" : "") }, ic("sn-sec-caret", "chevron-down"), h("span", { text: t("recent") }));
+    head.addEventListener("click", () => { UI.recentOpen = !open; saveUI(); renderTree(); });
+    box.append(head);
+    for (const p of open ? recent : []) {
       const row = h("div", { cls: "tree-item-self is-clickable sn-tree-row is-recent" + (board.target === p ? " is-active" : "") + (editor.path === p ? " is-editing" : "") },
         h("span", { cls: "sn-tree-toggle is-leaf" }), ic("sn-tree-icon", cardIcon(p) || "file-text", "file-text"), h("div", { cls: "tree-item-inner sn-tree-label", text: baseName(p) }),
         h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair", text: shortAgo(vault.notes.get(p)?.mtime || 0) })));
@@ -67,7 +71,7 @@ export function renderTree() {
     }
   }
   tagsSection(box);
-  box.append(h("div", { cls: "sn-tree-section", text: t("tree") }));
+  box.append(h("div", { cls: "sn-tree-section has-tools" }, h("span", { text: t("tree") }), header));
   const allRow = h("div", { cls: "tree-item-self is-clickable sn-tree-row" + (!board.target && !board.tagView ? " is-active" : "") }, h("span", { cls: "sn-tree-toggle is-leaf" }), ic("sn-tree-icon", "home"), h("div", { cls: "tree-item-inner sn-tree-label", text: t("allCards") }),
     h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair sn-tree-count", text: String(graph.collect(null, 0, cmp).cards.length) }))); // the cards the board reaches, as its "of N" says
   allRow.addEventListener("click", () => setTarget(null));
@@ -76,7 +80,7 @@ export function renderTree() {
   const roots = graph.sortedChildren(null, cmp);
   if (!roots.length) box.append(h("div", { cls: "sn-tree-empty", text: t("noCards") }));
   for (const r of roots) box.append(treeNode(r, [r], cmp, {}));
-  host.append(header, box);
+  host.append(box);
   box.scrollTop = scroll;
 }
 /** Background updates (sync, file changes) wait while the pointer is over the sidebar,

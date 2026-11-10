@@ -16,7 +16,7 @@ import { renderMarkdown, wireRendered } from "./markdown.js";
 import { masonries } from "./masonry.js";
 import { goBack, leaveTagView, navEntry, renderBoard, setTarget } from "./board.js";
 import { renderTree } from "./tree.js";
-import { setSide } from "./shell.js";
+import { setSide, sideToggle } from "./shell.js";
 import { orgCycle, orgEdit, orgPickPriority, orgPickState, orgPlanEntry, orgPri, orgRefocus, orgTagsEntry } from "./org-commands.js";
 import { openEditorAtLine, orgAskDate, orgCalendar, orgDateText } from "./org-editing.js";
 import { taskBox, taskIcon } from "./task-icons.js";
@@ -115,7 +115,7 @@ export function renderTasksView(root) {
   // top bar
   const bar = h("div", { cls: "sn-topbar" });
   const back = iconBtn("arrow-left", t("back"), () => goBack()); back.disabled = !board.history.length;
-  bar.append(h("div", { cls: "sn-nav" }, back));
+  bar.append(h("div", { cls: "sn-nav" }, sideToggle(), back));
   const crumbs = h("div", { cls: "sn-crumbs" });
   const home = h("a", { cls: "sn-crumb", href: "#" }, ic("sn-crumb-icon", "home"), h("span", { text: t("allCards") }));
   home.addEventListener("click", (e) => { e.preventDefault(); setTarget(null); });

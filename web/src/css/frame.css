@@ -1,15 +1,7 @@
 /* ==========================================================
-   Frame: top bar and windows (app.css lays them out)
+   Frame: the window and its buttons (app.css lays them out)
    ========================================================== */
 #app { height: 100dvh; width: 100vw; overflow: hidden; flex-direction: column; background: var(--bg); }
-.wb-top { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; min-width: 0; }
-.wb-top > :not(.wb-spacer) { flex: none; }
-/* When the bar runs out of room, fitTopBar() adds these one by one */
-.wb-top.fit-1 .wb-files .wb-label { display: none; }
-.wb-top.fit-1 .wb-sync { max-width: 130px; }
-.wb-top.fit-2 .wb-btn .wb-label { display: none; }
-.wb-top.fit-3 { gap: 4px; }
-.wb-top .wb-sync[hidden] { display: none; }
 .wb-brand { font-weight: 500; display: flex; align-items: baseline; gap: 0; white-space: nowrap; min-width: 0; }
 .wb-brand i { color: var(--l1); }
 .wb-brand small { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--faint); font-weight: 400; letter-spacing: 0; margin-left: 10px; overflow: hidden; text-overflow: ellipsis; }
@@ -35,10 +27,6 @@ button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--f
 /* ---------- Sidebar: an outline beside the frame */
 .sn-side { flex: 0 0 var(--side-w, 280px); min-width: 0; display: flex; flex-direction: column; border-right: 0; }
 .sn-outline { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; --sn-surface: var(--background-secondary); --sn-surface: var(--bg); }
-.sn-tree-header { flex: 0 0 auto; display: flex; justify-content: flex-start; }
-.sn-tree-header .clickable-icon { padding: 0; }
-.sn-tree-header .clickable-icon:hover { border-color: var(--faint); color: var(--fg); background: var(--win); }
-.sn-tree-header .clickable-icon svg { width: 13px; height: 13px; }
 .sn-outline .tree-item-self.sn-tree-row:hover { background: var(--panel); }
 .tree-item-children { margin-inline-start: 9px; padding-inline-start: 4px; }
 

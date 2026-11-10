@@ -17,7 +17,7 @@ import { closeEditor, openEditor, renderEditor, saveEditor } from "./editor.js";
 import { liveActivateEnd } from "./live-preview.js";
 import { editorTable, editorTableKey, editorTableOp, tableMenu } from "./table-editor.js";
 import { edSetHeading } from "./format-bar.js";
-import { acKey, acUpdate, linkMention, pickAndAttach, setFocusMode, tagInputSuggest, unlinkedMentions } from "./completion.js";
+import { acKey, acUpdate, linkMention, setFocusMode, tagInputSuggest, unlinkedMentions } from "./completion.js";
 import { orgEditorKey, orgLineIsEntry, orgToolbar } from "./org-editing.js";
 
 let tagFocus = false;
@@ -243,12 +243,10 @@ export function renderEdToolbar() {
   btn(g, "code", t("tbCode"), (el) => edWrap(el, "`"));
   sep(); g = group();
   btn(g, "link", t("tbLink").replace(/ \(.*\)$/, ""), (el) => edLinkStart(el), "[[ · Ctrl+L");
-  btn(g, "image-plus", wt("c_image"), (el) => pickAndAttach(el));
   sep(); g = group();
+  // the main set; a numbered list, a quote, an image and a code block are in "Insert /" (completion.js slashCommands)
   btn(g, "list", t("tbList"), (el) => edPrefix(el, "- "));
-  btn(g, "list-ordered", t("tbNum"), (el) => edPrefix(el, "1. "));
   btn(g, "list-checks", t("tbTask"), (el) => edPrefix(el, "- [ ] "));
-  btn(g, "text-quote", t("tbQuote"), (el) => edPrefix(el, "> "));
   btn(g, "table", wt("c_table"), (el, e) => {
     const at = editorTable(el);
     if (at) { tableMenu((op) => editorTableOp(el, op, at), at.row).showBelow(e.currentTarget); return; }
@@ -258,8 +256,6 @@ export function renderEdToolbar() {
   });
   sep(); g = group();
   orgToolbar(btn, g);
-  sep(); g = group();
-  btn(g, "square-code", t("tbBlock"), (el) => { const { selectionStart: s, selectionEnd: e, value } = el; const sel = value.slice(s, e); const pre = s > 0 && value[s - 1] !== "\n" ? "\n" : ""; edInsert(el, s, e, `${pre}\`\`\`\n${sel}\n\`\`\`\n`, s + pre.length + 4, s + pre.length + 4 + sel.length); });
   bar.append(h("span", { cls: "grow" }));
   const ins = h("button", { type: "button", cls: "sn-tb-insert", title: wt("slashHint") }, ic("sn-tb-insert-icon", "plus"), h("span", { cls: "sn-tb-insert-label", text: LANG === "ru" ? "Вставить" : "Insert" }), h("kbd", { text: "/" }));
   ins.addEventListener("mousedown", (e) => e.preventDefault());

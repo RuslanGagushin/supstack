@@ -19,7 +19,7 @@ import { attachLongPress, formatDate } from "./cards.js";
 import { goBack, leaveTagView, navEntry, renderBoard, setTarget } from "./board.js";
 import { renderTree } from "./tree.js";
 import { openEditor, saveEditor } from "./editor.js";
-import { refresh, setSide, wbBtn } from "./shell.js";
+import { refresh, setSide, sideToggle, wbBtn } from "./shell.js";
 
 export const FV = Object.assign({ kind: "all", sort: "name", unused: false }, lsGet("sn-files", {}), { query: "", sel: null, refs: null });
 const saveFV = () => lsSet("sn-files", { kind: FV.kind, sort: FV.sort, unused: FV.unused });
@@ -209,7 +209,7 @@ export function renderFilesView(root) {
 
   const bar = h("div", { cls: "sn-topbar" });
   const back = iconBtn("arrow-left", t("back"), () => goBack()); back.disabled = !board.history.length;
-  bar.append(h("div", { cls: "sn-nav" }, back));
+  bar.append(h("div", { cls: "sn-nav" }, sideToggle(), back));
   const crumbs = h("div", { cls: "sn-crumbs" });
   const home = h("a", { cls: "sn-crumb", href: "#" }, ic("sn-crumb-icon", "home"), h("span", { text: t("allCards") }));
   home.addEventListener("click", (e) => { e.preventDefault(); setTarget(null); });

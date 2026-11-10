@@ -17,6 +17,7 @@
 .sn-board-host { flex: 1 1 auto; min-height: 0; }
 .sn-resizer:hover::after, .sn-resizer.is-dragging::after { content: ""; position: absolute; inset: 0 2px; background: var(--interactive-accent); }
 #app:not(.side-closed) .sn-board .sn-side-toggle { display: none; }
+#app:not(.side-closed) .sn-nav:has(> .sn-side-toggle:only-child) { display: none; } /* nothing else to show */
 
 /* ---------- Editor pane (the note beside the board) */
 .sn-editor { width: var(--editor-w, 540px);
