@@ -1067,6 +1067,31 @@ describe("list of notes", () => {
     noErrors();
   });
 
+  test("the note's header shows the notebooks it sits in, its other places and a move button; no Children block; only a notebook opens as a list", async () => {
+    await openVault({ demo: false, notes: {
+      "cards/Work.md": "", "cards/Proton.md": "---\nparents: [\"[[Work]]\"]\n---\n", "cards/Home.md": "",
+      "cards/Invoice.md": "---\nparents: [\"[[Proton]]\", \"[[Home]]\"]\n---\nan invoice",
+    } });
+    await ev(() => openEditor("cards/Invoice.md", { focus: false, wide: false }));
+    const head = () => ev(() => ({
+      path: $(".sn-editor-path").textContent, links: $$(".sn-editor-path a.sn-editor-crumb").map((a) => a.textContent),
+      places: $(".sn-editor-places")?.textContent ?? null, move: !!$(".sn-editor-move"),
+      notebook: $$("#editor .sn-editor-head button").some((b) => b.title === t("menuOpenNotebook")), children: /Children/.test($("#editor").textContent),
+    }));
+    // of its two parents the path follows the first in manual order, as the list's breadcrumbs do
+    assert.deepEqual(await head(), { path: "Home/Invoice", links: ["Home"], places: "+1", move: true, notebook: false, children: false });
+    await page().click(".sn-editor-places");
+    assert.match(await page().textContent(".menu"), /Also in.*Work \/ Proton/s);
+    await page().click(".menu .menu-item >> text=Work / Proton");
+    assert.equal(await ev(() => board.target), "cards/Proton.md", "the other place opens its list");
+    assert.deepEqual(await ev(() => [editor.path, $(".sn-editor-path").textContent]), ["cards/Invoice.md", "Work/Proton/Invoice"], "the note stays open; its path now goes through the list's notebook");
+    await page().click(".sn-editor-path a.sn-editor-crumb >> text=Work");
+    assert.equal(await ev(() => board.target), "cards/Work.md", "a notebook in the path opens its list");
+    await ev(() => openEditor("cards/Proton.md", { focus: false, wide: false }));
+    assert.deepEqual(await ev(() => [$$("#editor .sn-editor-head button").some((b) => b.title === t("menuOpenNotebook")), /Children/.test($("#editor").textContent)]), [true, false]);
+    noErrors();
+  });
+
   test("a notebook is a compact row that goes inside on a click or →, and ← comes back out on it", async () => {
     await ev(() => setTarget("cards/History.md"));
     const r = await ev(() => ({

@@ -6,13 +6,12 @@ import { LANG, t, wt } from "../core/i18n.js";
 import { baseName } from "../core/util.js";
 import { dumpYaml } from "../core/frontmatter.js";
 import { formatTable } from "../core/tables.js";
-import { board, editor, graph, PARENTS_FIELD, UI, vault } from "../services/state.js";
-import { cardIcon, makeComparator } from "../services/vault.js";
+import { editor, graph, PARENTS_FIELD, UI, vault } from "../services/state.js";
+import { cardIcon } from "../services/vault.js";
 import { $, h, ic, isMod, setIcon } from "./dom.js";
 import { Menu } from "./ui.js";
 import { addTags, fmTagList, promptAddParent, promptIcon, removeParent, removeTag, templateFor } from "./actions.js";
 import { parentChip } from "./cards.js";
-import { setTarget } from "./board.js";
 import { closeEditor, openEditor, renderEditor, saveEditor } from "./editor.js";
 import { liveActivateEnd } from "./live-preview.js";
 import { editorTable, editorTableKey, editorTableOp, tableMenu } from "./table-editor.js";
@@ -85,12 +84,11 @@ export function renderEditorProps() {
   }
   if (foot) {
     foot.replaceChildren();
-    const kids = graph.has(path) ? graph.sortedChildren(path, makeComparator(board.sort)) : [];
+    // what the notebook holds is its list (the board), not a block under its text
     const back = graph.backlinksOf(path);
     const unlinked = unlinkedMentions(path);
-    if (!kids.length && !back.length && !unlinked.length) return;
+    if (!back.length && !unlinked.length) return;
     const box = h("div", { cls: "sn-editor-foot" });
-    if (kids.length) box.append(h("h4", { text: `${t("children")} · ${kids.length}` }), h("div", { cls: "sn-chips" }, kids.map((k) => { const c = parentChip(k); c.onclick = (e) => { e.preventDefault(); if (isMod(e)) setTarget(k); else openEditor(k); }; return c; })));
     if (back.length) box.append(h("h4", { text: `${t("linkedMentions")} · ${back.length}` }), h("div", { cls: "sn-chips" }, back.map((k) => { const c = parentChip(k); c.onclick = (e) => { e.preventDefault(); openEditor(k); }; return c; })));
     if (unlinked.length) {
       box.append(h("h4", { text: `${wt("unlinked")} · ${unlinked.length}` }));

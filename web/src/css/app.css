@@ -173,6 +173,17 @@ body.sn-app .sn-selbar { border-radius: var(--r-m); }
 body.sn-app .sn-editor-head { height: 52px; padding: 0 12px 0 14px; border-bottom: 0; }
 body.sn-app .sn-editor-path { font-weight: 500; color: var(--muted); }
 body.sn-app .sn-editor-path b { font-weight: 500; color: var(--fg); }
+/* the notebooks a note sits in (editor.js notebookPath): links to their lists, "+N" for its other places, the move button */
+.sn-editor-where { flex: 1; min-width: 0; display: flex; align-items: center; gap: 2px; }
+body.sn-app .sn-editor-where .sn-editor-path { flex: 0 1 auto; display: flex; align-items: baseline; min-width: 0; }
+.sn-editor-path > a, .sn-editor-path > b { min-width: 1.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sn-editor-path > b { flex-shrink: 1; }
+a.sn-editor-crumb { color: var(--muted); text-decoration: none; }
+a.sn-editor-crumb:hover { color: var(--ink); text-decoration: underline; }
+.sn-editor-crumb-sep { flex: none; padding: 0 5px; color: var(--faint); }
+button.sn-editor-places { flex: none; height: 20px; margin-left: 4px; padding: 0 7px; border: 0; border-radius: var(--r-pill); background: var(--panel); color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; cursor: pointer; }
+button.sn-editor-places:hover { background: var(--accent-soft); color: var(--accent); }
+body.sn-app .sn-editor-head .sn-editor-move { flex: none; }
 /* the note reads at 16px in a column of about 75 characters (600px of text inside the padding) */
 body.sn-app .sn-editor-page { max-width: 680px; padding: 18px 40px 40vh; }
 body.sn-app .sn-editor-badge { color: var(--muted); }

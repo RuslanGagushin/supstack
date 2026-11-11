@@ -209,7 +209,7 @@ export function attachLongPress(el, open) {
 }
 export function cardMenu(path, via = null) {
   const m = new Menu();
-  m.add(t("menuOpenOnBoard"), "layout-dashboard", () => setTarget(path));
+  if (graph.childrenOf(path).length) m.add(t("menuOpenNotebook"), "folder-open", () => setTarget(path));
   m.add(t("menuEdit"), "pencil", () => openEditor(path));
   m.sep();
   m.add(t("menuNewChild"), "plus", async () => { const title = await promptModal(t("menuNewChild")); if (title) createCard(title, path); });

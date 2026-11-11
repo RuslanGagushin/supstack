@@ -12,7 +12,7 @@ import { createCard, deleteCards, dropCards, promptAddParent, promptAddTag, prom
 import { renderRow } from "./cards.js";
 import { dnd } from "./dnd.js";
 import { renderTree } from "./tree.js";
-import { closeEditor, openEditor } from "./editor.js";
+import { closeEditor, openEditor, refreshNotebookPath } from "./editor.js";
 import { setSide, sideToggle } from "./shell.js";
 import { openTasksView, renderTasksView } from "./agenda.js";
 import { fvRenderList, openFilesView, renderFilesView } from "./files.js";
@@ -142,6 +142,7 @@ export function renderBoard(resetScroll = false) {
   else if (focusSearch) { const si = $(".sn-search-input", root); si?.focus(); si?.setSelectionRange(focusSearch.pos, focusSearch.pos); }
   else if (focusCard) $(`.sn-card[data-path="${CSS.escape(focusCard)}"]`, root)?.focus({ preventScroll: true });
   if (resetScroll) openFirstNote(model);
+  refreshNotebookPath();
 }
 /** The board as a list of notes with the open note beside it (not the agenda or the files, which have their own lists). */
 export const isNotesLayout = () => !board.view;

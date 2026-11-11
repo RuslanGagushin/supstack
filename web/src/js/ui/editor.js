@@ -2,17 +2,17 @@
    Editor pane (the note, beside the board)
    ========================================================= */
 import { t, wt } from "../core/i18n.js";
-import { baseName, debounce, dirName } from "../core/util.js";
+import { baseName, debounce } from "../core/util.js";
 import { splitNote } from "../core/frontmatter.js";
 import { on } from "../services/events.js";
-import { board, editor, UI, vault } from "../services/state.js";
-import { cardIcon } from "../services/vault.js";
+import { board, editor, graph, UI, vault } from "../services/state.js";
+import { cardIcon, makeComparator } from "../services/vault.js";
 import { conflictPath, writeRaw } from "../services/save.js";
 import { syncHook } from "../services/sync.js";
 import { $, $$, h, ic, iconBtn } from "./dom.js";
-import { notice } from "./ui.js";
+import { Menu, notice } from "./ui.js";
 import { renderMarkdown, wireRendered } from "./markdown.js";
-import { promptIcon, renameCard } from "./actions.js";
+import { promptIcon, promptMove, renameCard } from "./actions.js";
 import { cardMenu } from "./cards.js";
 import { cardSig, setTarget } from "./board.js";
 import { livePreviewExtensions, liveTa, liveText, renderLive, wireLive } from "./live-preview.js";
@@ -131,6 +131,40 @@ function editorTableWrap(ta) {
   if (!want) (ta.cmView?.scrollDOM || ta).scrollLeft = 0;
 }
 function autosize(ta) { if (ta.cmView) return; const sc = $(".sn-editor-scroll")?.scrollTop; ta.style.height = "auto"; ta.style.height = ta.scrollHeight + ta.offsetHeight - ta.clientHeight + "px"; /* + a sideways scrollbar */ if (sc != null) $(".sn-editor-scroll").scrollTop = sc; }
+/** The editor's header: the notebooks the note sits in, each one a link to its list, then the note's name; "+N" lists the
+   other places a note with several parents is in, and the button after it moves the note to another notebook. */
+function notebookPath(path) {
+  const cmp = makeComparator("manual");
+  const box = h("div", { cls: "sn-editor-path", title: path });
+  const parents = graph.parentsOf(path).filter((p) => graph.has(p));
+  // opened from a notebook's list, the path goes through that notebook; otherwise as the list's breadcrumbs go
+  const here = parents.includes(board.target) && !board.tagView ? board.target : null;
+  const chain = here ? [...graph.ancestry(here, cmp), here] : graph.has(path) ? graph.ancestry(path, cmp) : [];
+  // the farther a notebook, the sooner its name gives way when the header is narrow (app.css)
+  chain.forEach((p, i) => {
+    const a = h("a", { cls: "sn-editor-crumb", href: "#", text: baseName(p), title: baseName(p), onClick: (e) => { e.preventDefault(); setTarget(p); } });
+    a.style.flexShrink = String((chain.length - i) * 4);
+    box.append(a, h("span", { cls: "sn-editor-crumb-sep", text: "/" }));
+  });
+  box.append(h("b", { text: baseName(path) }));
+  const others = parents.filter((p) => p !== chain[chain.length - 1]);
+  const wrap = h("div", { cls: "sn-editor-where" }, box);
+  if (others.length) {
+    wrap.append(h("button", { cls: "sn-editor-places", type: "button", title: t("alsoIn"), text: "+" + others.length, onClick: (e) => {
+      const m = new Menu();
+      m.label(t("alsoIn"));
+      for (const p of others) m.add([...graph.ancestry(p, cmp), p].map(baseName).join(" / "), cardIcon(p) || "folder", () => setTarget(p));
+      m.showBelow(e.currentTarget);
+    } }));
+  }
+  if (graph.has(path)) wrap.append(iconBtn("folder-input", t("menuMoveTo"), () => promptMove([{ child: path, from: chain[chain.length - 1] ?? null }]), "sn-editor-move"));
+  return wrap;
+}
+/** The list moved to another notebook while the note stays open: only its path in the header changes. */
+export function refreshNotebookPath() {
+  const old = $("#editor .sn-editor-where");
+  if (old && editor.path) old.replaceWith(notebookPath(editor.path));
+}
 export function renderEditor() {
   const host = $("#editor");
   if (!host) return;
@@ -143,13 +177,12 @@ export function renderEditor() {
   const head = h("div", { cls: "sn-editor-head" });
   head.append(iconBtn("x", t("closeEditor"), () => closeEditor()));
   head.append(iconBtn(editor.wide ? "minimize-2" : "maximize-2", editor.wide ? t("collapseEditor") : t("expandEditor"), () => { editor.wide = !editor.wide; $("#app").classList.toggle("editor-wide", editor.wide); renderEditor(); }, "sn-hide-narrow"));
-  const crumbPath = dirName(path);
-  head.append(h("div", { cls: "sn-editor-path", title: path }, crumbPath ? crumbPath + " / " : "", h("b", { text: baseName(path) })));
+  head.append(notebookPath(path));
   head.append(h("span", { cls: "sn-save-state" }));
   if (n) {
     head.append(iconBtn("table-of-contents", wt("outline"), (e) => outlineMenu(e.currentTarget)));
     head.append(iconBtn("focus", UI.focus ? wt("focusExit") : wt("focus"), () => setFocusMode(!UI.focus), UI.focus ? "is-active" : ""));
-    head.append(iconBtn("layout-dashboard", t("menuOpenOnBoard"), () => setTarget(path)));
+    if (graph.childrenOf(path).length) head.append(iconBtn("folder-open", t("menuOpenNotebook"), () => setTarget(path)));
     const modeBtn = iconBtn(editor.mode === "read" ? "pencil" : "book-open", editor.mode === "read" ? t("editingView") : t("readingView"), async () => { if (editor.dirty) await saveEditor(); editor.mode = editor.mode === "read" ? "edit" : "read"; renderEditor(); if (editor.mode === "edit") $(".sn-editor-text")?.focus(); });
     head.append(modeBtn);
     const src = iconBtn("code-2", t("sourceMode"), async () => { if (editor.dirty) await saveEditor(); editor.mode = editor.mode === "source" ? "edit" : "source"; renderEditor(); $(".sn-editor-text")?.focus(); });
