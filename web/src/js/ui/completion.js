@@ -436,9 +436,12 @@ export function setFocusMode(on) {
 
 /* ---------- tag suggestions under a plain input (the Properties panel's "Add tag…") */
 /** exclude(): lowercase tags to leave out; onPick(tag): add the tag; onBackspace(): the input was empty. */
+let closeTagPop = null; // one tag list at a time: a redrawn panel's new input replaces the old one's list
 export function tagInputSuggest(input, { exclude = () => new Set(), onPick, onBackspace }) {
   let pop = null, items = [], sel = 0;
-  const close = () => { pop?.remove(); pop = null; };
+  // a redraw can remove the input without a blur: any press outside the list closes it too
+  const outside = (e) => { if (!pop?.contains(e.target) && (e.target !== input || !input.isConnected)) close(); };
+  const close = () => { pop?.remove(); pop = null; document.removeEventListener("pointerdown", outside, true); if (closeTagPop === close) closeTagPop = null; };
   const pick = (v) => { const tag = cleanTag(v); close(); input.value = ""; if (tag) onPick(tag); };
   const draw = () => {
     const q = input.value.trim().replace(/^#+/, "");
@@ -452,7 +455,7 @@ export function tagInputSuggest(input, { exclude = () => new Set(), onPick, onBa
       items.push({ value: typed, title: "#" + typed, note: wt("newTag"), icon: "plus" });
     if (!items.length) return close();
     sel = Math.min(sel, items.length - 1);
-    if (!pop) { pop = h("div", { cls: "ac-pop", role: "listbox" }); document.body.append(pop); }
+    if (!pop) { pop = h("div", { cls: "ac-pop", role: "listbox" }); if (closeTagPop !== close) closeTagPop?.(); closeTagPop = close; document.body.append(pop); document.addEventListener("pointerdown", outside, true); }
     pop.replaceChildren();
     items.forEach((it, i) => {
       const row = h("div", { cls: "ac-item" + (i === sel ? " is-selected" : ""), role: "option" },

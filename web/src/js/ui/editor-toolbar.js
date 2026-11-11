@@ -21,6 +21,7 @@ import { acKey, acUpdate, linkMention, setFocusMode, tagInputSuggest, unlinkedMe
 import { orgEditorKey, orgLineIsEntry, orgToolbar } from "./org-editing.js";
 
 let tagFocus = false;
+const focusLost = () => !document.activeElement || document.activeElement === document.body;
 export function renderEditorProps() {
   const path = editor.path;
   const n = vault.notes.get(path);
@@ -60,7 +61,8 @@ export function renderEditorProps() {
     });
     const tagIn = h("input", { cls: "sn-prop-input", type: "text", placeholder: t("addTag") });
     // the panel redraws after the write: the new input takes the focus back, so tags can be typed one after another
-    const keepFocus = (p) => { tagFocus = true; p.finally(() => requestAnimationFrame(() => requestAnimationFrame(() => { if (tagFocus) $("#editor-props .sn-prop-input")?.focus(); tagFocus = false; }))); };
+    // only while the focus is nowhere (the redraw dropped it): a click elsewhere in the meantime wins
+    const keepFocus = (p) => { tagFocus = true; p.finally(() => requestAnimationFrame(() => requestAnimationFrame(() => { if (tagFocus && focusLost()) $("#editor-props .sn-prop-input")?.focus(); tagFocus = false; }))); };
     tagInputSuggest(tagIn, {
       exclude: () => new Set(fmTags.map((x) => x.toLowerCase())),
       onPick: (tag) => keepFocus(addTags([path], [tag])),
@@ -79,7 +81,7 @@ export function renderEditorProps() {
       props.append(row(k === "child_order" ? "list-ordered" : k === "order" ? "hash" : "text", k, h("span", { cls: "sn-prop-other", text: txt, title: t("otherProps") })));
     }
     host.append(props);
-    if (hadFocus || tagFocus) $("#editor-props .sn-prop-input")?.focus();
+    if (hadFocus || (tagFocus && focusLost())) $("#editor-props .sn-prop-input")?.focus();
   }
   if (foot) {
     foot.replaceChildren();
