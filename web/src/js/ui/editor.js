@@ -13,7 +13,6 @@ import { $, $$, h, ic, iconBtn } from "./dom.js";
 import { notice } from "./ui.js";
 import { renderMarkdown, wireRendered } from "./markdown.js";
 import { promptIcon, renameCard } from "./actions.js";
-import { masonries } from "./masonry.js";
 import { cardMenu } from "./cards.js";
 import { cardSig, setTarget } from "./board.js";
 import { livePreviewExtensions, liveTa, liveText, renderLive, wireLive } from "./live-preview.js";
@@ -28,11 +27,9 @@ export function openEditor(path, o = {}) {
   if (!vault.notes.has(path)) return;
   if (editor.path && editor.path !== path && editor.dirty) saveEditor();
   if (editor.path !== path) editor.propsCollapsed = true;
-  // a note opens as a page in the board's place; put beside the board, it stays there for the next note until the editor closes.
-  // The board's own note is never beside the board: it would show twice, in the editor and in its hero.
+  // a note opens beside the list of notes; from the agenda or the files, which have no list beside it, as a page
   if (o.wide !== undefined) editor.wide = o.wide;
-  else if (!editor.path) editor.wide = board.layout !== "notes" || !!board.view;
-  if (isBoardNote(path)) editor.wide = true;
+  else if (!editor.path) editor.wide = !!board.view;
   editor.path = path;
   if (editor.mode === "source" && o.keepMode !== true) editor.mode = "edit";
   $("#app").classList.add("editor-open");
@@ -47,9 +44,6 @@ export function openEditor(path, o = {}) {
     if (ta && editor.mode !== "read") { ta.focus(); if (!o.keepCaret) ta.setSelectionRange(ta.value.length, ta.value.length); }
   }, 0);
 }
-/** The note the board is showing: it opens as a page in the board's place, never beside its own hero. */
-// In the list of notes there is no hero: the board's own note is a row of the list and opens beside it like the others.
-export function isBoardNote(path) { return !!path && path === board.target && !board.tagView && !board.view && board.layout !== "notes"; }
 export function closeEditor(force = false) {
   if (!force && editor.dirty) saveEditor();
   const was = editor.path;
@@ -148,15 +142,14 @@ export function renderEditor() {
   if (n && (!editor.dirty || editor.base?.path !== path)) editor.base = { path, raw: n.raw };
   const head = h("div", { cls: "sn-editor-head" });
   head.append(iconBtn("x", t("closeEditor"), () => closeEditor()));
-  const boardNote = isBoardNote(path);
-  if (!boardNote) head.append(iconBtn(editor.wide ? "minimize-2" : "maximize-2", editor.wide ? t("collapseEditor") : t("expandEditor"), () => { editor.wide = !editor.wide; $("#app").classList.toggle("editor-wide", editor.wide); renderEditor(); for (const m of masonries) m.relayout(false); }, "sn-hide-narrow"));
+  head.append(iconBtn(editor.wide ? "minimize-2" : "maximize-2", editor.wide ? t("collapseEditor") : t("expandEditor"), () => { editor.wide = !editor.wide; $("#app").classList.toggle("editor-wide", editor.wide); renderEditor(); }, "sn-hide-narrow"));
   const crumbPath = dirName(path);
   head.append(h("div", { cls: "sn-editor-path", title: path }, crumbPath ? crumbPath + " / " : "", h("b", { text: baseName(path) })));
   head.append(h("span", { cls: "sn-save-state" }));
   if (n) {
     head.append(iconBtn("table-of-contents", wt("outline"), (e) => outlineMenu(e.currentTarget)));
     head.append(iconBtn("focus", UI.focus ? wt("focusExit") : wt("focus"), () => setFocusMode(!UI.focus), UI.focus ? "is-active" : ""));
-    if (!boardNote) head.append(iconBtn("layout-dashboard", t("menuOpenOnBoard"), () => setTarget(path)));
+    head.append(iconBtn("layout-dashboard", t("menuOpenOnBoard"), () => setTarget(path)));
     const modeBtn = iconBtn(editor.mode === "read" ? "pencil" : "book-open", editor.mode === "read" ? t("editingView") : t("readingView"), async () => { if (editor.dirty) await saveEditor(); editor.mode = editor.mode === "read" ? "edit" : "read"; renderEditor(); if (editor.mode === "edit") $(".sn-editor-text")?.focus(); });
     head.append(modeBtn);
     const src = iconBtn("code-2", t("sourceMode"), async () => { if (editor.dirty) await saveEditor(); editor.mode = editor.mode === "source" ? "edit" : "source"; renderEditor(); $(".sn-editor-text")?.focus(); });

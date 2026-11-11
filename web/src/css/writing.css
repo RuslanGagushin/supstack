@@ -118,7 +118,6 @@ button.sn-tag-pill .n { color: var(--muted); font-size: var(--fs-xs); } /* on th
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; scroll-behavior: auto !important; }
 }
-.sn-hero.is-tag .sn-hero-badge { color: var(--tag); }
 /* Toolbar fits its pane: tighter spacing, then fewer labels, then fewer buttons — never sideways scrolling on desktop */
 .sn-editor { flex: 0 0 var(--editor-w, 540px); container-type: inline-size; container-name: editor; }
 .sn-ed-toolbar { flex: 0 0 auto; display: flex; align-items: center; min-height: 40px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; gap: 1px; padding: 0 6px; }

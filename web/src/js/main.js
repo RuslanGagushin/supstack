@@ -33,7 +33,6 @@ import "./ui/dom.js";
 import "./ui/ui.js";
 import "./ui/markdown.js";
 import "./ui/actions.js";
-import "./ui/masonry.js";
 import "./ui/cards.js";
 import "./ui/board.js";
 import "./ui/dnd.js";

@@ -230,7 +230,7 @@ export async function saveCurrentView() {
   if (!name) return;
   S.savedViews = [...S.savedViews, {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name, target: board.target, depth: board.depth,
-    layout: board.layout, sort: board.sort, grouped: board.grouped, filter: structuredClone(board.filter),
+    sort: board.sort, grouped: board.grouped, filter: structuredClone(board.filter),
   }];
   await saveSettings();
   renderTree();
@@ -238,7 +238,7 @@ export async function saveCurrentView() {
 }
 export function applyView(v) {
   board.history.push(board.target);
-  Object.assign(board, { target: v.target && graph.has(v.target) ? v.target : null, depth: normDepth(v.depth ?? board.depth), layout: ["list", "notes"].includes(v.layout) ? v.layout : "columns", sort: v.sort ?? board.sort, grouped: !!v.grouped });
+  Object.assign(board, { target: v.target && graph.has(v.target) ? v.target : null, depth: normDepth(v.depth ?? board.depth), sort: v.sort ?? board.sort, grouped: !!v.grouped });
   board.filter = { query: v.filter?.query || "", tags: v.filter?.tags || [] };
   board.searchOpen = !!(board.filter.query || board.filter.tags.length);
   board.selection.clear(); board.rendered = 60;

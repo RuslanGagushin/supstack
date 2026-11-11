@@ -2,14 +2,12 @@
    Start-up: theme and language, the folder picker fallback, watching the vault for outside
    changes, and reopening the last vault.
    ========================================================= */
-import { debounce } from "../core/util.js";
 import { HandleFS, idb, MemoryFS } from "../services/fs.js";
 import { IS_NATIVE, lastNative, NativeFS, vinvoke } from "../services/native.js";
 import { board, editor, graph, vault } from "../services/state.js";
 import { pollChanges } from "../services/vault.js";
 import { startUpdateChecks } from "../services/updates.js";
 import { h } from "./dom.js";
-import { masonries } from "./masonry.js";
 import { saveEditor } from "./editor.js";
 import { applyLanguage, applyTheme, loadVault } from "./shell.js";
 import { demoVault, hasFsApi, loadCopy, showWelcome } from "./welcome.js";
@@ -35,7 +33,6 @@ export function boot() {
   setInterval(() => { if (document.visibilityState === "visible") pollChanges(); }, 4000);
   window.addEventListener("focus", () => pollChanges());
   window.addEventListener("beforeunload", (e) => { if (editor.dirty) { saveEditor(); e.preventDefault(); } });
-  window.addEventListener("resize", debounce(() => { for (const m of masonries) m.relayout(false); }, 100));
   window.SupstackApp = { loadVault, HandleFS, MemoryFS, demoVault, vault, board, get graph() { return graph; } };
   startUpdateChecks();
   if (!window.__SN_NO_AUTOSTART) showWelcome().then(autoReopen);

@@ -14,7 +14,6 @@ import { syncHook } from "../services/sync.js";
 import { $, $$, h, ic, iconBtn, isMod, keyText } from "./dom.js";
 import { confirmModal, Menu, notice, promptModal } from "./ui.js";
 import { hasPdfViewer, pdfMessage, renderPdfPages } from "./markdown.js";
-import { masonries } from "./masonry.js";
 import { attachLongPress, formatDate } from "./cards.js";
 import { goBack, leaveTagView, navEntry, renderBoard, setTarget } from "./board.js";
 import { renderTree } from "./tree.js";
@@ -204,7 +203,6 @@ export function renderFilesView(root) {
   const focus = document.activeElement === oldList || !!document.activeElement?.closest?.(".fv-row") ? "list" : document.activeElement?.classList?.contains("fv-search") ? "search" : null;
   root.className = "sn-board is-files";
   root.replaceChildren();
-  masonries.length = 0;
   $("#files-btn")?.classList.toggle("is-active", true);
 
   const bar = h("div", { cls: "sn-topbar" });

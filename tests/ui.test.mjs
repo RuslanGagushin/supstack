@@ -5,10 +5,10 @@ import { openVault, ev, raw } from "./harness.mjs";
 import * as H from "./harness.mjs";
 
 const page = () => H.page;
-// cards in reading order (the masonry DOM is in column order); checks that each one is on the page too
+// the notes the list shows, in order; checks that each one is on the page too
 const titles = () => ev(() => {
   const shown = boardModel().shown.map((c) => c.path);
-  const onPage = new Set([...document.querySelectorAll("#board .sn-masonry .sn-card")].map((c) => c.dataset.path));
+  const onPage = new Set([...document.querySelectorAll("#board .sn-rows .sn-card")].map((c) => c.dataset.path));
   return shown.filter((p) => onPage.has(p)).map((p) => p.replace(/^cards\/|\.md$/g, ""));
 });
 const noErrors = () => assert.equal(H.errors.length, 0, H.errors.map((e) => e.stack || e).join("\n"));
@@ -76,24 +76,23 @@ describe("board", () => {
     noErrors();
   });
 
-  test("a note is edited as a page in the board's place; the board's own note is never beside its hero", async () => {
+  test("the board is the list of notes only: no layout switch, no masonry, no card grid settings", async () => {
+    const r = await ev(() => ({
+      layout: "layout" in board, notes: $("#app").classList.contains("notes-layout"), masonry: !!$(".sn-masonry"), hero: !!$(".sn-hero"),
+      layoutButtons: $$(".sn-tools button").filter((b) => ["Columns", "List", "Notes beside the list"].includes(b.title)).length,
+    }));
+    assert.deepEqual(r, { layout: false, notes: true, masonry: false, hero: false, layoutButtons: 0 });
+    await ev(() => settingsModal("appearance"));
+    assert.doesNotMatch(await page().textContent(".sn-set-body"), /layout|card face|preview length|card height/i);
+    noErrors();
+  });
+
+  test("a note opens beside the list; from the agenda it opens as a page", async () => {
     await ev(() => setTarget("cards/Roman Empire.md"));
-    await page().click(".sn-hero-tools button[aria-label]:first-child");
-    const st = () => ev(() => ({ path: editor.path, wide: editor.wide, board: getComputedStyle($(".sn-main")).display }));
-    const besideBtn = () => ev(() => $$("#editor .sn-editor-head button").some((b) => b.title === t("collapseEditor")));
-    assert.deepEqual(await st(), { path: "cards/Roman Empire.md", wide: true, board: "none" }, "the cards below the hero are hidden");
-    assert.equal(await besideBtn(), false, "no way to put it beside its hero");
-    await page().keyboard.press("Escape");
-    await page().click('.sn-card[data-path="cards/Colosseum.md"] .sn-card-edit:not(.sn-card-add)');
-    assert.deepEqual(await st(), { path: "cards/Colosseum.md", wide: true, board: "none" }, "a card from the list opens as a page too");
-    assert.equal(await besideBtn(), true, "a card can still be put beside the board");
-    await ev(() => $$("#editor .sn-editor-head button").find((b) => b.title === t("collapseEditor")).click());
-    await ev(() => openEditor("cards/Aqueducts.md"));
-    assert.equal(await ev(() => editor.wide), false, "beside the board, the next note stays beside it");
-    await ev(() => setTarget("cards/Aqueducts.md"));
-    assert.equal(await ev(() => editor.path), null, "going to the open note's board closes it beside");
     await ev(() => openEditor("cards/Colosseum.md"));
-    assert.equal(await ev(() => editor.wide), true, "after closing, the next note opens as a page again");
+    assert.equal(await ev(() => editor.wide), false);
+    await ev(() => { closeEditor(); openTasksView(); openEditor("cards/Colosseum.md"); });
+    assert.equal(await ev(() => editor.wide), true);
     noErrors();
   });
 
@@ -126,7 +125,7 @@ describe("board", () => {
     await ev(() => { board.depth = 0; renderBoard(); });
     await page().keyboard.press("Control+f");
     await page().keyboard.type("aqueduct");
-    await page().waitForFunction(() => board.filter.query === "aqueduct" && document.querySelectorAll("#board .sn-masonry .sn-card").length === 4);
+    await page().waitForFunction(() => board.filter.query === "aqueduct" && document.querySelectorAll("#board .sn-rows .sn-card").length === 4);
     assert.deepEqual(await titles(), ["This week", "Roman Empire", "Aqueducts", "Pont du Gard"], "titles and text both match");
     await page().keyboard.press("Escape");
     await page().keyboard.press("Escape");
@@ -717,8 +716,8 @@ describe("palettes, settings, language and themes", () => {
     assert.equal(await page().textContent(".sn-set-tab.is-active"), "About");
     await ev(() => settingsModal("about")); // already open: switches tabs instead of stacking a second dialog
     assert.equal(await page().$$eval(".modal", (m) => m.length), 1);
-    await page().fill(".sn-set-search", "preview");
-    assert.match(await page().textContent(".sn-set-body"), /Preview length/, "the search looks through every section");
+    await page().fill(".sn-set-search", "maximum");
+    assert.match(await page().textContent(".sn-set-body"), /Maximum cards on a board/, "the search looks through every section");
     assert.doesNotMatch(await page().textContent(".sn-set-body"), /Theme/);
     noErrors();
   });
@@ -742,7 +741,7 @@ describe("palettes, settings, language and themes", () => {
 
   test("the Russian interface", async () => {
     await openVault({ lang: "ru" });
-    assert.match(await page().textContent(".sn-hero-title"), /Все карточки/);
+    assert.match(await page().textContent(".sn-list-title"), /Все карточки/);
     assert.match(await page().textContent("#files-btn"), /Файлы/);
     noErrors();
   });
@@ -890,7 +889,7 @@ describe("phone layout", () => {
 
   test("the board's toolbar fits a 360px phone, with depths 1, 2 and ∞", async () => {
     await page().setViewportSize({ width: 360, height: 760 });
-    const r = await ev(() => { setLayout("notes"); setTarget("cards/History.md"); return { right: $(".sn-tools").getBoundingClientRect().right, depths: [...document.querySelectorAll(".sn-tools .sn-seg:first-child button")].map((b) => b.textContent) }; });
+    const r = await ev(() => { setTarget("cards/History.md"); return { right: $(".sn-tools").getBoundingClientRect().right, depths: [...document.querySelectorAll(".sn-tools .sn-seg:first-child button")].map((b) => b.textContent) }; });
     assert.ok(r.right <= 360, `the tools end at ${r.right}px`);
     assert.deepEqual(r.depths, ["1", "2", "∞"]);
     noErrors();
@@ -954,8 +953,8 @@ describe("list of notes", () => {
   beforeEach(() => openVault({ notes: { "cards/Pics.md": "---\nparents: [\"[[History]]\"]\n---\nSome **photo** here\n\n![[pic.png]]\n" } }));
   const rows = () => ev(() => [...document.querySelectorAll("#board .sn-rows .sn-row")].map((r) => r.dataset.path.replace(/^cards\/|\.md$/g, "")));
 
-  test("the notes layout lists the card's own note and its children, and opens the first child beside the list", async () => {
-    await ev(() => { setLayout("notes"); setTarget("cards/History.md"); });
+  test("the list shows the card's own note and its children, and opens the first child beside it", async () => {
+    await ev(() => setTarget("cards/History.md"));
     assert.deepEqual(await rows(), ["History", "Pics", "Roman Empire"]);
     const r = await ev(() => ({
       path: editor.path, wide: editor.wide, app: document.getElementById("app").className,
@@ -975,7 +974,7 @@ describe("list of notes", () => {
   });
 
   test("a click or the arrow keys open a note beside the list; the card's own note opens there too", async () => {
-    await ev(() => { setLayout("notes"); setTarget("cards/History.md"); });
+    await ev(() => setTarget("cards/History.md"));
     await page().click('.sn-row[data-path="cards/Roman Empire.md"]');
     assert.equal(await ev(() => editor.path), "cards/Roman Empire.md");
     await page().keyboard.press("ArrowUp");
@@ -990,14 +989,14 @@ describe("list of notes", () => {
 
   test("the first image of a note is its thumbnail", async () => {
     await ev(async (b64) => { const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)); vault.fs.add("attachments/pic.png", new Blob([bin], { type: "image/png" })); await loadVault(vault.fs); }, PNG);
-    await ev(() => { setLayout("notes"); setTarget("cards/History.md"); });
+    await ev(() => setTarget("cards/History.md"));
     await page().waitForFunction(() => document.querySelector('.sn-row[data-path="cards/Pics.md"] .sn-row-thumb')?.naturalWidth === 2);
     assert.equal(await ev(() => document.querySelectorAll(".sn-row-thumb").length), 1);
     noErrors();
   });
 
-  test("expanding the note hides the list, closing it gives the list the whole width, and other layouts close a note beside them", async () => {
-    await ev(() => { setLayout("notes"); setTarget("cards/History.md"); });
+  test("expanding the note hides the list, and closing it gives the list the whole width", async () => {
+    await ev(() => setTarget("cards/History.md"));
     await ev(() => document.querySelector(".sn-editor-head .clickable-icon:nth-child(2)").click());
     assert.deepEqual(await ev(() => [editor.wide, getComputedStyle(document.querySelector(".sn-main")).display]), [true, "none"]);
     await ev(() => document.querySelector(".sn-editor-head .clickable-icon:nth-child(2)").click());
@@ -1005,15 +1004,12 @@ describe("list of notes", () => {
     await ev(() => closeEditor());
     await page().waitForTimeout(50); // the closed note's row takes the focus back, which must not open it again
     assert.deepEqual(await ev(() => [editor.path, document.querySelector(".sn-main").getBoundingClientRect().width > 900]), [null, true]);
-    await ev(() => openEditor("cards/Pics.md", { focus: false, wide: false }));
-    await ev(() => setLayout("columns"));
-    assert.deepEqual(await ev(() => [editor.path, document.getElementById("app").classList.contains("notes-layout")]), [null, false]);
     noErrors();
   });
 
   test("a search shows the part of the text that matches", async () => {
     await openVault({ notes: { "cards/Long.md": "intro " + "filler words ".repeat(40) + "the needle is here" } });
-    await ev(() => { setLayout("notes"); board.filter = { query: "needle", tags: [], scope: "all" }; board.searchOpen = true; renderBoard(true); });
+    await ev(() => { board.filter = { query: "needle", tags: [], scope: "all" }; board.searchOpen = true; renderBoard(true); });
     const r = await ev(() => { const el = document.querySelector('.sn-row[data-path="cards/Long.md"] .sn-row-snippet'); return { text: el.textContent, mark: el.querySelector("mark")?.textContent }; });
     assert.match(r.text, /^…/);
     assert.equal(r.mark, "needle");
@@ -1022,7 +1018,7 @@ describe("list of notes", () => {
 
   test("on a phone the list fills the screen and a tap opens the note", async () => {
     await openVault({ viewport: { width: 390, height: 800 } });
-    await ev(() => { setLayout("notes"); setTarget("cards/History.md"); });
+    await ev(() => setTarget("cards/History.md"));
     assert.equal(await ev(() => editor.path), null, "nothing opens by itself over the list");
     await page().click('.sn-row[data-path="cards/Roman Empire.md"]');
     assert.equal(await ev(() => editor.path), "cards/Roman Empire.md");
@@ -1030,7 +1026,7 @@ describe("list of notes", () => {
   });
 
   test("a note with children goes inside with its button or →, and ← comes back out on it", async () => {
-    await ev(() => { setLayout("notes"); setTarget("cards/History.md"); });
+    await ev(() => setTarget("cards/History.md"));
     const r = await ev(() => ({ gap: getComputedStyle(document.querySelector(".sn-rows")).rowGap, enter: [...document.querySelectorAll(".sn-row.has-kids")].map((x) => x.dataset.path) }));
     assert.equal(r.gap, "6px");
     assert.deepEqual(r.enter, ["cards/Roman Empire.md"]);

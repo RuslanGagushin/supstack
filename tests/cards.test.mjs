@@ -238,6 +238,31 @@ describe("tasks, daily notes and settings", () => {
     assert.deepEqual([data.pinned, data.defaultDepth, data.parentsField, data.unknown], [["cards/A.md"], 3, undefined, undefined], "settings that no longer exist are dropped");
   });
 
+  test("a vault saved by a version with other board layouts opens on the list of notes and drops their settings", async () => {
+    await openVault({ demo: false, notes: { "cards/A.md": "a", "cards/B.md": "---\nparents: [\"[[A]]\"]\n---\nb" } });
+    const r = await ev(async () => {
+      const fs = vault.fs;
+      fs.kind = "disk";
+      fs.add(".supstack/settings.json", JSON.stringify({ pinned: [], defaultLayout: "columns", cardFace: "compact", previewLength: 200, cardMaxHeight: 100, defaultSort: "name" }));
+      localStorage.setItem("sn-board:disk:" + fs.name, JSON.stringify({ target: "cards/A.md", layout: "columns", heroCollapsed: true, sort: "name" }));
+      await loadVault(fs);
+      await saveSettings();
+      fs.kind = "demo";
+      return {
+        retired: ["defaultLayout", "cardFace", "previewLength", "cardMaxHeight"].filter((k) => k in S), sort: S.defaultSort,
+        board: [board.target, board.sort, "layout" in board, "heroCollapsed" in board],
+        rows: [...document.querySelectorAll("#board .sn-rows .sn-row")].map((x) => x.dataset.path), notes: $("#app").classList.contains("notes-layout"),
+      };
+    });
+    assert.deepEqual(r.retired, []);
+    assert.equal(r.sort, "name", "the settings that stay are kept");
+    assert.deepEqual(r.board, ["cards/A.md", "name", false, false]);
+    assert.deepEqual(r.rows, ["cards/A.md", "cards/B.md"]);
+    assert.equal(r.notes, true);
+    const data = JSON.parse(await fsText(".supstack/settings.json"));
+    assert.deepEqual(["defaultLayout", "cardFace", "previewLength", "cardMaxHeight"].filter((k) => k in data), []);
+  });
+
   test("notes outside the three folders move into cards/ on open, and pins, the board and links follow", async () => {
     await openVault({ demo: false, notes: {
       "cards/Home.md": "home", "Top.md": "---\nparents: [\"[[Home]]\"]\n---\nsee [[Projects/Plan]]", "Projects/Plan.md": "plan",

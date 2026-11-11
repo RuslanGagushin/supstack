@@ -13,7 +13,6 @@ import { orgAll } from "../services/tasks.js";
 import { $, $$, h, ic, iconBtn, isMod, keyText } from "./dom.js";
 import { echo, Menu, openLayer, promptModal } from "./ui.js";
 import { renderMarkdown, wireRendered } from "./markdown.js";
-import { masonries } from "./masonry.js";
 import { goBack, leaveTagView, navEntry, renderBoard, setTarget } from "./board.js";
 import { renderTree } from "./tree.js";
 import { setSide, sideToggle } from "./shell.js";
@@ -107,7 +106,6 @@ export function renderTasksView(root) {
   const focusId = document.activeElement?.dataset?.agInput;
   root.className = "sn-board is-tasks is-agenda";
   root.replaceChildren();
-  masonries.length = 0;
   const T = onow().dn;
   const all = orgAll();
   if (AG.anchor == null) AG.anchor = T;

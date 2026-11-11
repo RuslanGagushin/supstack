@@ -33,7 +33,7 @@ await shot(await open("light"), "board-light.png");
 await shot(await open("dark"), "board-dark.png");
 await shot(await open(), "editor.png", () => openEditor("cards/This week.md"));
 await shot(await open(), "agenda.png", () => openTasksView());
-await shot(await open(), "notes-layout.png", () => { setTarget("cards/History.md"); setLayout("notes"); });
+await shot(await open(), "notes-layout.png", () => setTarget("cards/History.md"));
 await shot(await open("light", devices["Pixel 7"]), "phone-board.png");
 await shot(await open("light", devices["Pixel 7"]), "phone-editor.png", () => openEditor("cards/Aqueducts.md"));
 await browser.close();

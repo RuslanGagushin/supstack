@@ -6,12 +6,10 @@ import { baseName, debounce } from "../core/util.js";
 import { DEPTHS, filterActive } from "../core/board-model.js";
 import { board, editor, graph, S, vault } from "../services/state.js";
 import { boardModel, cardIcon, cardTags, makeComparator, persistBoard } from "../services/vault.js";
-import { $, $$, h, ic, iconBtn, isMod, setIcon } from "./dom.js";
+import { $, $$, h, ic, iconBtn } from "./dom.js";
 import { Menu } from "./ui.js";
-import { wireRendered } from "./markdown.js";
 import { createCard, deleteCards, dropCards, promptAddParent, promptAddTag, promptIcon, promptMove, saveCurrentView } from "./actions.js";
-import { boardResize, masonries, Masonry } from "./masonry.js";
-import { cardBodyText, cardMenu, parentChip, renderBody, renderCard, renderRow, setupClamp } from "./cards.js";
+import { renderRow } from "./cards.js";
 import { dnd } from "./dnd.js";
 import { renderTree } from "./tree.js";
 import { closeEditor, openEditor } from "./editor.js";
@@ -59,8 +57,6 @@ export function setTarget(path, push = true) {
   board.view = null;
   if (board.history.length > 100) board.history.shift();
   board.target = path;
-  // the board's own note shows in the hero, so it isn't kept open beside it as well
-  if (path && editor.path === path && !editor.wide && board.layout !== "notes") closeEditor();
   board.selection.clear();
   board.rendered = 60;
   persistBoard();
@@ -101,7 +97,7 @@ export function renderBoard(resetScroll = false) {
   const scrollTop = resetScroll ? 0 : oldScroll?.scrollTop || 0;
   const active = document.activeElement;
   const focusComposer = active?.closest?.(".sn-composer") ? { value: active.value } : null;
-  // an unsent draft survives re-renders (a layout or depth button takes focus from the field), but not a move to another card
+  // an unsent draft survives re-renders (a depth or sort button takes focus from the field), but not a move to another card
   const oldDraft = root.querySelector(".sn-composer textarea")?.value || "";
   const draft = oldDraft && composerTarget === board.target ? oldDraft : "";
   const focusSearch = active?.classList?.contains("sn-search-input") ? { pos: active.selectionStart } : null;
@@ -110,9 +106,8 @@ export function renderBoard(resetScroll = false) {
   if (board.target && !graph.has(board.target)) board.target = null;
   if (board.tagView && !board.filter.tags.includes(board.tagView)) board.tagView = null;
   const model = boardModel();
-  root.className = "sn-board" + (board.layout === "list" ? " is-list" : board.layout === "notes" ? " is-notes" : "") + (board.selectMode ? " is-select-mode" : "");
+  root.className = "sn-board is-notes" + (board.selectMode ? " is-select-mode" : "");
   root.replaceChildren();
-  masonries.length = 0;
   sentinelObs?.disconnect();
 
   root.append(renderToolbar());
@@ -121,14 +116,10 @@ export function renderBoard(resetScroll = false) {
   const page = h("div", { cls: "sn-page" });
   scroll.append(page);
   root.append(scroll);
-  boardResize.disconnect();
-  boardResize.observe(scroll);
 
-  const notes = board.layout === "notes";
   const composer = renderComposer();
   composerTarget = board.target;
-  const cards = notes ? renderRows(page, scroll, model, composer) : renderCards(page, scroll, model, composer);
-  if (!notes) cards.forEach(setupClamp);
+  const cards = renderRows(page, scroll, model, composer);
   if (!model.shown.length) page.append(h("div", { cls: "sn-empty", text: model.active ? t("noMatches") : t("noCards") }));
   const footnotes = [];
   if (model.all.skippedRepeats && !model.active) footnotes.push(t("repeatsSkipped", { n: model.all.skippedRepeats }));
@@ -141,7 +132,6 @@ export function renderBoard(resetScroll = false) {
 
   board.sig = boardSig(model);
   board.cardSigs = new Map(cards.map((el) => [el.dataset.path, cardSig(el.dataset.path)]));
-  board.heroSig = heroSig();
   if (board.flashPath) {
     const el = $(`.sn-card[data-path="${CSS.escape(board.flashPath)}"]`, root);
     if (el) { el.classList.add("is-new"); el.scrollIntoView({ block: "nearest" }); }
@@ -151,10 +141,10 @@ export function renderBoard(resetScroll = false) {
   if (focusComposer) { composer.input.value = focusComposer.value; composer.input.focus(); composer.grow(); }
   else if (focusSearch) { const si = $(".sn-search-input", root); si?.focus(); si?.setSelectionRange(focusSearch.pos, focusSearch.pos); }
   else if (focusCard) $(`.sn-card[data-path="${CSS.escape(focusCard)}"]`, root)?.focus({ preventScroll: true });
-  if (notes && resetScroll) openFirstNote(model);
+  if (resetScroll) openFirstNote(model);
 }
 /** The board as a list of notes with the open note beside it (not the agenda or the files, which have their own lists). */
-export const isNotesLayout = () => board.layout === "notes" && !board.view;
+export const isNotesLayout = () => !board.view;
 /** In the list of notes, a move to another list opens its first note beside it, as a mail app does,
    unless the note already open is in the new list. On a phone the note would cover the list, so nothing opens there. */
 function openFirstNote(model) {
@@ -191,28 +181,6 @@ function groupHead(b, n) {
   headEl.append(title, h("span", { cls: "sn-group-count", text: String(n) }));
   dnd.dropTarget(headEl, () => ({ path: b.head, parent: null, zones: ["inside"] }));
   return headEl;
-}
-/** Cards in masonry columns (or one column, for the list layout), under the board's hero. */
-function renderCards(page, scroll, model, composer) {
-  page.append(renderHero(model));
-  const mainBlock = model.blocks[0];
-  const main = new Masonry(page);
-  masonries.push(main);
-  main.add(composer.el);
-  const cards = [];
-  const addCards = (m, list) => { const start = cards.length; for (const c of list) { const el = renderCard(c.path, c.via, c.depth); m.add(el); cards.push(el); } return cards.slice(start); };
-  if (model.blocks.length > 1) {
-    addCards(main, mainBlock.cards);
-    for (const b of model.blocks.slice(1)) {
-      const g = h("div", { cls: "sn-group" });
-      g.append(groupHead(b, b.cards.length - 1));
-      page.append(g);
-      const m = new Masonry(g);
-      masonries.push(m);
-      addCards(m, b.cards);
-    }
-  } else lazyAdd(page, scroll, mainBlock.cards, (list, later) => { const added = addCards(main, list); if (later) added.forEach(setupClamp); });
-  return cards;
 }
 /** Notes as rows of a list: the card's own note first, then its children; each one opens beside the list. */
 function renderRows(page, scroll, model, composer) {
@@ -253,16 +221,15 @@ function countText(model) {
 }
 
 function boardSig(model) {
-  return JSON.stringify([board.target, board.depth, board.layout, board.sort, board.grouped, board.searchOpen, board.selectMode, board.filter, board.lang = LANG,
+  return JSON.stringify([board.target, board.depth, board.sort, board.grouped, board.searchOpen, board.selectMode, board.filter, board.lang = LANG,
     model.blocks.map((b) => [b.head, b.cards.map((c) => `${c.path}|${c.via ?? ""}|${c.depth}`)]), model.total, model.all.skippedRepeats, model.truncated, graph.ancestry(board.target || "", makeComparator("manual"))]);
 }
 export function cardSig(path) {
   const n = vault.notes.get(path);
   return [n?.raw, n?.mtime, graph.childrenOf(path).length, graph.backlinksOf(path).length, graph.unresolvedParentsOf(path).join(","),
-    graph.parentsOf(path).map((p) => `${p}:${cardIcon(p)}`).join(","), board.selection.has(path), editor.path === path, board.expanded.has(path)].join("\u0001");
+    graph.parentsOf(path).map((p) => `${p}:${cardIcon(p)}`).join(","), board.selection.has(path), editor.path === path].join("\u0001");
 }
-function heroSig() { const p = board.target; return p ? [vault.notes.get(p)?.raw, graph.parentsOf(p).join(","), board.heroCollapsed].join("\u0001") : ""; }
-/** Update the board after a note change: replace only the cards that changed, keep scroll, focus and layout. */
+/** Update the board after a note change: replace only the rows that changed, keep scroll and focus. */
 export function patchBoard() {
   if (board.view === "tasks") { renderBoard(); return; }
   if (board.view === "files") { if ($(".fv-list")) fvRenderList(); else renderBoard(); return; }
@@ -276,15 +243,11 @@ export function patchBoard() {
     const p = el.dataset.path;
     const sig = cardSig(p);
     if (board.cardSigs.get(p) === sig) continue;
-    const fresh = (el.classList.contains("sn-row") ? renderRow : renderCard)(p, el.dataset.via || null, Number(el.dataset.depth) || 1);
-    for (const m of masonries) { const i = m.items.indexOf(el); if (i >= 0) m.items[i] = fresh; }
+    const fresh = renderRow(p, el.dataset.via || null, Number(el.dataset.depth) || 1);
     el.replaceWith(fresh);
-    if (!fresh.classList.contains("sn-row")) setupClamp(fresh);
     board.cardSigs.set(p, sig);
     if (focused === p) fresh.focus({ preventScroll: true });
   }
-  const hs = heroSig();
-  if (hs !== board.heroSig) { $(".sn-hero", root)?.replaceWith(renderHero(model)); board.heroSig = hs; }
   board.lastModel = model;
 }
 function renderToolbar() {
@@ -315,7 +278,7 @@ function renderToolbar() {
     if (!current) dnd.dropTarget(a, () => ({ path, parent: null, zones: ["inside"], root: !path }));
     crumbs.append(a);
   };
-  // at the top the hero already says "All cards": the crumbs stay empty and only hold the tools to the right
+  // at the top the list's title already says "All cards": the crumbs stay empty and only hold the tools to the right
   if (target || board.tagView) crumb(null, false);
   if (board.tagView) {
     crumbs.append(h("span", { cls: "sn-crumb-sep", text: "/" }));
@@ -357,36 +320,16 @@ function renderToolbar() {
     if (board.grouped) gb.classList.add("is-active");
     opts.append(gb);
   }
-  const lay = h("div", { cls: "sn-seg sn-wide-only" });
-  for (const [v, icn, label] of LAYOUTS()) {
-    const b = iconBtn(icn, label, () => setLayout(v));
-    if (v === board.layout) b.classList.add("is-active");
-    lay.append(b);
-  }
-  tools.append(lay);
-  // on a phone the layout, the sort and grouping are one "View" button (the depths and search stay in the bar)
-  const curLayout = LAYOUTS().find(([v]) => v === board.layout) || LAYOUTS()[0];
-  tools.append(iconBtn(curLayout[1], t("viewMenu"), (e) => {
+  // on a phone the sort and grouping are one "View" button (the depths and search stay in the bar)
+  tools.append(iconBtn("sliders-horizontal", t("viewMenu"), (e) => {
     const m = new Menu();
-    m.label(t("viewMenu"));
-    for (const [v, icn, label] of LAYOUTS()) m.add(label, icn, () => setLayout(v), { checked: v === board.layout });
-    m.sep(); m.label(t("sorting"));
+    m.label(t("sorting"));
     for (const [v, label, icn] of sortOpts) m.add(label, icn, () => { board.sort = v; persistBoard(); renderBoard(); }, { checked: v === board.sort });
     if (board.depth !== 1) { m.sep(); m.add(t("groupByParent"), "group", groupToggle, { checked: !!board.grouped }); }
     m.showBelow(e.currentTarget);
   }, "sn-narrow-only sn-view-btn"));
   bar.append(tools);
   return bar;
-}
-export const LAYOUTS = () => [["columns", "layout-grid", t("layoutColumns")], ["list", "rows-3", t("layoutList")], ["notes", "panel-left", t("layoutNotes")]];
-export function setLayout(v) {
-  if (board.layout === v) return;
-  const was = board.layout;
-  board.layout = v;
-  persistBoard();
-  // a note beside the list goes back to being a page when the list goes away
-  if (was === "notes" && editor.path && !editor.wide) closeEditor();
-  renderBoard(v === "notes");
 }
 export function toggleSearch(open) {
   board.searchOpen = open ?? !board.searchOpen;
@@ -402,7 +345,7 @@ function renderFilterBar(model) {
   input.addEventListener("input", () => { board.filter.query = input.value; applyQuery(); });
   input.addEventListener("keydown", (e) => {
     if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); if (input.value) { input.value = ""; board.filter.query = ""; applyQuery(); } else toggleSearch(false); }
-    if (e.key === "Enter") { e.preventDefault(); $(".sn-board :is(.sn-masonry, .sn-rows) .sn-card")?.focus(); }
+    if (e.key === "Enter") { e.preventDefault(); $(".sn-board .sn-rows .sn-card")?.focus(); }
   });
   bar.append(h("div", { cls: "sn-search" }, ic("sn-search-icon", "search"), input));
   const scope = h("div", { cls: "sn-seg sn-scope" });
@@ -429,43 +372,6 @@ function renderFilterBar(model) {
   if (filterActive(board.filter)) bar.append(h("button", { cls: "clickable-icon", type: "button", text: t("clear"), onClick: () => { board.filter = { query: "", tags: [], scope: board.filter.scope }; persistBoard(); renderBoard(); $(".sn-search-input")?.focus(); } }));
   bar.append(iconBtn("x", t("close"), () => toggleSearch(false)));
   return bar;
-}
-function renderHero(model) {
-  const target = board.target;
-  const hero = h("div", { cls: "sn-hero" });
-  if (target) {
-    dnd.dropTarget(hero, () => ({ path: target, parent: null, zones: ["inside"] }));
-  }
-  const tv = board.tagView;
-  if (tv) hero.classList.add("is-tag");
-  hero.append(ic("sn-hero-badge", tv ? "hash" : target ? cardIcon(target) || "layers" : "home", "layers"));
-  hero.append(h("div", { cls: "sn-hero-title-row" }, h("h1", { cls: "sn-hero-title", text: tv ? "#" + tv : target ? baseName(target) : t("allCards") })));
-  const tools = h("div", { cls: "sn-hero-tools" });
-  if (target) {
-    tools.append(iconBtn("pencil", t("edit"), () => openEditor(target, { focus: true })));
-    tools.append(iconBtn("more-horizontal", t("more"), (e) => cardMenu(target, null).showBelow(e.currentTarget)));
-    const parents = graph.parentsOf(target).filter((p) => graph.has(p));
-    if (parents.length) hero.append(h("div", { cls: "sn-chips sn-hero-chips" }, parents.map((p) => parentChip(p))));
-    const desc = h("div", { cls: "sn-hero-desc markdown-rendered" + (board.heroCollapsed ? " is-collapsed" : "") });
-    desc.addEventListener("dblclick", (e) => { if (!e.target.closest("a, button, input")) openEditor(target, { focus: true }); });
-    wireRendered(desc, target);
-    renderBody(desc, target, 0);
-    hero.append(desc);
-  }
-  hero.append(tools);
-  const foot = h("div", { cls: "sn-hero-foot" });
-  foot.append(h("span", { cls: "sn-hero-count", text: countText(model) }));
-  if (target && cardBodyText(target).trim()) {
-    const tg = iconBtn(board.heroCollapsed ? "chevron-down" : "chevron-up", board.heroCollapsed ? t("expandDescription") : t("collapseDescription"), () => {
-      board.heroCollapsed = !board.heroCollapsed;
-      persistBoard();
-      $(".sn-hero-desc", hero)?.classList.toggle("is-collapsed", board.heroCollapsed);
-      setIcon(tg, board.heroCollapsed ? "chevron-down" : "chevron-up");
-    });
-    foot.append(tg);
-  }
-  hero.append(foot);
-  return hero;
 }
 let composerTarget = null;
 function renderComposer() {

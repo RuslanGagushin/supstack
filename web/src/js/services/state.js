@@ -6,8 +6,8 @@ import { HierarchyGraph } from "../core/graph.js";
 import { lsGet, lsSet } from "./storage.js";
 
 export const DEFAULTS = {
-  pinned: [], savedViews: [], language: "auto", defaultDepth: 1, defaultLayout: "columns", defaultSort: "manual", defaultGrouped: false,
-  outlineSort: "manual", cardFace: "full", previewLength: 600, cardMaxHeight: 360, maxCards: 1000,
+  pinned: [], savedViews: [], language: "auto", defaultDepth: 1, defaultSort: "manual", defaultGrouped: false,
+  outlineSort: "manual", maxCards: 1000,
 };
 export const UI = Object.assign({ theme: "auto", sideW: 280, editorW: 560, listW: 380, sideOpen: true, lang: "auto" }, lsGet("sn-ui", {}));
 delete UI.style; delete UI.font; delete UI.writeFont; // retired settings
@@ -26,13 +26,19 @@ export const vault = {
 export const PARENTS_FIELD = "parents";
 export const S = { ...DEFAULTS }; // the vault's settings (services/vault.js keeps them in .supstack/settings.json)
 /** Settings of a newly opened vault: the defaults, then `saved`. */
-export function resetSettings(saved) { for (const k of Object.keys(S)) delete S[k]; Object.assign(S, DEFAULTS, saved); }
+// the board's other layouts and its cards' look are gone; a vault's settings file that still has them loses them on the next save
+const RETIRED_SETTINGS = ["defaultLayout", "cardFace", "previewLength", "cardMaxHeight"];
+export function resetSettings(saved) {
+  for (const k of Object.keys(S)) delete S[k];
+  Object.assign(S, DEFAULTS, saved);
+  for (const k of RETIRED_SETTINGS) delete S[k];
+}
 export let graph = new HierarchyGraph();
 export const setGraph = (g) => { graph = g; };
 export const board = {
-  target: null, depth: 1, layout: "columns", sort: "manual", grouped: false,
-  filter: { query: "", tags: [] }, searchOpen: false, heroCollapsed: false,
-  history: [], selection: new Set(), selectMode: false, expanded: new Set(), rendered: 60,
+  target: null, depth: 1, sort: "manual", grouped: false,
+  filter: { query: "", tags: [] }, searchOpen: false,
+  history: [], selection: new Set(), selectMode: false, rendered: 60,
 };
 export const tree = { expanded: new Set() };
 // base: { path, raw } — the note's text the editor's text started from; when the note on disk differs at save time,

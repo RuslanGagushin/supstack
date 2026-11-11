@@ -17,11 +17,10 @@ import { $, $$, h, ic } from "./dom.js";
 import { fuzzyScore, Menu, notice, openMenuEl, suggestModal } from "./ui.js";
 import { renderMarkdown, wireRendered } from "./markdown.js";
 import { cleanTag, createCard, sanitizeTitle, vaultTags } from "./actions.js";
-import { masonries } from "./masonry.js";
 import { goBack, openTagView } from "./board.js";
 import { dnd } from "./dnd.js";
 import { renderTree } from "./tree.js";
-import { isBoardNote, openEditor, renderEditor } from "./editor.js";
+import { openEditor, renderEditor } from "./editor.js";
 import { liveActivate, liveTa, liveText } from "./live-preview.js";
 import { edInsert } from "./editor-toolbar.js";
 import { refresh } from "./shell.js";
@@ -426,9 +425,8 @@ export function setFocusMode(on) {
   saveUI();
   $("#app")?.classList.toggle("focus-mode", on);
   if (on && editor.path && !editor.wide) { editor.wide = true; $("#app").classList.add("editor-wide"); renderEditor(); setTimeout(() => $(".sn-editor-text")?.focus(), 0); }
-  if (!on && editor.wide && editor.focusWide && !isBoardNote(editor.path)) { editor.wide = false; $("#app").classList.remove("editor-wide"); renderEditor(); }
+  if (!on && editor.wide && editor.focusWide) { editor.wide = false; $("#app").classList.remove("editor-wide"); renderEditor(); }
   editor.focusWide = on;
-  for (const m of masonries) m.relayout(false);
   if (on) notice(wt("focusExit"));
 }
 

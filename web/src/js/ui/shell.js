@@ -13,8 +13,7 @@ import { lsGet, lsSet } from "../services/storage.js";
 import { $, h, ic, iconBtn, keyName, keyText } from "./dom.js";
 import { defaultEcho, echo, Menu, notice, openLayer, promptModal, suggestModal } from "./ui.js";
 import { createCard, promptAddTag, quickOpen, saveCurrentView, tagTargets, togglePin } from "./actions.js";
-import { masonries } from "./masonry.js";
-import { goBack, LAYOUTS, patchBoard, renderBoard, setLayout, setTarget, toggleSearch } from "./board.js";
+import { goBack, patchBoard, renderBoard, setTarget, toggleSearch } from "./board.js";
 import { renderTree, renderTreeSoft, revealInTree } from "./tree.js";
 import { closeEditor, openEditor, renderEditor, syncEditorFromDisk } from "./editor.js";
 import { renderEditorProps } from "./editor-toolbar.js";
@@ -42,7 +41,6 @@ export function setSide(open) {
   UI.sideOpen = open;
   saveUI();
   $("#app").classList.toggle("side-closed", !open);
-  for (const m of masonries) m.relayout(false);
 }
 function showLoading(on) {
   $(".sn-loading")?.remove();
@@ -87,7 +85,6 @@ function commandList() {
   add(t("allCards"), "home", () => setTarget(null));
   add(t("searchAndFilters").replace(/ \(.*\)$/, ""), "search", () => toggleSearch(true), "Ctrl+F");
   for (const d of DEPTHS) add(t("cmdDepth", { d: d || "∞" }), "list-tree", () => { board.depth = d; persistBoard(); renderBoard(); }, null, normDepth(board.depth) === d);
-  for (const [v, icn, label] of LAYOUTS()) add(t("cmdLayout", { l: label }), icn, () => setLayout(v), null, board.layout === v);
   for (const [v, k] of [["manual", "sortManual"], ["name", "sortName"], ["modified", "sortModified"], ["created", "sortCreated"]]) add(t("cmdSort", { s: t(k) }), "arrow-up-down", () => { board.sort = v; persistBoard(); renderBoard(); }, null, board.sort === v);
   add(t("groupByParent"), "group", () => { board.grouped = !board.grouped; persistBoard(); renderBoard(); }, null, board.grouped);
   add(t("selectMode"), "check-square", () => { board.selectMode = !board.selectMode; if (!board.selectMode) board.selection.clear(); renderBoard(); }, null, board.selectMode);
@@ -215,7 +212,7 @@ function makeResizer(el, onMove, getStart) {
     const x0 = e.clientX, start = getStart();
     el.classList.add("is-dragging");
     el.setPointerCapture(e.pointerId);
-    const move = (ev) => { onMove(ev.clientX - x0, start); for (const m of masonries) m.relayout(false); };
+    const move = (ev) => onMove(ev.clientX - x0, start);
     const up = () => { el.classList.remove("is-dragging"); el.removeEventListener("pointermove", move); el.removeEventListener("pointerup", up); saveUI(); };
     el.addEventListener("pointermove", move);
     el.addEventListener("pointerup", up);
@@ -245,19 +242,14 @@ export function settingsModal(tab) {
   // where the board's options are kept; nothing to say before a vault is open (Appearance opens without one)
   const storedIn = () => (vault.fs ? h("p", { cls: "sn-set-note", text: vault.fs.kind === "disk" ? t("settingsShared") : t("settingsLocal") }) : null);
   const sections = [
-    // one section for how things look: the interface (language, theme), then the board's defaults and its cards
+    // one section for how things look: the interface (language, theme), then the board's defaults
     ["appearance", t("sectionAppearance"), "palette", "options", () => [
       heading(t("setGroupUi")),
       item(t("setLanguage"), null, select(UI.lang, [["auto", "Auto"], ["en", "English"], ["ru", "Русский"]], (v) => { UI.lang = v; saveUI(); applyLanguage(); close(); settingsModal("appearance"); })),
       item(t("setTheme"), null, select(UI.theme, [["auto", t("themeAuto")], ["light", t("themeLight")], ["dark", t("themeDark")]], (v) => { UI.theme = v; saveUI(); applyTheme(); })),
       heading(t("setGroupView")),
       item(t("setDefaultDepth"), null, select(normDepth(S.defaultDepth), DEPTHS.map((d) => [d, d ? String(d) : "∞"]), (v) => { S.defaultDepth = Number(v); save(); })),
-      item(t("setDefaultLayout"), null, select(S.defaultLayout, LAYOUTS().map(([v, , l]) => [v, l]), (v) => { S.defaultLayout = v; save(); })),
       item(t("setDefaultSort"), null, select(S.defaultSort, [["manual", t("sortManual")], ["name", t("sortName")], ["modified", t("sortModified")], ["created", t("sortCreated")]], (v) => { S.defaultSort = v; save(); })),
-      heading(t("setGroupCards")),
-      item(t("setCardFace"), t("setCardFaceDesc"), select(S.cardFace || "full", [["full", t("faceFull")], ["compact", t("faceCompact")], ["title", t("faceTitle")], ["auto", t("faceAuto")]], (v) => { S.cardFace = v; save(); })),
-      item(t("setPreview"), t("setPreviewDesc"), text(S.previewLength, "600", (v) => { const n = Number(v); if (Number.isFinite(n) && n >= 0) { S.previewLength = Math.floor(n); save(); } }, "number")),
-      item(t("setCardHeight"), t("setCardHeightDesc"), text(S.cardMaxHeight, "360", (v) => { const n = Number(v); if (Number.isFinite(n) && n >= 0) { S.cardMaxHeight = Math.floor(n); save(); } }, "number")),
       item(t("setMaxCards"), null, text(S.maxCards, "1000", (v) => { const n = Number(v); if (Number.isFinite(n) && n > 0) { S.maxCards = Math.floor(n); save(); } }, "number")),
       storedIn(),
     ]],
@@ -349,8 +341,6 @@ export async function loadVault(fs) {
   showLoading(true);
   try {
     await readVault(fs);
-    // a phone opens the list of notes rather than a squeezed board, unless the vault's settings chose another layout
-    if (board.fresh && S.defaultLayout === "columns" && matchMedia("(pointer: coarse) and (max-width: 820px)").matches) board.layout = "notes";
     applyLanguage();
     closeEditor(true);
     $("#welcome")?.remove();

@@ -178,12 +178,11 @@ export async function readVault(fs) {
   const moved = await gatherNotes();
   const saved = lsGet(boardKey(), null);
   Object.assign(board, {
-    fresh: !saved, // nothing remembered for this vault on this device yet (ui/shell.js picks a phone's first layout)
-    target: null, depth: normDepth(S.defaultDepth), layout: S.defaultLayout, sort: S.defaultSort, grouped: S.defaultGrouped,
-    filter: { query: "", tags: [] }, searchOpen: false, history: [], selection: new Set(), selectMode: false, expanded: new Set(), rendered: 60,
+    target: null, depth: normDepth(S.defaultDepth), sort: S.defaultSort, grouped: S.defaultGrouped,
+    filter: { query: "", tags: [] }, searchOpen: false, history: [], selection: new Set(), selectMode: false, rendered: 60,
   });
   if (saved) {
-    for (const k of ["target", "depth", "layout", "sort", "grouped", "heroCollapsed", "tagView", "view"]) if (saved[k] !== undefined) board[k] = saved[k];
+    for (const k of ["target", "depth", "sort", "grouped", "tagView", "view"]) if (saved[k] !== undefined) board[k] = saved[k];
     board.depth = normDepth(board.depth);
     if (saved.filter) board.filter = { query: saved.filter.query || "", tags: saved.filter.tags || [], scope: saved.filter.scope === "all" ? "all" : "here" };
     board.searchOpen = !!(board.filter.query || board.filter.tags.length);
@@ -196,8 +195,8 @@ export async function readVault(fs) {
 const boardKey = () => "sn-board:" + (vault.fs?.kind || "") + ":" + (vault.fs?.name || "");
 export function persistBoard() {
   lsSet(boardKey(), {
-    target: board.target, depth: board.depth, layout: board.layout, sort: board.sort, grouped: board.grouped,
-    heroCollapsed: board.heroCollapsed, filter: board.filter, tagView: board.tagView || null, view: board.view || null, treeExpanded: [...tree.expanded],
+    target: board.target, depth: board.depth, sort: board.sort, grouped: board.grouped,
+    filter: board.filter, tagView: board.tagView || null, view: board.view || null, treeExpanded: [...tree.expanded],
   });
 }
 /** Notes outside cards/ and daily notes/ (attachments/ aside) move into cards/, keeping their subfolders, so links
