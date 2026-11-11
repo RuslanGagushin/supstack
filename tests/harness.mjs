@@ -18,10 +18,11 @@ after(async () => (await browser)?.close());
  * - demo: start from the demo vault (default) or from an empty one
  * - notes: { path: raw text }, files: { path: { data, type, mtime } } (attachments)
  * - time: freeze the clock at this date (agenda and date tests)
+ * - touch: a touch screen, so (pointer: coarse) matches as on a phone
  */
-export async function openVault({ demo = true, notes = {}, files = {}, viewport = { width: 1280, height: 800 }, time = null, lang = "en" } = {}) {
+export async function openVault({ demo = true, notes = {}, files = {}, viewport = { width: 1280, height: 800 }, time = null, lang = "en", touch = false } = {}) {
   await page?.close();
-  page = await (await launch()).newPage({ viewport, locale: lang === "ru" ? "ru-RU" : "en-US" });
+  page = await (await launch()).newPage({ viewport, hasTouch: touch, locale: lang === "ru" ? "ru-RU" : "en-US" });
   errors = [];
   page.setDefaultTimeout(15000); // six files run their browsers in parallel; a busy machine is slow
   page.on("pageerror", (e) => errors.push(e));

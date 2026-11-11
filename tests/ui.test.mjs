@@ -918,6 +918,20 @@ describe("phone layout", () => {
     await ev(() => setTarget("cards/History.md"));
     assert.equal(await ev(() => $("#app").classList.contains("side-closed")), true);
   });
+
+  test("on a touch screen a table's + buttons stay under it and on its right, not piled up in a corner", async () => {
+    await openVault({ demo: false, notes: { "cards/T.md": "Intro\n\n| a | b |\n|---|---|\n| 1 | 2 |" }, viewport: { width: 390, height: 800 }, touch: true });
+    await ev(() => openEditor("cards/T.md", { focus: false }));
+    await page().waitForSelector("#editor .sn-table-host");
+    const r = await ev(() => {
+      const box = (s) => $(`#editor ${s}`).getBoundingClientRect();
+      return { coarse: matchMedia("(pointer: coarse)").matches, t: box(".sn-live table").toJSON(), row: box(".sn-table-add-row").toJSON(), col: box(".sn-table-add-col").toJSON() };
+    });
+    assert.ok(r.coarse, "the phone's hit areas apply");
+    assert.ok(r.row.top >= r.t.bottom - 1 && r.row.width >= r.t.width - 2, `the row button runs along the bottom: ${JSON.stringify(r)}`);
+    assert.ok(r.col.left >= r.t.right - 1 && r.col.height >= r.t.height - 2, `the column button runs along the right: ${JSON.stringify(r)}`);
+    noErrors();
+  });
 });
 
 describe("no note colors", () => {
