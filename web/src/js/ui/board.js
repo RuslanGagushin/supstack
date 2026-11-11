@@ -145,13 +145,15 @@ export function renderBoard(resetScroll = false) {
 }
 /** The board as a list of notes with the open note beside it (not the agenda or the files, which have their own lists). */
 export const isNotesLayout = () => !board.view;
-/** In the list of notes, a move to another list opens its first note beside it, as a mail app does,
-   unless the note already open is in the new list. On a phone the note would cover the list, so nothing opens there. */
+/** In the list of notes, a move to another list opens its first note (not a notebook) beside it, as a mail app does,
+   unless the note already open is in the new list; with no notes, the card's own text if it has any.
+   On a phone the note would cover the list, so nothing opens there. */
 function openFirstNote(model) {
   if (innerWidth <= 820) return;
   const inList = (p) => p === board.target || model.shown.some((c) => c.path === p);
   const keep = editor.path && inList(editor.path) ? editor.path : null;
-  const path = keep || model.shown[0]?.path || (board.target && !board.tagView ? board.target : null);
+  const own = board.target && !board.tagView && hasText(board.target) ? board.target : null;
+  const path = keep || model.shown.find((c) => !c.folder)?.path || own;
   if (!path) { if (editor.path && editor.wide) closeEditor(); return; }
   if (path === editor.path && !editor.wide) return;
   openEditor(path, { focus: false, wide: false });
@@ -174,14 +176,16 @@ function lazyAdd(page, scroll, list, add) {
   }, { root: scroll, rootMargin: "600px" });
   sentinelObs.observe(sentinel);
 }
-/** Notes as rows of a list: the card's own note first, then its children; each one opens beside the list. */
+/** The card's own text is a row of its list only when there is some: most notebooks are empty headings. */
+const hasText = (path) => !!vault.notes.get(path)?.body?.trim();
+/** Notes as rows of a list: the card's own note first (when it has text), then its notebooks, then its notes; a note opens beside the list. */
 function renderRows(page, scroll, model, composer) {
   page.append(renderListHead(model), composer.el);
   const rows = [];
   const box = h("div", { cls: "sn-rows" });
   page.append(box);
-  const addRows = (list) => { for (const c of list) { const el = renderRow(c.path, c.via); box.append(el); rows.push(el); } };
-  if (board.target && !board.tagView) addRows([{ path: board.target, via: null }]);
+  const addRows = (list) => { for (const c of list) { const el = renderRow(c.path, c.via, !!c.folder); box.append(el); rows.push(el); } };
+  if (board.target && !board.tagView && hasText(board.target)) addRows([{ path: board.target, via: null }]);
   lazyAdd(page, scroll, model.shown, addRows);
   return rows;
 }
@@ -204,7 +208,7 @@ function countText(model) {
 
 function boardSig(model) {
   return JSON.stringify([board.target, board.sort, board.searchOpen, board.selectMode, board.filter, board.lang = LANG,
-    model.shown.map((c) => `${c.path}|${c.via ?? ""}`), model.total, model.all.skippedRepeats, model.truncated, graph.ancestry(board.target || "", makeComparator("manual"))]);
+    model.shown.map((c) => `${c.path}|${c.via ?? ""}|${c.folder ? 1 : 0}`), hasText(board.target || ""), model.total, model.all.skippedRepeats, model.truncated, graph.ancestry(board.target || "", makeComparator("manual"))]);
 }
 export function cardSig(path) {
   const n = vault.notes.get(path);
@@ -225,7 +229,7 @@ export function patchBoard() {
     const p = el.dataset.path;
     const sig = cardSig(p);
     if (board.cardSigs.get(p) === sig) continue;
-    const fresh = renderRow(p, el.dataset.via || null);
+    const fresh = renderRow(p, el.dataset.via || null, el.classList.contains("is-folder"));
     el.replaceWith(fresh);
     board.cardSigs.set(p, sig);
     if (focused === p) fresh.focus({ preventScroll: true });

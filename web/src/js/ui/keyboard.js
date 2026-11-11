@@ -79,14 +79,14 @@ document.addEventListener("keydown", (e) => {
     const next = spatialNext(card || (lastFocused && $(`.sn-board .sn-card[data-path="${CSS.escape(lastFocused)}"]`)), e.key);
     if (next) {
       e.preventDefault(); next.focus(); next.scrollIntoView({ block: "nearest" });
-      // in the list of notes the arrows page through the notes beside it; on a phone a note would cover the list
-      if (next.classList.contains("sn-row") && innerWidth > 820 && !board.selectMode) openEditor(next.dataset.path, { focus: false, wide: false });
+      // in the list of notes the arrows page through the notes beside it (a notebook only takes the focus); on a phone a note would cover the list
+      if (next.classList.contains("sn-row") && !next.classList.contains("is-folder") && innerWidth > 820 && !board.selectMode) openEditor(next.dataset.path, { focus: false, wide: false });
     }
     return;
   }
   if (card) {
     const p = card.dataset.path;
-    if (e.key === "Enter") { e.preventDefault(); if (e.shiftKey) setTarget(p); else openEditor(p, { focus: true }); return; }
+    if (e.key === "Enter") { e.preventDefault(); if (e.shiftKey || card.classList.contains("is-folder")) enterRow(p); else openEditor(p, { focus: true }); return; }
     if (e.key === " ") { e.preventDefault(); toggleSelect(p); return; }
     if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); deleteCards(board.selection.size ? [...board.selection] : [p]); return; }
   }

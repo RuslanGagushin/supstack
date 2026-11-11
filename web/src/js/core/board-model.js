@@ -3,9 +3,15 @@
    ========================================================= */
 import { norm } from "./util.js";
 
+/** The list's cards with the notebooks (cards that have children) first, each group in its own sort order; a notebook is marked `folder`. */
+export function notebooksFirst(graph, cards) {
+  const folders = [], notes = [];
+  for (const c of cards) (graph.childrenOf(c.path).length ? folders : notes).push(c);
+  return [...folders.map((c) => ({ ...c, folder: true })), ...notes];
+}
 export function filterActive(f) { return !!f.query.trim() || f.tags.length > 0; }
 /**
- * The cards the list shows: the target's children, or, while searching, every level below it (or the whole vault).
+ * The cards the list shows: the target's children, notebooks first, or, while searching, every level below it (or the whole vault).
  * `view` is the board's state ({ target, filter }); `cards` says what the vault knows of a card: cmp (sort order),
  * tagsOf(path), textOf(path) (searched), maxCards. `total` counts every level below the target.
  */
@@ -22,7 +28,7 @@ export function computeModel(graph, view, { cmp, tagsOf, textOf, maxCards }) {
     if (tagSet.size && !tagsOf(c.path).some((x) => tagSet.has(x))) return false;
     if (tokens.length) { const txt = norm(textOf(c.path)); if (!tokens.every((w) => txt.includes(w))) return false; }
     return true;
-  }) : all.cards;
+  }) : notebooksFirst(graph, all.cards);
   const truncated = visible.length > maxCards;
   const shown = truncated ? visible.slice(0, maxCards) : visible;
   return { all, total, active, tokens, shown, truncated, cmp };

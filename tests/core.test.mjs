@@ -116,11 +116,18 @@ describe("board model", () => {
   const view = (o = {}) => ({ target: "Home", ...o, filter: { query: "", tags: [], ...o.filter } });
   const paths = (m) => m.shown.map((c) => c.path);
 
-  test("the list shows the target's children; the total counts every level below it", () => {
+  test("the list shows the target's children, notebooks first; the total counts every level below it", () => {
     const m = computeModel(g, view(), cards);
-    assert.deepEqual(paths(m), ["Blue one", "Red one"]);
+    assert.deepEqual(paths(m), ["Red one", "Blue one"], "Red one has a child: it is a notebook");
+    assert.deepEqual(m.shown.map((c) => !!c.folder), [true, false]);
     assert.equal(m.total, 3);
     assert.equal("blocks" in m, false, "no grouping");
+  });
+
+  test("a search keeps the sort order and marks no notebooks", () => {
+    const m = computeModel(g, view({ filter: { query: "one" } }), cards);
+    assert.deepEqual(paths(m), ["Blue one", "Red one"]);
+    assert.ok(m.shown.every((c) => !c.folder));
   });
 
   test("filters search every level: tag, words", () => {

@@ -273,6 +273,15 @@ button.sn-row-enter {
 }
 button.sn-row-enter svg { width: 16px; height: 16px; }
 button.sn-row-enter:hover, .sn-row:focus-visible button.sn-row-enter { background: var(--accent-soft); color: var(--accent); }
+/* a notebook: one compact line at the top of the list (cards.js renderFolderRow) */
+body.sn-app .sn-board .sn-card.sn-row.is-folder { align-items: center; gap: 10px; padding: 8px 10px 8px 14px; cursor: pointer; }
+.sn-row.is-folder .sn-row-title { flex: 1 1 auto; font-size: var(--fs-text); font-weight: 500; -webkit-line-clamp: 1; }
+.sn-row-folder-icon { flex: none; display: inline-flex; color: var(--muted); }
+.sn-row-folder-icon svg { width: 16px; height: 16px; }
+.sn-row-count { flex: none; display: inline-flex; align-items: center; gap: 2px; color: var(--faint); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
+.sn-row-count svg { width: 16px; height: 16px; }
+.sn-row.is-folder:hover .sn-row-count, .sn-row.is-folder:focus-visible .sn-row-count { color: var(--accent); }
+.sn-rows > .sn-row.is-folder + .sn-row:not(.is-folder) { margin-top: 10px; }
 .sn-row-thumb { flex: none; width: 60px; height: 60px; margin-top: 19px; object-fit: cover; border-radius: var(--r-s); background: var(--panel); box-shadow: 0 0 0 1px var(--line); }
 @media (max-width: 820px) {
   body.sn-app .sn-board.is-notes .sn-page { padding: 10px 6px 60px; }

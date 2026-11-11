@@ -58,16 +58,16 @@ describe("tables and fonts", () => {
 describe("board", () => {
   beforeEach(() => openVault());
 
-  test("the demo board shows the top-level cards in manual order", async () => {
+  test("the demo board shows the top-level notebooks, then the notes, each in manual order", async () => {
     const t = await titles();
-    assert.deepEqual(t.slice(0, 4), ["This week", "History", "Architecture", "Knowledge"]);
+    assert.deepEqual(t.slice(0, 4), ["History", "Architecture", "Knowledge", "This week"]);
     assert.ok(!t.includes("Roman Empire"), "children are not on the top level");
     noErrors();
   });
 
   test("open a card as the board, breadcrumbs, back and up", async () => {
     await ev(() => setTarget("cards/Roman Empire.md"));
-    assert.deepEqual(await titles(), ["Colosseum", "Aqueducts"], "child_order");
+    assert.deepEqual(await titles(), ["Aqueducts", "Colosseum"], "Aqueducts holds Pont du Gard, so it comes first as a notebook");
     assert.match(await page().textContent(".sn-crumbs"), /All cards.*History.*Roman Empire/);
     await page().keyboard.press("Alt+ArrowUp");
     assert.equal(await ev(() => board.target), "cards/History.md");
@@ -955,7 +955,7 @@ describe("list of notes", () => {
 
   test("the list shows the card's own note and its children, and opens the first child beside it", async () => {
     await ev(() => setTarget("cards/History.md"));
-    assert.deepEqual(await rows(), ["History", "Pics", "Roman Empire"]);
+    assert.deepEqual(await rows(), ["History", "Roman Empire", "Pics"], "the card's own text, its notebooks, then its notes");
     const r = await ev(() => ({
       path: editor.path, wide: editor.wide, app: document.getElementById("app").className,
       list: document.querySelector(".sn-main").getBoundingClientRect().width, note: document.querySelector(".sn-editor").getBoundingClientRect().width,
@@ -973,12 +973,12 @@ describe("list of notes", () => {
     noErrors();
   });
 
-  test("a click or the arrow keys open a note beside the list; the card's own note opens there too", async () => {
+  test("a click or the arrow keys open a note beside the list; a notebook only takes the focus; the card's own note opens there too", async () => {
     await ev(() => setTarget("cards/History.md"));
-    await page().click('.sn-row[data-path="cards/Roman Empire.md"]');
-    assert.equal(await ev(() => editor.path), "cards/Roman Empire.md");
-    await page().keyboard.press("ArrowUp");
+    await page().click('.sn-row[data-path="cards/Pics.md"]');
     assert.equal(await ev(() => editor.path), "cards/Pics.md");
+    await page().keyboard.press("ArrowUp");
+    assert.deepEqual(await ev(() => [editor.path, document.activeElement.dataset.path]), ["cards/Pics.md", "cards/Roman Empire.md"], "the notebook doesn't open beside the list");
     await page().keyboard.press("ArrowUp");
     assert.deepEqual(await ev(() => [editor.path, editor.wide, !!document.querySelector(".sn-board .sn-row.is-own")]), ["cards/History.md", false, true]);
     // Enter puts the caret in the note
@@ -1016,24 +1016,57 @@ describe("list of notes", () => {
     noErrors();
   });
 
-  test("on a phone the list fills the screen and a tap opens the note", async () => {
+  test("on a phone the list fills the screen, a tap on a notebook goes inside and a tap on a note opens it", async () => {
     await openVault({ viewport: { width: 390, height: 800 } });
     await ev(() => setTarget("cards/History.md"));
     assert.equal(await ev(() => editor.path), null, "nothing opens by itself over the list");
     await page().click('.sn-row[data-path="cards/Roman Empire.md"]');
-    assert.equal(await ev(() => editor.path), "cards/Roman Empire.md");
+    assert.deepEqual(await ev(() => [board.target, editor.path]), ["cards/Roman Empire.md", null]);
+    await page().click('.sn-row[data-path="cards/Colosseum.md"]');
+    assert.equal(await ev(() => editor.path), "cards/Colosseum.md");
     noErrors();
   });
 
-  test("a note with children goes inside with its button or →, and ← comes back out on it", async () => {
+  test("an empty notebook has no row of its own; the card a note sits in shows only in a search; a drop next to the other group can only go inside", async () => {
+    await openVault({ demo: false, notes: {
+      "cards/Work.md": "", "cards/Proton.md": "---\nparents: [\"[[Work]]\"]\n---\n", "cards/Radar.md": "---\nparents: [\"[[Proton]]\"]\n---\nradar",
+      "cards/Invoice.md": "---\nparents: [\"[[Work]]\", \"[[Proton]]\"]\n---\nan invoice",
+    } });
+    await ev(() => setTarget("cards/Work.md"));
+    const list = () => ev(() => [...document.querySelectorAll("#board .sn-rows .sn-row")].map((r) => [r.dataset.path.replace(/^cards\/|\.md$/g, ""), r.classList.contains("is-folder"), r.querySelector(".sn-row-parent")?.textContent ?? null]));
+    assert.deepEqual(await list(), [["Proton", true, null], ["Invoice", false, null]], "no empty Work row; Invoice doesn't name Proton here");
+    assert.equal(await ev(() => editor.path), "cards/Invoice.md", "the first note opens, not the notebook");
+    await ev(() => { setTarget(null); board.filter = { query: "invoice", tags: [], scope: "here" }; board.searchOpen = true; renderBoard(); });
+    assert.deepEqual(await list(), [["Invoice", false, "Work"]], "in a search it says which card each note sits in");
+    await ev(() => setTarget("cards/Work.md"));
+    const zones = await ev(() => {
+      board.filter = { query: "", tags: [] }; board.searchOpen = false; renderBoard();
+      const fire = (el, type) => { const dt = new DataTransfer(); const r = el.getBoundingClientRect(); el.dispatchEvent(new DragEvent(type, { bubbles: true, cancelable: true, dataTransfer: dt, clientX: r.left + 10, clientY: r.top + 2 })); };
+      const folder = document.querySelector('.sn-row[data-path="cards/Proton.md"]'), note = document.querySelector('.sn-row[data-path="cards/Invoice.md"]');
+      fire(note, "dragstart");
+      fire(folder, "dragover");
+      const r = [...folder.classList].filter((c) => c.startsWith("is-drop"));
+      dnd.cleanup();
+      return r;
+    });
+    assert.deepEqual(zones, ["is-drop-inside"], "a note dropped at a notebook's top edge goes into it, not between the notebooks");
+    noErrors();
+  });
+
+  test("a notebook is a compact row that goes inside on a click or →, and ← comes back out on it", async () => {
     await ev(() => setTarget("cards/History.md"));
-    const r = await ev(() => ({ gap: getComputedStyle(document.querySelector(".sn-rows")).rowGap, enter: [...document.querySelectorAll(".sn-row.has-kids")].map((x) => x.dataset.path) }));
+    const r = await ev(() => ({
+      gap: getComputedStyle(document.querySelector(".sn-rows")).rowGap, folders: [...document.querySelectorAll(".sn-row.is-folder")].map((x) => x.dataset.path),
+      row: document.querySelector(".sn-row.is-folder").textContent, snippet: !!document.querySelector(".sn-row.is-folder .sn-row-snippet"),
+    }));
     assert.equal(r.gap, "6px");
-    assert.deepEqual(r.enter, ["cards/Roman Empire.md"]);
-    await page().click('.sn-row[data-path="cards/Roman Empire.md"] .sn-row-enter');
+    assert.deepEqual(r.folders, ["cards/Roman Empire.md"]);
+    assert.equal(r.row, "Roman Empire2", "its name and how many cards it holds");
+    assert.equal(r.snippet, false);
+    await page().click('.sn-row[data-path="cards/Roman Empire.md"]');
     assert.equal(await ev(() => board.target), "cards/Roman Empire.md");
     await page().keyboard.press("ArrowLeft");
-    assert.deepEqual(await ev(() => [board.target, editor.path, document.activeElement.dataset.path]), ["cards/History.md", "cards/Roman Empire.md", "cards/Roman Empire.md"]);
+    assert.deepEqual(await ev(() => [board.target, editor.path, document.activeElement.dataset.path]), ["cards/History.md", "cards/Pics.md", "cards/Roman Empire.md"], "back on the notebook; the first note stays open beside");
     await page().keyboard.press("ArrowRight");
     assert.equal(await ev(() => board.target), "cards/Roman Empire.md");
     assert.ok(await ev(() => document.activeElement.classList.contains("sn-row")), "a row of the new list has the focus, so the arrows go on");

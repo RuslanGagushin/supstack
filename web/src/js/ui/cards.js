@@ -5,6 +5,7 @@ import { LANG, t, tt } from "../core/i18n.js";
 import { baseName, norm, plainText } from "../core/util.js";
 import { board, editor, graph, S, vault } from "../services/state.js";
 import { cardIcon, linkText } from "../services/vault.js";
+import { filterActive } from "../core/board-model.js";
 import { cardTaskProgress } from "../services/tasks.js";
 import { attachmentUrl, firstImage } from "../services/attachments.js";
 import { $, h, ic, isMod } from "./dom.js";
@@ -53,23 +54,64 @@ function highlight(root, tokens) {
     node.replaceWith(frag);
   }
 }
-/** A note as a row in the list of notes: where it sits and when it changed, its title, two lines of its text, its tags and the first image.
-   Clicking it (or, on a wide screen, moving onto it with the arrow keys: see keyboard.js) opens it beside the list. */
-export function renderRow(path, via) {
+/** Whether `path` is a notebook (has children): it is a row of the notebooks at the top of a list. */
+const isFolder = (path) => graph.childrenOf(path).length > 0;
+/** A drop before or after a row reorders within its group (notebooks or notes); onto a row of the other group it can only go inside. */
+function rowDrop(path, via) {
+  const mine = isFolder(path);
+  const same = (dnd.drag || []).every((d) => isFolder(d.child) === mine);
+  return { path, parent: via, zones: same ? ["before", "inside", "after"] : ["inside"] };
+}
+/** A notebook as a compact row at the top of the list: its icon, its name and how many cards it holds. A click goes inside;
+   a double click opens its own text. */
+function renderFolderRow(path, via) {
+  const row = h("div", { cls: "sn-card sn-row is-folder has-kids", tabindex: "-1" });
+  row.dataset.path = path;
+  row.dataset.via = via ?? "";
+  if (board.selection.has(path)) row.classList.add("is-picked");
+  if (editor.path === path) row.classList.add("is-editing");
+  const kids = graph.childrenOf(path).length;
+  row.append(ic("sn-row-folder-icon", cardIcon(path) || "folder", "folder"), h("span", { cls: "sn-row-title", text: baseName(path) }),
+    h("span", { cls: "sn-row-count", title: t("rowEnter", { n: kids }) }, h("span", { text: String(kids) }), ic("", "chevron-right")));
+  row.addEventListener("click", (e) => {
+    if (e.shiftKey || board.selectMode) { e.preventDefault(); toggleSelect(path); return; }
+    enterRow(path);
+  });
+  row.addEventListener("dblclick", (e) => {
+    if (e.shiftKey || board.selectMode) return;
+    e.preventDefault();
+    openEditor(path, { focus: true, wide: false });
+  });
+  wireRow(row, path, via);
+  return row;
+}
+function wireRow(row, path, via) {
+  row.addEventListener("contextmenu", (e) => cardMenu(path, via).showAtEvent(e));
+  row.addEventListener("focus", () => setLastFocused(path));
+  attachLongPress(row, (ev) => cardMenu(path, via).showAtEvent(ev));
+  dnd.draggable(row, () => ({ child: path, from: via }));
+  dnd.dropTarget(row, () => rowDrop(path, via));
+}
+/** A note as a row in the list of notes: when it changed, its title, two lines of its text, its tags and the first image; in a search
+   or a tag's list also the card it sits in. Clicking it (or, on a wide screen, moving onto it with the arrow keys: see keyboard.js)
+   opens it beside the list. A notebook (`folder`) is a compact row instead. */
+export function renderRow(path, via, folder = false) {
   const own = path === board.target && !board.tagView;
+  if (folder && !own) return renderFolderRow(path, via);
   const row = h("div", { cls: "sn-card sn-row" + (own ? " is-own" : ""), tabindex: "-1" });
   row.dataset.path = path;
   row.dataset.via = via ?? "";
   if (board.selection.has(path)) row.classList.add("is-picked");
   if (editor.path === path) row.classList.add("is-editing");
   const n = vault.notes.get(path);
+  const searching = !!board.tagView || filterActive(board.filter);
   const text = h("div", { cls: "sn-row-text" });
 
   const meta = h("div", { cls: "sn-row-meta" });
   const parents = graph.parentsOf(path).filter((p) => graph.has(p));
   const where = own ? null : via && parents.includes(via) ? via : parents.find((p) => p !== board.target) ?? null;
   if (own) meta.append(ic("sn-row-meta-icon", cardIcon(path) || "layers", "layers"), h("span", { text: t("rowOwnNote") }));
-  else if (where && where !== board.target) meta.append(h("a", { cls: "sn-row-parent", href: "#", text: baseName(where), onClick: (e) => { e.preventDefault(); e.stopPropagation(); setTarget(where); } }));
+  else if (searching && where && where !== board.target) meta.append(h("a", { cls: "sn-row-parent", href: "#", text: baseName(where), onClick: (e) => { e.preventDefault(); e.stopPropagation(); setTarget(where); } }));
   const mtime = n?.mtime || 0;
   meta.append(h("span", { cls: "sn-row-date", text: formatDate(mtime), title: t("modifiedAt", { date: new Date(mtime).toLocaleString(LANG) }) }));
   const prog = cardTaskProgress(path);
@@ -107,7 +149,7 @@ export function renderRow(path, via) {
     attachmentUrl(img).then((u) => { thumb.src = u; }).catch(() => thumb.remove());
     row.append(thumb);
   }
-  // a note with children is also a folder: the button on the right (or →) goes inside, ← comes back out
+  // in a search a notebook is a full row too: the button on the right (or →) goes inside, ← comes back out
   const kids = own ? 0 : graph.childrenOf(path).length;
   if (kids) {
     row.classList.add("has-kids");
@@ -115,7 +157,6 @@ export function renderRow(path, via) {
       h("span", { text: String(kids) }), ic("", "chevron-right")));
   }
 
-  row.addEventListener("contextmenu", (e) => cardMenu(path, via).showAtEvent(e));
   row.addEventListener("click", (e) => {
     if (e.shiftKey || board.selectMode) { e.preventDefault(); toggleSelect(path); return; }
     if (e.target.closest("a, button, input")) return;
@@ -127,12 +168,13 @@ export function renderRow(path, via) {
     e.preventDefault();
     openEditor(path, { focus: true, wide: false });
   });
-  row.addEventListener("focus", () => setLastFocused(path));
-  attachLongPress(row, (ev) => cardMenu(path, via).showAtEvent(ev));
-  if (!own) {
-    dnd.draggable(row, () => ({ child: path, from: via }));
-    dnd.dropTarget(row, () => ({ path, parent: via }));
-  } else dnd.dropTarget(row, () => ({ path, parent: null, zones: ["inside"] }));
+  if (!own) wireRow(row, path, via);
+  else {
+    row.addEventListener("contextmenu", (e) => cardMenu(path, via).showAtEvent(e));
+    row.addEventListener("focus", () => setLastFocused(path));
+    attachLongPress(row, (ev) => cardMenu(path, via).showAtEvent(ev));
+    dnd.dropTarget(row, () => ({ path, parent: null, zones: ["inside"] }));
+  }
   return row;
 }
 /** Go into a note of the list of notes: list its children, with the note itself on top and its first child open beside them. */
@@ -150,7 +192,7 @@ export function leaveRow() {
   if (!row) return;
   row.focus({ preventScroll: true });
   row.scrollIntoView({ block: "nearest" });
-  if (innerWidth > 820) openEditor(from, { focus: false, wide: false });
+  if (innerWidth > 820 && !row.classList.contains("is-folder")) openEditor(from, { focus: false, wide: false });
 }
 export function attachLongPress(el, open) {
   let timer = null, start = null;
