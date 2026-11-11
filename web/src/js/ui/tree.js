@@ -1,5 +1,5 @@
 /* =========================================================
-   Sidebar tree: pins, saved views and the cards' hierarchy
+   Sidebar tree: pins, saved views and the notebooks (cards that have children); a note shows in its notebook's list
    ========================================================= */
 import { LANG, t } from "../core/i18n.js";
 import { baseName } from "../core/util.js";
@@ -21,7 +21,7 @@ export function renderTree() {
   if (!host || !vault.fs) return;
   const scroll = host.querySelector(".sn-tree")?.scrollTop || 0;
   host.replaceChildren();
-  // the tree's tools sit on its own heading ("Cards"), shown with the pointer over it; "New card" is the blue button above
+  // the tree's tools sit on its own heading ("Notebooks"), shown with the pointer over it; "New card" is the blue button above
   const header = h("div", { cls: "sn-sec-tools" });
   const sortOpts = [["manual", t("sortManual"), "list-ordered"], ["name", t("sortName"), "arrow-down-a-z"], ["modified", t("sortModified"), "clock"], ["created", t("sortCreated"), "calendar-plus"]];
   header.append(iconBtn(sortOpts.find(([v]) => v === S.outlineSort)?.[2] || "arrow-up-down", t("treeSort"), (e) => {
@@ -79,7 +79,7 @@ export function renderTree() {
   box.append(h("div", { cls: "tree-item" }, allRow));
   const roots = graph.sortedChildren(null, cmp);
   if (!roots.length) box.append(h("div", { cls: "sn-tree-empty", text: t("noCards") }));
-  for (const r of roots) box.append(treeNode(r, [r], cmp, {}));
+  for (const r of roots.filter(isNotebook)) box.append(treeNode(r, [r], cmp, {}));
   host.append(box);
   box.scrollTop = scroll;
 }
@@ -103,10 +103,13 @@ function shortAgo(ms) {
   if (d < 86400 * 30) return t("agoDay", { n: Math.round(d / 86400) });
   return new Date(ms).toLocaleDateString(LANG, { day: "numeric", month: "short" });
 }
+const isNotebook = (path) => graph.childrenOf(path).length > 0;
+/** A notebook in the tree: it opens as the list; only the notebooks inside it are its branches, the count is every card inside. */
 function treeNode(path, chain, cmp, o) {
   const key = (o.keyPrefix ? o.keyPrefix + SEP : "") + chain.join(SEP);
   const isCycle = chain.indexOf(path) !== chain.length - 1;
-  const kids = isCycle ? [] : graph.sortedChildren(path, cmp);
+  const all = isCycle ? [] : graph.childrenOf(path);
+  const kids = isCycle ? [] : graph.sortedChildren(path, cmp).filter(isNotebook);
   const open = !isCycle && tree.expanded.has(key) && kids.length > 0;
   const item = h("div", { cls: "tree-item" });
   const row = h("div", { cls: "tree-item-self is-clickable sn-tree-row" + (open ? " is-open" : "") + (board.target === path ? " is-active" : "") + (isCycle ? " is-cycle" : "") });
@@ -114,8 +117,8 @@ function treeNode(path, chain, cmp, o) {
   const toggle = h("span", { cls: "sn-tree-toggle" + (kids.length ? "" : " is-leaf") });
   setIcon(toggle, "chevron-down");
   toggle.addEventListener("click", (e) => { e.stopPropagation(); if (tree.expanded.has(key)) tree.expanded.delete(key); else tree.expanded.add(key); persistBoard(); renderTree(); });
-  row.append(toggle, ic("sn-tree-icon", cardIcon(path) || (kids.length ? "layers" : "file-text"), "file-text"), h("div", { cls: "tree-item-inner sn-tree-label", text: baseName(path), title: isCycle ? "↻" : path }));
-  if (kids.length) row.append(h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair sn-tree-count", text: String(kids.length) })));
+  row.append(toggle, ic("sn-tree-icon", cardIcon(path) || (all.length ? "folder" : "file-text"), "file-text"), h("div", { cls: "tree-item-inner sn-tree-label", text: baseName(path), title: isCycle ? "↻" : path }));
+  if (all.length) row.append(h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair sn-tree-count", text: String(all.length) })));
   row.addEventListener("click", (e) => { if (isMod(e)) openEditor(path); else setTarget(path); });
   row.addEventListener("dblclick", () => openEditor(path));
   row.addEventListener("contextmenu", (e) => {
@@ -153,6 +156,7 @@ export function revealInTree(path) {
   if (!path) return;
   const cmp = makeComparator("manual");
   const chain = [...graph.ancestry(path, cmp), path];
+  if (!isNotebook(path)) chain.pop(); // a note is not in the tree: its notebook is
   for (let i = 1; i < chain.length; i++) tree.expanded.add(chain.slice(0, i).join(SEP));
   persistBoard();
   setSide(true);
