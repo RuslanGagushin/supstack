@@ -43,8 +43,8 @@
     "active": true,
     "targets": "all",
     "category": "Productivity",
-    "shortDescription": "Card board and agenda for Markdown notes",
-    "longDescription": "Supstack shows a folder of Markdown notes as a board of nested cards, with Org-style TODOs, an agenda and git sync between your devices. Notes stay plain Markdown files in your vault.",
+    "shortDescription": "Notebooks and an agenda for Markdown notes",
+    "longDescription": "Supstack shows a folder of Markdown notes as notebooks, with the list of notes and the open note side by side, with Org-style TODOs, an agenda and git sync between your devices. Notes stay plain Markdown files in your vault.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

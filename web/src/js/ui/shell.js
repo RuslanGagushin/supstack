@@ -184,7 +184,7 @@ function renderAll() {
 function tabBar() {
   const tab = (id, icon, label, run) => h("button", { cls: "sn-tab", type: "button", dataset: { tab: id }, "aria-label": label, onClick: run }, ic("", icon), h("span", { text: label }));
   const bar = h("nav", { cls: "sn-tabbar", "aria-label": t("tabbar") },
-    tab("board", "layout-grid", t("tabBoard"), () => { closeEditor(); setTarget(null); }),
+    tab("board", "notebook", t("tabBoard"), () => { closeEditor(); setTarget(null); }),
     tab("agenda", "calendar-check", t("tabAgenda"), () => {
       if (board.view !== "tasks") { closeEditor(); openTasksView(); return; }
       AG.view = "agenda"; AG.anchor = onow().dn; renderBoard();

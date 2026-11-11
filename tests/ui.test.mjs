@@ -68,7 +68,7 @@ describe("board", () => {
   test("open a card as the board, breadcrumbs, back and up", async () => {
     await ev(() => setTarget("cards/Roman Empire.md"));
     assert.deepEqual(await titles(), ["Aqueducts", "Colosseum"], "Aqueducts holds Pont du Gard, so it comes first as a notebook");
-    assert.match(await page().textContent(".sn-crumbs"), /All cards.*History.*Roman Empire/);
+    assert.match(await page().textContent(".sn-crumbs"), /All notes.*History.*Roman Empire/);
     await page().keyboard.press("Alt+ArrowUp");
     assert.equal(await ev(() => board.target), "cards/History.md");
     await page().keyboard.press("Alt+ArrowLeft");
@@ -716,7 +716,7 @@ describe("palettes, settings, language and themes", () => {
     await ev(() => settingsModal("about")); // already open: switches tabs instead of stacking a second dialog
     assert.equal(await page().$$eval(".modal", (m) => m.length), 1);
     await page().fill(".sn-set-search", "maximum");
-    assert.match(await page().textContent(".sn-set-body"), /Maximum cards on a board/, "the search looks through every section");
+    assert.match(await page().textContent(".sn-set-body"), /Maximum notes in a list/, "the search looks through every section");
     assert.doesNotMatch(await page().textContent(".sn-set-body"), /Theme/);
     noErrors();
   });
@@ -740,7 +740,7 @@ describe("palettes, settings, language and themes", () => {
 
   test("the Russian interface", async () => {
     await openVault({ lang: "ru" });
-    assert.match(await page().textContent(".sn-list-title"), /Все карточки/);
+    assert.match(await page().textContent(".sn-list-title"), /Все заметки/);
     assert.match(await page().textContent("#files-btn"), /Файлы/);
     noErrors();
   });
@@ -981,7 +981,7 @@ describe("list of notes", () => {
     assert.match(r.app, /notes-layout/);
     assert.equal(Math.round(r.list), 380);
     assert.ok(r.note > 500, "the note takes the rest of the width");
-    assert.match(r.own, /^This card/);
+    assert.match(r.own, /^This notebook/);
     assert.equal(r.snippet, "Some photo here");
     assert.equal(r.editing, "cards/Pics.md");
     noErrors();

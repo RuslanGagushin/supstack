@@ -31,9 +31,10 @@ async function shot(page, name, action) {
 
 await shot(await open("light"), "board-light.png");
 await shot(await open("dark"), "board-dark.png");
-await shot(await open(), "editor.png", () => openEditor("cards/This week.md"));
+await shot(await open(), "editor.png", () => openEditor("cards/This week.md", { focus: false, wide: true }));
 await shot(await open(), "agenda.png", () => openTasksView());
-await shot(await open(), "notes-layout.png", () => setTarget("cards/History.md"));
+// a notebook with all three parts of a list: its own text, a notebook inside it (Aqueducts) and a note (Colosseum)
+await shot(await open(), "notes-layout.png", () => setTarget("cards/Roman Empire.md"));
 await shot(await open("light", devices["Pixel 7"]), "phone-board.png");
 await shot(await open("light", devices["Pixel 7"]), "phone-editor.png", () => openEditor("cards/Aqueducts.md"));
 await browser.close();

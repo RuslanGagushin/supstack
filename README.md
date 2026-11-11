@@ -4,9 +4,9 @@
 
 # Supstack
 
-**Your Markdown notes as a board of nested cards — with tasks, an agenda and git sync.**
+**Your Markdown notes in notebooks — with tasks, an agenda and git sync.**
 
-Supstack shows a folder of Markdown notes (a *vault*) as a board of nested cards, with tasks in six states, an agenda, and git sync between your devices. Every card is a plain `.md` file, so your notes stay yours.
+Supstack shows a folder of Markdown notes (a *vault*) as notebooks with a list of notes and the open note beside it, with tasks in six states, an agenda, and git sync between your devices. Every note is a plain `.md` file, so your notes stay yours.
 
 [![Latest release](https://img.shields.io/github/v/release/RuslanGagushin/supstack?sort=semver&label=release&color=3b82f6)](https://github.com/RuslanGagushin/supstack/releases/latest)
 [![Build apps](https://img.shields.io/github/actions/workflow/status/RuslanGagushin/supstack/apps.yml?label=build&logo=githubactions&logoColor=white)](https://github.com/RuslanGagushin/supstack/actions/workflows/apps.yml)
@@ -25,13 +25,13 @@ Supstack shows a folder of Markdown notes (a *vault*) as a board of nested cards
 
 [**Download**](https://github.com/RuslanGagushin/supstack/releases/latest) · [Features](#what-it-does) · [Screenshots](#screenshots) · [Install](#install) · [Build from source](#build-on-your-computer) · [Contributing](#contributing)
 
-<img src="docs/screenshots/board-light.png" alt="Supstack board with nested cards, tasks and a side tree" width="100%">
+<img src="docs/screenshots/board-light.png" alt="Supstack: notebooks in the sidebar, the list of notes and the open note beside it" width="100%">
 
 </div>
 
 ## Why Supstack
 
-- 🗂️ **A board, not a file list.** Notes nest as cards, and one card can live under several parents.
+- 🗂️ **Notebooks, not folders.** Notes nest in notebooks of any depth, and one note can sit in several notebooks at once.
 - ✅ **Real task management in plain Markdown.** Six task states, priorities, `SCHEDULED` / `DEADLINE` dates with repeaters, and an agenda across the whole vault.
 - ✍️ **Live preview editor.** CodeMirror 6 renders Markdown as you type: callouts, tables, code blocks, task boxes.
 - 🔄 **Git sync built in.** Commit, merge and push from the app; conflicting edits are kept side by side, never lost.
@@ -50,17 +50,17 @@ Supstack shows a folder of Markdown notes (a *vault*) as a board of nested cards
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/board-dark.png" alt="The board in the dark theme"><br><sub><b>Dark theme.</b> The same board, with light and dark themes following the system.</sub></td>
+    <td width="50%"><img src="docs/screenshots/board-dark.png" alt="The list of notes in the dark theme"><br><sub><b>Dark theme.</b> The same view, with light and dark themes following the system.</sub></td>
     <td width="50%"><img src="docs/screenshots/editor.png" alt="The live preview editor with tasks, priorities and dates"><br><sub><b>Live preview editor.</b> Tasks, priorities, deadlines and scheduled dates in plain Markdown.</sub></td>
   </tr>
   <tr>
     <td width="50%"><img src="docs/screenshots/agenda.png" alt="The week agenda with scheduled, overdue and closed tasks"><br><sub><b>Agenda.</b> Tasks from the whole vault by day, with overdue items and a time grid.</sub></td>
-    <td width="50%"><img src="docs/screenshots/notes-layout.png" alt="The notes layout: a list of notes with the selected one open beside it"><br><sub><b>Notes layout.</b> A list of notes with the selected one open beside it, like a mail app.</sub></td>
+    <td width="50%"><img src="docs/screenshots/notes-layout.png" alt="Inside a notebook: its own text, the notebooks in it and its notes"><br><sub><b>Inside a notebook.</b> Its text on top, then the notebooks in it, then its notes; the first note opens beside the list.</sub></td>
   </tr>
 </table>
 
 <p align="center">
-  <img src="docs/screenshots/phone-board.png" alt="Supstack on a phone: the board as a list" width="260">
+  <img src="docs/screenshots/phone-board.png" alt="Supstack on a phone: the list of notes" width="260">
   &nbsp;&nbsp;
   <img src="docs/screenshots/phone-editor.png" alt="Supstack on a phone: editing a note" width="260">
   <br><sub><b>On Android.</b> A single-column layout with a bottom bar, and the editor full screen.</sub>
@@ -72,21 +72,21 @@ Supstack shows a folder of Markdown notes (a *vault*) as a board of nested cards
 
 ## What it does
 
-### Cards and the board
-- **Every note is a card.** A card shows its title, its parents and a preview of its text. The preview length and card height are adjustable.
-- **Cards nest, and a card can have several parents.** Parents are listed in the `parents` frontmatter property, so one note can sit under *Personal* and under *Documents* at the same time. The breadcrumb, **↑ Go to parent** and the side tree let you move around.
-- **Depth control:** show 1 or 2 levels of children, or all of them (`∞`).
-- **Board, list or notes layout.** The notes layout lists the card's own note and its children as rows (where each sits, when it changed, its title, two lines of text, tags and the first image) and opens the selected note beside the list, as a mail app does: the arrow keys page through the notes, the handle between them sizes the list, and ⤢ gives the note the whole width. On phones a tap opens the note over the list.
-- Grouping by parent, sorting (manual, or recently modified first), and **saved views** so a board you like is one tap away.
-- **Quick capture:** type into *Start typing a new card…* at the top of a board to create a child card there. You can choose a **template note** for a card's children.
-- **Select mode:** select several cards to move, re-parent or delete them together. **Undo** reverts the last card action.
+### Notebooks and notes
+- **A notebook is a note that holds other notes.** Nothing to set up: a note becomes a notebook as soon as another note lists it in its `parents` frontmatter property, and it can have its own text too. A note can sit in several notebooks at once, say *Personal* and *Documents*.
+- **The sidebar lists the notebooks**, nested, with how many notes each holds. **All notes** is the top level.
+- **The list and the note side by side.** A notebook opens as a list: its own text on top (when it has some), then the notebooks inside it as compact rows, then its notes, each with when it changed, its title, two lines of text, tags and the first image. The first note opens beside the list, as a mail app does: the arrow keys page through the notes, → and ← go into a notebook and back out, the handle between them sizes the list, and ⤢ gives the note the whole width. On phones a tap opens the note over the list.
+- **The note's header** shows the notebooks it sits in, each one a link to its list, with *+N* for its other places and a button to move it.
+- Sorting (manual, by name, recently modified or newest first; notebooks stay on top) and **saved views**, so a list you like is one tap away.
+- **Quick capture:** type into *Start typing a new note…* at the top of a list to create a note in that notebook. You can choose a **template note** for the notes of a notebook.
+- **Select mode:** select several notes to move, add to another notebook or delete them together. **Undo** reverts the last change.
 
 ### Editor
-- **Live preview editing:** the note is one editor (CodeMirror 6) that shows its Markdown rendered: headings, bold, italic, highlights, code, links, tags, task boxes, bullets and priorities read as they will look, and their Markdown shows only where the caret is. Callouts and code blocks render as blocks and open into their Markdown when you click or arrow into them; tables stay rendered and are edited a cell at a time. Click a link to follow it (Ctrl/Cmd+click opens a card in the editor), click a task's box to tick it (right-click it for every state), select text for a floating format bar (bold, italic, highlight, code, link, heading, lists, quote). Undo and redo cover every edit. Your files stay plain Markdown.
+- **Live preview editing:** the note is one editor (CodeMirror 6) that shows its Markdown rendered: headings, bold, italic, highlights, code, links, tags, task boxes, bullets and priorities read as they will look, and their Markdown shows only where the caret is. Callouts and code blocks render as blocks and open into their Markdown when you click or arrow into them; tables stay rendered and are edited a cell at a time. Click a link to follow it (Ctrl/Cmd+click opens the note in the editor), click a task's box to tick it (right-click it for every state), select text for a floating format bar (bold, italic, highlight, code, link, heading, lists, quote). Undo and redo cover every edit. Your files stay plain Markdown.
 - **Foldable callouts and table editing:** `> [!info]+` makes a callout that starts open and `> [!info]-` one that starts folded; click its title to fold or unfold it. Click a table cell to edit it in place; Tab and Shift+Tab go to the next and previous cell, Enter goes to the cell below (Tab or Enter at the end adds a row, Enter on an empty last row leaves the table), Shift+Enter breaks a line in a cell, and Alt+arrows move the row or column. The table's Markdown keeps its columns lined up. Right-click a cell (or use the toolbar's table button) to add, move, delete, align or sort rows and columns; the + buttons under and beside a table add a row or a column.
 - A source mode for the whole file, a reading view, **full-width** and **focus** modes, and a toolbar for formatting, images and files.
-- `[[` or `Ctrl+L` links to another card; `/` opens the insert menu.
-- Turn a selection into a **new child card**.
+- `[[` or `Ctrl+L` links to another note; `/` opens the insert menu.
+- Turn a selection into a **new note inside** the one you are in.
 
 ### Tasks and the agenda
 - **A task is a list item with a box**, and the character in the box is its state. The editor, the reading view and the agenda draw each state as its own icon:
@@ -105,8 +105,8 @@ Supstack shows a folder of Markdown notes (a *vault*) as a board of nested cards
 - The **agenda** (calendar icon, or `Ctrl+Shift+K`) collects them from the whole vault by day, with a calendar to jump to a date and a quick-capture form for new entries. Its task list shows every open task or the ones in one state, and match queries filter by state (`STATE=doing`, `/wait|doing`).
 
 ### Search and filters
-- `Ctrl+F` searches the board; filter by tag with `+tag` / `-tag`.
-- `Ctrl+O` opens any card by name; `Ctrl+P` opens the command list.
+- `Ctrl+F` searches the notebook you are in, through every level, or the whole vault; filter by tag with `+tag` / `-tag`. Results show which notebook each note sits in.
+- `Ctrl+O` opens any note by name; `Ctrl+P` opens the command list.
 
 ### Sync
 - **Git sync:** the vault folder is a git repository. **Sync now** (or the automatic sync, after edits and every few minutes) commits your changes, merges the remote branch and pushes. Set the remote URL (HTTPS) and a personal access token in **Settings › Git**; once sync is set up, the *Git* row in the sidebar shows its state and opens it.
@@ -115,11 +115,11 @@ Supstack shows a folder of Markdown notes (a *vault*) as a board of nested cards
 - On Android the repository lives in the app's private storage and is copied to and from the folder you picked on every sync, so the vault takes up space twice there.
 
 ### Look and keyboard
-- No top bar: a full-height sidebar holds search, a blue *New card* button, the agenda, Files and Git sync, and the vault and settings at the bottom; it folds away and each view's own bar brings it back. Inter type, white cards on warm grey.
+- No top bar: a full-height sidebar holds search, a blue *New note* button, the agenda, Files and Git sync, the notebooks, and the vault and settings at the bottom; it folds away and each view's own bar brings it back. Inter type, the open note on a white sheet on warm grey.
 - Light and dark themes; English and Russian interface.
-- Emacs-flavoured details: a mode line under each board (layout, depth, sort, card count) and a minibuffer with key hints. Most actions have shortcuts. Org-style `C-c` chords work in the editor, for example `C-c C-t` to step a task's state and `C-c C-s` / `C-c C-d` to schedule or set a deadline.
-- On phones the layout switches to a single column, the side tree becomes a drawer, and the Android **Back** button closes the editor, menus and dialogs before leaving the app.
-- **Settings** has a section per group: Appearance (language, theme, the board's defaults and its cards), Keyboard shortcuts, Git (in the app) and About, which shows the version and checks for updates.
+- Emacs-flavoured details: a minibuffer with key hints, and most actions have shortcuts. Org-style `C-c` chords work in the editor, for example `C-c C-t` to step a task's state and `C-c C-s` / `C-c C-d` to schedule or set a deadline.
+- On phones the list fills the screen and a note opens over it, the sidebar becomes a drawer, and the Android **Back** button closes the editor, menus and dialogs before leaving the app.
+- **Settings** has a section per group: Appearance (language, theme, the list's default sort and size), Keyboard shortcuts, Git (in the app) and About, which shows the version and checks for updates.
 
 ### Updates
 - The Windows and macOS apps check GitHub Releases when they start and twice a day. When a new version is out, a note appears in the minibuffer. **Settings → About → Install and restart** downloads it, checks its signature, installs it and restarts the app. Nothing is installed without asking, and the automatic check can be turned off there.
@@ -140,7 +140,7 @@ Open the repository's **Releases** page (or the latest **Actions → Build apps*
 1. Tap **Open vault folder** and choose your vault. On Android, go to the folder, tap **Use this folder**, then **Allow**.
 2. After that, **Reopen** opens the same vault straight away.
 
-Want to look around first? **Try the demo vault** loads a sample board in memory; nothing is saved.
+Want to look around first? **Try the demo vault** loads sample notebooks in memory; nothing is saved.
 
 ---
 
@@ -148,11 +148,11 @@ Want to look around first? **Try the demo vault** loads a sample board in memory
 
 | What | Where |
 |---|---|
-| Notes (cards) | plain `.md` files in the vault's `cards/` folder |
-| Daily notes (also cards) | `daily notes/YYYY-MM-DD.md` |
+| Notes and notebooks | plain `.md` files in the vault's `cards/` folder |
+| Daily notes | `daily notes/YYYY-MM-DD.md` |
 | Pasted, dropped and uploaded files | `attachments/` |
-| Card parents | the `parents` frontmatter property in each note |
-| Vault settings: pins, saved views, card and board options | `.supstack/settings.json` in the vault (versions up to 0.15 kept them under `.obsidian/plugins/`; they move on first open) |
+| Which notebooks a note sits in | the `parents` frontmatter property in each note |
+| Vault settings: pins, saved views, list options | `.supstack/settings.json` in the vault (versions up to 0.15 kept them under `.obsidian/plugins/`; they move on first open) |
 | App settings, fold state, agenda view | stored per installation, not in the vault |
 
 **The three folders are the same in every vault**, so there is nothing to set up: Supstack creates them as needed, and a folder that already exists with other letter case (`Cards/`) is used as it is. Each time a vault is opened, notes outside them are moved into `cards/`, keeping their subfolders, so links to them keep working; files that are not notes stay where they are.
@@ -165,9 +165,9 @@ Want to look around first? **Try the demo vault** loads a sample board in memory
 
 ```
 web/src/                    the Supstack page's sources: page.html, css/, js/ (ES modules) and vendor/ (libraries, fonts)
-  js/core/                  pure logic: frontmatter, hierarchy graph, board model, tasks and dates, tables, texts
+  js/core/                  pure logic: frontmatter, hierarchy graph, list model, tasks and dates, tables, texts
   js/services/              app state, the vault, saving and undo, attachments, Git sync, updates (no DOM)
-  js/ui/                    everything on screen: board, tree, editor, agenda, files, menus, settings
+  js/ui/                    everything on screen: list of notes, tree, editor, agenda, files, menus, settings
   js/main.js                the entry point: loads the layers in order and starts the page
 scripts/page.mjs            builds them into one file, web/supstack.html (not committed)
 scripts/web.mjs             builds the page and copies it to dist/index.html before every app build

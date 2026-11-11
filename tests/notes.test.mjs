@@ -110,7 +110,7 @@ describe("helpers", () => {
   });
 
   test("pluralIndex and t() pick English and Russian plural forms", async () => {
-    assert.deepEqual(await ev(() => [1, 2, 5].map((n) => t("cardsCount", { n }))), ["1 card", "2 cards", "5 cards"]);
+    assert.deepEqual(await ev(() => [1, 2, 5].map((n) => t("cardsCount", { n }))), ["1 note", "2 notes", "5 notes"]);
     assert.deepEqual(await ev(() => { const was = LANG; setLang("ru"); const r = [1, 3, 5, 11, 21, 22].map(pluralIndex); setLang(was); return r; }), [0, 1, 2, 2, 0, 1]);
   });
 });

@@ -52,7 +52,7 @@ export function demoVault() {
   note("Roman Empire", `parents:\n  - "[[History]]"\nicon: crown\nchild_order:\n  - "[[Colosseum]]"\n  - "[[Aqueducts]]"`, `The state that existed from 27 BC.\n\nSee also [[Colosseum]].`, 12);
   note("Architecture", `icon: building-2\ncolor: blue\norder: 2`, `Buildings, bridges and the people who built them.`, 18);
   note("Architectural Marvels", `parents:\n  - "[[Architecture]]"\nicon: sparkles`, `The most impressive structures ever made.`, 9);
-  note("Aqueducts", `parents:\n  - "[[Roman Empire]]"\n  - "[[Architectural Marvels]]"\ncolor: green\nicon: waves\ntags: [engineering]`, `This card has **two parents** — it shows up in both branches, together with its children.\n\n- gravity-fed channels\n- arched bridges\n\n> [!tip] Try it\n> Drag this card onto another one to move it. Hold **Ctrl** or **Alt** to add a parent instead.`, 1);
+  note("Aqueducts", `parents:\n  - "[[Roman Empire]]"\n  - "[[Architectural Marvels]]"\ncolor: green\nicon: waves\ntags: [engineering]`, `This note sits in **two notebooks** — it shows up in both, together with the notes inside it.\n\n- gravity-fed channels\n- arched bridges\n\n> [!tip] Try it\n> Drag this note onto a notebook to move it there. Hold **Ctrl** or **Alt** to add it to that notebook as well.`, 1);
   note("Pont du Gard", `parents:\n  - "[[Aqueducts]]"\nicon: milestone`, `A Roman aqueduct bridge in southern France, built in the 1st century AD.\n\n| Fact | Value |\n|---|---|\n| Height | 48.8 m |\n| Tiers | 3 |`, 6);
   note("Colosseum", `parents:\n  - "[[Roman Empire]]"\n  - "[[Architectural Marvels]]"\nicon: castle\ncolor: yellow`, `An amphitheatre for 50,000 spectators.\n\n- [x] Read about the hypogeum\n- [ ] Visit at sunrise\n\n#travel`, 0.02);
   note("Knowledge", `icon: book-open\ncolor: purple\norder: 3`, `How to learn and keep what you learn.`, 30);
@@ -63,10 +63,10 @@ export function demoVault() {
   const day = (n) => { const d0 = new Date(now + n * 86400000); return `${d0.getFullYear()}-${String(d0.getMonth() + 1).padStart(2, "0")}-${String(d0.getDate()).padStart(2, "0")}`; };
   const dts = (n, extra = "") => { const d0 = new Date(now + n * 86400000); return `${day(n)} ${["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d0.getDay()]}${extra}`; };
   note("This week", `icon: calendar-check\ncolor: green\norder: 0\ncategory: Week`, `Tasks in plain Markdown — open **Agenda** in the sidebar (Ctrl+Shift+K). Click a box to tick it, right-click it for every state.\n\n## Trip\n\n- [/] [#A] Book the Pont du Gard tour :travel:\n  DEADLINE: <${dts(1)}> SCHEDULED: <${dts(-1)}>\n  Call the visitor centre first.\n- [ ] Finish reading about [[Aqueducts]]\n  SCHEDULED: <${dts(0, " 10:00")}>\n  - [x] gravity-fed channels\n  - [ ] arched bridges\n  - [ ] siphons\n\n## Routines\n\n- [ ] Weekly review :review:\n  SCHEDULED: <${dts(3)} +1w>\n- [<] [#C] Order the history book\n- [>] Plan the Rome trip (moved to next month)\n- [-] Renew the old museum pass\n- [x] Set up this vault\n  CLOSED: [${dts(-2, " 18:20")}]\n\n## Calendar\n\n- Lunch with Marta <${dts(0, " 13:00-14:00")}>\n- Museum night <${dts(2, " 19:30")}> #travel\n`, 0.01);
-  note("Cycle A", `parents:\n  - "[[Cycle B]]"\ncolor: red\nicon: refresh-cw`, `Cards A and B are each other's parents. Depth ∞ must not hang.`, 10);
+  note("Cycle A", `parents:\n  - "[[Cycle B]]"\ncolor: red\nicon: refresh-cw`, `Notebooks A and B are inside each other. Their lists and a search must not hang.`, 10);
   note("Cycle B", `parents:\n  - "[[Cycle A]]"\nicon: refresh-ccw`, `The other half of the cycle.`, 10);
   note("Orphan", `parents:\n  - "[[A note that doesn't exist]]"\ncolor: grey`, `Its parent is missing — the chip is shown dashed.`, 15);
-  note("Draft thoughts", `order: 4\nicon: pencil-line`, `Ideas that don't belong anywhere yet.\n\n1. A board per project\n2. Weekly review card\n\n\`\`\`js\n// code is rendered too\nconst cards = vault.filter(isCard);\n\`\`\``, 0.3);
+  note("Draft thoughts", `order: 4\nicon: pencil-line`, `Ideas that don't belong anywhere yet.\n\n1. A notebook per project\n2. Weekly review note\n\n\`\`\`js\n// code is rendered too\nconst cards = vault.filter(isCard);\n\`\`\``, 0.3);
   fs.add("cards/Templates/Book.md", `---\nicon: book\ncolor: purple\ntags: [book]\n---\n**Author:** \n**Read:** {{date}}\n\n## Notes\n`, d(40));
   return fs;
 }
