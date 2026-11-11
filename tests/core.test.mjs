@@ -12,8 +12,8 @@ const { t, ct, pluralIndex, setLang, LANG } = await import("../web/src/js/core/i
 const { baseName, dirName, norm, esc, plainText } = await import("../web/src/js/core/util.js");
 const { formatMoment } = await import("../web/src/js/core/dates.js");
 const fm = await import("../web/src/js/core/frontmatter.js");
-const { HierarchyGraph, groupByTopLevel, reorderBlock } = await import("../web/src/js/core/graph.js");
-const { computeModel, filterActive, normDepth } = await import("../web/src/js/core/board-model.js");
+const { HierarchyGraph, reorderBlock } = await import("../web/src/js/core/graph.js");
+const { computeModel, filterActive } = await import("../web/src/js/core/board-model.js");
 const org = await import("../web/src/js/core/org.js");
 const tables = await import("../web/src/js/core/tables.js");
 
@@ -102,9 +102,7 @@ describe("hierarchy graph", () => {
     assert.equal(g.collect("Home", 0, byName, 2).truncated, true);
   });
 
-  test("groupByTopLevel and reorderBlock", () => {
-    assert.deepEqual(groupByTopLevel([{ path: "a", depth: 1 }, { path: "a1", depth: 2 }, { path: "b", depth: 1 }]),
-      { loose: [{ path: "b", depth: 1 }], groups: [{ head: { path: "a", depth: 1 }, members: [{ path: "a1", depth: 2 }] }] });
+  test("reorderBlock", () => {
     assert.deepEqual(reorderBlock(["a", "b", "c", "d"], ["d"], "b", "before"), ["a", "d", "b", "c"]);
     assert.deepEqual(reorderBlock(["a", "b", "c", "d"], ["a", "b"], "c", "after"), ["c", "a", "b", "d"]);
     assert.deepEqual(reorderBlock(["a", "b"], ["c"], null), ["a", "b", "c"]);
@@ -115,14 +113,14 @@ describe("board model", () => {
   const g = new HierarchyGraph();
   for (const [p, parents] of [["Home", []], ["Red one", ["Home"]], ["Blue one", ["Home"]], ["Deep", ["Red one"]]]) g.setNode(p, parents, [], [], []);
   const cards = { cmp: (a, b) => a.localeCompare(b), tagsOf: (p) => (p === "Deep" ? ["#x"] : []), textOf: (p) => p + "\nbody of " + p, maxCards: 100 };
-  const view = (o = {}) => ({ target: "Home", depth: 1, grouped: false, ...o, filter: { query: "", tags: [], ...o.filter } });
+  const view = (o = {}) => ({ target: "Home", ...o, filter: { query: "", tags: [], ...o.filter } });
   const paths = (m) => m.shown.map((c) => c.path);
 
-  test("depth below the target", () => {
-    assert.deepEqual(paths(computeModel(g, view(), cards)), ["Blue one", "Red one"]);
-    const m = computeModel(g, view({ depth: 0 }), cards);
-    assert.deepEqual(paths(m), ["Blue one", "Red one", "Deep"]);
+  test("the list shows the target's children; the total counts every level below it", () => {
+    const m = computeModel(g, view(), cards);
+    assert.deepEqual(paths(m), ["Blue one", "Red one"]);
     assert.equal(m.total, 3);
+    assert.equal("blocks" in m, false, "no grouping");
   });
 
   test("filters search every level: tag, words", () => {
@@ -133,12 +131,10 @@ describe("board model", () => {
     assert.deepEqual(paths(computeModel(g, view({ target: "Red one", filter: { query: "one", scope: "all" } }), cards)), ["Blue one", "Red one"], "or the whole vault");
   });
 
-  test("maxCards and grouping", () => {
-    const m = computeModel(g, view({ depth: 0 }), { ...cards, maxCards: 2 });
+  test("maxCards", () => {
+    const m = computeModel(g, view({ filter: { query: "one" } }), { ...cards, maxCards: 1 });
     assert.equal(m.truncated, true);
-    assert.equal(m.shown.length, 2);
-    const grouped = computeModel(g, view({ depth: 0, grouped: true }), cards);
-    assert.deepEqual(grouped.blocks.map((b) => [b.head, b.cards.map((c) => c.path)]), [[null, ["Blue one"]], ["Red one", ["Red one", "Deep"]]]);
+    assert.equal(m.shown.length, 1);
   });
 });
 
@@ -222,8 +218,3 @@ describe("plain text previews", () => {
   });
 });
 
-describe("board depths", () => {
-  test("the board offers depths 1, 2 and all; a saved depth it no longer offers shows all", () => {
-    assert.deepEqual([1, 2, 0, 3, "2", undefined].map(normDepth), [1, 2, 0, 0, 2, 0]);
-  });
-});

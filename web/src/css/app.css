@@ -161,9 +161,6 @@ body.sn-app .sn-composer { border-radius: var(--r-m); background: var(--win); bo
 body.sn-app .sn-composer:focus-within { box-shadow: 0 0 0 2px var(--accent); }
 body.sn-app .sn-board .sn-composer textarea { font-size: var(--fs-md); height: 44px; min-height: 44px; padding: 12px 16px; }
 body.sn-app .sn-composer-hint { font-size: var(--fs-sm); padding: 0 16px 10px; }
-body.sn-app .sn-board .sn-group-title { font-size: var(--fs-text); font-weight: 600; color: var(--ink); }
-body.sn-app .sn-group-icon { color: var(--muted); }
-body.sn-app .sn-group-count { color: var(--faint); }
 body.sn-app .sn-filterbar { padding: 8px 24px; border-bottom: 0; }
 body.sn-app .sn-board .sn-filter-btn, body.sn-app .sn-board .sn-filterbar > .clickable-icon { height: 32px; border-radius: var(--r-pill); font-size: var(--fs-ui); }
 body.sn-app .sn-board .sn-filter-btn.is-active { border-color: var(--line); background: var(--panel); color: var(--ink); }
@@ -237,7 +234,6 @@ body.sn-app #app.notes-layout.editor-open .sn-board.is-notes .sn-page { max-widt
 .sn-list-badge svg { width: 18px; height: 18px; }
 .sn-list-count { flex: none; color: var(--faint); }
 body.sn-app .sn-board.is-notes .sn-composer { margin: 0 0 10px; }
-body.sn-app .sn-board.is-notes .sn-group { margin-top: 16px; }
 .sn-rows { display: flex; flex-direction: column; gap: 6px; }
 body.sn-app .sn-board .sn-card.sn-row {
   flex-direction: row; align-items: flex-start; gap: 12px; padding: 12px 14px;

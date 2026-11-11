@@ -6,7 +6,7 @@ import { HierarchyGraph } from "../core/graph.js";
 import { lsGet, lsSet } from "./storage.js";
 
 export const DEFAULTS = {
-  pinned: [], savedViews: [], language: "auto", defaultDepth: 1, defaultSort: "manual", defaultGrouped: false,
+  pinned: [], savedViews: [], language: "auto", defaultSort: "manual",
   outlineSort: "manual", maxCards: 1000,
 };
 export const UI = Object.assign({ theme: "auto", sideW: 280, editorW: 560, listW: 380, sideOpen: true, lang: "auto" }, lsGet("sn-ui", {}));
@@ -25,9 +25,9 @@ export const vault = {
 /** The frontmatter property that lists a card's parents. */
 export const PARENTS_FIELD = "parents";
 export const S = { ...DEFAULTS }; // the vault's settings (services/vault.js keeps them in .supstack/settings.json)
+// the board's other layouts, its cards' look, its depth and grouping are gone; a vault's settings file that still has them loses them on the next save
+const RETIRED_SETTINGS = ["defaultLayout", "cardFace", "previewLength", "cardMaxHeight", "defaultDepth", "defaultGrouped"];
 /** Settings of a newly opened vault: the defaults, then `saved`. */
-// the board's other layouts and its cards' look are gone; a vault's settings file that still has them loses them on the next save
-const RETIRED_SETTINGS = ["defaultLayout", "cardFace", "previewLength", "cardMaxHeight"];
 export function resetSettings(saved) {
   for (const k of Object.keys(S)) delete S[k];
   Object.assign(S, DEFAULTS, saved);
@@ -36,7 +36,7 @@ export function resetSettings(saved) {
 export let graph = new HierarchyGraph();
 export const setGraph = (g) => { graph = g; };
 export const board = {
-  target: null, depth: 1, sort: "manual", grouped: false,
+  target: null, sort: "manual",
   filter: { query: "", tags: [] }, searchOpen: false,
   history: [], selection: new Set(), selectMode: false, rendered: 60,
 };

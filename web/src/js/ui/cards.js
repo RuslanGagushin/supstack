@@ -55,12 +55,11 @@ function highlight(root, tokens) {
 }
 /** A note as a row in the list of notes: where it sits and when it changed, its title, two lines of its text, its tags and the first image.
    Clicking it (or, on a wide screen, moving onto it with the arrow keys: see keyboard.js) opens it beside the list. */
-export function renderRow(path, via, depth = 1) {
+export function renderRow(path, via) {
   const own = path === board.target && !board.tagView;
   const row = h("div", { cls: "sn-card sn-row" + (own ? " is-own" : ""), tabindex: "-1" });
   row.dataset.path = path;
   row.dataset.via = via ?? "";
-  row.dataset.depth = String(depth || 1);
   if (board.selection.has(path)) row.classList.add("is-picked");
   if (editor.path === path) row.classList.add("is-editing");
   const n = vault.notes.get(path);

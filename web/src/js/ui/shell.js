@@ -2,7 +2,6 @@
    App shell
    ========================================================= */
 import { ft, fvt, LANG, setLang, st, t, tt, ut, wt } from "../core/i18n.js";
-import { DEPTHS, normDepth } from "../core/board-model.js";
 import { on } from "../services/events.js";
 import { board, editor, graph, S, saveUI, setGraph, tree, UI, vault } from "../services/state.js";
 import { buildGraph, persistBoard, readVault, saveSettings } from "../services/vault.js";
@@ -65,7 +64,7 @@ export function refresh(o = {}) {
 }
 function commandList() {
   const c = [];
-  // on: a setting this command switches, or the board's current depth, layout or sort; the palette ticks it
+  // on: a setting this command switches, or the board's current sort; the palette ticks it
   const add = (title, icon, run, key, on) => c.push({ title, icon, keys: key ? key.split("+") : null, run, checked: !!on });
   add(t("openShort") + "…", "search", quickOpen, "Ctrl+O");
   add(wt("todayHint"), "calendar-days", openToday, "Ctrl+Shift+D");
@@ -84,9 +83,7 @@ function commandList() {
   add(t("back"), "arrow-left", goBack, "Alt+←");
   add(t("allCards"), "home", () => setTarget(null));
   add(t("searchAndFilters").replace(/ \(.*\)$/, ""), "search", () => toggleSearch(true), "Ctrl+F");
-  for (const d of DEPTHS) add(t("cmdDepth", { d: d || "∞" }), "list-tree", () => { board.depth = d; persistBoard(); renderBoard(); }, null, normDepth(board.depth) === d);
   for (const [v, k] of [["manual", "sortManual"], ["name", "sortName"], ["modified", "sortModified"], ["created", "sortCreated"]]) add(t("cmdSort", { s: t(k) }), "arrow-up-down", () => { board.sort = v; persistBoard(); renderBoard(); }, null, board.sort === v);
-  add(t("groupByParent"), "group", () => { board.grouped = !board.grouped; persistBoard(); renderBoard(); }, null, board.grouped);
   add(t("selectMode"), "check-square", () => { board.selectMode = !board.selectMode; if (!board.selectMode) board.selection.clear(); renderBoard(); }, null, board.selectMode);
   const tagPaths = tagTargets();
   if (tagPaths.length) add(t("menuAddTag"), "tag", () => promptAddTag(tagPaths), "Ctrl+Shift+T");
@@ -248,7 +245,6 @@ export function settingsModal(tab) {
       item(t("setLanguage"), null, select(UI.lang, [["auto", "Auto"], ["en", "English"], ["ru", "Русский"]], (v) => { UI.lang = v; saveUI(); applyLanguage(); close(); settingsModal("appearance"); })),
       item(t("setTheme"), null, select(UI.theme, [["auto", t("themeAuto")], ["light", t("themeLight")], ["dark", t("themeDark")]], (v) => { UI.theme = v; saveUI(); applyTheme(); })),
       heading(t("setGroupView")),
-      item(t("setDefaultDepth"), null, select(normDepth(S.defaultDepth), DEPTHS.map((d) => [d, d ? String(d) : "∞"]), (v) => { S.defaultDepth = Number(v); save(); })),
       item(t("setDefaultSort"), null, select(S.defaultSort, [["manual", t("sortManual")], ["name", t("sortName")], ["modified", t("sortModified")], ["created", t("sortCreated")]], (v) => { S.defaultSort = v; save(); })),
       item(t("setMaxCards"), null, text(S.maxCards, "1000", (v) => { const n = Number(v); if (Number.isFinite(n) && n > 0) { S.maxCards = Math.floor(n); save(); } }, "number")),
       storedIn(),

@@ -49,8 +49,6 @@ button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--f
 .sn-chip { display: inline-flex; align-items: center; gap: var(--size-2-2); max-width: 100%; padding: var(--pill-padding-y, 0.25em) var(--pill-padding-x, 0.65em); background: var(--pill-background, transparent); color: var(--pill-color, var(--text-muted)); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid transparent; line-height: 1.45; }
 .sn-chip-icon svg { width: 11px; height: 11px; }
 .sn-composer:focus-within { box-shadow: 0 0 0 1px var(--accent), 0 0 0 3px var(--accent-soft); }
-.sn-group { margin-top: 26px; }
-.sn-group-head { display: flex; align-items: center; gap: var(--size-4-2); margin: 0 0 var(--size-4-3); border-bottom: var(--border-width) solid var(--sn-line); padding-bottom: 6px; }
 .sn-empty, .sn-footnote { color: var(--faint); }
 
 /* Search row, like the agenda filter bar */

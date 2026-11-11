@@ -4,9 +4,9 @@
 export const STR = {
   en: {
     tabBoard: "Board", tabAgenda: "Agenda", tabSearch: "Search", tabCapture: "Capture", tabbar: "Navigation",
-    allCards: "All cards", edit: "Edit", more: "More", back: "Back", toParent: "To parent", depth: "Depth",
+    allCards: "All cards", edit: "Edit", more: "More", back: "Back", toParent: "To parent", 
     searchAndFilters: "Search and filters (Ctrl+F)", selectMode: "Select mode", selectModeOff: "Exit select mode",
-    saveView: "Save board as a view", sorting: "Sort", groupByParent: "Group by parent",
+    saveView: "Save board as a view", sorting: "Sort", 
     viewMenu: "View", 
     rowOwnNote: "This card", rowEnter: "Open its cards ({n})",
     sortManual: "Manually (order field)", sortName: "By name", sortModified: "Recently modified first", sortCreated: "Newest first",
@@ -57,9 +57,8 @@ export const STR = {
     tbLink: "Link to a card ([[ or Ctrl+L)", tbList: "Bulleted list", tbNum: "Numbered list", tbTask: "Task", tbQuote: "Quote", tbBlock: "Code block",
     k_palette: "Command palette", k_reading: "Toggle reading view (in the editor)", k_link: "Link to a card (in the editor)", k_parent: "Go to the parent card",
     k_click: "Focus a card · with the editor open, show it there", k_dbl: "Edit the card", k_back: "Back",
-    cmdEditTarget: "Edit current card", cmdDepth: "Depth: {d}", cmdSort: "Sort: {s}", deletedUndo: "Deleted “{name}” (copy in .trash)", openShort: "Open", newShort: "New card", vaultLabel: "Vault",
-    setDefaultDepth: "Default depth", setDefaultSort: "Default sort",
-    
+    cmdEditTarget: "Edit current card", cmdSort: "Sort: {s}", deletedUndo: "Deleted “{name}” (copy in .trash)", openShort: "Open", newShort: "New card", vaultLabel: "Vault",
+    setDefaultSort: "Default sort",
     
     setMaxCards: "Maximum cards on a board",
     settingsShared: "Card options are stored in the vault (.supstack/settings.json), so they go with it to your other devices.",
@@ -85,9 +84,9 @@ export const STR = {
   },
   ru: {
     tabBoard: "Доска", tabAgenda: "Агенда", tabSearch: "Поиск", tabCapture: "Записать", tabbar: "Навигация",
-    allCards: "Все карточки", edit: "Редактировать", more: "Ещё", back: "Назад", toParent: "К родителю", depth: "Глубина",
+    allCards: "Все карточки", edit: "Редактировать", more: "Ещё", back: "Назад", toParent: "К родителю", 
     searchAndFilters: "Поиск и фильтры (Ctrl+F)", selectMode: "Режим выбора", selectModeOff: "Выйти из режима выбора",
-    saveView: "Сохранить доску как вид", sorting: "Сортировка", groupByParent: "Группировать по родителю",
+    saveView: "Сохранить доску как вид", sorting: "Сортировка", 
     viewMenu: "Вид", 
     rowOwnNote: "Сама карточка", rowEnter: "Открыть вложенные карточки ({n})",
     sortManual: "Вручную (поле order)", sortName: "По имени", sortModified: "Недавно изменённые", sortCreated: "Сначала новые",
@@ -138,9 +137,8 @@ export const STR = {
     tbLink: "Ссылка на карточку ([[ или Ctrl+L)", tbList: "Маркированный список", tbNum: "Нумерованный список", tbTask: "Задача", tbQuote: "Цитата", tbBlock: "Блок кода",
     k_palette: "Палитра команд", k_reading: "Режим чтения (в редакторе)", k_link: "Ссылка на карточку (в редакторе)", k_parent: "К родительской карточке",
     k_click: "Выделить карточку · при открытом редакторе — показать в нём", k_dbl: "Редактировать карточку", k_back: "Назад",
-    cmdEditTarget: "Редактировать текущую карточку", cmdDepth: "Глубина: {d}", cmdSort: "Сортировка: {s}", deletedUndo: "Удалено: «{name}» (копия в .trash)", openShort: "Открыть", newShort: "Новая карточка", vaultLabel: "Хранилище",
-    setDefaultDepth: "Глубина по умолчанию", setDefaultSort: "Сортировка по умолчанию",
-    
+    cmdEditTarget: "Редактировать текущую карточку", cmdSort: "Сортировка: {s}", deletedUndo: "Удалено: «{name}» (копия в .trash)", openShort: "Открыть", newShort: "Новая карточка", vaultLabel: "Хранилище",
+    setDefaultSort: "Сортировка по умолчанию",
     
     setMaxCards: "Максимум карточек на доске",
     settingsShared: "Настройки карточек хранятся в самом хранилище (.supstack/settings.json) и переезжают вместе с ним на другие устройства.",

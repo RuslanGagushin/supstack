@@ -67,18 +67,6 @@ export class HierarchyGraph {
     return false;
   }
 }
-export function groupByTopLevel(cards) {
-  const loose = [], groups = [];
-  let current = null;
-  for (const c of cards) {
-    if (c.depth <= 1) { current = { head: c, members: [] }; groups.push(current); }
-    else if (current) current.members.push(c);
-    else loose.push(c);
-  }
-  const withKids = groups.filter((g) => g.members.length > 0);
-  for (const g of groups) if (!g.members.length) loose.push(g.head);
-  return { loose, groups: withKids };
-}
 export function reorderBlock(siblings, moved, anchor, pos) {
   const set = new Set(moved);
   const list = siblings.filter((s) => !set.has(s));

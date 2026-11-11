@@ -117,10 +117,6 @@
 /* the card's "⋯" shows with the pointer over the card or the focus in it; touch screens always show it */
 
 /* Branch blocks when grouped */
-.sn-board .sn-group-title { display: inline-flex; align-items: center; gap: var(--size-4-2); text-decoration: none; }
-.sn-board .sn-group-title:hover { text-decoration: underline; text-decoration-color: var(--text-faint); }
-.sn-group-icon { display: inline-flex; }
-.sn-group-icon svg { width: var(--icon-m); height: var(--icon-m); }
 
 /* ---------- Sidebar tree */
 .sn-tree { flex: 1 1 auto; overflow-y: auto; }
@@ -142,7 +138,7 @@
 
 /* ---------- Drag & drop */
 .sn-card.is-dragging, .sn-tree-row.is-dragging { opacity: 0.4; }
-.sn-card.is-drop-inside, .sn-tree-row.is-drop-inside, .sn-group-head.is-drop-inside { outline: 2px solid var(--sn-accent); outline-offset: 2px; }
+.sn-card.is-drop-inside, .sn-tree-row.is-drop-inside { outline: 2px solid var(--sn-accent); outline-offset: 2px; }
 .sn-card.is-drop-before::after, .sn-card.is-drop-after::after,
 .sn-tree-row.is-drop-before::after, .sn-tree-row.is-drop-after::after {
   content: ""; position: absolute; left: 8px; right: 8px; height: 2px; border-radius: 1px; background: var(--sn-accent); pointer-events: none;

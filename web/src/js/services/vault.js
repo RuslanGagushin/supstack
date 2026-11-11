@@ -6,7 +6,7 @@ import { t } from "../core/i18n.js";
 import { baseName, dirName } from "../core/util.js";
 import { fmInner, noteLinks, noteTags, parentLinkpaths, parseYaml, splitNote } from "../core/frontmatter.js";
 import { HierarchyGraph } from "../core/graph.js";
-import { computeModel, normDepth } from "../core/board-model.js";
+import { computeModel } from "../core/board-model.js";
 import { lsGet, lsSet } from "./storage.js";
 import { emit } from "./events.js";
 import { board, DEFAULTS, graph, PARENTS_FIELD, resetSettings, S, setGraph, tree, undoStack, vault } from "./state.js";
@@ -178,12 +178,11 @@ export async function readVault(fs) {
   const moved = await gatherNotes();
   const saved = lsGet(boardKey(), null);
   Object.assign(board, {
-    target: null, depth: normDepth(S.defaultDepth), sort: S.defaultSort, grouped: S.defaultGrouped,
+    target: null, sort: S.defaultSort,
     filter: { query: "", tags: [] }, searchOpen: false, history: [], selection: new Set(), selectMode: false, rendered: 60,
   });
   if (saved) {
-    for (const k of ["target", "depth", "sort", "grouped", "tagView", "view"]) if (saved[k] !== undefined) board[k] = saved[k];
-    board.depth = normDepth(board.depth);
+    for (const k of ["target", "sort", "tagView", "view"]) if (saved[k] !== undefined) board[k] = saved[k];
     if (saved.filter) board.filter = { query: saved.filter.query || "", tags: saved.filter.tags || [], scope: saved.filter.scope === "all" ? "all" : "here" };
     board.searchOpen = !!(board.filter.query || board.filter.tags.length);
     tree.expanded = new Set(saved.treeExpanded || []);
@@ -195,7 +194,7 @@ export async function readVault(fs) {
 const boardKey = () => "sn-board:" + (vault.fs?.kind || "") + ":" + (vault.fs?.name || "");
 export function persistBoard() {
   lsSet(boardKey(), {
-    target: board.target, depth: board.depth, sort: board.sort, grouped: board.grouped,
+    target: board.target, sort: board.sort,
     filter: board.filter, tagView: board.tagView || null, view: board.view || null, treeExpanded: [...tree.expanded],
   });
 }

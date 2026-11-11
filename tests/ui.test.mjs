@@ -61,7 +61,7 @@ describe("board", () => {
   test("the demo board shows the top-level cards in manual order", async () => {
     const t = await titles();
     assert.deepEqual(t.slice(0, 4), ["This week", "History", "Architecture", "Knowledge"]);
-    assert.ok(!t.includes("Roman Empire"), "children are not on the top level at depth 1");
+    assert.ok(!t.includes("Roman Empire"), "children are not on the top level");
     noErrors();
   });
 
@@ -113,16 +113,15 @@ describe("board", () => {
     noErrors();
   });
 
-  test("depth ∞ over a parent cycle finishes", async () => {
-    await ev(() => { board.depth = 0; setTarget("cards/Cycle A.md"); });
+  test("a parent cycle lists and searches without hanging", async () => {
+    await ev(() => setTarget("cards/Cycle A.md"));
     assert.deepEqual(await titles(), ["Cycle B"]);
-    await ev(() => { setTarget(null); });
-    assert.ok((await titles()).length > 10);
+    await ev(() => { board.filter = { query: "cycle", tags: [], scope: "here" }; board.searchOpen = true; renderBoard(); });
+    assert.deepEqual(await titles(), ["Cycle B"], "a search below the card goes round the cycle once");
     noErrors();
   });
 
   test("search filters the board, Escape closes it", async () => {
-    await ev(() => { board.depth = 0; renderBoard(); });
     await page().keyboard.press("Control+f");
     await page().keyboard.type("aqueduct");
     await page().waitForFunction(() => board.filter.query === "aqueduct" && document.querySelectorAll("#board .sn-rows .sn-card").length === 4);
@@ -688,7 +687,7 @@ describe("palettes, settings, language and themes", () => {
 
   test("settings and keyboard shortcuts open without errors", async () => {
     await ev(() => settingsModal("board"));
-    assert.match(await page().textContent(".modal"), /Default depth/);
+    assert.match(await page().textContent(".modal"), /Default sort/);
     await page().keyboard.press("Escape");
     await ev(() => hotkeysModal());
     assert.match(await page().textContent(".modal"), /All files in the vault/);
@@ -700,7 +699,7 @@ describe("palettes, settings, language and themes", () => {
     const tabs = () => page().$$eval(".sn-set-tab", (b) => b.map((x) => [x.textContent, x.getAttribute("aria-selected")]));
     assert.deepEqual((await tabs()).map((x) => x[0]), ["Appearance", "Keyboard shortcuts", "About"], "no Git section outside the app; the board's options are in Appearance");
     assert.match(await page().textContent(".sn-set-body"), /Theme/);
-    assert.match(await page().textContent(".sn-set-body"), /Default depth/, "the interface and the board's defaults in one section");
+    assert.match(await page().textContent(".sn-set-body"), /Default sort/, "the interface and the board's defaults in one section");
     assert.doesNotMatch(await page().textContent(".sn-set-body"), /Parents field/, "one group at a time");
     const height = await page().$eval(".modal", (m) => m.offsetHeight);
     await page().click(".sn-set-tab:has-text('Keyboard shortcuts')");
@@ -825,16 +824,17 @@ describe("sidebar", () => {
     await open();
     assert.equal(await page().$$eval(".suggestion-group", (g) => g.length), 0, "no Recent group before any command was run");
     const ticked = await page().$$eval(".prompt .suggestion-item", (r) => r.filter((x) => x.querySelector(".suggestion-check")).map((x) => x.querySelector(".suggestion-title").textContent));
-    assert.ok(ticked.includes("Depth: 1") && ticked.includes("Sidebar"), ticked.join(", "));
-    assert.ok(!ticked.includes("Group by parent"));
-    await page().fill(".prompt-input", "group by parent");
+    assert.ok(ticked.includes("Sort: Manually (order field)") && ticked.includes("Sidebar"), ticked.join(", "));
+    assert.ok(!ticked.includes("Select mode"));
+    assert.ok(!ticked.some((x) => /^Depth/.test(x)), "no depth commands");
+    await page().fill(".prompt-input", "select mode");
     await page().keyboard.press("Enter");
     await open();
     const r = await page().$$eval(".prompt-results > *", (els) => els.slice(0, 3).map((e) => [e.className, e.textContent]));
     assert.match(r[0][0], /suggestion-group/); assert.equal(r[0][1], "Recent");
-    assert.equal(r[1][1], "Group by parent");
+    assert.equal(r[1][1], "Select mode");
     assert.ok(await page().$eval(".prompt .suggestion-item", (x) => !!x.querySelector(".suggestion-check")), "now ticked");
-    await page().fill(".prompt-input", "dep");
+    await page().fill(".prompt-input", "sel");
     assert.equal(await page().$$eval(".suggestion-group", (g) => g.length), 0, "no groups while typing");
     noErrors();
   });
@@ -887,11 +887,11 @@ describe("git sync settings", () => {
 describe("phone layout", () => {
   beforeEach(() => openVault({ viewport: { width: 390, height: 800 } }));
 
-  test("the board's toolbar fits a 360px phone, with depths 1, 2 and ∞", async () => {
+  test("the board's toolbar fits a 360px phone, with no depth switch", async () => {
     await page().setViewportSize({ width: 360, height: 760 });
-    const r = await ev(() => { setTarget("cards/History.md"); return { right: $(".sn-tools").getBoundingClientRect().right, depths: [...document.querySelectorAll(".sn-tools .sn-seg:first-child button")].map((b) => b.textContent) }; });
+    const r = await ev(() => { setTarget("cards/History.md"); return { right: $(".sn-tools").getBoundingClientRect().right, segs: document.querySelectorAll(".sn-tools .sn-seg").length }; });
     assert.ok(r.right <= 360, `the tools end at ${r.right}px`);
-    assert.deepEqual(r.depths, ["1", "2", "∞"]);
+    assert.equal(r.segs, 0, "no depth switch");
     noErrors();
   });
 

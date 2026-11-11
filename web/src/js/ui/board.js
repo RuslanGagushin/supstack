@@ -3,7 +3,7 @@
    ========================================================= */
 import { LANG, t } from "../core/i18n.js";
 import { baseName, debounce } from "../core/util.js";
-import { DEPTHS, filterActive } from "../core/board-model.js";
+import { filterActive } from "../core/board-model.js";
 import { board, editor, graph, S, vault } from "../services/state.js";
 import { boardModel, cardIcon, cardTags, makeComparator, persistBoard } from "../services/vault.js";
 import { $, $$, h, ic, iconBtn } from "./dom.js";
@@ -97,7 +97,7 @@ export function renderBoard(resetScroll = false) {
   const scrollTop = resetScroll ? 0 : oldScroll?.scrollTop || 0;
   const active = document.activeElement;
   const focusComposer = active?.closest?.(".sn-composer") ? { value: active.value } : null;
-  // an unsent draft survives re-renders (a depth or sort button takes focus from the field), but not a move to another card
+  // an unsent draft survives re-renders (a sort button takes focus from the field), but not a move to another card
   const oldDraft = root.querySelector(".sn-composer textarea")?.value || "";
   const draft = oldDraft && composerTarget === board.target ? oldDraft : "";
   const focusSearch = active?.classList?.contains("sn-search-input") ? { pos: active.selectionStart } : null;
@@ -174,33 +174,15 @@ function lazyAdd(page, scroll, list, add) {
   }, { root: scroll, rootMargin: "600px" });
   sentinelObs.observe(sentinel);
 }
-function groupHead(b, n) {
-  const headEl = h("div", { cls: "sn-group-head" });
-  const title = h("a", { cls: "sn-group-title", href: "#" }, ic("sn-group-icon", cardIcon(b.head) || "layers", "layers"), h("span", { text: baseName(b.head) }));
-  title.addEventListener("click", (e) => { e.preventDefault(); setTarget(b.head); });
-  headEl.append(title, h("span", { cls: "sn-group-count", text: String(n) }));
-  dnd.dropTarget(headEl, () => ({ path: b.head, parent: null, zones: ["inside"] }));
-  return headEl;
-}
 /** Notes as rows of a list: the card's own note first, then its children; each one opens beside the list. */
 function renderRows(page, scroll, model, composer) {
   page.append(renderListHead(model), composer.el);
   const rows = [];
   const box = h("div", { cls: "sn-rows" });
   page.append(box);
-  const addRows = (into, list) => { for (const c of list) { const el = renderRow(c.path, c.via, c.depth); into.append(el); rows.push(el); } };
-  if (board.target && !board.tagView) addRows(box, [{ path: board.target, via: null, depth: 0 }]);
-  const mainBlock = model.blocks[0];
-  if (model.blocks.length > 1) {
-    addRows(box, mainBlock.cards);
-    for (const b of model.blocks.slice(1)) {
-      const g = h("div", { cls: "sn-group" }, groupHead(b, b.cards.length - 1));
-      const gbox = h("div", { cls: "sn-rows" });
-      g.append(gbox);
-      page.append(g);
-      addRows(gbox, b.cards);
-    }
-  } else lazyAdd(page, scroll, mainBlock.cards, (list) => addRows(box, list));
+  const addRows = (list) => { for (const c of list) { const el = renderRow(c.path, c.via); box.append(el); rows.push(el); } };
+  if (board.target && !board.tagView) addRows([{ path: board.target, via: null }]);
+  lazyAdd(page, scroll, model.shown, addRows);
   return rows;
 }
 /** The top of the list of notes: the card (or tag) it lists and how many notes it shows. */
@@ -221,8 +203,8 @@ function countText(model) {
 }
 
 function boardSig(model) {
-  return JSON.stringify([board.target, board.depth, board.sort, board.grouped, board.searchOpen, board.selectMode, board.filter, board.lang = LANG,
-    model.blocks.map((b) => [b.head, b.cards.map((c) => `${c.path}|${c.via ?? ""}|${c.depth}`)]), model.total, model.all.skippedRepeats, model.truncated, graph.ancestry(board.target || "", makeComparator("manual"))]);
+  return JSON.stringify([board.target, board.sort, board.searchOpen, board.selectMode, board.filter, board.lang = LANG,
+    model.shown.map((c) => `${c.path}|${c.via ?? ""}`), model.total, model.all.skippedRepeats, model.truncated, graph.ancestry(board.target || "", makeComparator("manual"))]);
 }
 export function cardSig(path) {
   const n = vault.notes.get(path);
@@ -243,7 +225,7 @@ export function patchBoard() {
     const p = el.dataset.path;
     const sig = cardSig(p);
     if (board.cardSigs.get(p) === sig) continue;
-    const fresh = renderRow(p, el.dataset.via || null, Number(el.dataset.depth) || 1);
+    const fresh = renderRow(p, el.dataset.via || null);
     el.replaceWith(fresh);
     board.cardSigs.set(p, sig);
     if (focused === p) fresh.focus({ preventScroll: true });
@@ -292,13 +274,6 @@ function renderToolbar() {
   bar.append(crumbs);
 
   const tools = h("div", { cls: "sn-tools" });
-  const seg = h("div", { cls: "sn-seg", title: t("depth") });
-  for (const [v, label] of DEPTHS.map((d) => [d, d ? String(d) : "∞"])) {
-    const b = h("button", { cls: "clickable-icon" + (v === board.depth ? " is-active" : ""), type: "button", text: label, title: `${t("depth")}: ${label}` });
-    b.addEventListener("click", () => { board.depth = v; board.rendered = 60; persistBoard(); renderBoard(); });
-    seg.append(b);
-  }
-  tools.append(seg);
   const sb = iconBtn("search", t("searchAndFilters"), () => toggleSearch());
   if (filterActive(board.filter)) sb.classList.add("is-active");
   tools.append(sb);
@@ -314,18 +289,11 @@ function renderToolbar() {
     for (const [v, label, icn] of sortOpts) m.add(label, icn, () => { board.sort = v; persistBoard(); renderBoard(); }, { checked: v === board.sort });
     m.showBelow(e.currentTarget);
   }, "sn-wide-only"));
-  const groupToggle = () => { board.grouped = !board.grouped; persistBoard(); renderBoard(); };
-  if (board.depth !== 1) {
-    const gb = iconBtn("group", t("groupByParent"), groupToggle, "sn-wide-only");
-    if (board.grouped) gb.classList.add("is-active");
-    opts.append(gb);
-  }
-  // on a phone the sort and grouping are one "View" button (the depths and search stay in the bar)
+  // on a phone the sort is one "View" button (search stays in the bar)
   tools.append(iconBtn("sliders-horizontal", t("viewMenu"), (e) => {
     const m = new Menu();
     m.label(t("sorting"));
     for (const [v, label, icn] of sortOpts) m.add(label, icn, () => { board.sort = v; persistBoard(); renderBoard(); }, { checked: v === board.sort });
-    if (board.depth !== 1) { m.sep(); m.add(t("groupByParent"), "group", groupToggle, { checked: !!board.grouped }); }
     m.showBelow(e.currentTarget);
   }, "sn-narrow-only sn-view-btn"));
   bar.append(tools);

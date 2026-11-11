@@ -3,7 +3,6 @@
    ========================================================= */
 import { t } from "../core/i18n.js";
 import { baseName, dirName } from "../core/util.js";
-import { normDepth } from "../core/board-model.js";
 import { composeBody, dumpYaml, extractLinkpath, fillTemplate, parentLinkpaths, TEMPLATE_SKIP_KEYS, toStringList } from "../core/frontmatter.js";
 import { reorderBlock } from "../core/graph.js";
 import { board, editor, graph, PARENTS_FIELD, S, tree, vault } from "../services/state.js";
@@ -229,8 +228,8 @@ export async function saveCurrentView() {
   const name = await promptModal(t("viewName"), board.target ? baseName(board.target) : t("allCards"));
   if (!name) return;
   S.savedViews = [...S.savedViews, {
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name, target: board.target, depth: board.depth,
-    sort: board.sort, grouped: board.grouped, filter: structuredClone(board.filter),
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name, target: board.target,
+    sort: board.sort, filter: structuredClone(board.filter),
   }];
   await saveSettings();
   renderTree();
@@ -238,7 +237,7 @@ export async function saveCurrentView() {
 }
 export function applyView(v) {
   board.history.push(board.target);
-  Object.assign(board, { target: v.target && graph.has(v.target) ? v.target : null, depth: normDepth(v.depth ?? board.depth), sort: v.sort ?? board.sort, grouped: !!v.grouped });
+  Object.assign(board, { target: v.target && graph.has(v.target) ? v.target : null, sort: v.sort ?? board.sort });
   board.filter = { query: v.filter?.query || "", tags: v.filter?.tags || [] };
   board.searchOpen = !!(board.filter.query || board.filter.tags.length);
   board.selection.clear(); board.rendered = 60;

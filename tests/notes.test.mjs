@@ -178,9 +178,7 @@ describe("hierarchy", () => {
     assert.deepEqual(r.name, ["c1", "c2", "c3", "c4", "c10"], "numbers sort naturally");
   });
 
-  test("groupByTopLevel and reorderBlock", async () => {
-    const g = await ev(() => groupByTopLevel([{ path: "a", depth: 1 }, { path: "a1", depth: 2 }, { path: "b", depth: 1 }]));
-    assert.deepEqual(g, { loose: [{ path: "b", depth: 1 }], groups: [{ head: { path: "a", depth: 1 }, members: [{ path: "a1", depth: 2 }] }] });
+  test("reorderBlock", async () => {
     assert.deepEqual(await ev(() => [
       reorderBlock(["a", "b", "c", "d"], ["d"], "b", "before"),
       reorderBlock(["a", "b", "c", "d"], ["a", "b"], "c", "after"),
