@@ -139,18 +139,27 @@ function editorTableWrap(ta) {
   if (!want) (ta.cmView?.scrollDOM || ta).scrollLeft = 0;
 }
 function autosize(ta) { if (ta.cmView) return; const sc = $(".sn-editor-scroll")?.scrollTop; ta.style.height = "auto"; ta.style.height = ta.scrollHeight + ta.offsetHeight - ta.clientHeight + "px"; /* + a sideways scrollbar */ if (sc != null) $(".sn-editor-scroll").scrollTop = sc; }
-/** The editor's header: the notebooks the note sits in, each one a link to its list, then the note's name; "+N" lists the
-   other places a note with several parents is in, and the button after it moves the note to another notebook. */
-function notebookPath(path) {
+/** Where a note sits: the chain of notebooks down to it (through the list's notebook when it was opened from there,
+   otherwise as the list's breadcrumbs go) and the other notebooks it is in as well. */
+function notePlaces(path) {
   const cmp = makeComparator("manual");
-  const box = h("div", { cls: "sn-editor-path", title: path });
   const parents = graph.parentsOf(path).filter((p) => graph.has(p));
-  // opened from a notebook's list, the path goes through that notebook; otherwise as the list's breadcrumbs go
   const here = parents.includes(board.target) && !board.tagView ? board.target : null;
   const chain = here ? [...graph.ancestry(here, cmp), here] : graph.has(path) ? graph.ancestry(path, cmp) : [];
+  return { chain, others: parents.filter((p) => p !== chain[chain.length - 1]), cmp };
+}
+const isPhone = () => matchMedia("(max-width: 820px)").matches;
+/** The editor's header: the notebooks the note sits in, each one a link to its list; "+N" lists the other places a note
+   with several parents is in. On a phone only "‹ Its notebook", which closes the note onto that notebook's list. */
+function notebookPath(path) {
+  const { chain, others, cmp } = notePlaces(path);
+  const box = h("div", { cls: "sn-editor-path", title: path });
   // the note's own name is its title just below, so the path names only where it sits: its notebooks, or All notes at the top.
   // The farther a notebook, the sooner its name gives way when the header is narrow (app.css)
   const places = chain.length ? chain : [null];
+  const near = places[places.length - 1], nearName = near ? baseName(near) : t("allCards");
+  const back = h("a", { cls: "sn-editor-back", href: "#", title: nearName, onClick: (e) => { e.preventDefault(); closeEditor(); setTarget(near); } },
+    ic("", "chevron-left"), h("span", { text: nearName }));
   places.forEach((p, i) => {
     if (i) box.append(h("span", { cls: "sn-editor-crumb-sep", text: "/" }));
     const name = p ? baseName(p) : t("allCards");
@@ -158,8 +167,7 @@ function notebookPath(path) {
     a.style.flexShrink = String((places.length - i) * 4);
     box.append(a);
   });
-  const others = parents.filter((p) => p !== chain[chain.length - 1]);
-  const wrap = h("div", { cls: "sn-editor-where" }, box);
+  const wrap = h("div", { cls: "sn-editor-where" }, back, box);
   if (others.length) {
     wrap.append(h("button", { cls: "sn-editor-places", type: "button", title: t("alsoIn"), text: "+" + others.length, onClick: (e) => {
       const m = new Menu();
@@ -177,6 +185,13 @@ function editorMenu(path, anchor) {
   m.add(wt("focus"), "focus", () => setFocusMode(!UI.focus), { checked: !!UI.focus });
   m.add(t("sourceMode"), "code-2", () => toggleSource(), { checked: editor.mode === "source" });
   m.sep();
+  // a phone's header has no "+N": the note's other places are here
+  const { others, cmp } = notePlaces(path);
+  if (isPhone() && others.length) {
+    m.label(t("alsoIn"));
+    for (const p of others) m.add([...graph.ancestry(p, cmp), p].map(baseName).join(" / "), cardIcon(p) || "folder", () => { closeEditor(); setTarget(p); });
+    m.sep();
+  }
   // then the card menu, without its "Edit": the note is open already
   for (const it of cardMenu(path, null).items) {
     if (it === "sep") m.sep();
@@ -212,7 +227,7 @@ export function renderEditor() {
   const n = vault.notes.get(path);
   if (n && (!editor.dirty || editor.base?.path !== path)) editor.base = { path, raw: n.raw };
   const head = h("div", { cls: "sn-editor-head" });
-  head.append(iconBtn("x", t("closeEditor"), () => closeEditor()));
+  head.append(iconBtn("x", t("closeEditor"), () => closeEditor(), "sn-editor-close")); // on a phone "‹ notebook" does its work
   head.append(iconBtn(editor.wide ? "minimize-2" : "maximize-2", editor.wide ? t("collapseEditor") : t("expandEditor"), () => { editor.wide = !editor.wide; $("#app").classList.toggle("editor-wide", editor.wide); renderEditor(); }, "sn-hide-narrow"));
   head.append(notebookPath(path));
   head.append(h("span", { cls: "sn-save-state" }));

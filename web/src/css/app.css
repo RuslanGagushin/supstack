@@ -184,7 +184,15 @@ a.sn-editor-crumb:hover { color: var(--ink); text-decoration: underline; }
 .sn-editor-crumb-sep { flex: none; padding: 0 5px; color: var(--faint); }
 button.sn-editor-places { flex: none; height: 20px; margin-left: 4px; padding: 0 7px; border: 0; border-radius: var(--r-pill); background: var(--panel); color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; cursor: pointer; }
 button.sn-editor-places:hover { background: var(--accent-soft); color: var(--accent); }
-body.sn-app .sn-editor-head .sn-editor-move { flex: none; }
+/* a phone: "‹ Its notebook" instead of the path, the ×, and "+N" (which moves into ⋮) */
+a.sn-editor-back { display: none; min-width: 0; align-items: center; gap: 2px; margin-left: -6px; padding: 4px 8px 4px 2px; border-radius: var(--r-s); color: var(--fg); font-weight: 500; text-decoration: none; }
+a.sn-editor-back > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+a.sn-editor-back svg { flex: none; width: 22px; height: 22px; }
+a.sn-editor-back:active { background: var(--hover-bg); }
+@media (max-width: 820px) {
+  a.sn-editor-back { display: inline-flex; }
+  body.sn-app .sn-editor-head :is(.sn-editor-path, .sn-editor-places, .sn-editor-close) { display: none; }
+}
 /* the note reads at 16px in a column of about 75 characters (600px of text inside the padding) */
 body.sn-app .sn-editor-page { max-width: 680px; padding: 18px 40px 40vh; }
 body.sn-app .sn-editor-badge { color: var(--muted); }

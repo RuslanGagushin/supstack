@@ -1113,6 +1113,27 @@ describe("opening a note", () => {
     noErrors();
   });
 
+  test("on a phone the header says only \"‹ notebook\", which goes back to its list; the note's other places are in ⋮", async () => {
+    await openVault({ demo: false, viewport: { width: 390, height: 800 }, notes: {
+      "cards/Work.md": "", "cards/Proton.md": "---\nparents: [\"[[Work]]\"]\n---\n", "cards/Home.md": "", "cards/Top.md": "at the top",
+      "cards/Invoice.md": "---\nparents: [\"[[Proton]]\", \"[[Home]]\"]\n---\nan invoice",
+    } });
+    await ev(() => setTarget("cards/Proton.md"));
+    await page().click('.sn-row[data-path="cards/Invoice.md"]');
+    const shownIn = (sel) => ev((s) => { const el = document.querySelector(s); return !!el && getComputedStyle(el).display !== "none"; }, sel);
+    assert.equal(await page().textContent("#editor .sn-editor-back"), "Proton");
+    assert.deepEqual([await shownIn("#editor .sn-editor-back"), await shownIn("#editor .sn-editor-path"), await shownIn("#editor .sn-editor-places"), await shownIn("#editor .sn-editor-close")],
+      [true, false, false, false], "no path, +N or ×");
+    await page().click("#editor .sn-editor-more");
+    assert.match(await page().textContent(".menu"), /Also in.*Home/s);
+    await page().keyboard.press("Escape");
+    await page().click("#editor .sn-editor-back");
+    assert.deepEqual(await ev(() => [editor.path, board.target]), [null, "cards/Proton.md"], "it closes the note onto its notebook's list");
+    await ev(() => { setTarget(null); openEditor("cards/Top.md", { focus: false }); });
+    assert.equal(await page().textContent("#editor .sn-editor-back"), "All notes", "a note at the top goes back to All notes");
+    noErrors();
+  });
+
   test("Settings › Open notes: For editing opens notes for editing", async () => {
     await openVault({ openNotes: "read" });
     await ev(() => settingsModal("appearance"));
