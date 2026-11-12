@@ -21,7 +21,7 @@ const withLang = (l, fn) => { const was = LANG; setLang(l); try { return fn(); }
 
 describe("i18n and helpers", () => {
   test("a table of names comes back as it is (the date picker's repeat units)", () => {
-    assert.equal(ct("every").w, "weekly");
+    assert.equal(ct("every").w, "Every week");
   });
   test("t: language, English fallback, the key itself, {vars} and plural forms", () => {
     assert.equal(t("back"), "Back");

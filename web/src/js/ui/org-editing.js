@@ -45,34 +45,60 @@ export function orgCalendar(opts) {
   const head = h("div", { cls: "cal-head" });
   const grid = h("div", { cls: "cal-grid", role: "grid" });
   const quick = h("div", { cls: "cal-quick" });
-  const timeRow = h("div", { cls: "cal-time" });
+  const foot = h("div", { cls: "cal-foot" });
   el.append(head, grid, quick);
-  if (!opts.dateOnly) el.append(timeRow);
-  // time + repeat controls (built once so typing in them is not interrupted)
-  const tIn = h("input", { type: "time", cls: "cal-t", "aria-label": ct("time") });
-  const eIn = h("input", { type: "time", cls: "cal-t", "aria-label": ct("to") });
-  const rep = h("select", { cls: "cal-rep", "aria-label": ct("repeat") }, h("option", { value: "", text: ct("repeat") + ": " + ct("none") }),
-    ...["d", "w", "m", "y"].map((u) => h("option", { value: "+1" + u, text: `+1${u} · ${ct("every")[u]}` })));
-  for (const x of [tIn, eIn]) x.addEventListener("keydown", (e) => { if (e.key === "Enter") x.dispatchEvent(new Event("change")); });
-  const toMin = (v) => { const m = /^(\d{1,2}):(\d{2})/.exec(v || ""); return m ? +m[1] * 60 + +m[2] : null; };
-  tIn.addEventListener("change", () => { st.time = toMin(tIn.value); if (st.time == null) st.end = null; if (st.dn == null) st.dn = T; changed(); });
-  eIn.addEventListener("change", () => { st.end = st.time == null ? null : toMin(eIn.value); if (st.end != null && st.end <= st.time) st.end = null; changed(); });
+  // time + repeat controls (built once so typing in them is not interrupted): a labelled row each, the time typed as text
+  // ("14", "14:30", "1430", "2pm"), the end only once there is a start
+  const field = (cls, label) => h("input", { type: "text", cls: "cal-t " + cls, placeholder: label, "aria-label": label, spellcheck: "false", autocomplete: "off" });
+  const tIn = field("is-start", ct("addTime"));
+  const eIn = field("is-end", ct("endTime"));
+  const endPart = h("span", { cls: "cal-end" }, h("span", { cls: "cal-dash", text: "–" }), eIn);
+  const rep = h("select", { cls: "cal-rep", "aria-label": ct("repeat") }, h("option", { value: "", text: ct("none") }),
+    ...["d", "w", "m", "y"].map((u) => h("option", { value: "+1" + u, text: ct("every")[u] })));
+  const toMin = (v) => {
+    const m = /^\s*(\d{1,2})(?:[:.\s]?(\d{2}))?\s*([ap])\.?m?\.?\s*$/i.exec(v || "") || /^\s*(\d{1,2})(?:[:.\s]?(\d{2}))?()\s*$/.exec(v || "");
+    if (!m) return undefined;
+    let hh = +m[1];
+    const mm = m[2] ? +m[2] : 0, ap = (m[3] || "").toLowerCase();
+    if (ap) { if (hh < 1 || hh > 12) return undefined; hh = (hh % 12) + (ap === "p" ? 12 : 0); }
+    return hh > 23 || mm > 59 ? undefined : hh * 60 + mm;
+  };
+  /** The typed time, or null for an empty field; a time it can't read is marked and changes nothing. */
+  const readTime = (x) => {
+    const v = x.value.trim();
+    const m = v ? toMin(v) : null;
+    x.classList.toggle("is-bad", m === undefined);
+    return m;
+  };
+  for (const x of [tIn, eIn]) {
+    x.addEventListener("keydown", (e) => { if (e.key === "Enter") x.dispatchEvent(new Event("change")); });
+    x.addEventListener("input", () => x.classList.remove("is-bad"));
+  }
+  tIn.addEventListener("change", () => { const m = readTime(tIn); if (m === undefined) return; st.time = m; if (m == null) st.end = null; if (st.dn == null) st.dn = T; changed(); });
+  eIn.addEventListener("change", () => { const m = readTime(eIn); if (m === undefined) return; st.end = st.time == null || m == null || m <= st.time ? null : m; changed(); });
   rep.addEventListener("change", () => { const m = /^\+(\d+)([dwmy])$/.exec(rep.value); st.rep = m ? { type: st.rep?.type || "+", n: +m[1], u: m[2] } : null; if (st.dn == null) st.dn = T; changed(); });
-  const clearT = h("button", { type: "button", cls: "cal-x", title: LANG === "ru" ? "Без времени" : "No time", "aria-label": LANG === "ru" ? "Без времени" : "No time", text: "×" });
-  clearT.addEventListener("click", () => { st.time = st.end = null; changed(); });
-  timeRow.append(ic("cal-ico", "clock"), tIn, h("span", { cls: "cal-dash", text: "–" }), eIn, clearT, rep);
+  const noTime = LANG === "ru" ? "Без времени" : "No time";
+  const clearT = h("button", { type: "button", cls: "cal-x", title: noTime, "aria-label": noTime }, ic("", "x"));
+  clearT.addEventListener("click", () => { st.time = st.end = null; tIn.value = eIn.value = ""; changed(); });
+  if (!opts.dateOnly) {
+    el.append(h("div", { cls: "cal-opts" },
+      h("div", { cls: "cal-field" }, h("span", { cls: "cal-label" }, ic("cal-ico", "clock"), h("span", { text: ct("time") })), h("span", { cls: "cal-ctl" }, tIn, endPart, clearT)),
+      h("div", { cls: "cal-field" }, h("span", { cls: "cal-label" }, ic("cal-ico", "repeat"), h("span", { text: ct("repeat") })), h("span", { cls: "cal-ctl" }, rep))));
+  }
+  el.append(foot);
   function render() {
     const o = oymd(view);
     const first = odn(o.y, o.m, 1);
     const start = first - ((oymd(first).w + 6) % 7);
-    const prev = h("button", { type: "button", cls: "cal-nav", title: ct("prevM"), "aria-label": ct("prevM"), text: "‹" });
-    const next = h("button", { type: "button", cls: "cal-nav", title: ct("nextM"), "aria-label": ct("nextM"), text: "›" });
+    const prev = h("button", { type: "button", cls: "cal-nav", title: ct("prevM"), "aria-label": ct("prevM") }, ic("", "chevron-left"));
+    const next = h("button", { type: "button", cls: "cal-nav", title: ct("nextM"), "aria-label": ct("nextM") }, ic("", "chevron-right"));
     prev.addEventListener("click", () => { view = oaddMonths(first, -1); render(); });
     next.addEventListener("click", () => { view = oaddMonths(first, 1); render(); });
+    // the month on the left, as the list's title; a click on it comes back to this month
     const title = h("button", { type: "button", cls: "cal-title", title: tt("today"), text: oFmt(first, "MMMM YYYY") });
     title.addEventListener("click", () => { view = T; render(); });
-    head.replaceChildren(prev, title, next);
-    grid.replaceChildren(h("span", { cls: "cal-wk-h", text: "W" }), ...Array.from({ length: 7 }, (_, i) => h("span", { cls: "cal-wd" + (i >= 5 ? " is-weekend" : ""), text: wdFmt.format(new Date((start + i) * 864e5)).replace(/\.$/, "") })));
+    head.replaceChildren(title, prev, next);
+    grid.replaceChildren(h("span", { cls: "cal-wk-h", text: "" }), ...Array.from({ length: 7 }, (_, i) => h("span", { cls: "cal-wd" + (i >= 5 ? " is-weekend" : ""), text: wdFmt.format(new Date((start + i) * 864e5)).replace(/\.$/, "") })));
     for (let r = 0; r < 6; r++) {
       const rowStart = start + r * 7;
       if (r === 5 && oymd(rowStart).m !== o.m) break;
@@ -89,11 +115,12 @@ export function orgCalendar(opts) {
     const nextMon = T + (((8 - oymd(T).w) % 7) || 7);
     const qb = (text, dn) => { const b = h("button", { type: "button", cls: "cal-q" + (st.dn === dn ? " is-on" : ""), text }); b.addEventListener("click", () => { st.dn = dn; view = dn; changed(); }); return b; };
     quick.replaceChildren(qb(tt("today"), T), qb(ct("tomorrow"), T + 1), qb(ct("nextMon"), nextMon), qb(ct("nextWeek"), T + 7));
-    if (opts.onClear) { const c = h("button", { type: "button", cls: "cal-q is-clear", text: ct("clear") }); c.addEventListener("click", () => opts.onClear()); quick.append(c); }
-    if (opts.onAccept) { const ok = h("button", { type: "button", cls: "cal-q is-ok", text: ct("ok"), disabled: st.dn == null }); ok.addEventListener("click", () => st.dn != null && opts.onAccept(value())); quick.append(ok); }
-    if (document.activeElement !== tIn) tIn.value = st.time == null ? "" : ohm(st.time);
-    if (document.activeElement !== eIn) eIn.value = st.end == null ? "" : ohm(st.end);
-    eIn.disabled = st.time == null;
+    foot.replaceChildren();
+    if (opts.onClear) { const c = h("button", { type: "button", cls: "cal-q is-clear", text: ct("clear") }); c.addEventListener("click", () => opts.onClear()); foot.append(c); }
+    if (opts.onAccept) { const ok = h("button", { type: "button", cls: "cal-ok", text: ct("ok"), disabled: st.dn == null }); ok.addEventListener("click", () => st.dn != null && opts.onAccept(value())); foot.append(ok); }
+    if (document.activeElement !== tIn) { tIn.value = st.time == null ? "" : ohm(st.time); tIn.classList.remove("is-bad"); }
+    if (document.activeElement !== eIn) { eIn.value = st.end == null ? "" : ohm(st.end); eIn.classList.remove("is-bad"); }
+    endPart.hidden = st.time == null;
     clearT.hidden = st.time == null;
     const rv = st.rep && st.rep.n === 1 ? "+1" + st.rep.u : "";
     if (st.rep && !rv) { if (!rep.querySelector(".is-custom")) rep.append(h("option", { cls: "is-custom", value: "custom", text: `${st.rep.type}${st.rep.n}${st.rep.u}` })); rep.value = "custom"; }
@@ -117,7 +144,7 @@ export function orgAskDate(label, cur, o = {}) {
     const merge = (r) => (r ? { ...r, rep: r.rep || (o.dateOnly ? null : cur?.rep) || null, warn: r.warn || cur?.warn || null } : r);
     let input;
     const cal = orgCalendar({
-      value: cur ? { dn: cur.dn, time: cur.time, end: cur.end, rep: cur.rep, warn: cur.warn } : null, base: cur?.dn, dateOnly: o.dateOnly,
+      value: cur ? { dn: cur.dn, time: cur.time, end: cur.end, rep: cur.rep, warn: cur.warn } : { dn: onow().dn }, base: cur?.dn, dateOnly: o.dateOnly,
       onChange: (r) => { input.value = orgDateText(r); show(); },
       onAccept: (r) => finish(r),
       onClear: cur && !o.dateOnly ? () => finish(null) : null,

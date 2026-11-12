@@ -872,6 +872,30 @@ describe("sidebar", () => {
     assert.equal(await page().$(".prompt"), null);
     noErrors();
   });
+
+  test("a new date opens on today, picked and marked; the time is typed as text, the end shows once there is a start, and Enter accepts", async () => {
+    await openVault();
+    const r = ev(() => orgAskDate("Schedule", null));
+    await page().waitForSelector(".prompt.mod-ask .org-cal");
+    const state = () => ev(() => ({
+      sel: $(".cal-day.is-sel")?.classList.contains("is-today") ?? false, today: $$(".cal-day.is-today").length,
+      ok: !$(".cal-ok").disabled, end: !$(".cal-end").hidden, input: $(".prompt-input").value,
+    }));
+    assert.deepEqual(await state(), { sel: true, today: 1, ok: true, end: false, input: "" }, "today is picked, so OK works at once");
+    const type = async (sel, text) => { await page().fill(sel, text); await page().press(sel, "Tab"); };
+    await type(".cal-t.is-start", "2pm");
+    assert.match(await page().inputValue(".prompt-input"), / 14:00$/);
+    assert.equal((await state()).end, true, "with a start, the end can be set");
+    await type(".cal-t.is-end", "1530");
+    assert.match(await page().inputValue(".prompt-input"), / 14:00-15:30$/);
+    await type(".cal-t.is-start", "25:99");
+    assert.equal(await ev(() => $(".cal-t.is-start").classList.contains("is-bad")), true, "a time it can't read is marked");
+    assert.match(await page().inputValue(".prompt-input"), / 14:00-15:30$/, "and changes nothing");
+    await page().fill(".cal-t.is-start", "930");
+    await page().press(".cal-t.is-start", "Enter");
+    assert.deepEqual(await r.then((x) => [x.dn, x.time, x.end]), [await ev(() => onow().dn), 9 * 60 + 30, 15 * 60 + 30], "Enter in the time field takes the time and accepts");
+    noErrors();
+  });
 });
 
 describe("the app", () => {

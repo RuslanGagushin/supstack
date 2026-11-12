@@ -232,10 +232,10 @@ export const TSTR = {
   },
 };
 export const CSTR = {
-  en: { prevM: "Previous month (PgUp)", nextM: "Next month (PgDn)", time: "Time", to: "to", repeat: "Repeat", none: "none", clear: "Remove", ok: "OK",
-    tomorrow: "Tomorrow", nextWeek: "+1 week", nextMon: "Next Mon", keys: "Shift+arrows move the day · PgUp/PgDn month · Enter accept · Esc cancel", every: { d: "daily", w: "weekly", m: "monthly", y: "yearly" } },
-  ru: { prevM: "Предыдущий месяц (PgUp)", nextM: "Следующий месяц (PgDn)", time: "Время", to: "до", repeat: "Повтор", none: "нет", clear: "Убрать", ok: "OK",
-    tomorrow: "Завтра", nextWeek: "+1 неделя", nextMon: "След. пн", keys: "Shift+стрелки — день · PgUp/PgDn — месяц · Enter — принять · Esc — отмена", every: { d: "каждый день", w: "каждую неделю", m: "каждый месяц", y: "каждый год" } },
+  en: { prevM: "Previous month (PgUp)", nextM: "Next month (PgDn)", time: "Time", to: "to", addTime: "Add a time", endTime: "End", repeat: "Repeat", none: "Never", clear: "Remove", ok: "OK",
+    tomorrow: "Tomorrow", nextWeek: "+1 week", nextMon: "Next Mon", keys: "Shift+arrows move the day · PgUp/PgDn month · Enter accept · Esc cancel", every: { d: "Every day", w: "Every week", m: "Every month", y: "Every year" } },
+  ru: { prevM: "Предыдущий месяц (PgUp)", nextM: "Следующий месяц (PgDn)", time: "Время", to: "до", addTime: "Добавить время", endTime: "Конец", repeat: "Повтор", none: "Не повторять", clear: "Убрать", ok: "OK",
+    tomorrow: "Завтра", nextWeek: "+1 неделя", nextMon: "След. пн", keys: "Shift+стрелки — день · PgUp/PgDn — месяц · Enter — принять · Esc — отмена", every: { d: "Каждый день", w: "Каждую неделю", m: "Каждый месяц", y: "Каждый год" } },
 };
 export const FSTR = { en: { fold: "Fold (Shift+click: all in this note)", unfold: "Unfold (Shift+click: all in this note)", foldAll: "Fold all headings and tasks", unfoldAll: "Unfold all headings and tasks", hidden: "{n} hidden" },
   ru: { fold: "Свернуть (Shift+клик — все в заметке)", unfold: "Развернуть (Shift+клик — все в заметке)", foldAll: "Свернуть все заголовки и задачи", unfoldAll: "Развернуть все заголовки и задачи", hidden: "скрыто: {n}" } };
