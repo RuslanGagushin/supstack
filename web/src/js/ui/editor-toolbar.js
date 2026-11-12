@@ -11,7 +11,8 @@ import { cardIcon } from "../services/vault.js";
 import { $, h, ic, isMod, setIcon } from "./dom.js";
 import { Menu } from "./ui.js";
 import { addTags, fmTagList, promptAddParent, promptIcon, removeParent, removeTag, templateFor } from "./actions.js";
-import { parentChip } from "./cards.js";
+import { formatDate, parentChip } from "./cards.js";
+import { openTagView } from "./board.js";
 import { closeEditor, openEditor, renderEditor, saveEditor } from "./editor.js";
 import { liveActivateEnd } from "./live-preview.js";
 import { editorTable, editorTableKey, editorTableOp, tableMenu } from "./table-editor.js";
@@ -28,7 +29,10 @@ export function renderEditorProps() {
   const foot = $("#editor-foot");
   if (!n) return;
   const field = PARENTS_FIELD;
-  if (host && !n.fmError) {
+  if (host && editor.mode === "read") {
+    host.dataset.path = path;
+    host.replaceChildren(infoLine(path, n));
+  } else if (host && !n.fmError) {
     const oldIn = host.dataset.path === path ? host.querySelector(".sn-prop-input") : null;
     host.dataset.path = path;
     const draft = oldIn?.value || "", hadFocus = !!oldIn && oldIn === document.activeElement;
@@ -101,6 +105,16 @@ export function renderEditorProps() {
     }
     foot.append(box);
   }
+}
+/** The reading view's line under the title, in place of Properties: when the note changed, its tags (each opens its list)
+   and a notebook it names that doesn't exist. Its notebooks are in the header; the rest of the properties are one click
+   away, in the editing view. */
+function infoLine(path, n) {
+  const line = h("div", { cls: "sn-info" });
+  line.append(h("span", { cls: "sn-info-date", text: t("modifiedAt", { date: formatDate(n.mtime || 0) }), title: new Date(n.mtime || 0).toLocaleString(LANG) }));
+  for (const u of graph.unresolvedParentsOf(path)) line.append(h("span", { cls: "sn-chip is-missing", title: t("parentMissing") }, ic("sn-chip-icon", "alert-triangle"), h("span", { text: u })));
+  if (!n.fmError) for (const tg of fmTagList(n.fm)) line.append(h("button", { cls: "sn-tag sn-info-tag", type: "button", text: "#" + tg, onClick: () => openTagView(tg) }));
+  return line;
 }
 export function editorKeys(e) {
   const ta = e.target;

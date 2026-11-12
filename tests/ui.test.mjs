@@ -1044,6 +1044,24 @@ describe("opening a note", () => {
     noErrors();
   });
 
+  test("reading shows one line under the title in place of Properties: when it changed, its tags, a missing notebook", async () => {
+    await openVault({ openNotes: "read", demo: false, notes: { "cards/Doc.md": "---\nparents: [\"[[Gone]]\"]\ntags: [alpha, beta]\nicon: book\n---\nText\n", "cards/Other.md": "---\ntags: [alpha]\n---\n" } });
+    await ev(() => openEditor("cards/Doc.md", { focus: false, wide: false }));
+    const r = await ev(() => ({
+      props: document.querySelectorAll("#editor-props .sn-props").length, line: document.querySelector("#editor-props .sn-info")?.textContent,
+      tags: [...document.querySelectorAll(".sn-info .sn-info-tag")].map((x) => x.textContent), missing: document.querySelector(".sn-info .sn-chip.is-missing")?.textContent,
+    }));
+    assert.equal(r.props, 0, "no Properties while reading");
+    assert.match(r.line, /^Modified /);
+    assert.deepEqual(r.tags, ["#alpha", "#beta"]);
+    assert.equal(r.missing, "Gone");
+    await page().click(".sn-info .sn-info-tag");
+    assert.deepEqual(await ev(() => [board.tagView, boardModel().shown.map((c) => c.path).sort()]), ["alpha", ["cards/Doc.md", "cards/Other.md"]], "a tag opens its list");
+    await ev(() => openEditor("cards/Doc.md", { focus: false, edit: true }));
+    assert.deepEqual(await ev(() => [document.querySelectorAll("#editor-props .sn-props").length, document.querySelectorAll("#editor-props .sn-info").length]), [1, 0], "editing shows Properties again");
+    noErrors();
+  });
+
   test("Settings › Open notes: For editing opens notes for editing", async () => {
     await openVault({ openNotes: "read" });
     await ev(() => settingsModal("appearance"));

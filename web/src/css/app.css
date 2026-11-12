@@ -189,6 +189,10 @@ body.sn-app .sn-editor-head .sn-editor-move { flex: none; }
 body.sn-app .sn-editor-page { max-width: 680px; padding: 18px 40px 40vh; }
 body.sn-app .sn-editor-badge { color: var(--muted); }
 body.sn-app .sn-inline-title { font-weight: 700; font-size: 32px; line-height: 1.2; letter-spacing: -.02em; color: var(--ink); margin: 6px 0 12px; }
+/* reading: one quiet line under the title in place of Properties, and no rule between it and the text (editor-toolbar.js infoLine) */
+.sn-info { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 22px; margin: -4px 0 18px; font-size: var(--fs-sm); color: var(--muted); }
+.sn-info-date { margin-right: 4px; }
+body.sn-app button.sn-tag.sn-info-tag { height: auto; border: 0; font-weight: 400; cursor: pointer; }
 body.sn-app .sn-props-head, body.sn-app .sn-editor-foot h4 { font-size: var(--fs-sm); font-weight: 500; color: var(--muted); }
 body.sn-app .sn-prop:hover { background: var(--hover-bg); }
 body.sn-app .sn-prop-key { color: var(--muted); }
