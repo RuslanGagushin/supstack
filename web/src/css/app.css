@@ -172,12 +172,10 @@ body.sn-app .sn-selbar { border-radius: var(--r-m); }
 /* ---------- Note editor: a white sheet with a big bold title */
 body.sn-app .sn-editor-head { height: 52px; padding: 0 12px 0 14px; border-bottom: 0; }
 body.sn-app .sn-editor-path { font-weight: 500; color: var(--muted); }
-body.sn-app .sn-editor-path b { font-weight: 500; color: var(--fg); }
 /* the notebooks a note sits in (editor.js notebookPath): links to their lists, "+N" for its other places, the move button */
 .sn-editor-where { flex: 1; min-width: 0; display: flex; align-items: center; gap: 2px; }
 body.sn-app .sn-editor-where .sn-editor-path { flex: 0 1 auto; display: flex; align-items: baseline; min-width: 0; }
-.sn-editor-path > a, .sn-editor-path > b { min-width: 1.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sn-editor-path > b { flex-shrink: 1; }
+.sn-editor-path > a { min-width: 1.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 a.sn-editor-crumb { color: var(--muted); text-decoration: none; }
 a.sn-editor-crumb:hover { color: var(--ink); text-decoration: underline; }
 .sn-editor-crumb-sep { flex: none; padding: 0 5px; color: var(--faint); }
@@ -240,7 +238,8 @@ body.sn-app #app.notes-layout.editor-open .sn-board.is-notes .sn-page { max-widt
 .sn-list-head { display: flex; align-items: baseline; gap: 10px; padding: 4px 8px 12px; min-width: 0; }
 /* The screen title: icon, name at 20px, a faint count. The list of notes, Files and the agenda share it (agenda.css) */
 .sn-list-head .sn-list-title { display: flex; align-items: center; gap: 8px; min-width: 0; margin: 0; font-size: var(--fs-lg); font-weight: 600; line-height: 1.25; letter-spacing: -.01em; color: var(--ink); }
-.sn-list-title > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* a long notebook name gets two lines rather than an ellipsis: with no breadcrumbs, the title is where the list says what it is */
+.sn-list-title > span { overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .sn-list-badge { display: inline-flex; color: var(--muted); }
 .sn-list-badge svg { width: 18px; height: 18px; }
 .sn-list-count { flex: none; color: var(--faint); }

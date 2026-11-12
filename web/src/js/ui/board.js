@@ -10,7 +10,6 @@ import { $, $$, h, ic, iconBtn } from "./dom.js";
 import { Menu } from "./ui.js";
 import { createCard, deleteCards, dropCards, promptAddParent, promptAddTag, promptIcon, promptMove, saveCurrentView } from "./actions.js";
 import { renderRow } from "./cards.js";
-import { dnd } from "./dnd.js";
 import { renderTree } from "./tree.js";
 import { closeEditor, openEditor, refreshNotebookPath } from "./editor.js";
 import { setSide, sideToggle } from "./shell.js";
@@ -258,25 +257,9 @@ function renderToolbar() {
   if (target) nav.append(upBtn);
   bar.append(nav);
 
-  const crumbs = h("div", { cls: "sn-crumbs" });
-  const crumb = (path, current) => {
-    const a = h("a", { cls: "sn-crumb" + (current ? " is-current" : ""), href: "#" }, ic("sn-crumb-icon", path ? cardIcon(path) || "layers" : "home", "layers"), h("span", { text: path ? baseName(path) : t("allCards") }));
-    a.addEventListener("click", (e) => { e.preventDefault(); setTarget(path); });
-    if (!current) dnd.dropTarget(a, () => ({ path, parent: null, zones: ["inside"], root: !path }));
-    crumbs.append(a);
-  };
-  // at the top the list's title already says "All cards": the crumbs stay empty and only hold the tools to the right
-  if (target || board.tagView) crumb(null, false);
-  if (board.tagView) {
-    crumbs.append(h("span", { cls: "sn-crumb-sep", text: "/" }));
-    crumbs.append(h("span", { cls: "sn-crumb is-current is-tag" }, ic("sn-crumb-icon", "hash"), h("span", { text: board.tagView })));
-  }
-  if (target) {
-    for (const p of graph.ancestry(target, cmp)) { crumbs.append(h("span", { cls: "sn-crumb-sep", text: "/" })); crumb(p, false); }
-    crumbs.append(h("span", { cls: "sn-crumb-sep", text: "/" }));
-    crumb(target, true);
-  }
-  bar.append(crumbs);
+  // no breadcrumbs: the list's title says where it is, ↑ goes up, and the open note's header has the whole path (editor.js);
+  // the empty space only pushes the tools to the right
+  bar.append(h("div", { cls: "sn-crumbs" }));
 
   const tools = h("div", { cls: "sn-tools" });
   const sb = iconBtn("search", t("searchAndFilters"), () => toggleSearch());

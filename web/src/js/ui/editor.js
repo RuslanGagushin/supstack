@@ -140,13 +140,16 @@ function notebookPath(path) {
   // opened from a notebook's list, the path goes through that notebook; otherwise as the list's breadcrumbs go
   const here = parents.includes(board.target) && !board.tagView ? board.target : null;
   const chain = here ? [...graph.ancestry(here, cmp), here] : graph.has(path) ? graph.ancestry(path, cmp) : [];
-  // the farther a notebook, the sooner its name gives way when the header is narrow (app.css)
-  chain.forEach((p, i) => {
-    const a = h("a", { cls: "sn-editor-crumb", href: "#", text: baseName(p), title: baseName(p), onClick: (e) => { e.preventDefault(); setTarget(p); } });
-    a.style.flexShrink = String((chain.length - i) * 4);
-    box.append(a, h("span", { cls: "sn-editor-crumb-sep", text: "/" }));
+  // the note's own name is its title just below, so the path names only where it sits: its notebooks, or All notes at the top.
+  // The farther a notebook, the sooner its name gives way when the header is narrow (app.css)
+  const places = chain.length ? chain : [null];
+  places.forEach((p, i) => {
+    if (i) box.append(h("span", { cls: "sn-editor-crumb-sep", text: "/" }));
+    const name = p ? baseName(p) : t("allCards");
+    const a = h("a", { cls: "sn-editor-crumb", href: "#", text: name, title: name, onClick: (e) => { e.preventDefault(); setTarget(p); } });
+    a.style.flexShrink = String((places.length - i) * 4);
+    box.append(a);
   });
-  box.append(h("b", { text: baseName(path) }));
   const others = parents.filter((p) => p !== chain[chain.length - 1]);
   const wrap = h("div", { cls: "sn-editor-where" }, box);
   if (others.length) {
