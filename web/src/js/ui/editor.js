@@ -12,12 +12,12 @@ import { syncHook } from "../services/sync.js";
 import { $, $$, h, ic, iconBtn } from "./dom.js";
 import { Menu, notice } from "./ui.js";
 import { renderMarkdown, wireRendered } from "./markdown.js";
-import { promptIcon, promptMove, renameCard } from "./actions.js";
+import { promptIcon, renameCard } from "./actions.js";
 import { cardMenu } from "./cards.js";
 import { cardSig, setTarget } from "./board.js";
 import { livePreviewExtensions, liveTa, liveText, renderLive, wireLive } from "./live-preview.js";
 import { editorTable, editorTableOp, tableMenu } from "./table-editor.js";
-import { editorKeys, renderEditorProps, renderEdToolbar, updateEdToolbar } from "./editor-toolbar.js";
+import { editorKeys, renderEditorProps, renderEdToolbar, toggleReading, updateEdToolbar } from "./editor-toolbar.js";
 import { downloadNote, updateFmtBar } from "./format-bar.js";
 import { refresh } from "./shell.js";
 import { markOpenInTree } from "./tree.js";
@@ -168,8 +168,34 @@ function notebookPath(path) {
       m.showBelow(e.currentTarget);
     } }));
   }
-  if (graph.has(path)) wrap.append(iconBtn("folder-input", t("menuMoveTo"), () => promptMove([{ child: path, from: chain[chain.length - 1] ?? null }]), "sn-editor-move"));
-  return wrap;
+  return wrap; // "Move to…" is in the ⋮ menu
+}
+/** The note's ⋮ menu: the view (outline, focus, source) first, then what the card menu does with a note. */
+function editorMenu(path, anchor) {
+  const m = new Menu();
+  m.add(wt("outline"), "table-of-contents", () => outlineMenu(anchor));
+  m.add(wt("focus"), "focus", () => setFocusMode(!UI.focus), { checked: !!UI.focus });
+  m.add(t("sourceMode"), "code-2", () => toggleSource(), { checked: editor.mode === "source" });
+  m.sep();
+  // then the card menu, without its "Edit": the note is open already
+  for (const it of cardMenu(path, null).items) {
+    if (it === "sep") m.sep();
+    else if (it.title !== t("menuEdit")) m.items.push(it);
+  }
+  // Download goes with Pin and Copy link, above the group that ends with Delete
+  if (vault.fs.kind !== "disk") {
+    const del = m.items.findIndex((it) => it.warning);
+    m.items.splice(del > 0 && m.items[del - 1] === "sep" ? del - 1 : m.items.length, 0, { title: t("downloadNote"), icon: "download", onClick: () => downloadNote(path) });
+  }
+  m.showBelow(anchor);
+}
+/** The whole file as text, frontmatter included, or back to editing it as a note. */
+export async function toggleSource() {
+  if (!editor.path) return;
+  if (editor.dirty) await saveEditor();
+  editor.mode = editor.mode === "source" ? "edit" : "source";
+  renderEditor();
+  $(".sn-editor-text")?.focus();
 }
 /** The list moved to another notebook while the note stays open: only its path in the header changes. */
 export function refreshNotebookPath() {
@@ -191,22 +217,21 @@ export function renderEditor() {
   head.append(notebookPath(path));
   head.append(h("span", { cls: "sn-save-state" }));
   if (n) {
-    head.append(iconBtn("table-of-contents", wt("outline"), (e) => outlineMenu(e.currentTarget)));
-    head.append(iconBtn("focus", UI.focus ? wt("focusExit") : wt("focus"), () => setFocusMode(!UI.focus), UI.focus ? "is-active" : ""));
-    if (graph.childrenOf(path).length) head.append(iconBtn("folder-open", t("menuOpenNotebook"), () => setTarget(path)));
-    const modeBtn = iconBtn(editor.mode === "read" ? "pencil" : "book-open", editor.mode === "read" ? t("editingView") : t("readingView"), async () => { if (editor.dirty) await saveEditor(); editor.mode = editor.mode === "read" ? "edit" : "read"; renderEditor(); if (editor.mode === "edit") $(".sn-editor-text")?.focus(); });
-    head.append(modeBtn);
-    const src = iconBtn("code-2", t("sourceMode"), async () => { if (editor.dirty) await saveEditor(); editor.mode = editor.mode === "source" ? "edit" : "source"; renderEditor(); $(".sn-editor-text")?.focus(); });
-    if (editor.mode === "source") src.classList.add("is-active");
-    head.append(src);
-    head.append(iconBtn("more-vertical", t("more"), (e) => {
-      const m = cardMenu(path, null);
-      if (vault.fs.kind !== "disk") m.add(t("downloadNote"), "download", () => downloadNote(path));
-      m.showBelow(e.currentTarget);
-    }));
+    // one labelled action, reading ↔ editing (Ctrl+E); the rest of the note's tools are in ⋮
+    const reading = editor.mode === "read";
+    head.append(h("button", { cls: "sn-mode-btn" + (reading ? "" : " is-editing"), type: "button", title: (reading ? t("editingView") : t("readingView")) + " · Ctrl+E", onClick: () => toggleReading() },
+      ic("", reading ? "pencil" : "check"), h("span", { cls: "sn-mode-label", text: reading ? t("modeEdit") : t("modeDone") })));
+    head.append(iconBtn("more-vertical", t("more"), (e) => editorMenu(path, e.currentTarget), "sn-editor-more"));
   }
   host.append(head);
-  if (n && editor.mode !== "read") host.append(renderEdToolbar());
+  host.classList.toggle("is-read", !!n && editor.mode === "read");
+  if (n && editor.mode !== "read") {
+    // the reading view keeps the toolbar's room above the note, so the title doesn't move when editing starts (app.css)
+    const bar = renderEdToolbar();
+    host.append(bar);
+    const hgt = bar.getBoundingClientRect().height; // not offsetHeight, which rounds to a whole pixel
+    if (hgt) document.documentElement.style.setProperty("--ed-toolbar-h", hgt + "px");
+  }
   const scroll = h("div", { cls: "sn-editor-scroll" });
   scroll.addEventListener("scroll", () => { if ($(".sn-fmtbar")) updateFmtBar($(".sn-editor-text")); }, { passive: true });
   const page = h("div", { cls: "sn-editor-page" });

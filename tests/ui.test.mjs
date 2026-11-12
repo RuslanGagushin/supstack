@@ -1085,6 +1085,34 @@ describe("opening a note", () => {
     noErrors();
   });
 
+  test("the header has Edit (Done while editing) and ⋮; the title stays put; outline, focus and source are in ⋮", async () => {
+    await openVault({ openNotes: "read" });
+    await ev(() => openEditor("cards/This week.md", { focus: false, wide: false }));
+    const head = () => ev(() => ({
+      mode: editor.mode, btn: $("#editor .sn-mode-btn")?.textContent, icons: $$("#editor .sn-editor-head > .clickable-icon").length,
+      top: Math.round($("#editor .sn-inline-title").getBoundingClientRect().top),
+    }));
+    const read = await head();
+    assert.deepEqual([read.mode, read.btn, read.icons], ["read", "Edit", 3], "close, expand and ⋮ besides Edit");
+    await page().click("#editor .sn-mode-btn");
+    const edit = await head();
+    assert.deepEqual([edit.mode, edit.btn], ["edit", "Done"]);
+    assert.equal(edit.top, read.top, "the title doesn't move when the toolbar comes in");
+    await page().click("#editor .sn-mode-btn");
+    const back = await head();
+    assert.deepEqual([back.mode, back.top], ["read", read.top], "nor when it goes back to reading");
+    // ⋮: the view first, the note's own actions after it, without "Edit"
+    await page().click("#editor .sn-editor-more");
+    const items = await page().$$eval(".menu .menu-item", (xs) => xs.map((x) => x.textContent.trim()));
+    assert.deepEqual(items.slice(0, 3), ["Outline", "Focus mode", "Source mode (whole file)"]);
+    assert.ok(!items.includes("Edit"));
+    await page().click(".menu .menu-item >> text=Source mode");
+    assert.equal(await ev(() => editor.mode), "source");
+    await page().click("#editor .sn-mode-btn");
+    assert.equal(await ev(() => editor.mode), "read", "Done from the source goes back to reading");
+    noErrors();
+  });
+
   test("Settings › Open notes: For editing opens notes for editing", async () => {
     await openVault({ openNotes: "read" });
     await ev(() => settingsModal("appearance"));
@@ -1223,7 +1251,7 @@ describe("list of notes", () => {
     noErrors();
   });
 
-  test("the note's header shows the notebooks it sits in, its other places and a move button; no Children block; only a notebook opens as a list", async () => {
+  test("the note's header shows the notebooks it sits in and its other places; Move and Open notebook are in ⋮; no Children block", async () => {
     await openVault({ demo: false, notes: {
       "cards/Work.md": "", "cards/Proton.md": "---\nparents: [\"[[Work]]\"]\n---\n", "cards/Home.md": "",
       "cards/Invoice.md": "---\nparents: [\"[[Proton]]\", \"[[Home]]\"]\n---\nan invoice",
@@ -1231,11 +1259,14 @@ describe("list of notes", () => {
     await ev(() => openEditor("cards/Invoice.md", { focus: false, wide: false }));
     const head = () => ev(() => ({
       path: $(".sn-editor-path").textContent, links: $$(".sn-editor-path a.sn-editor-crumb").map((a) => a.textContent),
-      places: $(".sn-editor-places")?.textContent ?? null, move: !!$(".sn-editor-move"),
-      notebook: $$("#editor .sn-editor-head button").some((b) => b.title === t("menuOpenNotebook")), children: /Children/.test($("#editor").textContent),
+      places: $(".sn-editor-places")?.textContent ?? null, children: /Children/.test($("#editor").textContent),
     }));
+    const menu = async () => { await page().click("#editor .sn-editor-more"); const items = await page().$$eval(".menu .menu-item", (xs) => xs.map((x) => x.textContent.trim())); await page().keyboard.press("Escape"); return items; };
     // of its two parents the path follows the first in manual order, as the list's breadcrumbs do
-    assert.deepEqual(await head(), { path: "Home", links: ["Home"], places: "+1", move: true, notebook: false, children: false });
+    assert.deepEqual(await head(), { path: "Home", links: ["Home"], places: "+1", children: false });
+    const items = await menu();
+    assert.ok(items.includes("Move to…"), "Move to… is in ⋮");
+    assert.ok(!items.includes("Open notebook"), "a note with no notes inside has no Open notebook");
     await page().click(".sn-editor-places");
     assert.match(await page().textContent(".menu"), /Also in.*Work \/ Proton/s);
     await page().click(".menu .menu-item >> text=Work / Proton");
@@ -1244,7 +1275,8 @@ describe("list of notes", () => {
     await page().click(".sn-editor-path a.sn-editor-crumb >> text=Work");
     assert.equal(await ev(() => board.target), "cards/Work.md", "a notebook in the path opens its list");
     await ev(() => openEditor("cards/Proton.md", { focus: false, wide: false }));
-    assert.deepEqual(await ev(() => [$$("#editor .sn-editor-head button").some((b) => b.title === t("menuOpenNotebook")), /Children/.test($("#editor").textContent)]), [true, false]);
+    assert.ok((await menu()).includes("Open notebook"), "a notebook opens as its list from ⋮");
+    assert.equal(await ev(() => /Children/.test($("#editor").textContent)), false);
     await ev(() => openEditor("cards/Work.md", { focus: false, wide: false }));
     assert.equal(await page().textContent("#editor .sn-editor-path"), "All notes", "a note at the top sits in All notes");
     noErrors();

@@ -173,7 +173,7 @@ export async function toggleReading() {
   editor.mode = editor.mode === "read" ? "edit" : "read";
   renderEditor();
   if (editor.mode === "edit") $(".sn-editor-text")?.focus();
-  else $("#editor .sn-reading")?.setAttribute("tabindex", "-1"), $("#editor .sn-reading")?.focus();
+  else $("#editor .sn-reading")?.setAttribute("tabindex", "-1"), $("#editor .sn-reading")?.focus({ preventScroll: true }); // the note stays where it was
 }
 /** Insert into the editor through the browser so Ctrl+Z keeps working. */
 export function edInsert(ta, from, to, text, selFrom, selTo) {

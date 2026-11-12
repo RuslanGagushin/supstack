@@ -189,6 +189,16 @@ body.sn-app .sn-editor-head .sn-editor-move { flex: none; }
 body.sn-app .sn-editor-page { max-width: 680px; padding: 18px 40px 40vh; }
 body.sn-app .sn-editor-badge { color: var(--muted); }
 body.sn-app .sn-inline-title { font-weight: 700; font-size: 32px; line-height: 1.2; letter-spacing: -.02em; color: var(--ink); margin: 6px 0 12px; }
+/* the note's one labelled action: Edit while reading, Done (blue) while editing (editor.js) */
+button.sn-mode-btn { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 30px; margin: 0 2px 0 6px; padding: 0 12px 0 10px;
+  border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--win); color: var(--fg); font-size: var(--fs-ui); font-weight: 500; cursor: pointer; }
+button.sn-mode-btn:hover { background: var(--hover-bg); }
+button.sn-mode-btn svg { width: 15px; height: 15px; }
+button.sn-mode-btn.is-editing { border-color: transparent; background: var(--cta); color: #fff; }
+button.sn-mode-btn.is-editing:hover { background: var(--cta-hover); }
+@container (max-width: 640px) { button.sn-mode-btn { width: 30px; padding: 0; justify-content: center; } .sn-mode-label { display: none; } }
+/* reading keeps the room of the editing toolbar above the note, so its title stays put when editing starts */
+.sn-editor.is-read .sn-editor-scroll { padding-top: var(--ed-toolbar-h, 40px); } /* until a toolbar is measured, its min-height (writing.css) */
 /* reading: one quiet line under the title in place of Properties, and no rule between it and the text (editor-toolbar.js infoLine) */
 .sn-info { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 22px; margin: -4px 0 18px; font-size: var(--fs-sm); color: var(--muted); }
 .sn-info-date { margin-right: 4px; }

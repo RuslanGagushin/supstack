@@ -14,8 +14,8 @@ import { defaultEcho, echo, Menu, notice, openLayer, promptModal, suggestModal }
 import { createCard, promptAddTag, quickOpen, saveCurrentView, tagTargets, togglePin } from "./actions.js";
 import { goBack, patchBoard, renderBoard, setTarget, toggleSearch } from "./board.js";
 import { expandTo, renderTree, renderTreeSoft, revealInTree } from "./tree.js";
-import { closeEditor, openEditor, renderEditor, syncEditorFromDisk } from "./editor.js";
-import { renderEditorProps } from "./editor-toolbar.js";
+import { closeEditor, openEditor, renderEditor, syncEditorFromDisk, toggleSource } from "./editor.js";
+import { renderEditorProps, toggleReading } from "./editor-toolbar.js";
 import { pickVault, showWelcome } from "./welcome.js";
 import { syncButton, syncSettingsBody, syncSettingsModal } from "./sync-panel.js";
 import { openToday, outlineMenu, setFocusMode } from "./completion.js";
@@ -76,7 +76,12 @@ function commandList() {
   add(fvt("files"), "paperclip", () => openFilesView(), "Ctrl+Shift+E");
   if (editor.path) { add(ft("foldAll"), "chevrons-down-up", () => orgFoldNote(true)); add(ft("unfoldAll"), "chevrons-up-down", () => orgFoldNote(false)); }
   add(wt("focus"), "focus", () => setFocusMode(!UI.focus), "Ctrl+Shift+F", UI.focus);
-  if (editor.path) add(wt("outline"), "table-of-contents", () => outlineMenu($("#editor .sn-editor-head") || document.body));
+  if (editor.path) {
+    // the note's header has only Edit / Done and ⋮: what was a button there is a command here too
+    add(wt("outline"), "table-of-contents", () => outlineMenu($("#editor .sn-editor-more") || $("#editor .sn-editor-head") || document.body));
+    add(editor.mode === "read" ? t("editingView") : t("readingView"), editor.mode === "read" ? "pencil" : "book-open", () => toggleReading(), "Ctrl+E");
+    add(t("sourceMode"), "code-2", () => toggleSource(), null, editor.mode === "source");
+  }
   add(t("newCard"), "plus", async () => { const title = await promptModal(t("newCard")); if (title) createCard(title, board.target, "", undefined, { open: true }); });
   if (board.target) add(t("cmdEditTarget"), "pencil", () => openEditor(board.target, { focus: true, edit: true }));
   if (board.target) add(t("toParent"), "arrow-up", () => { const ps = graph.parentsOf(board.target).filter((p) => graph.has(p)); setTarget(ps[0] ?? null); }, "Alt+↑");
