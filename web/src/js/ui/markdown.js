@@ -288,7 +288,7 @@ export function renderMarkdown(md, sourcePath, opts = {}) {
     const path = resolveAttachment(name, sourcePath);
     if (path) attachmentUrl(path).then((u) => { img.src = u; }).catch(() => {});
   }
-  try { orgDecorate(el, sourcePath); } catch (err) { console.warn(err); }
+  try { orgDecorate(el, sourcePath, { short: !!opts.shortDates }); } catch (err) { console.warn(err); }
   decorateCodeBlocks(el);
   return el;
 }

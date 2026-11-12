@@ -3,7 +3,7 @@
    ========================================================= */
 import { LANG, t, tt } from "../core/i18n.js";
 import { baseName, debounce, norm } from "../core/util.js";
-import { oFmt, ohm, oisoWeek, onow, opad, orgCache, orgDayEntries, orgNowTs, orgPriRank, orgReadDate, orgShift, orgSkip, orgStats, orgTsStr, orgWithGrid, oymd, TASK_STATES } from "../core/org.js";
+import { oFmt, ohm, oisoWeek, onow, opad, orgCache, orgRelDay, orgDayEntries, orgNowTs, orgPriRank, orgReadDate, orgShift, orgSkip, orgStats, orgTsStr, orgWithGrid, oymd, TASK_STATES } from "../core/org.js";
 import { lsGet, lsSet } from "../services/storage.js";
 import { board, vault } from "../services/state.js";
 import { persistBoard } from "../services/vault.js";
@@ -18,7 +18,7 @@ import { renderTree } from "./tree.js";
 import { setSide, sideToggle } from "./shell.js";
 import { orgCycle, orgEdit, orgPickPriority, orgPickState, orgPlanEntry, orgPri, orgRefocus, orgTagsEntry } from "./org-commands.js";
 import { openEditorAtLine, orgAskDate, orgCalendar, orgDateText } from "./org-editing.js";
-import { taskBox, taskIcon } from "./task-icons.js";
+import { dateChip, taskBox, taskIcon } from "./task-icons.js";
 
 /* ---------- agenda state */
 // log is on by default: a task closed on a day stays on that day, struck through
@@ -307,18 +307,9 @@ function daySummary(ents) {
   return [open.size ? tt("sumTasks", { n: open.size }) : "", done.size ? tt("sumDone", { n: done.size }) : "",
     min ? (h_ && m_ ? tt("hm", { h: h_, m: m_ }) : h_ ? tt("hOnly", { h: h_ }) : tt("mOnly", { m: m_ })) : ""].filter(Boolean).join(" · ");
 }
-/** A date said the short way when it is close: today, tomorrow, in 3 d., 2 d. ago; else "5 Nov". */
-function relDay(dn) {
-  const d = dn - onow().dn;
-  return d === 0 ? tt("relToday") : d === 1 ? tt("relTomorrow") : d === -1 ? tt("relYesterday") : d > 1 && d <= 7 ? tt("relIn", { n: d }) : d < -1 && d >= -7 ? tt("relAgo", { n: -d }) : oFmt(dn, "D MMM");
-}
-const LAB_ICON = { dead: "flag", sched: "calendar", closed: "check" };
-/** The label of a row as a chip: a deadline is a flag (red when due or overdue, amber in its warning days), a scheduled date a calendar. */
-function labelChip(kind, text, tone) {
-  if (!text) return "";
-  const k = kind.split(" ")[0];
-  return h("span", { cls: "ag-chip" + (tone ? " is-" + tone : "") }, LAB_ICON[k] ? ic("", LAB_ICON[k]) : null, h("span", { text: text.replace(/:$/, "") }));
-}
+const relDay = orgRelDay;
+/** The label of a row as a chip (task-icons.js dateChip, which a note being read uses too). */
+const labelChip = (kind, text, tone) => (text ? dateChip(kind.split(" ")[0], text.replace(/:$/, ""), tone) : "");
 function orgRow(x) {
   if (x.grid) return h("div", { cls: "ag-grid" + (x.now ? " now" : "") }, h("span", { cls: "ag-cat" }), h("span", { cls: "ag-time", text: ohm(x.time) }), h("span", { cls: "dots", text: x.now ? (LANG === "ru" ? "сейчас " : "now ") : "" }));
   const i = AGROWS.push(x) - 1;

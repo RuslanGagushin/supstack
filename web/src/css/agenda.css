@@ -71,7 +71,7 @@ button.fchip.exc { background: color-mix(in srgb, var(--todo) 12%, transparent);
 .ag-chip svg { flex: none; width: 12px; height: 12px; }
 .ag-chip.is-due { background: color-mix(in srgb, var(--todo) 11%, transparent); color: var(--todo); }
 .ag-chip.is-soon { background: color-mix(in srgb, var(--next) 10%, transparent); color: color-mix(in srgb, var(--next) 75%, var(--ink)); }
-.k-closed .ag-chip { color: var(--done); }
+.k-closed .ag-chip, .ag-chip.k-closed { color: var(--done); }
 /* overdue entries, gathered above today */
 .ag-overdue { border-color: color-mix(in srgb, var(--todo) 35%, var(--line)); }
 .ag-overdue.is-closed > .ag-day { padding-bottom: 10px; }
@@ -134,6 +134,10 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: 8px; paddin
 .markdown-rendered .org-ts { font-size: var(--fs-sm); font-weight: 500; line-height: 1.5; font-variant-numeric: tabular-nums; padding: 1px 8px; border-radius: var(--r-pill); background: var(--panel); color: var(--tag, var(--fg)); white-space: nowrap; }
 .markdown-rendered .org-ts .cm-sn-fmt { color: var(--faint); }
 .markdown-rendered .org-ts.is-inactive { background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
+/* a note being read: each date one chip, as in the agenda (org-editing.js planChip); the priority one letter */
+.markdown-rendered .ag-chip.org-date { vertical-align: 1px; margin-right: 2px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.markdown-rendered .ag-chip.org-date .org-date-rep { display: inline-flex; }
+.markdown-rendered .ag-chip.org-date .org-date-rep svg { width: 11px; height: 11px; }
 /* capture */
 .cap-tpl { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 4px 0 14px; }
 button.cap-tpl-btn, button.cap-tpl-btn:not(.clickable-icon) { flex-direction: column; align-items: flex-start; gap: 4px; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--r-s); background: var(--bg); font-weight: 400; cursor: pointer; text-align: left; }

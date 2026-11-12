@@ -234,7 +234,7 @@ export function renderEditor() {
   }
   if (editor.mode === "read") {
     const rd = h("div", { cls: "sn-reading markdown-rendered" });
-    renderMarkdown(n.body, path, { into: rd, pdf: true });
+    renderMarkdown(n.body, path, { into: rd, pdf: true, shortDates: true }); // tasks read as in the agenda; editing keeps the Markdown
     wireRendered(rd, path);
     rd.addEventListener("dblclick", (e) => { if (!e.target.closest("a, input")) { editor.mode = "edit"; renderEditor(); $(".sn-editor-text")?.focus(); } });
     page.append(rd);

@@ -353,7 +353,14 @@ export function orgStats(all) {
   return { open, overdue, today };
 }
 export const orgPriRank = (e) => (e.pri ? 4 - Math.min(3, e.pri.charCodeAt(0) - 64) : 2);
-const orgWarnDays = (ts) => (ts.warn ? ounitDays(ts.warn.n, ts.warn.u) : 14);
+/** How many days before a deadline it starts to warn: its own -3d, or two weeks. */
+export const orgWarnDays = (ts) => (ts.warn ? ounitDays(ts.warn.n, ts.warn.u) : 14);
+/** A day said the short way when it is close: today, tomorrow, in 3 d., 2 d. ago; else "5 Nov". The agenda and a note
+ *  being read say a date the same way. */
+export function orgRelDay(dn) {
+  const d = dn - onow().dn;
+  return d === 0 ? tt("relToday") : d === 1 ? tt("relTomorrow") : d === -1 ? tt("relYesterday") : d > 1 && d <= 7 ? tt("relIn", { n: d }) : d < -1 && d >= -7 ? tt("relAgo", { n: -d }) : oFmt(dn, "D MMM");
+}
 /** The agenda lines of day `dn` (today is T); `log` adds the entries closed that day. */
 export function orgDayEntries(dn, all, T, { log = false } = {}) {
   const out = [];

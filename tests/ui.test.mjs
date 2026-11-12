@@ -396,14 +396,37 @@ describe("planning lines", () => {
   beforeEach(async () => { await openVault({ demo: false, notes: { "cards/P.md": NOTE } }); await ev(() => openEditor("cards/P.md", { focus: false })); });
   const shown = (sel) => ev((s) => [...document.querySelectorAll(s)].map((x) => x.innerText.trim()), sel);
 
-  test("SCHEDULED, DEADLINE and CLOSED are lowercase pills without their colon, dates pills without their brackets", async () => {
+  test("while editing, SCHEDULED, DEADLINE and CLOSED are lowercase pills without their colon, dates pills without their brackets", async () => {
     assert.deepEqual(await shown("#editor .sn-live .org-plan"), ["deadline", "scheduled", "closed"]);
     assert.deepEqual(await shown("#editor .sn-live .org-ts"), ["2026-11-07 Sat", "2026-11-05 Thu", "2026-11-03 Tue 18:20"]);
-    await ev(() => { editor.mode = "read"; renderEditor(); });
-    assert.deepEqual(await shown("#editor .sn-reading .org-plan"), ["deadline", "scheduled", "closed"]);
-    assert.deepEqual(await shown("#editor .sn-reading .org-ts"), ["2026-11-07 Sat", "2026-11-05 Thu", "2026-11-03 Tue 18:20"]);
-    assert.equal(await ev(() => document.querySelector("#editor .sn-reading .org-ts").title), "<2026-11-07 Sat>", "the full timestamp in the tooltip");
     assert.equal(await raw("cards/P.md"), NOTE, "the note's text is unchanged");
+    noErrors();
+  });
+
+  test("while reading, each date is one chip said as in the agenda, and the priority one letter", async () => {
+    const note = "- [ ] [#A] Book the tour\n  DEADLINE: <2026-11-07 Sat> SCHEDULED: <2026-11-05 Thu>\n- [ ] Plan\n  DEADLINE: <2026-11-30 Mon>\n"
+      + "- [ ] Weekly review\n  SCHEDULED: <2026-11-09 Mon 10:00 +1w>\n- [x] Set up\n  CLOSED: [2026-11-03 Tue 18:20]\n- [x] Old\n  DEADLINE: <2026-11-01 Sun>\n\nLunch <2026-11-06 Fri 13:00-14:00>\n";
+    await openVault({ demo: false, time: "2026-11-06T09:00:00", openNotes: "read", notes: { "cards/R.md": note } });
+    await ev(() => openEditor("cards/R.md", { focus: false }));
+    const chips = await ev(() => [...document.querySelectorAll("#editor .sn-reading .org-date")].map((c) => [c.className.replace(/\b(ag-chip|org-date)\b/g, "").trim(), c.innerText.trim(), !!c.querySelector(".org-date-rep")]));
+    assert.deepEqual(chips, [
+      ["k-dead is-soon", "Tomorrow", false], ["k-sched", "Yesterday", false],
+      ["k-dead", "30 Nov", false], // past its warning days: no colour yet
+      ["k-sched", "In 3 d., 10:00", true],
+      ["k-closed", "3 Nov", false],
+      ["k-dead", "5 d. ago", false], // overdue, but the task is done: no red
+      ["k-event", "Today, 13:00–14:00", false],
+    ]);
+    const r = await ev(() => ({
+      words: document.querySelectorAll("#editor .sn-reading .org-plan, #editor .sn-reading .org-ts").length,
+      tip: document.querySelector("#editor .sn-reading .org-date").title, pri: document.querySelector("#editor .sn-reading .pri.A")?.textContent,
+    }));
+    assert.equal(r.words, 0, "no Markdown words or timestamps left");
+    assert.equal(r.tip, "DEADLINE: <2026-11-07 Sat>", "the Markdown in the tooltip");
+    assert.equal(r.pri, "A");
+    await ev(() => openEditor("cards/R.md", { focus: false, edit: true }));
+    assert.equal(await ev(() => document.querySelectorAll("#editor .org-date").length), 0, "editing shows the Markdown again");
+    assert.equal(await raw("cards/R.md"), note, "the note's text is unchanged");
     noErrors();
   });
 
