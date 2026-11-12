@@ -40,7 +40,8 @@ export function openEditor(path, o = {}) {
   $("#app").classList.add("editor-open");
   $("#app").classList.toggle("editor-wide", editor.wide);
   renderEditor();
-  $$(".sn-card.is-editing").forEach((c) => c.classList.remove("is-editing"));
+  $$(":is(.sn-card, .sn-list-desc).is-editing").forEach((c) => c.classList.remove("is-editing"));
+  $$(`.sn-list-desc[data-path="${CSS.escape(path)}"]`).forEach((c) => c.classList.add("is-editing"));
   $$(`.sn-card[data-path="${CSS.escape(path)}"]`).forEach((c) => { c.classList.add("is-editing"); if (c.classList.contains("sn-row")) c.scrollIntoView({ block: "nearest" }); });
   if (board.cardSigs) for (const p of [path, ...board.cardSigs.keys()]) if (board.cardSigs.has(p)) board.cardSigs.set(p, cardSig(p));
   markOpenInTree();
@@ -58,7 +59,7 @@ export function closeEditor(force = false) {
   editor.path = null;
   editor.live = null;
   $("#app")?.classList.remove("editor-open", "editor-wide");
-  $$(".sn-card.is-editing").forEach((c) => c.classList.remove("is-editing"));
+  $$(":is(.sn-card, .sn-list-desc).is-editing").forEach((c) => c.classList.remove("is-editing"));
   markOpenInTree();
   const host = $("#editor");
   if (host) host.replaceChildren();

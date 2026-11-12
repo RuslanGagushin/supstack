@@ -246,6 +246,13 @@ body.sn-app #app.notes-layout.editor-open .sn-board.is-notes .sn-page { max-widt
 .sn-list-badge { display: inline-flex; color: var(--muted); }
 .sn-list-badge svg { width: 18px; height: 18px; }
 .sn-list-count { flex: none; color: var(--faint); }
+/* the notebook's own text, under its title: three lines that open it beside the list (board.js renderListDesc) */
+.sn-list-desc { margin: -6px 0 12px; padding: 6px 8px; border-radius: var(--r-s); color: var(--muted); line-height: 1.5; cursor: pointer; }
+.sn-list-desc-text { overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+.sn-list-desc:hover { background: var(--hover-bg); color: var(--fg); }
+.sn-list-desc.is-editing { background: var(--sel); color: var(--fg); }
+.sn-list-desc:focus { outline: none; }
+.sn-list-desc:focus-visible { box-shadow: 0 0 0 2px var(--accent); }
 body.sn-app .sn-board.is-notes .sn-composer { margin: 0 0 10px; }
 .sn-rows { display: flex; flex-direction: column; gap: 6px; }
 body.sn-app .sn-board .sn-card.sn-row {
@@ -255,9 +262,13 @@ body.sn-app .sn-board .sn-card.sn-row {
 body.sn-app .sn-board .sn-card.sn-row:hover { background: var(--hover-bg); box-shadow: none; }
 body.sn-app .sn-board .sn-card.sn-row:focus { box-shadow: none; }
 body.sn-app .sn-board .sn-card.sn-row:focus-visible:not(.is-editing) { box-shadow: 0 0 0 2px var(--accent); }
-body.sn-app .sn-board .sn-card.sn-row.is-editing { background: var(--win); box-shadow: 0 0 0 1px var(--line), 0 2px 8px rgba(0,0,0,.05); }
+/* the open note: the same grey as the current row in the sidebar, not a white card that competes with the note's own sheet */
+body.sn-app .sn-board .sn-card.sn-row.is-editing { background: var(--sel); box-shadow: none; }
+/* --faint is for --bg and --win only: on a row's grey the date, the dots and the counts step up to --muted, as in the sidebar */
+.sn-row:is(:hover, .is-editing) :is(.sn-row-meta, .sn-row-meta > *::before, .sn-row-count) { color: var(--muted); }
 body.sn-app .sn-board .sn-card.sn-row.is-picked { background: color-mix(in srgb, var(--accent-soft) 70%, var(--win)); box-shadow: 0 0 0 1px var(--accent); }
-.sn-rows > .sn-row:not(.is-editing):not(:hover) + .sn-row:not(.is-editing):not(:hover)::before {
+/* rules between notes; none above a notebook row, so the notebooks at the top of the list read as one block */
+.sn-rows > .sn-row:not(.is-editing):not(:hover) + .sn-row:not(.is-editing):not(:hover):not(.is-folder)::before {
   content: ""; position: absolute; top: -3.5px; left: 14px; right: 14px; border-top: 1px solid var(--line);
 }
 .sn-row-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
@@ -295,6 +306,7 @@ body.sn-app .sn-board .sn-card.sn-row.is-folder { align-items: center; gap: 10px
 .sn-row-count svg { width: 16px; height: 16px; }
 .sn-row.is-folder:hover .sn-row-count, .sn-row.is-folder:focus-visible .sn-row-count { color: var(--accent); }
 .sn-rows > .sn-row.is-folder + .sn-row:not(.is-folder) { margin-top: 10px; }
+.sn-rows > .sn-row.is-folder + .sn-row.is-folder { margin-top: -4px; }
 .sn-row-thumb { flex: none; width: 60px; height: 60px; margin-top: 19px; object-fit: cover; border-radius: var(--r-s); background: var(--panel); box-shadow: 0 0 0 1px var(--line); }
 @media (max-width: 820px) {
   body.sn-app .sn-board.is-notes .sn-page { padding: 10px 6px 60px; }

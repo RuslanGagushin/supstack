@@ -1032,9 +1032,9 @@ describe("opening a note", () => {
     assert.deepEqual(await mode(), ["Colosseum", "read", true], "a click opens to read");
     await page().dblclick('.sn-row[data-path="cards/Colosseum.md"]');
     assert.deepEqual((await mode()).slice(0, 2), ["Colosseum", "edit"], "a double click on the open note switches it to editing");
-    await page().click('.sn-row[data-path="cards/Roman Empire.md"]');
-    assert.equal((await mode())[1], "read", "the next note opens to read again");
-    await page().focus('.sn-row[data-path="cards/Roman Empire.md"]');
+    await page().click(".sn-list-desc"); // Roman Empire's own text, under the list's title
+    assert.deepEqual((await mode()).slice(0, 2), ["Roman Empire", "read"], "the next note opens to read again");
+    await page().focus(".sn-list-desc");
     await page().keyboard.press("Enter");
     assert.equal((await mode())[1], "edit", "Enter opens it to edit");
     await ev(() => createCard("Fresh", "cards/Roman Empire.md", "", undefined, { open: true }));
@@ -1061,37 +1061,58 @@ describe("list of notes", () => {
   beforeEach(() => openVault({ notes: { "cards/Pics.md": "---\nparents: [\"[[History]]\"]\n---\nSome **photo** here\n\n![[pic.png]]\n" } }));
   const rows = () => ev(() => [...document.querySelectorAll("#board .sn-rows .sn-row")].map((r) => r.dataset.path.replace(/^cards\/|\.md$/g, "")));
 
-  test("the list shows the card's own note and its children, and opens the first child beside it", async () => {
+  test("the list shows the notebook's own text under its title and its children below, and opens the first child beside it", async () => {
     await ev(() => setTarget("cards/History.md"));
-    assert.deepEqual(await rows(), ["History", "Roman Empire", "Pics"], "the card's own text, its notebooks, then its notes");
+    assert.deepEqual(await rows(), ["Roman Empire", "Pics"], "its notebooks, then its notes; its own text is not a row");
     const r = await ev(() => ({
       path: editor.path, wide: editor.wide, app: document.getElementById("app").className,
       list: document.querySelector(".sn-main").getBoundingClientRect().width, note: document.querySelector(".sn-editor").getBoundingClientRect().width,
-      own: document.querySelector(".sn-row.is-own .sn-row-meta").textContent, snippet: document.querySelector('.sn-row[data-path="cards/Pics.md"] .sn-row-snippet').textContent,
-      editing: document.querySelector(".sn-row.is-editing")?.dataset.path,
+      own: document.querySelector(".sn-list-head + .sn-list-desc")?.textContent, snippet: document.querySelector('.sn-row[data-path="cards/Pics.md"] .sn-row-snippet').textContent,
+      editing: document.querySelector(".sn-row.is-editing")?.dataset.path, count: document.querySelector(".sn-list-count").textContent,
     }));
     assert.equal(r.path, "cards/Pics.md");
     assert.equal(r.wide, false);
     assert.match(r.app, /notes-layout/);
     assert.equal(Math.round(r.list), 380);
     assert.ok(r.note > 500, "the note takes the rest of the width");
-    assert.match(r.own, /^This notebook/);
+    assert.match(r.own, /^Everything about the past/);
+    assert.equal(r.count, "1 notebook · 1 note");
     assert.equal(r.snippet, "Some photo here");
     assert.equal(r.editing, "cards/Pics.md");
     noErrors();
   });
 
-  test("a click or the arrow keys open a note beside the list; a notebook only takes the focus; the card's own note opens there too", async () => {
+  test("a click or the arrow keys open a note beside the list; a notebook only takes the focus; the description opens the notebook's own note", async () => {
     await ev(() => setTarget("cards/History.md"));
     await page().click('.sn-row[data-path="cards/Pics.md"]');
     assert.equal(await ev(() => editor.path), "cards/Pics.md");
     await page().keyboard.press("ArrowUp");
     assert.deepEqual(await ev(() => [editor.path, document.activeElement.dataset.path]), ["cards/Pics.md", "cards/Roman Empire.md"], "the notebook doesn't open beside the list");
-    await page().keyboard.press("ArrowUp");
-    assert.deepEqual(await ev(() => [editor.path, editor.wide, !!document.querySelector(".sn-board .sn-row.is-own")]), ["cards/History.md", false, true]);
-    // Enter puts the caret in the note
+    await page().click(".sn-list-desc");
+    assert.deepEqual(await ev(() => [editor.path, editor.wide, document.querySelector(".sn-list-desc").classList.contains("is-editing"), document.querySelectorAll(".sn-row.is-editing").length]),
+      ["cards/History.md", false, true, 0], "it opens beside the list and is marked as the open one");
+    // Enter on it puts the caret in the note
+    await page().focus(".sn-list-desc");
     await page().keyboard.press("Enter");
     await page().waitForFunction(() => !!document.activeElement.closest(".sn-editor"));
+    // typing in it updates the description, without redrawing the list
+    await ev(async () => { document.querySelector(".sn-list-head").dataset.mark = "1"; const n = vault.notes.get("cards/History.md"); await writeRaw("cards/History.md", n.raw.replace("Everything about the past", "All of the past")); refresh(); });
+    await page().waitForFunction(() => document.querySelector(".sn-list-desc")?.textContent.startsWith("All of the past"));
+    assert.equal(await ev(() => document.querySelector(".sn-list-head").dataset.mark), "1", "the list was patched, not drawn again");
+    noErrors();
+  });
+
+  test("the count says how many notebooks and notes the list holds, and a notebook with no text has no description", async () => {
+    await openVault({ demo: false, notes: { "cards/A.md": "", "cards/B.md": "---\nparents: [\"[[A]]\"]\n---\n", "cards/C.md": "---\nparents: [\"[[B]]\"]\n---\nc",
+      "cards/D.md": "---\nparents: [\"[[A]]\"]\n---\nd", "cards/E.md": "---\nparents: [\"[[A]]\"]\n---\ne" } });
+    const count = () => page().textContent(".sn-list-count");
+    await ev(() => setTarget("cards/A.md"));
+    assert.equal(await count(), "1 notebook · 2 notes");
+    assert.equal(await ev(() => document.querySelectorAll(".sn-list-desc").length), 0);
+    await ev(() => setTarget("cards/B.md"));
+    assert.equal(await count(), "1 note");
+    await ev(() => setTarget(null));
+    assert.equal(await count(), "1 notebook", "only notebooks: no \"0 notes\"");
     noErrors();
   });
 

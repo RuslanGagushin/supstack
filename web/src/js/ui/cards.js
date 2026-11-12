@@ -94,11 +94,11 @@ function wireRow(row, path, via) {
 }
 /** A note as a row in the list of notes: when it changed, its title, two lines of its text, its tags and the first image; in a search
    or a tag's list also the card it sits in. Clicking it (or, on a wide screen, moving onto it with the arrow keys: see keyboard.js)
-   opens it beside the list. A notebook (`folder`) is a compact row instead. */
+   opens it beside the list. A notebook (`folder`) is a compact row instead; the listed notebook's own text is not a row
+   but the description under the list's title (board.js). */
 export function renderRow(path, via, folder = false) {
-  const own = path === board.target && !board.tagView;
-  if (folder && !own) return renderFolderRow(path, via);
-  const row = h("div", { cls: "sn-card sn-row" + (own ? " is-own" : ""), tabindex: "-1" });
+  if (folder) return renderFolderRow(path, via);
+  const row = h("div", { cls: "sn-card sn-row", tabindex: "-1" });
   row.dataset.path = path;
   row.dataset.via = via ?? "";
   if (board.selection.has(path)) row.classList.add("is-picked");
@@ -109,9 +109,8 @@ export function renderRow(path, via, folder = false) {
 
   const meta = h("div", { cls: "sn-row-meta" });
   const parents = graph.parentsOf(path).filter((p) => graph.has(p));
-  const where = own ? null : via && parents.includes(via) ? via : parents.find((p) => p !== board.target) ?? null;
-  if (own) meta.append(ic("sn-row-meta-icon", cardIcon(path) || "layers", "layers"), h("span", { text: t("rowOwnNote") }));
-  else if (searching && where && where !== board.target) meta.append(h("a", { cls: "sn-row-parent", href: "#", text: baseName(where), onClick: (e) => { e.preventDefault(); e.stopPropagation(); setTarget(where); } }));
+  const where = via && parents.includes(via) ? via : parents.find((p) => p !== board.target) ?? null;
+  if (searching && where && where !== board.target) meta.append(h("a", { cls: "sn-row-parent", href: "#", text: baseName(where), onClick: (e) => { e.preventDefault(); e.stopPropagation(); setTarget(where); } }));
   const mtime = n?.mtime || 0;
   meta.append(h("span", { cls: "sn-row-date", text: formatDate(mtime), title: t("modifiedAt", { date: new Date(mtime).toLocaleString(LANG) }) }));
   const prog = cardTaskProgress(path);
@@ -120,7 +119,7 @@ export function renderRow(path, via, folder = false) {
 
   const head = h("div", { cls: "sn-row-head" });
   const iconName = cardIcon(path);
-  if (iconName && !own) head.append(ic("sn-card-icon", iconName, "file-text"));
+  if (iconName) head.append(ic("sn-card-icon", iconName, "file-text"));
   head.append(h("span", { cls: "sn-row-title", text: baseName(path) }));
   text.append(head);
 
@@ -150,7 +149,7 @@ export function renderRow(path, via, folder = false) {
     row.append(thumb);
   }
   // in a search a notebook is a full row too: the button on the right (or →) goes inside, ← comes back out
-  const kids = own ? 0 : graph.childrenOf(path).length;
+  const kids = graph.childrenOf(path).length;
   if (kids) {
     row.classList.add("has-kids");
     row.append(h("button", { cls: "sn-row-enter", type: "button", title: t("rowEnter", { n: kids }), onClick: (e) => { e.stopPropagation(); enterRow(path); } },
@@ -168,13 +167,7 @@ export function renderRow(path, via, folder = false) {
     e.preventDefault();
     openEditor(path, { focus: true, edit: true, wide: false });
   });
-  if (!own) wireRow(row, path, via);
-  else {
-    row.addEventListener("contextmenu", (e) => cardMenu(path, via).showAtEvent(e));
-    row.addEventListener("focus", () => setLastFocused(path));
-    attachLongPress(row, (ev) => cardMenu(path, via).showAtEvent(ev));
-    dnd.dropTarget(row, () => ({ path, parent: null, zones: ["inside"] }));
-  }
+  wireRow(row, path, via);
   return row;
 }
 /** Go into a note of the list of notes: list its children, with the note itself on top and its first child open beside them. */

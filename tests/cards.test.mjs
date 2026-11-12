@@ -258,7 +258,7 @@ describe("tasks, daily notes and settings", () => {
     assert.deepEqual(r.retired, []);
     assert.equal(r.sort, "name", "the settings that stay are kept");
     assert.deepEqual(r.board, ["cards/A.md", "name", false, false, false, false]);
-    assert.deepEqual(r.rows, ["cards/A.md", "cards/B.md"]);
+    assert.deepEqual(r.rows, ["cards/B.md"], "A's own text is the list's description, not a row");
     assert.equal(r.notes, true);
     const data = JSON.parse(await fsText(".supstack/settings.json"));
     assert.deepEqual(["defaultLayout", "cardFace", "previewLength", "cardMaxHeight", "defaultDepth", "defaultGrouped"].filter((k) => k in data), []);

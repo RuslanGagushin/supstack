@@ -2,14 +2,15 @@
    Board view
    ========================================================= */
 import { LANG, t } from "../core/i18n.js";
-import { baseName, debounce } from "../core/util.js";
+import { baseName, debounce, plainText } from "../core/util.js";
 import { filterActive } from "../core/board-model.js";
 import { board, editor, graph, S, vault } from "../services/state.js";
 import { boardModel, cardIcon, cardTags, makeComparator, persistBoard } from "../services/vault.js";
 import { $, $$, h, ic, iconBtn } from "./dom.js";
 import { Menu } from "./ui.js";
 import { createCard, deleteCards, dropCards, promptAddParent, promptAddTag, promptIcon, promptMove, saveCurrentView } from "./actions.js";
-import { renderRow } from "./cards.js";
+import { attachLongPress, cardMenu, renderRow } from "./cards.js";
+import { dnd } from "./dnd.js";
 import { expandTo, renderTree } from "./tree.js";
 import { closeEditor, openEditor, refreshNotebookPath } from "./editor.js";
 import { setSide, sideToggle } from "./shell.js";
@@ -177,20 +178,23 @@ function lazyAdd(page, scroll, list, add) {
   }, { root: scroll, rootMargin: "600px" });
   sentinelObs.observe(sentinel);
 }
-/** The card's own text is a row of its list only when there is some: most notebooks are empty headings. */
+/** Most notebooks are empty headings; the ones with text of their own show it under the list's title. */
 const hasText = (path) => !!vault.notes.get(path)?.body?.trim();
-/** Notes as rows of a list: the card's own note first (when it has text), then its notebooks, then its notes; a note opens beside the list. */
+const descText = (path) => plainText(vault.notes.get(path)?.body || "", 400);
+/** Notes as rows of a list: its notebooks, then its notes; a note opens beside the list. The notebook's own text is not a row
+   but its description, under the title. */
 function renderRows(page, scroll, model, composer) {
-  page.append(renderListHead(model), composer.el);
+  page.append(renderListHead(model));
+  if (board.target && !board.tagView && hasText(board.target)) page.append(renderListDesc(board.target));
+  page.append(composer.el);
   const rows = [];
   const box = h("div", { cls: "sn-rows" });
   page.append(box);
   const addRows = (list) => { for (const c of list) { const el = renderRow(c.path, c.via, !!c.folder); box.append(el); rows.push(el); } };
-  if (board.target && !board.tagView && hasText(board.target)) addRows([{ path: board.target, via: null }]);
   lazyAdd(page, scroll, model.shown, addRows);
   return rows;
 }
-/** The top of the list of notes: the card (or tag) it lists and how many notes it shows. */
+/** The top of the list of notes: the card (or tag) it lists and how many notebooks and notes it shows. */
 function renderListHead(model) {
   const target = board.target, tv = board.tagView;
   const head = h("div", { cls: "sn-list-head" });
@@ -199,12 +203,31 @@ function renderListHead(model) {
   head.append(h("span", { cls: "sn-list-count", text: countText(model) }));
   return head;
 }
+/** The notebook's own text, three lines of it: a click opens it beside the list, a double click (or Enter) to edit. */
+function renderListDesc(path) {
+  const el = h("div", { cls: "sn-list-desc" + (editor.path === path ? " is-editing" : ""), tabindex: "0", role: "button", title: t("listDescOpen") },
+    h("span", { cls: "sn-list-desc-text", text: descText(path) }));
+  el.dataset.path = path;
+  el.addEventListener("click", () => openEditor(path, { focus: false, wide: false }));
+  el.addEventListener("dblclick", () => openEditor(path, { focus: true, edit: true, wide: false }));
+  el.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); openEditor(path, { focus: true, edit: true, wide: false }); } });
+  el.addEventListener("contextmenu", (e) => cardMenu(path, null).showAtEvent(e));
+  attachLongPress(el, (ev) => cardMenu(path, null).showAtEvent(ev));
+  dnd.dropTarget(el, () => ({ path, parent: null, zones: ["inside"] })); // a note dropped on it goes into this notebook
+  return el;
+}
+/** What the list holds: "1 notebook · 2 notes" at its own level; with a filter, in a tag's list or cut short, how many of how many. */
 function countText(model) {
   const shown = model.shown.length, total = model.total;
-  const count = total === shown && !model.active ? t("cardsCount", { n: total }) : t("cardsOf", { shown, n: total });
   const tv = board.tagView;
   const onlyTag = tv && !board.filter.query.trim() && board.filter.tags.length === 1;
-  return onlyTag ? t("cardsCount", { n: shown }) : model.active ? t("filteredSuffix", { count }) : count;
+  if (onlyTag) return t("cardsCount", { n: shown });
+  if (!model.active && !tv && !model.truncated) {
+    const books = model.shown.filter((c) => c.folder).length, notes = shown - books;
+    return [books ? t("notebooksCount", { n: books }) : "", notes || !books ? t("cardsCount", { n: notes }) : ""].filter(Boolean).join(" · ");
+  }
+  const count = total === shown && !model.active ? t("cardsCount", { n: total }) : t("cardsOf", { shown, n: total });
+  return model.active ? t("filteredSuffix", { count }) : count;
 }
 
 function boardSig(model) {
@@ -225,6 +248,9 @@ export function patchBoard() {
   if (board.target && !graph.has(board.target)) return renderBoard();
   const model = boardModel();
   if (boardSig(model) !== board.sig) return renderBoard();
+  // the notebook's own text, as it is being written beside the list
+  const desc = $(".sn-list-desc-text", root);
+  if (desc && board.target) { const d = descText(board.target); if (desc.textContent !== d) desc.textContent = d; }
   const focused = document.activeElement?.closest?.(".sn-card")?.dataset.path;
   for (const el of $$(".sn-card", root)) {
     const p = el.dataset.path;
