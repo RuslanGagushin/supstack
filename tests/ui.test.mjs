@@ -793,6 +793,40 @@ describe("sidebar", () => {
     noErrors();
   });
 
+  test("the notebooks come first in the sidebar, and Recent is last and folded", async () => {
+    await openVault();
+    const sections = () => ev(() => [...document.querySelectorAll("#tree .sn-tree-section")].map((s) => (s.querySelector(":scope > span:not(.sn-sec-caret):not(.sn-sec-count)") || s).textContent));
+    assert.deepEqual(await sections(), ["Notebooks", "Tags", "Recent"]);
+    assert.equal(await ev(() => document.querySelectorAll("#tree .sn-tree-row.is-recent").length), 0, "Recent starts folded");
+    await page().click("#tree .sn-tree-section.is-toggle:last-of-type");
+    assert.equal(await ev(() => document.querySelectorAll("#tree .sn-tree-row.is-recent").length), 5, "and opens on a click");
+    assert.equal(await ev(() => UI.recentOpen), true);
+    noErrors();
+  });
+
+  test("moving to a notebook from the list opens its branch in the tree and marks it", async () => {
+    await openVault({ demo: false, notes: {
+      "cards/Work.md": "", "cards/Proton.md": "---\nparents: [\"[[Work]]\"]\n---\n", "cards/Radar.md": "---\nparents: [\"[[Proton]]\"]\n---\n",
+      "cards/Spec.md": "---\nparents: [\"[[Radar]]\"]\n---\na spec", "cards/Home.md": "", "cards/Lamp.md": "---\nparents: [\"[[Home]]\"]\n---\na lamp",
+    } });
+    const active = () => ev(() => [...document.querySelectorAll("#tree .sn-tree-row.is-active[data-path]")].map((r) => r.dataset.path));
+    await ev(() => { tree.expanded.clear(); setTarget("cards/Work.md"); });
+    await page().click('#board .sn-row.is-folder[data-path="cards/Proton.md"]');
+    await page().click('#board .sn-row.is-folder[data-path="cards/Radar.md"]');
+    assert.deepEqual(await active(), ["cards/Radar.md"], "the tree opened Work and Proton to show Radar");
+    // a note from another notebook, opened beside this list: its notebook's row is marked, the list's stays current
+    await ev(() => openEditor("cards/Lamp.md"));
+    assert.deepEqual(await ev(() => [...document.querySelectorAll("#tree .sn-tree-row.is-holding")].map((r) => r.dataset.path)), ["cards/Home.md"]);
+    // its notebook in a folded branch: the nearest row that shows takes the mark
+    await ev(() => { setTarget(null); tree.expanded.clear(); renderTree(); openEditor("cards/Spec.md"); });
+    assert.deepEqual(await ev(() => [...document.querySelectorAll("#tree .sn-tree-row.is-holding")].map((r) => r.dataset.path)), ["cards/Work.md"]);
+    await ev(() => { setTarget("cards/Radar.md"); openEditor("cards/Spec.md"); });
+    assert.equal(await ev(() => document.querySelectorAll("#tree .sn-tree-row.is-holding").length), 0, "a note of the list beside it marks nothing");
+    await ev(() => { openEditor("cards/Lamp.md"); closeEditor(); });
+    assert.equal(await ev(() => document.querySelectorAll("#tree .sn-tree-row.is-holding").length), 0, "nor does a closed note");
+    noErrors();
+  });
+
   test("the sidebar search opens the card picker", async () => {
     await openVault();
     await page().click(".sb-search");

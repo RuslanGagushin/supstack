@@ -34,28 +34,21 @@ export function renderTree() {
   const box = h("div", { cls: "sn-tree" });
   const cmp = makeComparator(S.outlineSort);
 
+  // the notebooks come first, right under Agenda and Files: they are where every note lives; the rest folds below them
   if (S.pinned.some((p) => graph.has(p))) {
     box.append(h("div", { cls: "sn-tree-section", text: t("pinned") }));
     const pins = S.pinned.filter((p) => graph.has(p));
     pins.forEach((p, i) => box.append(treeNode(p, [p], cmp, { pinIndex: i, pinCount: pins.length, keyPrefix: "pin" })));
   }
-  const recent = [...graph.nodes].sort((a, b) => (vault.notes.get(b)?.mtime || 0) - (vault.notes.get(a)?.mtime || 0)).slice(0, 5);
-  if (recent.length > 3) {
-    // folds like Tags, so the five rows need not sit above the tree for good
-    const open = UI.recentOpen !== false;
-    const head = h("div", { cls: "sn-tree-section is-toggle" + (open ? " is-open" : "") }, ic("sn-sec-caret", "chevron-down"), h("span", { text: t("recent") }));
-    head.addEventListener("click", () => { UI.recentOpen = !open; saveUI(); renderTree(); });
-    box.append(head);
-    for (const p of open ? recent : []) {
-      const row = h("div", { cls: "tree-item-self is-clickable sn-tree-row is-recent" + (board.target === p ? " is-active" : "") + (editor.path === p ? " is-editing" : "") },
-        h("span", { cls: "sn-tree-toggle is-leaf" }), ic("sn-tree-icon", cardIcon(p) || "file-text", "file-text"), h("div", { cls: "tree-item-inner sn-tree-label", text: baseName(p) }),
-        h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair", text: shortAgo(vault.notes.get(p)?.mtime || 0) })));
-      row.addEventListener("click", (e) => { if (isMod(e) || editor.path) openEditor(p); else setTarget(p); });
-      row.addEventListener("dblclick", () => openEditor(p, { focus: true, edit: true }));
-      row.addEventListener("contextmenu", (e) => cardMenu(p, null).showAtEvent(e));
-      box.append(h("div", { cls: "tree-item" }, row));
-    }
-  }
+  box.append(h("div", { cls: "sn-tree-section has-tools" }, h("span", { text: t("tree") }), header));
+  const allRow = h("div", { cls: "tree-item-self is-clickable sn-tree-row" + (!board.target && !board.tagView ? " is-active" : "") }, h("span", { cls: "sn-tree-toggle is-leaf" }), ic("sn-tree-icon", "home"), h("div", { cls: "tree-item-inner sn-tree-label", text: t("allCards") }),
+    h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair sn-tree-count", text: String(graph.collect(null, 0, cmp).cards.length) }))); // the cards the board reaches, as its "of N" says
+  allRow.addEventListener("click", () => setTarget(null));
+  dnd.dropTarget(allRow, () => ({ path: null, parent: null, zones: ["inside"], root: true }));
+  box.append(h("div", { cls: "tree-item" }, allRow));
+  const roots = graph.sortedChildren(null, cmp);
+  if (!roots.length) box.append(h("div", { cls: "sn-tree-empty", text: t("noCards") }));
+  for (const r of roots.filter(isNotebook)) box.append(treeNode(r, [r], cmp, {}));
   if (S.savedViews.length) {
     box.append(h("div", { cls: "sn-tree-section", text: t("views") }));
     for (const v of S.savedViews) {
@@ -71,17 +64,49 @@ export function renderTree() {
     }
   }
   tagsSection(box);
-  box.append(h("div", { cls: "sn-tree-section has-tools" }, h("span", { text: t("tree") }), header));
-  const allRow = h("div", { cls: "tree-item-self is-clickable sn-tree-row" + (!board.target && !board.tagView ? " is-active" : "") }, h("span", { cls: "sn-tree-toggle is-leaf" }), ic("sn-tree-icon", "home"), h("div", { cls: "tree-item-inner sn-tree-label", text: t("allCards") }),
-    h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair sn-tree-count", text: String(graph.collect(null, 0, cmp).cards.length) }))); // the cards the board reaches, as its "of N" says
-  allRow.addEventListener("click", () => setTarget(null));
-  dnd.dropTarget(allRow, () => ({ path: null, parent: null, zones: ["inside"], root: true }));
-  box.append(h("div", { cls: "tree-item" }, allRow));
-  const roots = graph.sortedChildren(null, cmp);
-  if (!roots.length) box.append(h("div", { cls: "sn-tree-empty", text: t("noCards") }));
-  for (const r of roots.filter(isNotebook)) box.append(treeNode(r, [r], cmp, {}));
+  recentSection(box);
   host.append(box);
   box.scrollTop = scroll;
+  markOpenInTree();
+}
+/** The five notes changed last. The list of All notes sorted by date shows the same, so it starts folded, last in the sidebar. */
+function recentSection(box) {
+  const recent = [...graph.nodes].sort((a, b) => (vault.notes.get(b)?.mtime || 0) - (vault.notes.get(a)?.mtime || 0)).slice(0, 5);
+  if (recent.length <= 3) return;
+  const open = UI.recentOpen === true;
+  const head = h("div", { cls: "sn-tree-section is-toggle" + (open ? " is-open" : "") }, ic("sn-sec-caret", "chevron-down"), h("span", { text: t("recent") }));
+  head.addEventListener("click", () => { UI.recentOpen = !open; saveUI(); renderTree(); });
+  box.append(head);
+  if (!open) return;
+  for (const p of recent) {
+    const row = h("div", { cls: "tree-item-self is-clickable sn-tree-row is-recent" + (board.target === p ? " is-active" : "") });
+    row.dataset.recent = p;
+    row.append(h("span", { cls: "sn-tree-toggle is-leaf" }), ic("sn-tree-icon", cardIcon(p) || "file-text", "file-text"), h("div", { cls: "tree-item-inner sn-tree-label", text: baseName(p) }),
+      h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair", text: shortAgo(vault.notes.get(p)?.mtime || 0) })));
+    row.addEventListener("click", (e) => { if (isMod(e) || editor.path) openEditor(p); else setTarget(p); });
+    row.addEventListener("dblclick", () => openEditor(p, { focus: true, edit: true }));
+    row.addEventListener("contextmenu", (e) => cardMenu(p, null).showAtEvent(e));
+    box.append(h("div", { cls: "tree-item" }, row));
+  }
+}
+/** Where the open note sits, when that is not the list beside it: its notebooks' rows (or its own, for a notebook's text)
+   and its Recent row are marked. Called on render and whenever a note opens or closes, without redrawing the tree. */
+export function markOpenInTree() {
+  const host = $("#tree");
+  if (!host) return;
+  const p = editor.path;
+  let holders = [];
+  if (p && graph.has(p)) {
+    const parents = graph.parentsOf(p).filter((x) => graph.has(x));
+    const inList = !board.tagView && !board.view && (parents.includes(board.target) || (!board.target && !parents.length));
+    if (!inList) holders = isNotebook(p) ? [p] : parents;
+  }
+  // a notebook in a folded branch has no row: the nearest one above it that shows takes the mark
+  const shown = new Set([...host.querySelectorAll(".sn-tree-row[data-path]")].map((r) => r.dataset.path));
+  const cmp = makeComparator("manual");
+  const mark = new Set(holders.filter((x) => x !== board.target).map((x) => [...graph.ancestry(x, cmp), x].reverse().find((y) => shown.has(y))).filter((x) => x && x !== board.target));
+  for (const row of host.querySelectorAll(".sn-tree-row[data-path]")) row.classList.toggle("is-holding", mark.has(row.dataset.path));
+  for (const row of host.querySelectorAll(".sn-tree-row[data-recent]")) row.classList.toggle("is-editing", row.dataset.recent === p);
 }
 /** Background updates (sync, file changes) wait while the pointer is over the sidebar,
  *  so rows never move under the cursor; clicks in the sidebar still redraw at once. */
@@ -152,15 +177,18 @@ async function movePin(path, delta) {
   await saveSettings();
   renderTree();
 }
+/** Open the branches down to a card's notebook, so its row shows in the tree; a note is not in the tree, its notebook is. */
+export function expandTo(path) {
+  if (!path || !graph.has(path)) return;
+  const chain = [...graph.ancestry(path, makeComparator("manual")), path];
+  if (!isNotebook(path)) chain.pop();
+  for (let i = 1; i < chain.length; i++) tree.expanded.add(chain.slice(0, i).join(SEP));
+}
 export function revealInTree(path) {
   if (!path) return;
-  const cmp = makeComparator("manual");
-  const chain = [...graph.ancestry(path, cmp), path];
-  if (!isNotebook(path)) chain.pop(); // a note is not in the tree: its notebook is
-  for (let i = 1; i < chain.length; i++) tree.expanded.add(chain.slice(0, i).join(SEP));
+  expandTo(path);
   persistBoard();
   setSide(true);
   renderTree();
   $(`#tree .sn-tree-row.is-active`)?.scrollIntoView({ block: "center" });
 }
-

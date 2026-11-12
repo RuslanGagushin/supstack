@@ -10,7 +10,7 @@ import { $, $$, h, ic, iconBtn } from "./dom.js";
 import { Menu } from "./ui.js";
 import { createCard, deleteCards, dropCards, promptAddParent, promptAddTag, promptIcon, promptMove, saveCurrentView } from "./actions.js";
 import { renderRow } from "./cards.js";
-import { renderTree } from "./tree.js";
+import { expandTo, renderTree } from "./tree.js";
 import { closeEditor, openEditor, refreshNotebookPath } from "./editor.js";
 import { setSide, sideToggle } from "./shell.js";
 import { openTasksView, renderTasksView } from "./agenda.js";
@@ -58,6 +58,7 @@ export function setTarget(path, push = true) {
   board.target = path;
   board.selection.clear();
   board.rendered = 60;
+  expandTo(path); // the sidebar shows where the list is, however it was reached
   persistBoard();
   renderBoard(true);
   renderTree();

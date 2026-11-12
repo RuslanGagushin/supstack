@@ -13,7 +13,7 @@ import { $, h, ic, iconBtn, keyName, keyText } from "./dom.js";
 import { defaultEcho, echo, Menu, notice, openLayer, promptModal, suggestModal } from "./ui.js";
 import { createCard, promptAddTag, quickOpen, saveCurrentView, tagTargets, togglePin } from "./actions.js";
 import { goBack, patchBoard, renderBoard, setTarget, toggleSearch } from "./board.js";
-import { renderTree, renderTreeSoft, revealInTree } from "./tree.js";
+import { expandTo, renderTree, renderTreeSoft, revealInTree } from "./tree.js";
 import { closeEditor, openEditor, renderEditor, syncEditorFromDisk } from "./editor.js";
 import { renderEditorProps } from "./editor-toolbar.js";
 import { pickVault, showWelcome } from "./welcome.js";
@@ -176,6 +176,7 @@ function renderAll() {
   const frame = h("div", { cls: "wb-frame" }, side, scrim, sideRes, main, edRes, ed);
   app.append(frame, tabBar());
   echo(defaultEcho(), { keep: true });
+  expandTo(board.target); // a vault reopens on its last list: the tree shows that notebook too
   renderTree();
   renderBoard(true);
 }

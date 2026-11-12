@@ -104,6 +104,9 @@ body.sn-app .sn-outline .tree-item-self.sn-tree-row { min-height: 32px; padding:
 body.sn-app .sn-outline .tree-item-self.sn-tree-row:hover { background: var(--hover-bg); }
 body.sn-app .sn-outline .tree-item-self.sn-tree-row.is-active { background: var(--sel); }
 body.sn-app .sn-outline .tree-item-self.sn-tree-row.is-active .sn-tree-label { color: var(--ink); }
+/* the notebook the open note sits in, when the list beside it shows another place (and the open note's Recent row): a quiet mark, not a second selection */
+body.sn-app .sn-outline .sn-tree-row:is(.is-holding, .is-editing):not(.is-active) :is(.sn-tree-label, .sn-tree-icon) { color: var(--ink); }
+body.sn-app .sn-outline .sn-tree-row:is(.is-holding, .is-editing):not(.is-active) .sn-tree-label { font-weight: 500; }
 body.sn-app .sn-tree-row .sn-tree-label { font-weight: 400; }
 body.sn-app .sn-tree-icon { color: var(--muted); }
 body.sn-app .sn-tree-icon svg { width: 16px; height: 16px; }

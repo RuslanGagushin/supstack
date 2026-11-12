@@ -20,6 +20,7 @@ import { editorTable, editorTableOp, tableMenu } from "./table-editor.js";
 import { editorKeys, renderEditorProps, renderEdToolbar, updateEdToolbar } from "./editor-toolbar.js";
 import { downloadNote, updateFmtBar } from "./format-bar.js";
 import { refresh } from "./shell.js";
+import { markOpenInTree } from "./tree.js";
 import { ac, acClose, acUpdate, caretRect, outlineMenu, setFocusMode, wireEditorFiles } from "./completion.js";
 
 export const scheduleSave = debounce(() => saveEditor(), 600);
@@ -42,6 +43,7 @@ export function openEditor(path, o = {}) {
   $$(".sn-card.is-editing").forEach((c) => c.classList.remove("is-editing"));
   $$(`.sn-card[data-path="${CSS.escape(path)}"]`).forEach((c) => { c.classList.add("is-editing"); if (c.classList.contains("sn-row")) c.scrollIntoView({ block: "nearest" }); });
   if (board.cardSigs) for (const p of [path, ...board.cardSigs.keys()]) if (board.cardSigs.has(p)) board.cardSigs.set(p, cardSig(p));
+  markOpenInTree();
   if (o.focus === false) return;
   setTimeout(() => {
     const ta = $(".sn-editor-text");
@@ -57,6 +59,7 @@ export function closeEditor(force = false) {
   editor.live = null;
   $("#app")?.classList.remove("editor-open", "editor-wide");
   $$(".sn-card.is-editing").forEach((c) => c.classList.remove("is-editing"));
+  markOpenInTree();
   const host = $("#editor");
   if (host) host.replaceChildren();
 }
