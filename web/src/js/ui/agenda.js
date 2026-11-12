@@ -13,7 +13,7 @@ import { orgAll } from "../services/tasks.js";
 import { $, $$, h, ic, iconBtn, isMod, keyText } from "./dom.js";
 import { echo, Menu, openLayer, promptModal } from "./ui.js";
 import { renderMarkdown, wireRendered } from "./markdown.js";
-import { goBack, leaveTagView, navEntry, renderBoard, setTarget } from "./board.js";
+import { goBack, leaveTagView, navEntry, renderBoard } from "./board.js";
 import { renderTree } from "./tree.js";
 import { setSide, sideToggle } from "./shell.js";
 import { orgCycle, orgEdit, orgPickPriority, orgPickState, orgPlanEntry, orgPri, orgRefocus, orgTagsEntry } from "./org-commands.js";
@@ -114,11 +114,8 @@ export function renderTasksView(root) {
   const bar = h("div", { cls: "sn-topbar" });
   const back = iconBtn("arrow-left", t("back"), () => goBack()); back.disabled = !board.history.length;
   bar.append(h("div", { cls: "sn-nav" }, sideToggle(), back));
-  const crumbs = h("div", { cls: "sn-crumbs" });
-  const home = h("a", { cls: "sn-crumb", href: "#" }, ic("sn-crumb-icon", "home"), h("span", { text: t("allCards") }));
-  home.addEventListener("click", (e) => { e.preventDefault(); setTarget(null); });
-  crumbs.append(home, h("span", { cls: "sn-crumb-sep", text: "/" }), h("span", { cls: "sn-crumb is-current" }, ic("sn-crumb-icon", "calendar-check"), h("span", { text: tt("tasks") })));
-  bar.append(crumbs);
+  // no breadcrumbs, as above the list of notes: the view's title says where it is, ← and the sidebar go back
+  bar.append(h("div", { cls: "sn-crumbs" }));
   const tools = h("div", { cls: "sn-tools" });
   const seg = h("div", { cls: "sn-seg ag-views", role: "tablist" });
   for (const [v, k, key] of [["agenda", "vAgenda", "a"], ["todo", "vTodo", "t"], ["match", "vMatch", "m"], ["search", "vSearch", "s"]]) {

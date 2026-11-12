@@ -75,6 +75,11 @@ describe("board", () => {
     assert.equal(await ev(() => board.target), "cards/History.md");
     await page().keyboard.press("Alt+ArrowLeft");
     assert.equal(await ev(() => board.target), "cards/Roman Empire.md");
+    // nor above the agenda or Files: their titles say where they are
+    for (const open of [() => openTasksView(), () => openFilesView()]) {
+      await ev(open);
+      assert.equal(await ev(() => document.querySelectorAll("#board .sn-topbar .sn-crumb").length), 0);
+    }
     noErrors();
   });
 

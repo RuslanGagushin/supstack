@@ -15,7 +15,7 @@ import { $, $$, h, ic, iconBtn, isMod, keyText } from "./dom.js";
 import { confirmModal, Menu, notice, promptModal } from "./ui.js";
 import { hasPdfViewer, pdfMessage, renderPdfPages } from "./markdown.js";
 import { attachLongPress, formatDate } from "./cards.js";
-import { goBack, leaveTagView, navEntry, renderBoard, setTarget } from "./board.js";
+import { goBack, leaveTagView, navEntry, renderBoard } from "./board.js";
 import { renderTree } from "./tree.js";
 import { openEditor, saveEditor } from "./editor.js";
 import { refresh, setSide, sideToggle, wbBtn } from "./shell.js";
@@ -208,11 +208,8 @@ export function renderFilesView(root) {
   const bar = h("div", { cls: "sn-topbar" });
   const back = iconBtn("arrow-left", t("back"), () => goBack()); back.disabled = !board.history.length;
   bar.append(h("div", { cls: "sn-nav" }, sideToggle(), back));
-  const crumbs = h("div", { cls: "sn-crumbs" });
-  const home = h("a", { cls: "sn-crumb", href: "#" }, ic("sn-crumb-icon", "home"), h("span", { text: t("allCards") }));
-  home.addEventListener("click", (e) => { e.preventDefault(); setTarget(null); });
-  crumbs.append(home, h("span", { cls: "sn-crumb-sep", text: "/" }), h("span", { cls: "sn-crumb is-current" }, ic("sn-crumb-icon", "paperclip"), h("span", { text: fvt("files") })));
-  bar.append(crumbs);
+  // no breadcrumbs, as above the list of notes: the view's title says where it is, ← and the sidebar go back
+  bar.append(h("div", { cls: "sn-crumbs" }));
   bar.append(h("div", { cls: "sn-tools" }, h("button", { cls: "wb-btn", type: "button", title: fvt("upload"), onClick: () => uploadAttachments() }, ic("", "upload"), h("span", { cls: "wb-label", text: fvt("upload") }))));
   root.append(bar);
 

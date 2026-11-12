@@ -50,20 +50,23 @@ Supstack shows a folder of Markdown notes (a *vault*) as notebooks with a list o
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/board-dark.png" alt="The list of notes in the dark theme"><br><sub><b>Dark theme.</b> The same view, with light and dark themes following the system.</sub></td>
-    <td width="50%"><img src="docs/screenshots/editor.png" alt="The live preview editor with tasks, priorities and dates"><br><sub><b>Live preview editor.</b> Tasks, priorities, deadlines and scheduled dates in plain Markdown.</sub></td>
+    <td width="50%"><img src="docs/screenshots/editor.png" alt="A note being read: tasks with a priority letter and their dates as short chips"><br><sub><b>Reading.</b> A note opens to read: its tasks show a priority letter and their dates as the agenda says them.</sub></td>
+    <td width="50%"><img src="docs/screenshots/editor-editing.png" alt="The same note in the live preview editor, with the toolbar and the dates as written"><br><sub><b>Editing.</b> <i>Edit</i> (or a double click) opens the live preview editor, with the Markdown as written.</sub></td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/screenshots/agenda.png" alt="The week agenda with scheduled, overdue and closed tasks"><br><sub><b>Agenda.</b> Tasks from the whole vault by day, with overdue items and a time grid.</sub></td>
-    <td width="50%"><img src="docs/screenshots/notes-layout.png" alt="Inside a notebook: its own text, the notebooks in it and its notes"><br><sub><b>Inside a notebook.</b> Its text on top, then the notebooks in it, then its notes; the first note opens beside the list.</sub></td>
+    <td width="50%"><img src="docs/screenshots/board-dark.png" alt="The list of notes in the dark theme"><br><sub><b>Dark theme.</b> The same view, with light and dark themes following the system.</sub></td>
+    <td width="50%"><img src="docs/screenshots/notes-layout.png" alt="Inside a notebook: its description, the notebooks in it and its notes"><br><sub><b>Inside a notebook.</b> Its own text as a description under the title, then the notebooks in it, then its notes.</sub></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="docs/screenshots/agenda.png" alt="The week agenda with scheduled, overdue and closed tasks"><br><sub><b>Agenda.</b> Tasks from the whole vault by day, with overdue items and a time grid.</sub></td>
   </tr>
 </table>
 
 <p align="center">
   <img src="docs/screenshots/phone-board.png" alt="Supstack on a phone: the list of notes" width="260">
   &nbsp;&nbsp;
-  <img src="docs/screenshots/phone-editor.png" alt="Supstack on a phone: editing a note" width="260">
-  <br><sub><b>On Android.</b> A single-column layout with a bottom bar, and the editor full screen.</sub>
+  <img src="docs/screenshots/phone-editor.png" alt="Supstack on a phone: a note open over the list, with a back link to its notebook" width="260">
+  <br><sub><b>On Android.</b> A single-column layout with a bottom bar; a note opens full screen with <i>‹ its notebook</i> to go back.</sub>
 </p>
 
 > Screenshots are taken from the built-in demo vault with `npm run screenshots`.
@@ -74,9 +77,9 @@ Supstack shows a folder of Markdown notes (a *vault*) as notebooks with a list o
 
 ### Notebooks and notes
 - **A notebook is a note that holds other notes.** Nothing to set up: a note becomes a notebook as soon as another note lists it in its `parents` frontmatter property, and it can have its own text too. A note can sit in several notebooks at once, say *Personal* and *Documents*.
-- **The sidebar lists the notebooks**, nested, with how many notes each holds. **All notes** is the top level.
-- **The list and the note side by side.** A notebook opens as a list: its own text on top (when it has some), then the notebooks inside it as compact rows, then its notes, each with when it changed, its title, two lines of text, tags and the first image. The first note opens beside the list, as a mail app does: the arrow keys page through the notes, → and ← go into a notebook and back out, the handle between them sizes the list, and ⤢ gives the note the whole width. On phones a tap opens the note over the list.
-- **The note's header** shows the notebooks it sits in, each one a link to its list, with *+N* for its other places and a button to move it.
+- **The sidebar lists the notebooks** first, nested, with how many notes each holds; **All notes** is the top level. The branch down to the notebook you are in stays open, and the notebook of a note opened from elsewhere is marked. Tags follow, and *Recent* (folded) comes last.
+- **The list and the note side by side.** A notebook opens as a list: its title with how many notebooks and notes it holds, its own text as a short description (when it has some), then the notebooks inside it as compact rows, then its notes, each with when it changed, its title, two lines of text, tags and the first image. The first note opens beside the list, as a mail app does: the arrow keys page through the notes, → and ← go into a notebook and back out, the handle between them sizes the list, and ⤢ gives the note the whole width. On phones a tap opens the note over the list.
+- **The note's header** shows the notebooks it sits in, each one a link to its list, with *+N* for its other places, then **Edit** (**Done** while editing) and **⋮**, which holds the outline, focus and source modes, *Move to…* and the rest of the note's actions. On phones it is just *‹ its notebook*, Edit and ⋮.
 - Sorting (manual, by name, recently modified or newest first; notebooks stay on top) and **saved views**, so a list you like is one tap away.
 - **Quick capture:** type into *Start typing a new note…* at the top of a list to create a note in that notebook. You can choose a **template note** for the notes of a notebook.
 - **Select mode:** select several notes to move, add to another notebook or delete them together. **Undo** reverts the last change.
@@ -84,7 +87,8 @@ Supstack shows a folder of Markdown notes (a *vault*) as notebooks with a list o
 ### Editor
 - **Live preview editing:** the note is one editor (CodeMirror 6) that shows its Markdown rendered: headings, bold, italic, highlights, code, links, tags, task boxes, bullets and priorities read as they will look, and their Markdown shows only where the caret is. Callouts and code blocks render as blocks and open into their Markdown when you click or arrow into them; tables stay rendered and are edited a cell at a time. Click a link to follow it (Ctrl/Cmd+click opens the note in the editor), click a task's box to tick it (right-click it for every state), select text for a floating format bar (bold, italic, highlight, code, link, heading, lists, quote). Undo and redo cover every edit. Your files stay plain Markdown.
 - **Foldable callouts and table editing:** `> [!info]+` makes a callout that starts open and `> [!info]-` one that starts folded; click its title to fold or unfold it. Click a table cell to edit it in place; Tab and Shift+Tab go to the next and previous cell, Enter goes to the cell below (Tab or Enter at the end adds a row, Enter on an empty last row leaves the table), Shift+Enter breaks a line in a cell, and Alt+arrows move the row or column. The table's Markdown keeps its columns lined up. Right-click a cell (or use the toolbar's table button) to add, move, delete, align or sort rows and columns; the + buttons under and beside a table add a row or a column.
-- A source mode for the whole file, a reading view, **full-width** and **focus** modes, and a toolbar for formatting, images and files.
+- **Notes open to read.** The reading view puts one line under the title (when the note changed, its tags), shows a task's priority as a letter and its dates as the agenda says them (*Tomorrow*, *In 3 d.*, *12 Nov*; a deadline red when due, amber in its warning days). *Edit*, a double click or `Ctrl+E` switches to editing, where the dates are shown as written and *Properties* sits under the title; the note stays in place as you switch. **Settings › Appearance › Open notes** makes notes open for editing instead.
+- A source mode for the whole file, **full-width** and **focus** modes, and a toolbar for formatting, images and files.
 - `[[` or `Ctrl+L` links to another note; `/` opens the insert menu.
 - Turn a selection into a **new note inside** the one you are in.
 
@@ -118,7 +122,7 @@ Supstack shows a folder of Markdown notes (a *vault*) as notebooks with a list o
 - No top bar: a full-height sidebar holds search, a blue *New note* button, the agenda, Files and Git sync, the notebooks, and the vault and settings at the bottom; it folds away and each view's own bar brings it back. Inter type, the open note on a white sheet on warm grey.
 - Light and dark themes; English and Russian interface.
 - Emacs-flavoured details: a minibuffer with key hints, and most actions have shortcuts. Org-style `C-c` chords work in the editor, for example `C-c C-t` to step a task's state and `C-c C-s` / `C-c C-d` to schedule or set a deadline.
-- On phones the list fills the screen and a note opens over it, the sidebar becomes a drawer, and the Android **Back** button closes the editor, menus and dialogs before leaving the app.
+- On phones the list fills the screen and a note opens over it with *‹ its notebook* to go back, the sidebar becomes a drawer, and the Android **Back** button closes the editor, menus and dialogs before leaving the app.
 - **Settings** has a section per group: Appearance (language, theme, the list's default sort and size), Keyboard shortcuts, Git (in the app) and About, which shows the version and checks for updates.
 
 ### Updates

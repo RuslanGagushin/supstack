@@ -31,7 +31,9 @@ async function shot(page, name, action) {
 
 await shot(await open("light"), "board-light.png");
 await shot(await open("dark"), "board-dark.png");
+// a note opens for reading; the same note being edited shows the toolbar and the Markdown
 await shot(await open(), "editor.png", () => openEditor("cards/This week.md", { focus: false, wide: true }));
+await shot(await open(), "editor-editing.png", () => openEditor("cards/This week.md", { focus: false, wide: true, edit: true }));
 await shot(await open(), "agenda.png", () => openTasksView());
 // a notebook with all three parts of a list: its own text, a notebook inside it (Aqueducts) and a note (Colosseum)
 await shot(await open(), "notes-layout.png", () => setTarget("cards/Roman Empire.md"));
