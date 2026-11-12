@@ -808,7 +808,7 @@ describe("sidebar", () => {
     assert.equal(await ev(() => document.body.classList.contains("sn-app")), true);
     await ev(() => settingsModal("appearance"));
     const interfaceRows = await page().$$eval(".sn-set-body .sn-set-group:first-of-type .setting-item-name", (n) => n.map((x) => x.textContent));
-    assert.deepEqual(interfaceRows, ["Language", "Theme"], "the interface is language and theme only");
+    assert.deepEqual(interfaceRows, ["Language", "Theme", "Open notes"], "the interface is language, theme and how notes open");
     assert.doesNotMatch(await page().textContent(".sn-set-body"), /font/i);
   });
 
@@ -984,6 +984,40 @@ describe("no note colors", () => {
     assert.equal(r.dots, 0);
     assert.equal(r.tinted, 0);
     assert.ok(r.keys.includes("color"), "shown like any other property");
+    noErrors();
+  });
+});
+
+describe("opening a note", () => {
+  test("a note opens for reading; a double click, Enter, a new note and today's note open it for editing", async () => {
+    await openVault({ openNotes: "read" });
+    await ev(() => setTarget("cards/History.md"));
+    const mode = () => ev(() => [editor.path?.replace(/^cards\/|\.md$/g, "") ?? null, editor.mode, !!document.querySelector("#editor .sn-reading")]);
+    await page().click('.sn-row[data-path="cards/Roman Empire.md"]');
+    await page().click('.sn-row[data-path="cards/Colosseum.md"]');
+    assert.deepEqual(await mode(), ["Colosseum", "read", true], "a click opens to read");
+    await page().dblclick('.sn-row[data-path="cards/Colosseum.md"]');
+    assert.deepEqual((await mode()).slice(0, 2), ["Colosseum", "edit"], "a double click on the open note switches it to editing");
+    await page().click('.sn-row[data-path="cards/Roman Empire.md"]');
+    assert.equal((await mode())[1], "read", "the next note opens to read again");
+    await page().focus('.sn-row[data-path="cards/Roman Empire.md"]');
+    await page().keyboard.press("Enter");
+    assert.equal((await mode())[1], "edit", "Enter opens it to edit");
+    await ev(() => createCard("Fresh", "cards/Roman Empire.md", "", undefined, { open: true }));
+    assert.deepEqual((await mode()).slice(0, 2), ["Fresh", "edit"], "a new note opens to edit");
+    await ev(() => openToday());
+    assert.equal((await mode())[1], "edit", "so does today's note");
+    noErrors();
+  });
+
+  test("Settings › Open notes: For editing opens notes for editing", async () => {
+    await openVault({ openNotes: "read" });
+    await ev(() => settingsModal("appearance"));
+    await page().selectOption(".sn-set-body select >> nth=2", "edit");
+    await page().keyboard.press("Escape");
+    assert.equal(await ev(() => JSON.parse(localStorage.getItem("sn-ui")).openNotes), "edit", "kept on this device");
+    await ev(() => openEditor("cards/Colosseum.md", { focus: false, wide: false }));
+    assert.equal(await ev(() => editor.mode), "edit");
     noErrors();
   });
 });

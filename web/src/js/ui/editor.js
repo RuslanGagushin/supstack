@@ -27,6 +27,10 @@ export function openEditor(path, o = {}) {
   if (!vault.notes.has(path)) return;
   if (editor.path && editor.path !== path && editor.dirty) saveEditor();
   if (editor.path !== path) editor.propsCollapsed = true;
+  // a note opens for reading (or as Settings › Open notes says); `edit` is an intent to write — a double click, Enter,
+  // a new note, today's note, a task from the agenda — and opens it for editing, also when it is already open to read
+  if (o.edit) { if (editor.mode !== "source" || o.keepMode !== true) editor.mode = "edit"; }
+  else if (editor.path !== path) editor.mode = UI.openNotes === "edit" ? "edit" : "read";
   // a note opens beside the list of notes; from the agenda or the files, which have no list beside it, as a page
   if (o.wide !== undefined) editor.wide = o.wide;
   else if (!editor.path) editor.wide = !!board.view;

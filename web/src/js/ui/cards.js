@@ -80,7 +80,7 @@ function renderFolderRow(path, via) {
   row.addEventListener("dblclick", (e) => {
     if (e.shiftKey || board.selectMode) return;
     e.preventDefault();
-    openEditor(path, { focus: true, wide: false });
+    openEditor(path, { focus: true, edit: true, wide: false });
   });
   wireRow(row, path, via);
   return row;
@@ -166,7 +166,7 @@ export function renderRow(path, via, folder = false) {
   row.addEventListener("dblclick", (e) => {
     if (e.target.closest("a, button, input") || e.shiftKey || board.selectMode) return;
     e.preventDefault();
-    openEditor(path, { focus: true, wide: false });
+    openEditor(path, { focus: true, edit: true, wide: false });
   });
   if (!own) wireRow(row, path, via);
   else {

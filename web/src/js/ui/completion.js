@@ -272,7 +272,7 @@ export async function openToday() {
   if (!vault.fs) return;
   const path = dailyNotePath();
   if (!vault.notes.has(path)) await txn(null, async () => { await writeRaw(path, ""); return t("cardCreated", { name: baseName(path) }); });
-  openEditor(path, { focus: true });
+  openEditor(path, { focus: true, edit: true });
 }
 
 /* ---------- link hover preview */

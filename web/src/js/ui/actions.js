@@ -50,7 +50,7 @@ export async function createCard(title, parentPath, body = "", templatePath = un
   const raw = (Object.keys(fm).length ? "---\n" + dumpYaml(fm) + "---\n" : "") + composeBody(tplBody, body);
   await txn(null, async () => { await writeRaw(path, raw); return t("cardCreated", { name: baseName(path) }); });
   board.flashPath = path;
-  if (open) openEditor(path, { focus: true });
+  if (open) openEditor(path, { focus: true, edit: true });
   return path;
 }
 export async function addParent(child, parent) {

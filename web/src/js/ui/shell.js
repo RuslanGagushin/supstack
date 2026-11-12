@@ -78,7 +78,7 @@ function commandList() {
   add(wt("focus"), "focus", () => setFocusMode(!UI.focus), "Ctrl+Shift+F", UI.focus);
   if (editor.path) add(wt("outline"), "table-of-contents", () => outlineMenu($("#editor .sn-editor-head") || document.body));
   add(t("newCard"), "plus", async () => { const title = await promptModal(t("newCard")); if (title) createCard(title, board.target, "", undefined, { open: true }); });
-  if (board.target) add(t("cmdEditTarget"), "pencil", () => openEditor(board.target, { focus: true }));
+  if (board.target) add(t("cmdEditTarget"), "pencil", () => openEditor(board.target, { focus: true, edit: true }));
   if (board.target) add(t("toParent"), "arrow-up", () => { const ps = graph.parentsOf(board.target).filter((p) => graph.has(p)); setTarget(ps[0] ?? null); }, "Alt+↑");
   add(t("back"), "arrow-left", goBack, "Alt+←");
   add(t("allCards"), "home", () => setTarget(null));
@@ -244,6 +244,7 @@ export function settingsModal(tab) {
       heading(t("setGroupUi")),
       item(t("setLanguage"), null, select(UI.lang, [["auto", "Auto"], ["en", "English"], ["ru", "Русский"]], (v) => { UI.lang = v; saveUI(); applyLanguage(); close(); settingsModal("appearance"); })),
       item(t("setTheme"), null, select(UI.theme, [["auto", t("themeAuto")], ["light", t("themeLight")], ["dark", t("themeDark")]], (v) => { UI.theme = v; saveUI(); applyTheme(); })),
+      item(t("setOpenNotes"), null, select(UI.openNotes === "edit" ? "edit" : "read", [["read", t("openRead")], ["edit", t("openEdit")]], (v) => { UI.openNotes = v; saveUI(); })),
       heading(t("setGroupView")),
       item(t("setDefaultSort"), null, select(S.defaultSort, [["manual", t("sortManual")], ["name", t("sortName")], ["modified", t("sortModified")], ["created", t("sortCreated")]], (v) => { S.defaultSort = v; save(); })),
       item(t("setMaxCards"), null, text(S.maxCards, "1000", (v) => { const n = Number(v); if (Number.isFinite(n) && n > 0) { S.maxCards = Math.floor(n); save(); } }, "number")),

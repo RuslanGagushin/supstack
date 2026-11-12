@@ -51,7 +51,7 @@ export function renderTree() {
         h("span", { cls: "sn-tree-toggle is-leaf" }), ic("sn-tree-icon", cardIcon(p) || "file-text", "file-text"), h("div", { cls: "tree-item-inner sn-tree-label", text: baseName(p) }),
         h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair", text: shortAgo(vault.notes.get(p)?.mtime || 0) })));
       row.addEventListener("click", (e) => { if (isMod(e) || editor.path) openEditor(p); else setTarget(p); });
-      row.addEventListener("dblclick", () => openEditor(p, { focus: true }));
+      row.addEventListener("dblclick", () => openEditor(p, { focus: true, edit: true }));
       row.addEventListener("contextmenu", (e) => cardMenu(p, null).showAtEvent(e));
       box.append(h("div", { cls: "tree-item" }, row));
     }
