@@ -201,7 +201,7 @@ body.sn-app .sn-inline-title { font-weight: 700; font-size: 32px; line-height: 1
 button.sn-mode-btn { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 30px; margin: 0 2px 0 6px; padding: 0 12px 0 10px;
   border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--win); color: var(--fg); font-size: var(--fs-ui); font-weight: 500; cursor: pointer; }
 button.sn-mode-btn:hover { background: var(--hover-bg); }
-button.sn-mode-btn svg { width: 15px; height: 15px; }
+button.sn-mode-btn svg { display: block; width: 15px; height: 15px; } /* a block, so the icon sits in the middle, not on the text's baseline */
 button.sn-mode-btn.is-editing { border-color: transparent; background: var(--cta); color: #fff; }
 button.sn-mode-btn.is-editing:hover { background: var(--cta-hover); }
 @container (max-width: 640px) { button.sn-mode-btn { width: 30px; padding: 0; justify-content: center; } .sn-mode-label { display: none; } }
@@ -216,6 +216,8 @@ body.sn-app .sn-prop:hover { background: var(--hover-bg); }
 body.sn-app .sn-prop-key { color: var(--muted); }
 body.sn-app .sn-editor-text.is-source { font-family: var(--font-code); font-size: var(--fs-ui); }
 body.sn-app .sn-reading { font-size: var(--fs-note); line-height: 1.65; }
+/* a table being read keeps the room editing leaves on its right for "+ column" (writing.css .sn-table-host), so it doesn't widen and re-split its columns */
+.sn-reading:not(.sn-live) .sn-table-wrap { margin-right: 17px; }
 body.sn-app .sn-fm-error { font-family: var(--font-code); }
 
 /* Rendered Markdown: black bold headings, grey quotes, monospace code */
