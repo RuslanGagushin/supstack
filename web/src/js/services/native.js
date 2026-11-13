@@ -44,6 +44,31 @@ export class NativeFS {
   async remove(path) { await vinvoke("remove", { root: this.root, path }); }
   async listDir(path) { return vinvoke("list_dir", { root: this.root, path }); }
   async removeDir(path) { await vinvoke("remove_dir", { root: this.root, path }); }
+  /**
+   * Have the app watch the folder (desktop): `onChanges` gets each batch of changed files as listing entries
+   * ({ path, mtime, size, handle }) and the paths that are gone. False where the app can't watch (Android).
+   */
+  async watch(onChanges) {
+    const events = window.__TAURI__?.event;
+    if (!events) return false;
+    this.unlisten?.();
+    this.unlisten = await events.listen("vault://changed", (e) => {
+      const { root, changes } = e.payload || {};
+      if (root !== this.root || !Array.isArray(changes)) return;
+      const present = [], gone = [];
+      for (const c of changes) {
+        if (c.mtime == null) gone.push(c.path);
+        else { const it = { path: c.path, mtime: c.mtime, size: c.size }; present.push({ ...it, handle: { getFile: async () => this.lazyFile(it) } }); }
+      }
+      onChanges(present, gone);
+    });
+    try { return !!(await vinvoke("watch", { root: this.root })); }
+    catch (err) { console.warn("not watching the vault", err); this.unwatch(); return false; }
+  }
+  unwatch() {
+    this.unlisten?.(); this.unlisten = null;
+    vinvoke("unwatch", {}).catch(() => {});
+  }
 }
 
 export const lastNative = () => lsGet("sn-native-last", null);

@@ -13,6 +13,8 @@ mod models;
 
 #[cfg(desktop)]
 mod desktop;
+#[cfg(desktop)]
+mod watch;
 #[cfg(mobile)]
 mod mobile;
 
@@ -49,6 +51,8 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             commands::git_sync,
             commands::git_info,
             commands::git_save_settings,
+            commands::watch,
+            commands::unwatch,
         ])
         .setup(|app, api| {
             #[cfg(mobile)]

@@ -147,6 +147,8 @@ function reportUnreadable(paths) {
  *  ui/shell.js loadVault shows it. */
 export async function readVault(fs) {
   await stopSync();
+  vault.fs?.unwatch?.();
+  vault.watching = false;
   vault.fs = fs;
   vault.notes.clear(); vault.files.clear(); vault.allPaths.clear(); vault.sizes.clear(); vault.mtimes.clear();
   const cache = await loadIndexCache(fs);
@@ -206,6 +208,15 @@ export async function readVault(fs) {
   undoStack.length = 0;
   setGraph(buildGraph());
   flushIndexCache(vault.notes, vault.sizes);
+  lastFullPoll = Date.now(); // reading it was a full look
+  watchVault(fs);
+}
+/** On desktop the app tells the page which files changed (PERF-3); the full look in pollChanges is then only a fallback. */
+async function watchVault(fs) {
+  if (!fs.watch) return;
+  const ok = await fs.watch((present, gone) => { if (vault.fs === fs) pickUp(present, gone); });
+  if (vault.fs === fs) vault.watching = ok;
+  else if (ok) fs.unwatch();
 }
 const boardKey = () => "sn-board:" + (vault.fs?.kind || "") + ":" + (vault.fs?.name || "");
 export function persistBoard() {
@@ -274,55 +285,77 @@ export async function saveSettings() {
 
 /* Watch for changes made elsewhere (other apps, sync) */
 let polling = false;
-/** Pick up what changed on disk since the last look (main.js calls it every few seconds while the page is visible). */
-export async function pollChanges() {
+let lastFullPoll = 0;
+/** How often the whole vault is listed while the app watches the folder. */
+export const WATCHED_POLL_MS = 60000;
+/**
+ * Pick up what changed on disk since the last look: ui/boot.js calls it every few seconds while the page is visible.
+ * While the app watches the folder (vault.watching), the changes arrive on their own and this lists the vault at most
+ * once a minute, in case the system missed something; `force` lists it anyway (after a sync).
+ */
+export async function pollChanges({ force = false } = {}) {
   if (polling || !vault.fs || vault.fs.kind !== "disk") return;
+  if (vault.watching && !force && Date.now() - lastFullPoll < WATCHED_POLL_MS) return;
   polling = true;
   try {
     const list = await vault.fs.list();
-    const seen = new Set();
-    let changed = false;
-    const failed = [];
-    for (const f of list) {
-      seen.add(f.path);
-      if (!vault.allPaths.has(f.path)) {
-        vault.allPaths.add(f.path);
-        if (!isMd(f.path)) { addAttachment(f.path); try { const file = await f.handle.getFile(); vault.sizes.set(f.path, file.size); vault.mtimes.set(f.path, file.lastModified || Date.now()); } catch { /* gone */ } syncHook("create", f.path); changed = true; }
-      }
-      if (!isMd(f.path)) continue;
-      const file = await f.handle.getFile();
-      const n = vault.notes.get(f.path);
-      if (n && n.mtime >= file.lastModified) continue;
-      if (unreadable.get(f.path) === file.lastModified) continue;
-      let raw;
-      // one file that cannot be read does not stop the others from being picked up
-      try { raw = await noteText(file); } catch (e) {
-        if (cannotRead(f.path, file.lastModified, e)) failed.push(f.path);
-        if (n) { vault.notes.delete(f.path); changed = true; } // its old text must not be saved over the file
-        continue;
-      }
-      unreadable.delete(f.path);
-      if (n && n.raw === raw) { n.mtime = file.lastModified; continue; }
-      vault.notes.set(f.path, parseNote(f.path, raw, file.lastModified));
-      vault.sizes.set(f.path, file.size);
-      syncHook(n ? "modify" : "create", f.path);
-      changed = true;
-    }
-    for (const p of [...vault.allPaths]) {
-      if (seen.has(p)) continue;
-      vault.allPaths.delete(p);
-      vault.sizes.delete(p);
-      if (!isMd(p)) { vault.mtimes.delete(p); dropAttachment(p); changed = true; }
-      if (vault.notes.delete(p)) changed = true;
-      syncHook("delete", p);
-    }
-    reportUnreadable(failed);
-    if (changed) {
-      indexNames();
-      emit("changed", { disk: true });
-      scheduleIndexFlush(vault.notes, vault.sizes);
-    }
+    lastFullPoll = Date.now();
+    const seen = new Set(list.map((f) => f.path));
+    await pickUp(list, [...vault.allPaths].filter((p) => !seen.has(p)));
   } catch (e) { console.warn("poll failed", e); } finally { polling = false; }
+}
+/** Take in files that are new or changed (listing entries with a handle) and the paths that are gone. */
+let picking = Promise.resolve();
+function pickUp(present, gone) {
+  picking = picking.then(() => pickUpNow(present, gone)).catch((e) => console.warn("pick up failed", e));
+  return picking;
+}
+async function pickUpNow(list, gone) {
+  let changed = false;
+  const failed = [];
+  for (const f of list) {
+    if (!vault.allPaths.has(f.path)) {
+      vault.allPaths.add(f.path);
+      if (!isMd(f.path)) { addAttachment(f.path); try { const file = await f.handle.getFile(); vault.sizes.set(f.path, file.size); vault.mtimes.set(f.path, file.lastModified || Date.now()); } catch { /* gone */ } syncHook("create", f.path); changed = true; }
+    }
+    if (!isMd(f.path)) continue;
+    const file = await f.handle.getFile();
+    const n = vault.notes.get(f.path);
+    if (n && n.mtime >= file.lastModified) continue;
+    if (unreadable.get(f.path) === file.lastModified) continue;
+    let raw;
+    // one file that cannot be read does not stop the others from being picked up
+    try { raw = await noteText(file); } catch (e) {
+      if (cannotRead(f.path, file.lastModified, e)) failed.push(f.path);
+      if (n) { vault.notes.delete(f.path); changed = true; } // its old text must not be saved over the file
+      continue;
+    }
+    unreadable.delete(f.path);
+    if (n && n.raw === raw) { n.mtime = file.lastModified; continue; }
+    vault.notes.set(f.path, parseNote(f.path, raw, file.lastModified));
+    vault.sizes.set(f.path, file.size);
+    syncHook(n ? "modify" : "create", f.path);
+    changed = true;
+  }
+  // a folder that is gone takes its files with it (the watcher names the folder)
+  const goneFiles = new Set();
+  for (const p of gone) {
+    if (vault.allPaths.has(p)) goneFiles.add(p);
+    else for (const q of vault.allPaths) if (q.startsWith(p + "/")) goneFiles.add(q);
+  }
+  for (const p of goneFiles) {
+    vault.allPaths.delete(p);
+    vault.sizes.delete(p);
+    if (!isMd(p)) { vault.mtimes.delete(p); dropAttachment(p); changed = true; }
+    if (vault.notes.delete(p)) changed = true;
+    syncHook("delete", p);
+  }
+  reportUnreadable(failed);
+  if (changed) {
+    indexNames();
+    emit("changed", { disk: true });
+    scheduleIndexFlush(vault.notes, vault.sizes);
+  }
 }
 
 /** The board's cards right now: core/board-model.js on this vault, the board's state and settings. */
