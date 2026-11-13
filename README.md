@@ -107,7 +107,7 @@ Supstack shows a folder of Markdown notes (a *vault*) as notebooks with a list o
 
   The set is fixed. Headings are never tasks. A click on the box ticks an open task or reopens a closed one; right-click it (or press `T` in the agenda) to pick any state; `Ctrl+Enter` steps `[ ]` → `[/]` → `[x]` and turns a plain line into a task.
 - Tasks take **priorities** (`- [ ] [#A] …`), `:tags:` and **`SCHEDULED` / `DEADLINE`** dates on the line under them, with Org's repeaters (`+1w`, `++1m`, `.+3d`): closing a repeating task moves it to its next date. A dated task gets `CLOSED:` when it closes. Subtasks count towards their parent's `[2/5]`.
-- The **agenda** (calendar icon, or `Ctrl+Shift+K`) collects them from the whole vault by day, with a calendar to jump to a date and a quick-capture form for new entries. Its task list shows every open task or the ones in one state, and match queries filter by state (`STATE=doing`, `/wait|doing`).
+- The **agenda** (calendar icon, or `Ctrl+Shift+K`) collects them from the whole vault by day, a week or a month at a time (`d`, `w`, `M`; the month shows how many entries each day has, and a click opens the day), with a calendar to jump to a date and a quick-capture form for new entries. Its task list shows every open task or the ones in one state, and match queries filter by state (`STATE=doing`, `/wait|doing`).
 
 ### Search and filters
 - `Ctrl+F` searches the notebook you are in, through every level, or the whole vault; filter by tag with `+tag` / `-tag` in the query, or with the Tags button. Notes with the words in their title come first, then those with them in a heading, then the rest. Results show which notebook each note sits in, with the line where the words are.
