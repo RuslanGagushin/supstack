@@ -120,6 +120,8 @@ export function renderBoard(resetScroll = false) {
 
   const composer = renderComposer();
   composerTarget = board.target;
+  // while searching or in a tag's view it would be unclear where a new note goes: no field there
+  composer.el.hidden = model.active || !!board.tagView;
   const cards = renderRows(page, scroll, model, composer);
   if (!model.shown.length) page.append(h("div", { cls: "sn-empty", text: model.active ? t("noMatches") : t("noCards") }));
   const footnotes = [];

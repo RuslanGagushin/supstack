@@ -70,31 +70,41 @@ export function refresh(o = {}) {
 function commandList() {
   const c = [];
   // on: a setting this command switches, or the board's current sort; the palette ticks it
-  const add = (title, icon, run, key, on) => c.push({ title, icon, keys: key ? key.split("+") : null, run, checked: !!on });
-  add(t("openShort") + "…", "search", quickOpen, "Ctrl+O");
+  let group = null;
+  const section = (name) => { group = name; };
+  const add = (title, icon, run, key, on) => c.push({ title, icon, keys: key ? key.split("+") : null, run, checked: !!on, group });
+  section(t("cmdGroupGo"));
+  add(t("goToNote"), "search", quickOpen, "Ctrl+O");
   add(wt("todayHint"), "calendar-days", openToday, "Ctrl+Shift+D");
+  add(t("allCards"), "home", () => setTarget(null));
+  if (board.target) add(t("toParent"), "arrow-up", () => { const ps = graph.parentsOf(board.target).filter((p) => graph.has(p)); setTarget(ps[0] ?? null); }, "Alt+↑");
+  add(t("back"), "arrow-left", goBack, "Alt+←");
+  add(fvt("files"), "paperclip", () => openFilesView(), "Ctrl+Shift+E");
+  section(t("cmdGroupTasks"));
   add(tt("tasksHint"), "calendar-check", () => openTasksView(true, "agenda"), "Ctrl+Shift+K");
   add(`${tt("tasks")}: ${tt("vTodo")}`, "list-todo", () => openTasksView(true, "todo"));
   add(`${tt("tasks")}: ${tt("vMatch")}`, "tags", () => openTasksView(true, "match"));
   add(`${tt("tasks")}: ${tt("vSearch")}`, "search", () => openTasksView(true, "search"));
   add(tt("capTitle") + "…", "plus-circle", () => orgCapture());
   add(tt("icsExport"), "calendar-arrow-down", exportCalendar);
-  add(fvt("files"), "paperclip", () => openFilesView(), "Ctrl+Shift+E");
+  if (editor.path) section(t("cmdGroupNote"));
   if (editor.path) { add(ft("foldAll"), "chevrons-down-up", () => orgFoldNote(true)); add(ft("unfoldAll"), "chevrons-up-down", () => orgFoldNote(false)); }
-  add(wt("focus"), "focus", () => setFocusMode(!UI.focus), "Ctrl+Shift+F", UI.focus);
   if (editor.path) {
     // the note's header has only Edit / Done and ⋮: what was a button there is a command here too
     add(wt("outline"), "table-of-contents", () => outlineMenu($("#editor .sn-editor-more") || $("#editor .sn-editor-head") || document.body));
     add(editor.mode === "read" ? t("editingView") : t("readingView"), editor.mode === "read" ? "pencil" : "book-open", () => toggleReading(), "Ctrl+E");
     add(t("sourceMode"), "code-2", () => toggleSource(), null, editor.mode === "source");
   }
+  section(t("cmdGroupList"));
   add(t("newCard"), "plus", async () => { const title = await promptModal(t("newCard")); if (title) createCard(title, board.target, "", undefined, { open: true }); });
   if (board.target) add(t("cmdEditTarget"), "pencil", () => openEditor(board.target, { focus: true, edit: true }));
-  if (board.target) add(t("toParent"), "arrow-up", () => { const ps = graph.parentsOf(board.target).filter((p) => graph.has(p)); setTarget(ps[0] ?? null); }, "Alt+↑");
-  add(t("back"), "arrow-left", goBack, "Alt+←");
-  add(t("allCards"), "home", () => setTarget(null));
   add(t("searchAndFilters").replace(/ \(.*\)$/, ""), "search", () => toggleSearch(true), "Ctrl+F");
-  for (const [v, k] of [["manual", "sortManual"], ["name", "sortName"], ["modified", "sortModified"], ["created", "sortCreated"]]) add(t("cmdSort", { s: t(k) }), "arrow-up-down", () => { board.sort = v; persistBoard(); renderBoard(); }, null, board.sort === v);
+  // one command for the four orders; the next step picks one, the current one ticked
+  add(t("cmdSortPick"), "arrow-up-down", async () => {
+    const orders = [["manual", "sortManual"], ["name", "sortName"], ["modified", "sortModified"], ["created", "sortCreated"]];
+    const pick = await suggestModal({ placeholder: t("cmdSortPick"), items: orders.map(([v, k]) => ({ title: t(k), value: v, icon: "arrow-up-down", checked: board.sort === v })), current: board.sort });
+    if (pick) { board.sort = pick.value; persistBoard(); renderBoard(); }
+  });
   add(t("selectMode"), "check-square", () => { board.selectMode = !board.selectMode; if (!board.selectMode) board.selection.clear(); renderBoard(); }, null, board.selectMode);
   const tagPaths = tagTargets();
   if (tagPaths.length) add(t("menuAddTag"), "tag", () => promptAddTag(tagPaths), "Ctrl+Shift+T");
@@ -102,8 +112,11 @@ function commandList() {
   if (board.target) add(t("pin"), "pin", () => togglePin(board.target), null, S.pinned.includes(board.target));
   add(t("revealCurrent"), "crosshair", () => revealInTree(board.target));
   add(t("collapseAll"), "chevrons-down-up", () => { tree.expanded.clear(); persistBoard(); renderTree(); });
+  section(t("cmdGroupView"));
+  add(wt("focus"), "focus", () => setFocusMode(!UI.focus), "Ctrl+Shift+F", UI.focus);
   add(t("cmdSidebar"), "panel-left", () => setSide($("#app").classList.contains("side-closed")), "Ctrl+\\", !$("#app").classList.contains("side-closed"));
   add(t("cmdDark"), "moon", () => { const dark = document.body.classList.contains("theme-dark"); UI.theme = dark ? "light" : "dark"; saveUI(); applyTheme(); }, null, document.body.classList.contains("theme-dark"));
+  section(t("cmdGroupApp"));
   add(t("undo"), "undo-2", undo, "Ctrl+Z");
   if (vault.fs.kind === "disk") add(t("reload"), "refresh-cw", async () => { await loadVault(vault.fs); notice(t("vaultReloaded")); });
   add(t("openOther"), "folder-open", pickVault);
@@ -120,7 +133,7 @@ const RECENT_KEY = "sn-cmd-recent", RECENT_MAX = 5;
 export async function commandPalette() {
   const all = commandList();
   const recent = lsGet(RECENT_KEY, []).map((title) => all.find((c) => c.title === title)).filter(Boolean);
-  const items = [...recent.map((c) => ({ ...c, group: t("cmdRecent") })), ...all.filter((c) => !recent.includes(c)).map((c) => ({ ...c, group: recent.length ? t("commands") : null }))];
+  const items = [...recent.map((c) => ({ ...c, group: t("cmdRecent") })), ...all.filter((c) => !recent.includes(c))];
   const pick = await suggestModal({ placeholder: t("cmdPalette"), items });
   if (!pick) return;
   lsSet(RECENT_KEY, [pick.title, ...lsGet(RECENT_KEY, []).filter((x) => x !== pick.title)].slice(0, RECENT_MAX));
@@ -146,19 +159,22 @@ function renderAll() {
     const m = new Menu();
     if (vault.fs.kind === "disk") m.add(t("reload"), "refresh-cw", async () => { await loadVault(vault.fs); notice(t("vaultReloaded")); });
     m.add(t("openOther"), "folder-open", () => pickVault());
+    m.add(t("commands") + "…", "terminal", () => commandPalette());
+    m.sep();
     m.add(t("closeVault"), "log-out", async () => { closeEditor(); await stopSync(); vault.fs = null; showWelcome(); });
     m.showBelow(e.currentTarget);
   };
   const newCard = async () => { const title = await promptModal(t("newCard")); if (title) createCard(title, board.target, "", undefined, { open: true }); };
   // there is no top bar: search, the new-card button, the agenda, Files, sync, settings and the vault live in the sidebar,
   // and each view's own bar opens the sidebar when it is closed (sideToggle)
-  const search = h("button", { cls: "sb-search", type: "button", title: t("openShort") + " · Ctrl+O" }, ic("", "search"), h("span", { text: t("searchShort") }));
+  // finding a note by its name; searching the text is the list's own (its magnifier, Ctrl+F)
+  const search = h("button", { cls: "sb-search", type: "button", title: t("goToNote") + " · Ctrl+O" }, ic("", "search"), h("span", { text: t("goToNote") }));
   search.addEventListener("click", () => quickOpen());
   const sideHead = h("div", { cls: "sb-head" }, search,
     h("div", { cls: "sb-actions" },
       wbBtn("plus", t("newShort"), newCard, "sb-new"),
-      iconBtn("calendar-days", wt("today"), () => openToday(), "sb-round"),
-      iconBtn("terminal", t("commands") + " · Ctrl+P", () => commandPalette(), "sb-round")));
+      // today's note, by name; the command palette is Ctrl+P and the vault's menu below
+      wbBtn("calendar-days", t("todayShort"), () => openToday(), "sb-today")));
   // a demo or a copy says so under its name for as long as it is open (the toast shows it only once)
   const standing = defaultEcho();
   const note = vault.fs.kind === "demo" ? t("demoShort") : vault.fs.kind === "copy" ? t("copyShort") : "";
@@ -269,7 +285,7 @@ export function settingsModal(tab) {
         item(t("captureKeyOn"), t("captureKeyDesc"), toggle(!!captureKey(), async (on) => { if (!on) UI.captureKeyLast = captureKey(); await setCaptureKey(on ? (UI.captureKeyLast || CAPTURE_KEY_DEFAULT) : ""); close(); settingsModal("keys"); })),
         captureKey() ? item(t("captureKeyName"), t("captureKeyFormat"), text(captureKey(), CAPTURE_KEY_DEFAULT, async (v) => { if (await setCaptureKey(v.trim())) { UI.captureKeyLast = v.trim(); saveUI(); } close(); settingsModal("keys"); })) : null,
       ] : []),
-      ...hotkeyRows().map(([k, d]) => item(keyText(d), null, k)),
+      ...hotkeyGroups().flatMap(([name, rows]) => [heading(name), ...rows.map(([k, d]) => item(keyText(d), null, k))]),
     ]],
     syncAvailable() && ["sync", "Git", "git-branch", "app", () => syncSettingsBody(item, toggle, heading)],
     ["about", ut("about"), "info", "app", () => aboutBody(item, toggle)],
@@ -339,16 +355,21 @@ export function settingsModal(tab) {
   show(tab || UI.settingsTab);
 }
 /** Every keyboard shortcut: [keys, what it does]. */
-function hotkeyRows() {
+/** The shortcuts by what they work in (spec UI-28): [heading, [[keys, what they do]]]; an action with two shortcuts is one row. */
+function hotkeyGroups() {
   const kb = (...keys) => h("span", { cls: "suggestion-keys" }, keys.map((k) => h("kbd", { text: keyName(k) })));
-  return [[kb("Ctrl", "P"), t("k_palette")], [kb("Alt", "X"), t("k_palette")], [kb("click"), t("k_click")], [kb("dbl-click"), t("k_dbl")],
-    [kb("←", "↑", "→", "↓"), t("k_arrows")], [kb("Enter"), t("k_enter")], [kb("Alt", "↑"), t("k_parent")], [kb("Alt", "←"), t("k_back")], [kb("Shift", "Enter"), t("k_shiftEnter")], [kb("Ctrl", "Enter"), t("k_modEnter")],
-    [kb("Space"), t("k_space")], [kb("Shift", "click"), t("k_shiftClick")], [kb("Delete"), t("k_delete")], [kb("a…z"), t("k_type")], [kb("Ctrl", "F"), t("k_find")],
-    [kb("Ctrl", "A"), t("k_selectAll")], [kb("Ctrl", "Z"), t("k_undo")], [kb("Ctrl", "O"), t("k_open")], [kb("Esc"), t("k_esc")], [kb("Ctrl", "Alt"), t("k_drag")],
-    [kb("[["), t("k_link")], [kb("Ctrl", "L"), t("k_link")], [kb("Ctrl", "E"), t("k_reading")],
-    [kb("/"), wt("slashHint")], [kb("#"), wt("tagsSection")], [kb("Ctrl", "Shift", "T"), t("menuAddTag").replace("…", "")], [kb("Ctrl", "Shift", "D"), wt("todayHint")], [kb("Ctrl", "Shift", "F"), wt("focus")],
-    [kb("Ctrl", "Shift", "K"), tt("tasksHint")], [kb("Ctrl", "Shift", "E"), fvt("filesHint")], [kb("Ctrl", "Enter"), LANG === "ru" ? "Задача: следующее состояние (в редакторе)" : "Next task state (in the editor)"],
-    [kb("Ctrl", "C", "…"), tt("keysEditor")], [kb(LANG === "ru" ? "агенда" : "agenda"), tt("keysAgenda")]];
+  const or = (...alts) => h("span", { cls: "sn-keys-or" }, alts.flatMap((a, i) => (i ? [h("span", { cls: "sn-or", text: t("keysOr") }), a] : [a])));
+  return [
+    [t("keysGroupGeneral"), [[or(kb("Ctrl", "P"), kb("Alt", "X")), t("k_palette")], [kb("Ctrl", "O"), t("k_open")], [kb("Ctrl", "F"), t("k_find")], [kb("Ctrl", "Z"), t("k_undo")], [kb("Esc"), t("k_esc")],
+      [kb("Ctrl", "Shift", "D"), wt("todayHint")], [kb("Ctrl", "Shift", "E"), fvt("filesHint")]]],
+    [t("keysGroupList"), [[kb("click"), t("k_click")], [kb("dbl-click"), t("k_dbl")], [kb("←", "↑", "→", "↓"), t("k_arrows")], [kb("Enter"), t("k_enter")], [kb("Alt", "↑"), t("k_parent")], [kb("Alt", "←"), t("k_back")],
+      [kb("Shift", "Enter"), t("k_shiftEnter")], [kb("Ctrl", "Enter"), t("k_modEnter")], [kb("Space"), t("k_space")], [kb("Shift", "click"), t("k_shiftClick")], [kb("Ctrl", "A"), t("k_selectAll")],
+      [kb("Delete"), t("k_delete")], [kb("a…z"), t("k_type")], [kb("Ctrl", "Alt"), t("k_drag")]]],
+    [t("keysGroupNote"), [[kb("Ctrl", "E"), t("k_reading")], [or(kb("[["), kb("Ctrl", "L")), t("k_link")], [kb("/"), wt("slashHint")], [kb("#"), wt("tagsSection")],
+      [kb("Ctrl", "Shift", "T"), t("menuAddTag").replace("…", "")], [kb("Ctrl", "Shift", "F"), wt("focus")]]],
+    [t("keysGroupTasks"), [[kb("Ctrl", "Shift", "K"), tt("tasksHint")], [kb("Ctrl", "Enter"), LANG === "ru" ? "Задача: следующее состояние (в редакторе)" : "Next task state (in the editor)"],
+      [kb("Ctrl", "C", "…"), tt("keysEditor")], [kb(LANG === "ru" ? "агенда" : "agenda"), tt("keysAgenda")]]],
+  ];
 }
 /** The keyboard shortcuts are a section of the settings. */
 export function hotkeysModal() { settingsModal("keys"); }

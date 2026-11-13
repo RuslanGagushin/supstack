@@ -75,6 +75,13 @@ body.sn-app button.wb-btn.sb-new, body.sn-app button.wb-btn.primary {
 body.sn-app button.wb-btn.sb-new:hover, body.sn-app button.wb-btn.primary:hover { background: var(--cta-hover); opacity: 1; }
 body.sn-app button.wb-btn.sb-new svg { width: 17px; height: 17px; }
 button.clickable-icon.sb-round { width: 38px; height: 38px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: var(--win); }
+/* Today, beside New note: a labelled button, quieter than New note */
+body.sn-app button.wb-btn.sb-today { height: 38px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--win); color: var(--fg); font-weight: 500; }
+body.sn-app button.wb-btn.sb-today:hover { background: var(--hover-bg); }
+body.sn-app button.wb-btn.sb-today svg { width: 16px; height: 16px; color: var(--muted); }
+body.sn-app .sb-today .wb-label { display: inline; }
+.sn-keys-or { display: inline-flex; align-items: center; gap: 6px; }
+.sn-keys-or .sn-or { color: var(--faint); font-size: var(--fs-sm); }
 button.clickable-icon.sb-round:hover { background: var(--hover-bg); color: var(--fg); }
 button.clickable-icon.sb-round svg { width: 17px; height: 17px; }
 button.sb-account { justify-content: flex-start; gap: 9px; width: 100%; height: 36px; padding: 0 8px;

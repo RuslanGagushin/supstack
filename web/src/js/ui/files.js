@@ -260,6 +260,8 @@ export function fvRenderList() {
   const all = allAttachments();
   if (FV.sel && !vault.allPaths.has(FV.sel)) { FV.sel = null; fvRenderPreview(); }
   $(".fv-count").textContent = String(all.length);
+  // no files: the hint and Add files only, no search, filters, sort, size or preview (spec UI-30)
+  $(".fv")?.classList.toggle("is-empty", !all.length);
   $(".fv-total").textContent = fvt("total", { size: fmtSize(all.reduce((s, p) => s + (vault.sizes.get(p) || 0), 0)) });
   const rows = fvRows();
   const sc = list.scrollTop;
