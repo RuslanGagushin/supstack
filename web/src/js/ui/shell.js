@@ -21,6 +21,7 @@ import { syncButton, syncSettingsBody, syncSettingsModal } from "./sync-panel.js
 import { openToday, outlineMenu, setFocusMode } from "./completion.js";
 import { orgFoldNote } from "./org-editing.js";
 import { AG, exportCalendar, openTasksView, orgCapture, renderTasksButton, tasksButton } from "./agenda.js";
+import { CAPTURE_KEY_DEFAULT, captureKey, captureShortcutAvailable, setCaptureKey } from "./native-shell.js";
 import { onow } from "../core/org.js";
 import { filesButton, openFilesView } from "./files.js";
 import { aboutBody } from "./about.js";
@@ -257,7 +258,14 @@ export function settingsModal(tab) {
       item(t("setMaxCards"), null, text(S.maxCards, "1000", (v) => { const n = Number(v); if (Number.isFinite(n) && n > 0) { S.maxCards = Math.floor(n); save(); } }, "number")),
       storedIn(),
     ]],
-    ["keys", t("hotkeys"), "keyboard", "options", () => hotkeyRows().map(([k, d]) => item(keyText(d), null, k))],
+    ["keys", t("hotkeys"), "keyboard", "options", () => [
+      // the desktop app's system-wide shortcut for quick capture: on or off, and which keys
+      ...(captureShortcutAvailable ? [
+        item(t("captureKeyOn"), t("captureKeyDesc"), toggle(!!captureKey(), async (on) => { if (!on) UI.captureKeyLast = captureKey(); await setCaptureKey(on ? (UI.captureKeyLast || CAPTURE_KEY_DEFAULT) : ""); close(); settingsModal("keys"); })),
+        captureKey() ? item(t("captureKeyName"), t("captureKeyFormat"), text(captureKey(), CAPTURE_KEY_DEFAULT, async (v) => { if (await setCaptureKey(v.trim())) { UI.captureKeyLast = v.trim(); saveUI(); } close(); settingsModal("keys"); })) : null,
+      ] : []),
+      ...hotkeyRows().map(([k, d]) => item(keyText(d), null, k)),
+    ]],
     syncAvailable() && ["sync", "Git", "git-branch", "app", () => syncSettingsBody(item, toggle, heading)],
     ["about", ut("about"), "info", "app", () => aboutBody(item, toggle)],
   ].filter(Boolean);

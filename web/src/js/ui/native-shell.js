@@ -3,15 +3,17 @@
    and Android's back button.
    ========================================================= */
 import { LANG } from "../core/i18n.js";
+import { t } from "../core/i18n.js";
 import { lsSet } from "../services/storage.js";
-import { IS_ANDROID, IS_NATIVE, NativeFS, openExternal, vinvoke } from "../services/native.js";
-import { board, editor, UI, vault } from "../services/state.js";
+import { IS_ANDROID, IS_NATIVE, NativeFS, openExternal, TAURI, vinvoke } from "../services/native.js";
+import { board, editor, saveUI, UI, vault } from "../services/state.js";
 import { $ } from "./dom.js";
 import { closeMenu, notice, openMenuEl } from "./ui.js";
 import { goBack } from "./board.js";
 import { closeEditor } from "./editor.js";
 import { loadVault, setSide } from "./shell.js";
 import { setFocusMode } from "./completion.js";
+import { orgCapture } from "./agenda.js";
 
 export async function nativePick() {
   try {
@@ -26,6 +28,25 @@ export async function nativeReopen(r) {
     if (!(await vinvoke("exists", { root: r.root, path: "" }))) throw new Error((LANG === "ru" ? "Нет доступа к папке: " : "Can't reach the folder: ") + r.name);
     await loadVault(new NativeFS(r.root, r.name));
   } catch (e) { notice(String(e?.message || e)); }
+}
+
+/* Quick capture from anywhere (spec TASK-5, desktop app): a system-wide shortcut brings the window forward and opens
+   the capture form. Settings › Keyboard shortcuts changes it or turns it off (UI.captureKey: "" is off). */
+export const CAPTURE_KEY_DEFAULT = "CommandOrControl+Alt+N";
+export const captureShortcutAvailable = IS_NATIVE && !IS_ANDROID;
+export const captureKey = () => (UI.captureKey == null ? CAPTURE_KEY_DEFAULT : UI.captureKey);
+/** Hand the shortcut to the app; false, with a message, when the system refuses it (taken by another app, or not a shortcut). */
+export async function setCaptureKey(key) {
+  if (!captureShortcutAvailable) return false;
+  try { await TAURI.invoke("set_capture_shortcut", { shortcut: key || null }); }
+  catch (e) { notice(t("captureKeyFailed", { key, msg: String(e?.message || e) })); return false; }
+  UI.captureKey = key || "";
+  saveUI();
+  return true;
+}
+if (captureShortcutAvailable) {
+  window.__TAURI__?.event?.listen("quick-capture", () => { if (vault.fs) orgCapture(); }).catch(() => {});
+  if (captureKey()) setCaptureKey(captureKey());
 }
 
 if (IS_NATIVE) {
