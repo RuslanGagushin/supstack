@@ -190,7 +190,7 @@ describe("tasks", () => {
       ["item", "cancel", null, "gone", ["work"], true],
     ]);
     const T = org.onow().dn;
-    assert.deepEqual(org.orgDayEntries(T, es, T).map((x) => [x.label, x.e.title]), [["Scheduled:", "Report"], ["", "Dentist"], ["In 2 d.:", "Call #home"]], "a deadline shows up days early");
+    assert.deepEqual(org.orgDayEntries(T, es, T).map((x) => [x.label, x.e.title]), [["Scheduled:", "Report"], ["", "Dentist"], ["In 2 days:", "Call #home"]], "a deadline shows up days early");
   });
 });
 

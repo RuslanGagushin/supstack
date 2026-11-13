@@ -30,7 +30,7 @@ describe("the month (TASK-4)", () => {
     await page().focus(".ag-body");
     await page().keyboard.press("Shift+M");
     const m = await month();
-    assert.equal(m.title, "Month October 2026");
+    assert.equal(m.title, "October 2026");
     assert.deepEqual(m.rows, [
       "(28) (29) (30) 1 2 3 4",
       "5 6 7 8 9 10 11",
@@ -48,7 +48,7 @@ describe("the month (TASK-4)", () => {
     await ev(() => { AG.log = false; renderBoard(); });
     await page().click('.agbar button[title^="Later"]');
     const nov = await month();
-    assert.equal(nov.title, "Month November 2026");
+    assert.equal(nov.title, "November 2026");
     assert.deepEqual(nov.rows.map((r) => r.split(" ").filter((d) => d.includes(":") && !d.startsWith("("))).flat(), ["5:1", "12:1", "19:1", "26:1"], "the weekly run repeats");
     await page().click('.ag-mday[aria-label^="Thursday 12 November"]');
     assert.deepEqual(await ev(() => [AG.span, oFmt(AG.anchor, "YYYY-MM-DD")]), ["day", "2026-11-12"]);
@@ -98,3 +98,91 @@ describe("the calendar file (TASK-7)", () => {
     noErrors();
   });
 });
+
+describe("the agenda's week (UI-13 to UI-17)", () => {
+  // Thursday 29 October: "Call Bob" was scheduled on Sunday 25th and is overdue; "Parts" is due on 5 November, in its
+  // warning days; "Trip" is scheduled on Tuesday 27th and due on Saturday 31st; the meeting is today at 14:00–15:00
+  const WEEK = { ...NOTES,
+    "cards/Trip.md": "- [ ] Trip\n  DEADLINE: <2026-10-31 Sat> SCHEDULED: <2026-10-27 Tue>\n",
+    "cards/Parts.md": "- [<] Parts\n  DEADLINE: <2026-11-05 Thu -10d>\n" };
+  before(async () => { await openVault({ demo: false, time: NOW, notes: WEEK }); await ev(() => { openTasksView(true, "agenda"); AG.span = "week"; AG.anchor = null; AG.log = false; renderBoard(); }); });
+  /** Each day as [its name, its rows' titles], the overdue section first as "Overdue". */
+  const week = () => ev(() => [...document.querySelectorAll(".ag-body > .ag-card")].map((c) => [
+    c.classList.contains("ag-overdue") ? "Overdue" : c.querySelector(".ag-day > span").textContent,
+    [...c.querySelectorAll(".ag-row .ag-main")].map((m) => m.firstChild && m.querySelector(".ag-cat") ? [...m.childNodes].filter((n) => !n.classList?.contains("task-box") && !n.classList?.contains("ag-cat") && !n.classList?.contains("pri")).map((n) => n.textContent).join("").trim() : m.textContent.trim()),
+  ]));
+
+  test("a task is listed on its plan's day and its deadline's day; an overdue one under Overdue only, not again in the past", async () => {
+    const w = Object.fromEntries((await week()).map(([d, rows]) => [d, rows]));
+    assert.deepEqual([...w.Overdue].sort(), ["Call Bob", "Trip", "Write report"], "what is overdue, under today");
+    assert.ok(!w.Sunday.includes("Call Bob") && !w.Tuesday.includes("Write report") && !w.Tuesday.includes("Trip"), "not again on its past day");
+    assert.ok(w.Saturday.includes("Trip"), "and on its deadline's day");
+    const all = Object.values(w).flat();
+    assert.equal(all.filter((x) => x === "Trip").length, 2);
+    assert.equal(all.filter((x) => x === "Parts").length, 1, "a deadline's early warning, today, when nothing else lists it");
+  });
+
+  test("a week without today keeps an open task on its own past day", async () => {
+    const r = await ev(() => { const T = onow().dn, bob = odn(2026, 10, 25); return [true, false].map((carried) => orgDayEntries(bob, orgAll(), T, { carried }).map((x) => x.e.title)); });
+    assert.deepEqual(r, [[], ["Call Bob"]]);
+  });
+
+  test("the hour grid runs only between today's first and last times, an hour apart; a day without times has none", async () => {
+    const today = await ev(() => [...document.querySelectorAll(".ag-card.is-today .ag-grid")].map((g) => (g.classList.contains("now") ? "now " : "") + g.querySelector(".ag-time").textContent));
+    assert.deepEqual(today, ["now 10:00", "15:00"]);
+    assert.equal(await ev(() => document.querySelectorAll(".ag-card:not(.is-today) .ag-grid").length), 0);
+    assert.deepEqual(await ev(() => orgWithGrid([{ time: null }])), [{ time: null }], "no times: no grid, no line for now");
+  });
+
+  test("a day without entries is one quiet line, not a card", async () => {
+    const r = await ev(() => { const c = document.querySelector(".ag-card.is-empty"), s = getComputedStyle(c); return [s.borderTopColor, s.backgroundColor, c.querySelectorAll(".ag-row").length]; });
+    assert.deepEqual(r, ["rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0)", 0]);
+  });
+
+  test("the title says which days, with the week's number quietly beside it", async () => {
+    assert.deepEqual(await ev(() => [document.querySelector(".ag-title b").textContent, document.querySelector(".ag-title .ag-week").textContent]), ["26 October – 1 November", "W44"]);
+    const T = await ev(() => onow().dn);
+    assert.deepEqual(await ev((T) => [dayRange(odn(2026, 11, 9), odn(2026, 11, 15), T), dayRange(odn(2026, 12, 28), odn(2027, 1, 3), T), dayRange(odn(2027, 3, 1), odn(2027, 3, 7), T)], T),
+      ["9–15 November", "28 December 2026 – 3 January 2027", "1–7 March 2027"]);
+    await ev(() => { AG.span = "day"; renderBoard(); });
+    assert.deepEqual(await ev(() => document.querySelector(".ag-title b").textContent), "Thursday, 29 October");
+    await ev(() => { AG.span = "week"; renderBoard(); });
+  });
+
+  test("labels are words, not abbreviations, in both languages", async () => {
+    const labels = await ev(() => ["en", "ru"].flatMap((lang) => { setLang(lang); const out = [1, 2, 5].flatMap((n) => ["lIn", "lAgo", "lSchedLate", "relIn", "relAgo"].map((k) => tt(k, { n }))); setLang("en"); return out; }));
+    const bad = labels.filter((l) => /\b(d|дн)\.|\d+\s*[x×]|Sched\./.test(l));
+    assert.deepEqual(bad, []);
+    assert.ok(labels.includes("Scheduled 2 days ago:") && labels.includes("План 5 дней назад:"), labels.join(" | "));
+  });
+});
+
+describe("the task list and the capture form (UI-18, UI-19)", () => {
+  before(() => openVault({ demo: false, time: NOW, notes: { ...NOTES, "cards/Gym.md": "- [ ] Run\n  SCHEDULED: <2026-10-22 Thu +1w>\n- [ ] Stretch\n" } }));
+
+  test("a task's note is a quiet caption after its title, not a column; a list without times has no time column", async () => {
+    await ev(() => openTasksView(true, "todo"));
+    const r = await ev(() => {
+      const row = [...document.querySelectorAll(".ag-row")].find((x) => x.textContent.includes("Stretch"));
+      const cat = row.querySelector(".ag-cat"), title = [...row.querySelector(".ag-main").childNodes].find((n) => n.textContent.includes("Stretch"));
+      return { inMain: !!cat.closest(".ag-main"), text: cat.textContent, after: !!(title.compareDocumentPosition(cat) & Node.DOCUMENT_POSITION_FOLLOWING), areas: getComputedStyle(row).gridTemplateAreas, quiet: getComputedStyle(cat).color !== getComputedStyle(row.querySelector(".ag-main")).color };
+    });
+    assert.deepEqual(r, { inMain: true, text: "Gym", after: true, areas: '"main lab"', quiet: true });
+  });
+
+  test("the capture form says Save and Cancel, and shows each template's letter as a key", async () => {
+    for (const [lang, ok, cancel] of [["en", "Save", "Cancel"], ["ru", "Сохранить", "Отмена"]]) {
+      await openVault({ demo: false, lang, notes: NOTES });
+      await ev(() => orgCapture());
+      const r = await ev(() => ({
+        buttons: [...document.querySelectorAll(".ag-cap .modal-buttons button")].map((b) => b.textContent),
+        tpls: [...document.querySelectorAll(".cap-tpl-btn")].map((b) => [b.querySelector("b").textContent, b.querySelector("kbd").textContent]),
+      }));
+      assert.deepEqual(r.buttons, [cancel, ok], lang);
+      assert.deepEqual(r.tpls.map(([, k]) => k), ["t", "n", "m", "j"]);
+      assert.ok(r.tpls.every(([name]) => !/\[/.test(name)), JSON.stringify(r.tpls));
+      await page().keyboard.press("Escape");
+    }
+  });
+});
+
