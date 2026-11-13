@@ -74,8 +74,8 @@ button.fchip.exc { background: color-mix(in srgb, var(--todo) 12%, transparent);
 .ag-row.sel { background: var(--accent-soft); }
 /* the keyboard's place in the agenda: a ring on the chosen row, or on the list while none is chosen (spec A11Y-2) */
 .ag-body:focus { outline: none; }
-.ag-body:focus-visible .ag-row.sel { box-shadow: inset 0 0 0 2px var(--accent); }
-.ag-body:focus-visible:not(:has(.ag-row.sel)) { box-shadow: inset 0 0 0 2px var(--accent); }
+body.sn-kb .ag-body:focus-visible .ag-row.sel { box-shadow: inset 0 0 0 2px var(--accent); }
+body.sn-kb .ag-body:focus-visible:not(:has(.ag-row.sel)) { box-shadow: inset 0 0 0 2px var(--accent); }
 .ag-main .ag-cat { margin-left: 6px; color: var(--faint); font-size: var(--fs-ui); white-space: nowrap; }
 .ag-main .ag-cat::before { content: "· "; }
 .ag-time { color: var(--fg); font-size: var(--fs-ui); white-space: nowrap; }
