@@ -67,7 +67,9 @@
 .cm-editor .cm-placeholder { color: var(--text-faint); }
 .sn-reading { min-height: 30vh; }
 .sn-reading > :first-child { margin-top: 0; }
-.sn-editor-foot { margin-top: var(--size-4-8); padding-top: var(--size-4-4); border-top: var(--border-width) solid var(--background-modifier-border); }
+/* the mentions follow the note's text, 32px below it, without a rule (spec UI-8) */
+.sn-editor-foot { margin-top: 32px; }
+.sn-editor-page.has-foot :is(.sn-reading, .sn-live) { min-height: 0; }
 .sn-editor-foot h4 { margin: 0 0 var(--size-4-2); }
 .sn-editor-foot .sn-chips { margin: 0 0 var(--size-4-4); }
 .sn-editor-empty { margin: 30vh auto; text-align: center; color: var(--text-faint); font-size: var(--font-ui-small); }

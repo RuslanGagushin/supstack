@@ -91,6 +91,8 @@ export function renderEditorProps() {
     // what the notebook holds is its list (the board), not a block under its text
     const back = graph.backlinksOf(path);
     const unlinked = unlinkedMentions(path);
+    // with mentions under it, the text keeps no empty room to click into: they follow it (spec UI-8)
+    foot.closest(".sn-editor-page")?.classList.toggle("has-foot", !!(back.length || unlinked.length));
     if (!back.length && !unlinked.length) return;
     const box = h("div", { cls: "sn-editor-foot" });
     if (back.length) box.append(h("h4", { text: `${t("linkedMentions")} · ${back.length}` }), h("div", { cls: "sn-chips" }, back.map((k) => { const c = parentChip(k); c.onclick = (e) => { e.preventDefault(); openEditor(k); }; return c; })));

@@ -128,6 +128,8 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: 8px; paddin
   padding: 1px 7px; border-radius: var(--r-pill); background: color-mix(in srgb, currentColor 13%, transparent);
 }
 .markdown-rendered .org-plan.is-near { text-transform: none; } /* the caret is in it: show the Markdown as written */
+/* a planning word and its date wrap together (live-preview.js) */
+.markdown-rendered .org-pair { white-space: nowrap; }
 .markdown-rendered .org-plan.k-deadline { color: var(--todo); }
 .markdown-rendered .org-plan.k-scheduled { color: var(--muted); }
 .markdown-rendered .org-plan.k-closed { color: var(--done); }
@@ -219,6 +221,10 @@ button.cap-cal-btn svg { width: 15px; height: 15px; }
 .markdown-rendered .org-hidden { display: none !important; }
 .markdown-rendered button.org-fold, .markdown-rendered button.org-fold:not(.clickable-icon) { width: 18px; height: 18px; margin: 0 2px 0 -2px; padding: 0; border: 0; border-radius: var(--r-xs); background: transparent; color: var(--faint); vertical-align: -3px; cursor: pointer; }
 .markdown-rendered button.org-fold svg { width: 14px; height: 14px; transition: transform .12s ease; }
+/* a task's lines under its title (dates, a note) start under its text, past the fold button and the box (spec UI-5):
+   18px of button, then the box and its gap as base.css sizes them, in the em of a button's font (--fs-ui) */
+.markdown-rendered .org-entry .org-body { display: block; padding-left: calc(18px + max(14px, var(--fs-ui) * 1.05) + var(--fs-ui) * .5 + .25em); } /* .25em: the space after the box */
+.markdown-rendered .org-entry .org-body > br:first-child { display: none; }
 .markdown-rendered button.org-fold:hover { background: var(--panel); color: var(--fg); }
 .markdown-rendered .org-foldable.is-folded > button.org-fold svg, .markdown-rendered .org-foldable.is-folded > p > button.org-fold svg { transform: rotate(-90deg); }
 .markdown-rendered button.org-ellipsis, .markdown-rendered button.org-ellipsis:not(.clickable-icon) { display: none; margin-left: 4px; padding: 0 5px; border: 1px solid var(--line); border-radius: var(--r-xs); background: var(--panel); font-size: .8em; font-weight: 400; line-height: 1.3; color: var(--muted); cursor: pointer; vertical-align: .1em; }
