@@ -20,6 +20,7 @@ export function renderTree() {
   const host = $("#tree");
   if (!host || !vault.fs) return;
   const scroll = host.querySelector(".sn-tree")?.scrollTop || 0;
+  const focusKey = host.contains(document.activeElement) ? document.activeElement.closest?.("[role=treeitem]")?.dataset.key : null;
   host.replaceChildren();
   // the tree's tools sit on its own heading ("Notebooks"), shown with the pointer over it; "New card" is the blue button above
   const header = h("div", { cls: "sn-sec-tools" });
@@ -38,17 +39,21 @@ export function renderTree() {
   if (S.pinned.some((p) => graph.has(p))) {
     box.append(h("div", { cls: "sn-tree-section", text: t("pinned") }));
     const pins = S.pinned.filter((p) => graph.has(p));
-    pins.forEach((p, i) => box.append(treeNode(p, [p], cmp, { pinIndex: i, pinCount: pins.length, keyPrefix: "pin" })));
+    const pinTree = h("div", { cls: "sn-aria-tree", role: "tree", "aria-label": t("pinned") });
+    pins.forEach((p, i) => pinTree.append(treeNode(p, [p], cmp, { pinIndex: i, pinCount: pins.length, keyPrefix: "pin" })));
+    box.append(pinTree);
   }
   box.append(h("div", { cls: "sn-tree-section has-tools" }, h("span", { text: t("tree") }), header));
   const allRow = h("div", { cls: "tree-item-self is-clickable sn-tree-row" + (!board.target && !board.tagView ? " is-active" : "") }, h("span", { cls: "sn-tree-toggle is-leaf" }), ic("sn-tree-icon", "home"), h("div", { cls: "tree-item-inner sn-tree-label", text: t("allCards") }),
     h("div", { cls: "tree-item-flair-outer" }, (() => { const n = graph.collect(null, 0, cmp).cards.length; return h("span", { cls: "tree-item-flair sn-tree-count", text: String(n), title: t("treeCountAll", { n }) }); })())); // the cards the board reaches, as its "of N" says
   allRow.addEventListener("click", () => setTarget(null));
   dnd.dropTarget(allRow, () => ({ path: null, parent: null, zones: ["inside"], root: true }));
-  box.append(h("div", { cls: "tree-item" }, allRow));
+  const nbTree = h("div", { cls: "sn-aria-tree", role: "tree", "aria-label": t("tree") });
+  nbTree.append(treeItem(h("div", { cls: "tree-item" }, allRow), allRow, { key: "all", level: 1, active: !board.target && !board.tagView }));
   const roots = graph.sortedChildren(null, cmp);
   if (!roots.length) box.append(h("div", { cls: "sn-tree-empty", text: t("noCards") }));
-  for (const r of roots.filter(isNotebook)) box.append(treeNode(r, [r], cmp, {}));
+  for (const r of roots.filter(isNotebook)) nbTree.append(treeNode(r, [r], cmp, {}));
+  box.append(nbTree);
   if (S.savedViews.length) {
     box.append(h("div", { cls: "sn-tree-section", text: t("views") }));
     for (const v of S.savedViews) {
@@ -65,9 +70,55 @@ export function renderTree() {
   }
   tagsSection(box);
   recentSection(box);
+  for (const tr of box.querySelectorAll("[role=tree]")) tr.addEventListener("keydown", treeKeys);
   host.append(box);
   box.scrollTop = scroll;
   markOpenInTree();
+  // one stop for Tab in each tree: the open notebook, or its first item; the arrow keys move within it (treeKeys)
+  for (const tr of box.querySelectorAll("[role=tree]")) {
+    const items = [...tr.querySelectorAll("[role=treeitem]")];
+    (items.find((x) => x.getAttribute("aria-selected") === "true") || items[0])?.setAttribute("tabindex", "0");
+  }
+  if (focusKey) box.querySelector(`[role=treeitem][data-key="${CSS.escape(focusKey)}"]`)?.focus({ preventScroll: false });
+}
+let labelIds = 0;
+/**
+ * A notebook as a tree item for assistive technology (spec A11Y-1): its row names it, its open state and whether it is
+ * the open list are said, its notebooks are its group.
+ */
+function treeItem(item, row, { key, level, expanded = null, active = false }) {
+  const label = row.querySelector(".sn-tree-label");
+  if (label && !label.id) label.id = "tl-" + ++labelIds;
+  Object.assign(item.dataset, { key });
+  item.setAttribute("role", "treeitem");
+  item.setAttribute("aria-level", String(level));
+  item.setAttribute("aria-selected", String(!!active));
+  if (label) item.setAttribute("aria-labelledby", label.id);
+  if (expanded !== null) item.setAttribute("aria-expanded", String(expanded));
+  item.setAttribute("tabindex", "-1");
+  item._toggle = () => row.querySelector(".sn-tree-toggle:not(.is-leaf)")?.click();
+  item._open = () => row.click();
+  return item;
+}
+/**
+ * The keyboard in a tree (spec A11Y-2): ↑ ↓ to the item before and after, → opens a notebook's branch or goes into it,
+ * ← closes it or goes up to its notebook, Home and End to the ends, Enter or Space opens its list.
+ */
+function treeKeys(e) {
+  const tr = e.currentTarget, cur = e.target.closest?.("[role=treeitem]");
+  if (!cur || !tr.contains(cur)) return;
+  const items = [...tr.querySelectorAll("[role=treeitem]")];
+  const i = items.indexOf(cur), go = (el) => { if (!el) return; items.forEach((x) => x.setAttribute("tabindex", x === el ? "0" : "-1")); el.focus(); el.querySelector(".sn-tree-row")?.scrollIntoView({ block: "nearest" }); };
+  const k = e.key;
+  if (!["ArrowDown", "ArrowUp", "ArrowRight", "ArrowLeft", "Home", "End", "Enter", " "].includes(k) || e.altKey || isMod(e)) return;
+  e.preventDefault(); e.stopPropagation();
+  if (k === "ArrowDown") go(items[i + 1]);
+  else if (k === "ArrowUp") go(items[i - 1]);
+  else if (k === "Home") go(items[0]);
+  else if (k === "End") go(items[items.length - 1]);
+  else if (k === "ArrowRight") { if (cur.getAttribute("aria-expanded") === "false") cur._toggle(); else if (cur.getAttribute("aria-expanded") === "true") go(cur.querySelector("[role=group] > [role=treeitem]")); }
+  else if (k === "ArrowLeft") { if (cur.getAttribute("aria-expanded") === "true") cur._toggle(); else go(cur.parentElement?.closest("[role=treeitem]")); }
+  else cur._open();
 }
 /** The five notes changed last. The list of All notes sorted by date shows the same, so it starts folded, last in the sidebar. */
 function recentSection(box) {
@@ -161,8 +212,9 @@ function treeNode(path, chain, cmp, o) {
     dnd.dropTarget(row, () => ({ path, parent }));
   }
   item.append(row);
+  treeItem(item, row, { key, level: chain.length, expanded: kids.length ? open : null, active: board.target === path && !o.keyPrefix });
   if (open) {
-    const ch = h("div", { cls: "tree-item-children sn-tree-children" });
+    const ch = h("div", { cls: "tree-item-children sn-tree-children", role: "group" });
     for (const k of kids) ch.append(treeNode(k, [...chain, k], cmp, { keyPrefix: o.keyPrefix }));
     item.append(ch);
   }

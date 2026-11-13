@@ -110,6 +110,9 @@ body.sn-app .sn-tree-section:first-child { margin-top: 4px; }
 body.sn-app .sn-outline .tree-item-self.sn-tree-row { min-height: 32px; padding: 4px 8px 4px 2px; border-radius: var(--r-s); font-size: var(--fs-md); gap: 8px; }
 body.sn-app .sn-outline .tree-item-self.sn-tree-row:hover { background: var(--hover-bg); }
 body.sn-app .sn-outline .tree-item-self.sn-tree-row.is-active { background: var(--sel); }
+/* the keyboard's place in the tree: a ring on the item's row, not around its whole branch (spec A11Y-2) */
+.sn-aria-tree [role=treeitem] { outline: none; }
+.sn-aria-tree [role=treeitem]:focus-visible > .sn-tree-row { box-shadow: inset 0 0 0 2px var(--accent); }
 body.sn-app .sn-outline .tree-item-self.sn-tree-row.is-active .sn-tree-label { color: var(--ink); }
 /* the notebook the open note sits in, when the list beside it shows another place (and the open note's Recent row): a quiet mark, not a second selection */
 body.sn-app .sn-outline .sn-tree-row:is(.is-holding, .is-editing):not(.is-active) :is(.sn-tree-label, .sn-tree-icon) { color: var(--ink); }

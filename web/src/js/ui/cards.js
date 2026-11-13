@@ -8,7 +8,7 @@ import { cardIcon, linkText } from "../services/vault.js";
 import { filterActive } from "../core/board-model.js";
 import { cardTaskProgress } from "../services/tasks.js";
 import { attachmentUrl, firstImage } from "../services/attachments.js";
-import { $, h, ic, isMod } from "./dom.js";
+import { $, $$, h, ic, isMod } from "./dom.js";
 import { Menu, notice, promptModal } from "./ui.js";
 import { createCard, deleteCards, promptAddParent, promptAddTag, promptIcon, promptMove, promptRemoveParent, promptTemplate, removeParent, setChildTemplate, templateFor, togglePin } from "./actions.js";
 import { openTagView, setLastFocused, setTarget, toggleSelect } from "./board.js";
@@ -64,11 +64,25 @@ function rowDrop(path, via) {
 }
 /** A notebook as a compact row at the top of the list: its icon, its name and how many cards it holds. A click goes inside;
    a double click opens its own text. */
+/**
+ * The list for assistive technology (spec A11Y-1): each row is an option of the list box, named by its title and
+ * selected while it is the open note or picked for select mode. Called whenever either changes.
+ */
+export function syncRowStates() {
+  for (const c of $$("#board .sn-rows .sn-card")) c.setAttribute("aria-selected", String(c.classList.contains("is-editing") || c.classList.contains("is-picked")));
+}
+function asOption(row, path) {
+  row.setAttribute("role", "option");
+  row.setAttribute("aria-label", baseName(path));
+  row.setAttribute("aria-selected", String(row.classList.contains("is-editing") || row.classList.contains("is-picked")));
+  return row;
+}
 function renderFolderRow(path, via) {
   const row = h("div", { cls: "sn-card sn-row is-folder has-kids", tabindex: "-1" });
   row.dataset.path = path;
   row.dataset.via = via ?? "";
   if (board.selection.has(path)) row.classList.add("is-picked");
+  asOption(row, path);
   if (editor.path === path) row.classList.add("is-editing");
   const kids = graph.childrenOf(path).length;
   row.append(ic("sn-row-folder-icon", cardIcon(path) || "folder", "folder"), h("span", { cls: "sn-row-title", text: baseName(path) }),
@@ -103,6 +117,7 @@ export function renderRow(path, via, folder = false) {
   row.dataset.via = via ?? "";
   if (board.selection.has(path)) row.classList.add("is-picked");
   if (editor.path === path) row.classList.add("is-editing");
+  asOption(row, path);
   const n = vault.notes.get(path);
   const searching = !!board.tagView || filterActive(board.filter);
   const text = h("div", { cls: "sn-row-text" });
