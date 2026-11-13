@@ -66,7 +66,9 @@ Supstack shows a folder of Markdown notes (a *vault*) as notebooks with a list o
   <img src="docs/screenshots/phone-board.png" alt="Supstack on a phone: the list of notes" width="260">
   &nbsp;&nbsp;
   <img src="docs/screenshots/phone-editor.png" alt="Supstack on a phone: a note open over the list, with a back link to its notebook" width="260">
-  <br><sub><b>On Android.</b> A single-column layout with a bottom bar; a note opens full screen with <i>‹ its notebook</i> to go back.</sub>
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/phone-agenda.png" alt="Supstack on a phone: the week's agenda with its strip of days" width="260">
+  <br><sub><b>On Android.</b> A single-column layout with a bottom bar; a note opens full screen with <i>‹ its notebook</i> to go back; the agenda has the week as a strip of days.</sub>
 </p>
 
 > Screenshots are taken from the built-in demo vault with `npm run screenshots`.

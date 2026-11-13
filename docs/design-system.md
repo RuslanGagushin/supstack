@@ -2,6 +2,8 @@
 
 How the app's interface is put together: the variables every style draws from, the components built on them, and the rules the tests hold the styles to. The variables live in [`web/src/css/base.css`](../web/src/css/base.css); the components in the other six stylesheets, loaded in this order: `base`, `board`, `chrome`, `frame`, `writing`, `agenda`, `app`.
 
+**The look** (since 0.33, [`restyle-specification.md`](restyle-specification.md)): one white page in three columns, the sidebar on a light grey, hairlines between them and around cards rather than shadows; bold titles over a small label in the accent that says what the page is; rectangular plates rather than pills; the accent as the one colour of the interface. Shadows are kept for what floats over the page: menus, popups, the toast, dialogs, the sidebar as a drawer, a raised segment. Red (`--todo`) is kept for what destroys, errors and an invalid field.
+
 **The one rule:** a new value is a variable in `base.css` first. Colours, sizes, spacing, radii, shadows, layers, durations and weights are never written as numbers in a component's rule. `npm test` fails when one is (see [What the tests check](#what-the-tests-check)).
 
 ## Variables
@@ -12,12 +14,13 @@ One palette, defined twice: on `body` for the light theme and on `body.theme-dar
 
 | Variable | Light | Dark | Use |
 |---|---|---|---|
-| `--bg` | `#f8f8f7` | `#17181a` | the window behind everything: sidebar, list, fields |
-| `--win` | `#ffffff` | `#1c1d1f` | sheets: the note, cards, menus, dialogs |
+| `--bg` | `#f8f8f7` | `#17181a` | the sidebar, the open note's row, the overdue block, the welcome screen |
+| `--win` | `#ffffff` | `#1c1d1f` | the page: the list, the note, the agenda; cards, menus, dialogs, fields |
 | `--panel` | `#f1f1ef` | `#2a2c30` | plates: chips, segment tracks, hovered rows |
 | `--hover-bg` | `#f4f4f2` | `#25272a` | a control under the pointer |
 | `--sel` | `#ececea` | `#303236` | the selected row; a control being pressed; text selection |
-| `--line` | `#e9e9e7` | `#2e3034` | borders and separators |
+| `--line` | `#e9e9e7` | `#2e3034` | borders and separators: between the columns, around cards |
+| `--line-strong` | `#d9d9d6` | `#3b3d42` | the open note's card in the list |
 | `--fg` | `#2a2c30` | `#dcdde0` | text |
 | `--ink` | `#17181a` | `#f2f3f4` | text that has to stand out: titles, the active segment |
 | `--muted` | `#55585e` | `#a9acb2` | secondary text; readable on every surface, plates included |
@@ -47,8 +50,10 @@ Three colours are worked out from the palette: `--accent-hover` (a primary contr
 | `--fs-md` | 14px | list titles, menu items |
 | `--fs-note`, `--fs-text` | 16px | a note's text; the interface's larger text (the command palette's field, the phone's date strip) |
 | `--fs-lg` | 20px | section titles |
-| `--fs-xl` | 24px | the welcome title |
-| `--h1-size` … `--h6-size` | 28, 24, 20, then 16px | a note's own headings (its title is 32px) |
+| `--fs-xl` | 24px | the list's title, the welcome title |
+| `--fs-title`, `--lh-title`, `--ls-title` | 40px (32px up to 820px wide), 1.15, −0.025em | a page's title: a note's, the agenda's days and month, a phone's list. Outside the six sizes, like a note's headings |
+| `--ls-head` | −0.02em | the list's title and a note's headings |
+| `--h1-size` … `--h6-size` | 28, 24, 20, then 16px | a note's own headings |
 | `--fw-regular`, `--fw-medium`, `--fw-semibold`, `--fw-bold` | 400, 500, 600, 700 | weights |
 | `--lh-tight`, `--lh-ui`, `--lh-text` | 1.25, 1.5, 1.7 | titles and headings; the interface; a note's text |
 
@@ -59,7 +64,7 @@ Six sizes and no more (spec UI-20); `tests/typography.test.mjs` measures them on
 | Group | Variables | Rule |
 |---|---|---|
 | Spacing | `--sp-2`, `-4`, `-6`, `-8`, `-10`, `-12`, `-14`, `-16`, `-20`, `-24`, `-32`, `-40`, `-48` | named by their size in pixels; every `padding`, `margin` and `gap`. Negative: `calc(var(--sp-8) * -1)`. In a note's text, `em` follows the font size and stays |
-| Corners | `--r-xs` 6, `--r-s` 8, `--r-m` 10, `--r-l` 16, `--r-pill` | xs: keys, inline code; s: controls and rows; m: cards, menus, the note's sheet; l: dialogs; pill: chips and pill buttons. Circles are `50%` |
+| Corners | `--r-xs` 6, `--r-s` 8, `--r-m` 10, `--r-l` 16, `--r-pill` | xs: chips, tags, keys, inline code, a priority; s: buttons, fields, rows; m: cards, tiles, menus; l: dialogs; pill: only counts, the switch and the tasks bar. Circles are `50%` |
 | Control heights | `--ctl-xs` 20, `--ctl-s` 24, `--ctl-m` 28, `--ctl-l` 32, `--ctl-field` 34, `--ctl-touch` 40 | xs: small chips; s: chips, icons in a row; m: fields, buttons in bars; l: sidebar buttons, menu rows; field: the search fields; touch: the least a finger gets (spec UI-9) |
 | Icons | `--icon-xs` 12, `--icon-s` 14, `--icon-m` 16, `--icon-l` 18; `--icon-stroke` 1.75px | Lucide icons; one stroke |
 | Bars | `--header-height` 40 | the sidebar's head |
@@ -69,7 +74,7 @@ Six sizes and no more (spec UI-20); `tests/typography.test.mjs` measures them on
 | Group | Variables | Use |
 |---|---|---|
 | Shadows | `--shadow-1` | a raised segment, the switch's knob, the edge of a page or image |
-| | `--shadow-2` | a card under the pointer, the note's sheet, the welcome card |
+| | `--shadow-2` | a card of the board under the pointer |
 | | `--shadow-3` | menus, popups, the toast, bars that float |
 | | `--shadow-4` | dialogs; the sidebar over the note |
 | Focus | `--ring`, `--ring-inset` | a 2px accent ring outside a control, or inside the edge of a row or a pane. Buttons and links use `outline: 2px solid var(--accent)` |
@@ -168,7 +173,15 @@ A modifier repeats the base's `:is(.sn-chip, .markdown-rendered a.tag)`; the bas
 
 ### List row and card — `.sn-card`
 
-A note in the list is `.sn-card.sn-row` with `role="option"` in a `role="listbox"`; the open note is `aria-selected`, picked notes `.is-picked`. Arrow keys move between rows; Enter opens. Title first, then the text, then one line with the date, the tasks and the tags (spec UI-22).
+A note in the list is `.sn-card.sn-row` with `role="option"` in a `role="listbox"`; the open note is `aria-selected`, picked notes `.is-picked`. Title first, then the text, then one line with the date, "2/8 tasks" and the tags (spec UI-22). A note is a white card with a hairline (an inset shadow, so the row keeps its size); the open one sits on `--bg` with `--line-strong`.
+
+A notebook in the list is a tile, `.sn-row.is-folder`: its icon, its name on one line (cut with an ellipsis, the whole name as its tooltip) and how many notes it holds, on `--hover-bg`. The tiles share a grid with the notes (`.sn-rows`), three to a row in a list of 360px; a faint `.sn-list-label` ("Notes", `aria-hidden`) heads the notes under them. ↑ and ↓ walk the list in order; → goes into a notebook and ← back out; Enter opens.
+
+The list's head, `.sn-list-head`: a faint kind (`.sn-list-kind`: Notebook, Tag or Search), the title at 24px bold, the count under it.
+
+### A page's head
+
+A note and the agenda's days and month open with what they are, in the accent with an icon (`.sn-kind`, `.ag-kind`: Note, Notebook, Daily note; Agenda · Week 46), over a title at `--fs-title`. While reading, a note's facts follow its title (`dl.sn-facts`): its notebooks, tags, tasks done (a 96px bar and words) and when it changed, keys in a column of 120px between two hairlines. The editing view's Properties (`.sn-prop`) take the same grid.
 
 ### Tree — `.sn-outline`
 
@@ -208,7 +221,7 @@ In a note's text: `> [!type]` draws a frame with the type's icon and title; the 
 | `padding`, `margin` and `gap` use the spacing scale; the few measured offsets are listed in the test with their reasons | `architecture` |
 | one layer: no `body.sn-app`, and `!important` only on the hide utilities and for reduced motion | `architecture` |
 | retired class names stay retired | `architecture` |
-| six font sizes; a note's headings 32, 28, 24, 20px | `typography` |
+| six font sizes, a page's title aside; a note's title 40px and headings 28, 24, 20px | `typography` |
 | every text against its background, both themes: 4.5:1, 3:1 for large text | `a11y` |
 | every Tab stop shows the focus | `a11y` |
 | a chip's tone is drawn, not only named | `ui-markdown` |

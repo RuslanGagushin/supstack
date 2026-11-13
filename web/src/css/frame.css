@@ -161,7 +161,6 @@ button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--f
 /* ---------- Editor window */
 .sn-editor-path { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; padding-left: var(--sp-4); font-weight: var(--fw-medium); color: var(--muted); }
 .sn-save-state { font-size: var(--fs-sm); color: var(--faint); padding: 0 var(--sp-6); white-space: nowrap; display: none; }
-.sn-editor-badge svg { stroke-width: var(--icon-stroke); width: 26px; height: 26px; }
 .sn-props { margin: var(--sp-6) 0 var(--sp-16); padding-bottom: var(--sp-10); border-bottom: 1px solid var(--line); }
 /* a property in the editing view: its key in a column of 120px, as the facts are drawn while reading (restyle RS-44) */
 .sn-prop { display: grid; grid-template-columns: 120px minmax(0, 1fr); align-items: start; gap: var(--sp-8); padding: var(--sp-2) var(--sp-4); min-height: 28px; border-radius: var(--r-xs); }

@@ -170,7 +170,8 @@ test("corners: the --r-* scale, a circle (50%), none (0) or a 1–2px hairline",
 test("retired class names stay retired (docs/design-system.md has the ones that replaced them)", () => {
   const CSS = fileURLToPath(new URL("../web/src/css/", import.meta.url));
   const TESTS = fileURLToPath(new URL("./", import.meta.url));
-  const retired = ["wb-btn", "mod-cta", "mod-warning", "is-cta", "fchip", "ag-chip", "sn-tag", "sn-tag-pill", "is-sel", "is-folded", "is-warning", "is-enabled", "is-on"];
+  const retired = ["wb-btn", "mod-cta", "mod-warning", "is-cta", "fchip", "ag-chip", "sn-tag", "sn-tag-pill", "is-sel", "is-folded", "is-warning", "is-enabled", "is-on",
+    "sn-editor-badge", "sn-info", "ag-week", "sb-round", "sb-account-note"]; // the last five: retired by the restyle (docs/restyle-specification.md)
   const sources = [
     ...readdirSync(CSS).filter((f) => f.endsWith(".css")).map((f) => [f, readFileSync(join(CSS, f), "utf8")]),
     ...modules.map((f) => [f, readFileSync(join(JS, f), "utf8")]),
