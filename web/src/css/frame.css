@@ -86,7 +86,8 @@ button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--f
 
 /* Rendered markdown: org-like heading colours, mono details */
 .markdown-rendered a { cursor: pointer; text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent); }
-.markdown-rendered code { font-size: .92em; padding: 0 var(--sp-4); border-radius: var(--r-xs); font-family: var(--font-code); color: var(--ink); background: var(--code-bg); }
+/* inline code: a quiet plate, 13px in a 16px text (restyle RS-47) */
+.markdown-rendered code { font-size: .8125em; padding: var(--sp-2) var(--sp-6); border-radius: var(--r-xs); font-family: var(--font-code); color: var(--muted); background: var(--panel); }
 .markdown-rendered .code-block { margin-block: 0 1em; border: 1px solid var(--line); background: var(--win); overflow: hidden; }
 .markdown-rendered .code-head { display: flex; align-items: center; gap: var(--sp-6); padding: var(--sp-8) var(--sp-12) var(--sp-4); color: var(--fg); font-size: var(--fs-ui); }
 .markdown-rendered .code-badge { flex: none; display: flex; align-items: flex-end; justify-content: flex-end; width: 14px; height: 14px; padding: 0 1px; border-radius: 2px; font-size: 7.5px; font-weight: var(--fw-semibold); line-height: var(--lh-tight); }

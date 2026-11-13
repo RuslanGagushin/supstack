@@ -166,13 +166,14 @@ function notebookPath(path) {
   const back = h("a", { cls: "sn-editor-back", href: "#", title: nearName, onClick: (e) => { e.preventDefault(); closeEditor(); setTarget(near); } },
     ic("", "chevron-left"), h("span", { text: nearName }));
   places.forEach((p, i) => {
-    if (i) box.append(h("span", { cls: "sn-editor-crumb-sep", text: "/" }));
+    if (i) box.append(ic("sn-editor-crumb-sep", "chevron-right"));
     const name = p ? baseName(p) : t("allCards");
     const a = h("a", { cls: "sn-editor-crumb", href: "#", text: name, title: name, onClick: (e) => { e.preventDefault(); setTarget(p); } });
     a.style.flexShrink = String((places.length - i) * 4);
     box.append(a);
   });
-  const wrap = h("div", { cls: "sn-editor-where" }, back, box);
+  // then the note's own name, plain and last: it gives way first when the header is narrow (restyle RS-36)
+  const wrap = h("div", { cls: "sn-editor-where" }, back, box, ic("sn-editor-crumb-sep sn-editor-self-sep", "chevron-right"), h("span", { cls: "sn-editor-self", text: baseName(path) }));
   if (others.length) {
     wrap.append(h("button", { cls: "sn-editor-places", type: "button", title: t("alsoIn"), text: "+" + others.length, onClick: (e) => {
       const m = new Menu();
@@ -260,11 +261,10 @@ export function renderEditor() {
   if (!n) { page.append(h("div", { cls: "sn-editor-empty", text: t("noteGone") })); return; }
 
   if (editor.mode !== "source") {
-    const badge = ic("sn-editor-badge", cardIcon(path) || "file-text", "file-text");
-    if (!cardIcon(path)) badge.style.opacity = ".45";
-    badge.title = t("menuIcon");
-    badge.addEventListener("click", () => promptIcon([path]));
-    page.append(badge);
+    // what the note is, in the accent over its title: a notebook (it holds notes), a daily note, or a note. Its icon
+    // leads, and a click picks another (restyle RS-39)
+    const kind = graph.childrenOf(path).length ? t("kindNotebook") : path.startsWith("daily notes/") ? t("kindDaily") : t("kindNote");
+    page.append(h("button", { cls: "sn-kind", type: "button", title: t("menuIcon"), onClick: () => promptIcon([path]) }, ic("", cardIcon(path) || "file-text", "file-text"), h("span", { text: kind })));
     const title = h("textarea", { cls: "sn-inline-title", rows: "1", spellcheck: "false" });
     title.value = baseName(path);
     const growT = () => { title.style.height = "auto"; title.style.height = title.scrollHeight + "px"; };

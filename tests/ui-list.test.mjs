@@ -45,7 +45,7 @@ describe("board", () => {
     assert.deepEqual(await titles(), ["Aqueducts", "Colosseum"], "Aqueducts holds Pont du Gard, so it comes first as a notebook");
     assert.equal(await page().textContent(".sn-list-title"), "Roman Empire");
     assert.equal(await ev(() => document.querySelectorAll("#board .sn-topbar .sn-crumb").length), 0, "no breadcrumbs above the list");
-    assert.equal(await page().textContent("#editor .sn-editor-path"), "History/Roman Empire", "the note beside it names its notebooks, not itself");
+    assert.deepEqual(await ev(() => [[...document.querySelectorAll("#editor .sn-editor-path a.sn-editor-crumb")].map((a) => a.textContent).join("/"), document.querySelector("#editor .sn-editor-self").textContent]), ["History/Roman Empire", "Colosseum"], "the note beside it names its notebooks, then itself");
     await page().keyboard.press("Alt+ArrowUp");
     assert.equal(await ev(() => board.target), "cards/History.md");
     await page().keyboard.press("Alt+ArrowLeft");
@@ -274,7 +274,7 @@ describe("list of notes", () => {
     } });
     await ev(() => openEditor("cards/Invoice.md", { focus: false, wide: false }));
     const head = () => ev(() => ({
-      path: $(".sn-editor-path").textContent, links: $$(".sn-editor-path a.sn-editor-crumb").map((a) => a.textContent),
+      path: [...document.querySelectorAll("#editor .sn-editor-path a.sn-editor-crumb")].map((a) => a.textContent).join("/"), links: $$(".sn-editor-path a.sn-editor-crumb").map((a) => a.textContent),
       places: $(".sn-editor-places")?.textContent ?? null, children: /Children/.test($("#editor").textContent),
     }));
     const menu = async () => { await page().click("#editor .sn-editor-more"); const items = await page().$$eval(".menu .menu-item", (xs) => xs.map((x) => x.textContent.trim())); await page().keyboard.press("Escape"); return items; };
@@ -287,14 +287,14 @@ describe("list of notes", () => {
     assert.match(await page().textContent(".menu"), /Also in.*Work \/ Proton/s);
     await page().click(".menu .menu-item >> text=Work / Proton");
     assert.equal(await ev(() => board.target), "cards/Proton.md", "the other place opens its list");
-    assert.deepEqual(await ev(() => [editor.path, $(".sn-editor-path").textContent]), ["cards/Invoice.md", "Work/Proton"], "the note stays open; its path now goes through the list's notebook");
+    assert.deepEqual(await ev(() => [editor.path, [...document.querySelectorAll("#editor .sn-editor-path a.sn-editor-crumb")].map((a) => a.textContent).join("/")]), ["cards/Invoice.md", "Work/Proton"], "the note stays open; its path now goes through the list's notebook");
     await page().click(".sn-editor-path a.sn-editor-crumb >> text=Work");
     assert.equal(await ev(() => board.target), "cards/Work.md", "a notebook in the path opens its list");
     await ev(() => openEditor("cards/Proton.md", { focus: false, wide: false }));
     assert.ok((await menu()).includes("Open notebook"), "a notebook opens as its list from ⋮");
     assert.equal(await ev(() => /Children/.test($("#editor").textContent)), false);
     await ev(() => openEditor("cards/Work.md", { focus: false, wide: false }));
-    assert.equal(await page().textContent("#editor .sn-editor-path"), "All notes", "a note at the top sits in All notes");
+    assert.equal(await ev(() => [...document.querySelectorAll("#editor .sn-editor-path a.sn-editor-crumb")].map((a) => a.textContent).join("/")), "All notes", "a note at the top sits in All notes");
     noErrors();
   });
 

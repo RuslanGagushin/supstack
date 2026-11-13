@@ -46,12 +46,12 @@ describe("six sizes of type (UI-20, UI-21)", () => {
     });
   }
 
-  test("the note's own type: a 32px title, then 28, 24 and 20px headings", async () => {
+  test("the note's own type: a 40px title, then 28, 24 and 20px headings", async () => {
     await openVault({ demo: false, openNotes: "read", notes: { "cards/N.md": "# One\n\n## Two\n\n### Three\n\n#### Four\n\nText\n" } });
     await ev(() => openEditor("cards/N.md", { focus: false, wide: false }));
     await settle();
     assert.deepEqual(await ev(() => [".sn-inline-title", "h1", "h2", "h3", "h4", "p"].map((s) => getComputedStyle(document.querySelector("#editor " + (s.startsWith(".") ? s : ".sn-reading " + s))).fontSize)),
-      ["32px", "28px", "24px", "20px", "16px", "16px"]);
+      ["40px", "28px", "24px", "20px", "16px", "16px"]);
   });
 });
 

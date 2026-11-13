@@ -12,7 +12,8 @@ import { $, h, ic, isMod, setIcon } from "./dom.js";
 import { Menu } from "./ui.js";
 import { addTags, fmTagList, promptAddParent, promptIcon, removeParent, removeTag, templateFor } from "./actions.js";
 import { formatDate, parentChip } from "./cards.js";
-import { openTagView } from "./board.js";
+import { openTagView, setTarget } from "./board.js";
+import { cardTaskProgress } from "../services/tasks.js";
 import { closeEditor, openEditor, renderEditor, saveEditor } from "./editor.js";
 import { liveActivateEnd } from "./live-preview.js";
 import { editorTable, editorTableKey, editorTableOp, tableMenu } from "./table-editor.js";
@@ -108,15 +109,26 @@ export function renderEditorProps() {
     foot.append(box);
   }
 }
-/** The reading view's line under the title, in place of Properties: when the note changed, its tags (each opens its list)
-   and a notebook it names that doesn't exist. Its notebooks are in the header; the rest of the properties are one click
-   away, in the editing view. */
+/** The reading view's facts under the title, in place of Properties (restyle RS-41 to RS-43): where the note sits (its
+   notebooks, each opening its list, and a notebook it names that doesn't exist), its tags (each opens its list), its tasks
+   done and when it changed. A row with nothing to say is left out; the rest of the properties are in the editing view. */
 function infoLine(path, n) {
-  const line = h("div", { cls: "sn-info" });
-  line.append(h("span", { cls: "sn-info-date", text: t("modifiedAt", { date: formatDate(n.mtime || 0) }), title: new Date(n.mtime || 0).toLocaleString(LANG) }));
-  for (const u of graph.unresolvedParentsOf(path)) line.append(h("span", { cls: "sn-chip is-s is-missing", title: t("parentMissing") }, ic("sn-chip-icon", "alert-triangle"), h("span", { text: u })));
-  if (!n.fmError) for (const tg of fmTagList(n.fm)) line.append(h("button", { cls: "sn-chip is-s sn-info-tag", type: "button", text: "#" + tg, onClick: () => openTagView(tg) }));
-  return line;
+  const dl = h("dl", { cls: "sn-facts" });
+  const row = (key, ...val) => dl.append(h("dt", { text: key }), h("dd", {}, ...val));
+  const parents = graph.parentsOf(path).filter((p) => graph.has(p)), missing = graph.unresolvedParentsOf(path);
+  const place = (p) => h("a", { cls: "sn-facts-place", href: "#", onClick: (e) => { e.preventDefault(); setTarget(p); } }, ic("", p ? cardIcon(p) || "folder" : "home", "folder"), h("span", { text: p ? baseName(p) : t("allCards") }));
+  row(t("factNotebook"), ...(parents.length || missing.length ? parents.map(place) : [place(null)]),
+    ...missing.map((u) => h("span", { cls: "sn-chip is-s is-missing", title: t("parentMissing") }, ic("sn-chip-icon", "alert-triangle"), h("span", { text: u }))));
+  const tags = n.fmError ? [] : fmTagList(n.fm);
+  if (tags.length) row(t("factTags"), ...tags.map((tg) => h("button", { cls: "sn-chip is-s sn-facts-tag", type: "button", text: tg, onClick: () => openTagView(tg) })));
+  const prog = cardTaskProgress(path);
+  if (prog) {
+    const bar = h("span", { cls: "sn-facts-bar", "aria-hidden": "true" }, h("span", {}));
+    bar.firstChild.style.width = Math.round((prog.done / prog.n) * 100) + "%";
+    row(t("factTasks"), bar, h("span", { text: t("factDone", prog) }));
+  }
+  row(t("factModified"), h("span", { text: formatDate(n.mtime || 0), title: new Date(n.mtime || 0).toLocaleString(LANG) }));
+  return dl;
 }
 export function editorKeys(e) {
   const ta = e.target;

@@ -143,8 +143,11 @@ button.clickable-icon.wb-icon:hover { background: var(--hover-bg); color: var(--
 .sn-editor-path > a { min-width: 1.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 a.sn-editor-crumb { color: var(--muted); text-decoration: none; }
 a.sn-editor-crumb:hover { color: var(--ink); text-decoration: underline; }
-.sn-editor-crumb-sep { flex: none; padding: 0 var(--sp-4); color: var(--faint); }
-button.sn-editor-places { flex: none; height: 20px; margin-left: var(--sp-4); padding: 0 var(--sp-8); border: 0; border-radius: var(--r-pill); background: var(--panel); color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; cursor: pointer; }
+.sn-editor-crumb-sep { flex: none; display: inline-flex; align-self: center; padding: 0 var(--sp-4); color: var(--faint); }
+.sn-editor-crumb-sep svg { width: var(--icon-xs); height: var(--icon-xs); }
+/* the note itself, last in the path: plain, in the ink, the first to give way (restyle RS-36) */
+.sn-editor-self { flex: 0 8 auto; min-width: 1.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); font-weight: var(--fw-medium); }
+button.sn-editor-places { flex: none; height: 20px; margin-left: var(--sp-4); padding: 0 var(--sp-8); border: 0; border-radius: var(--r-xs); background: var(--panel); color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; cursor: pointer; }
 button.sn-editor-places:hover { background: var(--accent-soft); color: var(--accent); }
 /* a phone: "‹ Its notebook" instead of the path, the ×, and "+N" (which moves into ⋮) */
 a.sn-editor-back { display: none; min-width: 0; align-items: center; gap: var(--sp-2); margin-left: calc(var(--sp-6) * -1); padding: var(--sp-4) var(--sp-8) var(--sp-4) var(--sp-2); border-radius: var(--r-s); color: var(--fg); font-weight: var(--fw-medium); text-decoration: none; }
@@ -158,7 +161,7 @@ a.sn-editor-back:active { background: var(--hover-bg); }
 /* the note reads at 16px in a column of about 75 characters (600px of text inside the padding) */
 /* the note's one labelled action: Edit while reading, Done (blue) while editing (editor.js) */
 button.sn-mode-btn { flex: none; display: inline-flex; align-items: center; gap: var(--sp-6); height: var(--ctl-l); margin: 0 var(--sp-2) 0 var(--sp-6); padding: 0 var(--sp-12) 0 var(--sp-10);
-  border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--win); color: var(--fg); font-size: var(--fs-ui); font-weight: var(--fw-medium); cursor: pointer; }
+  border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); color: var(--ink); font-size: var(--fs-ui); font-weight: var(--fw-medium); cursor: pointer; }
 button.sn-mode-btn:hover { background: var(--hover-bg); }
 button.sn-mode-btn svg { display: block; width: var(--icon-s); height: var(--icon-s); } /* a block, so the icon sits in the middle, not on the text's baseline */
 button.sn-mode-btn.is-editing { border-color: transparent; background: var(--cta); color: var(--on-accent); }
@@ -166,15 +169,24 @@ button.sn-mode-btn.is-editing:hover { background: var(--cta-hover); }
 @container (max-width: 640px) { button.sn-mode-btn { width: 30px; padding: 0; justify-content: center; } .sn-mode-label { display: none; } }
 /* reading keeps the room of the editing toolbar above the note, so its title stays put when editing starts */
 .sn-editor.is-read .sn-editor-scroll { padding-top: var(--ed-toolbar-h, var(--ctl-touch)); } /* until a toolbar is measured, its min-height (writing.css) */
-/* reading: one quiet line under the title in place of Properties, and no rule between it and the text (editor-toolbar.js infoLine) */
-.sn-info { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-6); min-height: 22px; margin: calc(var(--sp-4) * -1) 0 var(--sp-16); font-size: var(--fs-sm); color: var(--muted); }
-.sn-info-date { margin-right: var(--sp-4); }
+/* reading: the note's facts under the title, a key and its value on each line between two hairlines (editor-toolbar.js infoLine, restyle RS-41) */
+.sn-facts { display: grid; grid-template-columns: 120px minmax(0, 1fr); row-gap: var(--sp-10); align-items: center; margin: 0 0 var(--sp-24); padding: var(--sp-12) 0; border-block: 1px solid var(--line); font-size: var(--fs-md); }
+.sn-facts dt { color: var(--faint); }
+.sn-facts dd { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-6) var(--sp-10); min-width: 0; color: var(--ink); }
+a.sn-facts-place { display: inline-flex; align-items: center; gap: var(--sp-6); min-width: 0; color: var(--ink); font-weight: var(--fw-medium); text-decoration: none; }
+a.sn-facts-place:hover { text-decoration: underline; }
+a.sn-facts-place svg { flex: none; width: var(--icon-s); height: var(--icon-s); color: var(--muted); }
+/* the tasks done: a bar of 96px, the accent for the part done, beside the words */
+.sn-facts-bar { display: flex; width: 96px; height: 6px; border-radius: var(--r-pill); background: var(--sel); overflow: hidden; }
+.sn-facts-bar > span { border-radius: var(--r-pill); background: var(--cta); }
+@media (max-width: 820px) { .sn-facts { grid-template-columns: 96px minmax(0, 1fr); } }
 .sn-props-head, .sn-editor-foot h4 { font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--muted); }
 /* a table being read keeps the room editing leaves on its right for "+ column" (writing.css .sn-table-host), so it doesn't widen and re-split its columns */
 .sn-reading:not(.sn-live) .sn-table-wrap { margin-right: 17px; }
 
 /* Rendered Markdown: black bold headings, grey quotes, monospace code */
-.markdown-rendered :is(h1, h2, h3, h4, h5, h6) { color: var(--ink); letter-spacing: -.01em; }
+.markdown-rendered :is(h1, h2, h3, h4, h5, h6) { color: var(--ink); font-weight: var(--fw-bold); letter-spacing: var(--ls-head); }
+.markdown-rendered :is(strong, b) { color: var(--ink); font-weight: var(--fw-semibold); }
 .markdown-rendered :is(ul, ol) li::marker { color: var(--muted); }
 .markdown-rendered a:where(:not(.tag)) { color: var(--accent); }
 /* the grey chip is for inline code only: inside a code block the text sits on the block itself */
@@ -295,7 +307,7 @@ button.sn-row-enter:hover, .sn-row:focus-visible button.sn-row-enter { backgroun
   .sn-main { grid-column: 1; }
     .sn-editor.win { margin-top: 0; border-radius: 0; border: 0; } /* the note over the board fills the screen */
   .sn-page { padding: var(--sp-12) var(--sp-14) var(--sp-48); }
-  .sn-editor-page { padding: var(--sp-12) var(--sp-14) 40vh; }
+  .sn-editor-page { padding: var(--sp-16) var(--sp-16) 40vh; }
 }
 
 /* ---------- Touch screens: a bottom bar on phones, and targets a finger can hit */
@@ -323,6 +335,8 @@ button.sn-row-enter:hover, .sn-row:focus-visible button.sn-row-enter { backgroun
   /* (the table + buttons are already absolute, under and beside the table: making them relative piled them up in a corner) */
   :is(button.task-box, .sn-chip) { position: relative; }
   :is(button.task-box)::after { content: ""; position: absolute; inset: -10px; }
+  button.sn-kind { position: relative; }
+  button.sn-kind::after { content: ""; position: absolute; inset: -10px -4px; }
   :is(.sn-table-add-row, .sn-table-add-col)::after { content: ""; position: absolute; inset: -14px; }
   .sn-chip::after { content: ""; position: absolute; inset: -8px -2px; }
   /* buttons a finger can hit: 40px at least, the drawing inside them as it was (spec UI-9) */

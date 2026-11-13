@@ -27,11 +27,13 @@
 .sn-editor-head { flex: 0 0 auto; display: flex; align-items: center; gap: var(--sp-2); height: 52px; padding: 0 var(--sp-12) 0 var(--sp-14); border-bottom: 0; }
 .sn-save-state.is-dirty { color: var(--muted); }
 .sn-editor-scroll { flex: 1 1 auto; overflow-y: auto; }
-.sn-editor-page { margin: 0 auto; max-width: 680px; padding: var(--sp-16) var(--sp-40) 40vh; }
+.sn-editor-page { margin: 0 auto; max-width: 720px; padding: var(--sp-40) var(--sp-32) 40vh; }
 #app.editor-wide .sn-editor-page { padding-top: var(--sp-48); }
-.sn-editor-badge { display: flex; margin-bottom: var(--sp-8); width: max-content; border-radius: var(--r-xs); cursor: default; color: var(--muted); }
-.sn-editor-badge:hover { background: var(--panel); }
-.sn-inline-title { display: block; width: 100%; padding: 0; border: 0; background: transparent; resize: none; overflow: hidden; font-weight: var(--fw-bold); font-size: 32px; line-height: var(--lh-tight); letter-spacing: -.02em; color: var(--ink); margin: var(--sp-6) 0 var(--sp-12); }
+/* what the note is, over its title: its icon and a word in the accent; a click picks another icon (restyle RS-39) */
+button.sn-kind, button.sn-kind:not(.clickable-icon) { display: inline-flex; align-items: center; gap: var(--sp-6); height: auto; padding: var(--sp-2) var(--sp-4); margin-inline-start: calc(var(--sp-4) * -1); border: 0; border-radius: var(--r-xs); background: transparent; color: var(--accent); font-size: var(--fs-ui); font-weight: var(--fw-semibold); cursor: pointer; }
+button.sn-kind:hover { background: var(--accent-soft); }
+button.sn-kind svg { width: var(--icon-m); height: var(--icon-m); }
+.sn-inline-title { display: block; width: 100%; padding: 0; border: 0; background: transparent; resize: none; overflow: hidden; font-weight: var(--fw-bold); font-size: var(--fs-title); line-height: var(--lh-title); letter-spacing: var(--ls-title); color: var(--ink); margin: var(--sp-6) 0 var(--sp-20); }
 /* Properties: the note's frontmatter */
 .sn-props-head { display: flex; align-items: center; gap: var(--sp-6); margin-bottom: var(--sp-6); cursor: default; width: max-content; }
 .sn-props-head svg { width: var(--icon-xs); height: var(--icon-xs); color: var(--faint); transition: transform var(--dur-1) var(--ease); }

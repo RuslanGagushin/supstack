@@ -29,21 +29,42 @@ describe("opening a note", () => {
     noErrors();
   });
 
-  test("reading shows one line under the title in place of Properties: when it changed, its tags, a missing notebook", async () => {
+  test("over the title, what the note is: a notebook, a daily note or a note (restyle RS-39); its tasks done as a bar and words (RS-43)", async () => {
+    const notes = { "cards/Book.md": "", "cards/Child.md": "---\nparents: [\"[[Book]]\"]\n---\n- [x] a\n- [ ] b\n- [ ] c\n- [ ] d\n", "daily notes/2026-11-13.md": "Today\n" };
+    for (const [lang, words] of [["en", ["Notebook", "Note", "Daily note"]], ["ru", ["Блокнот", "Заметка", "Заметка дня"]]]) {
+      await openVault({ lang, openNotes: "read", demo: false, notes });
+      const kinds = [];
+      for (const p of ["cards/Book.md", "cards/Child.md", "daily notes/2026-11-13.md"]) {
+        await ev((p) => openEditor(p, { focus: false, wide: false }), p);
+        kinds.push(await ev(() => document.querySelector("#editor .sn-kind").textContent));
+      }
+      assert.deepEqual(kinds, words, lang);
+    }
+    await ev(() => openEditor("cards/Child.md", { focus: false, wide: false }));
+    const r = await ev(() => {
+      const bar = document.querySelector(".sn-facts .sn-facts-bar"), fill = bar.firstChild;
+      return { share: Math.round((fill.getBoundingClientRect().width / bar.getBoundingClientRect().width) * 100), words: bar.nextElementSibling.textContent,
+        place: document.querySelector(".sn-facts .sn-facts-place").textContent };
+    });
+    assert.deepEqual(r, { share: 25, words: "1 из 4 выполнено", place: "Book" });
+    noErrors();
+  });
+
+  test("reading shows the note's facts under the title in place of Properties: its notebook, its tags, when it changed", async () => {
     await openVault({ openNotes: "read", demo: false, notes: { "cards/Doc.md": "---\nparents: [\"[[Gone]]\"]\ntags: [alpha, beta]\nicon: book\n---\nText\n", "cards/Other.md": "---\ntags: [alpha]\n---\n" } });
     await ev(() => openEditor("cards/Doc.md", { focus: false, wide: false }));
     const r = await ev(() => ({
-      props: document.querySelectorAll("#editor-props .sn-props").length, line: document.querySelector("#editor-props .sn-info")?.textContent,
-      tags: [...document.querySelectorAll(".sn-info .sn-info-tag")].map((x) => x.textContent), missing: document.querySelector(".sn-info .sn-chip.is-missing")?.textContent,
+      props: document.querySelectorAll("#editor-props .sn-props").length, keys: [...document.querySelectorAll("#editor-props .sn-facts dt")].map((x) => x.textContent),
+      tags: [...document.querySelectorAll(".sn-facts .sn-facts-tag")].map((x) => x.textContent), missing: document.querySelector(".sn-facts .sn-chip.is-missing")?.textContent,
     }));
     assert.equal(r.props, 0, "no Properties while reading");
-    assert.match(r.line, /^Modified /);
-    assert.deepEqual(r.tags, ["#alpha", "#beta"]);
+    assert.deepEqual(r.keys, ["Notebook", "Tags", "Modified"], "no Tasks row: the note has none");
+    assert.deepEqual(r.tags, ["alpha", "beta"]);
     assert.equal(r.missing, "Gone");
-    await page().click(".sn-info .sn-info-tag");
+    await page().click(".sn-facts .sn-facts-tag");
     assert.deepEqual(await ev(() => [board.tagView, boardModel().shown.map((c) => c.path).sort()]), ["alpha", ["cards/Doc.md", "cards/Other.md"]], "a tag opens its list");
     await ev(() => openEditor("cards/Doc.md", { focus: false, edit: true }));
-    assert.deepEqual(await ev(() => [document.querySelectorAll("#editor-props .sn-props").length, document.querySelectorAll("#editor-props .sn-info").length]), [1, 0], "editing shows Properties again");
+    assert.deepEqual(await ev(() => [document.querySelectorAll("#editor-props .sn-props").length, document.querySelectorAll("#editor-props .sn-facts").length]), [1, 0], "editing shows Properties again");
     noErrors();
   });
 

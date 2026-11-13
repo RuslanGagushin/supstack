@@ -36,8 +36,8 @@ body {
   --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700;
   /* line heights: headings and titles, the interface, a note's text */
   --lh-tight: 1.25; --lh-ui: 1.5; --lh-text: 1.7;
-  /* tracking: headings at 24px and the list's title */
-  --ls-head: -0.02em;
+  /* tracking: headings at 24px and the list's title; the page's title (a note's, the agenda's), with its size and line */
+  --ls-head: -0.02em; --ls-title: -0.025em; --fs-title: 40px; --lh-title: 1.15;
   /* the spacing scale, named by its size in pixels: every padding, margin and gap uses it (besides 0, 1px hairlines
      and the few measured offsets listed in tests/architecture.test.mjs) */
   --sp-2: 2px; --sp-4: 4px; --sp-6: 6px; --sp-8: 8px; --sp-10: 10px; --sp-12: 12px; --sp-14: 14px; --sp-16: 16px;
@@ -86,6 +86,8 @@ body {
   font-variant-ligatures: none;
   overflow: hidden;
 }
+/* the page's title is 32px on a phone (restyle RS-40) */
+@media (max-width: 820px) { body { --fs-title: 32px; } }
 ::selection { background: var(--sel); }
 ::-webkit-scrollbar { width: 12px; height: 12px; background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: var(--r-m); border: 3px solid transparent; background-clip: padding-box; }
@@ -166,7 +168,7 @@ button.task-box:focus-visible { outline: 2px solid var(--accent); outline-offset
 .markdown-rendered li.is-state-done { color: var(--faint); }
 .markdown-rendered li.is-state-fwd { color: var(--muted); }
 .markdown-rendered li.is-state-cancel { color: var(--faint); text-decoration: line-through; }
-.markdown-rendered h1, .markdown-rendered h2, .markdown-rendered h3, .markdown-rendered h4, .markdown-rendered h5, .markdown-rendered h6 { line-height: var(--lh-tight); margin: 1.2em 0 .5em; }
+.markdown-rendered h1, .markdown-rendered h2, .markdown-rendered h3, .markdown-rendered h4, .markdown-rendered h5, .markdown-rendered h6 { line-height: var(--lh-tight); margin: 1.5em 0 .5em; }
 .markdown-rendered h1 { font-size: var(--h1-size); } .markdown-rendered h2 { font-size: var(--h2-size); } .markdown-rendered h3 { font-size: var(--h3-size); }
 .markdown-rendered h4 { font-size: var(--h4-size); } .markdown-rendered h5 { font-size: var(--h5-size); } .markdown-rendered h6 { font-size: var(--h6-size); }
 .markdown-rendered pre { overflow-x: auto; }
