@@ -298,7 +298,17 @@ button.sn-row-enter:hover, .sn-row:focus-visible button.sn-row-enter { backgroun
 .sn-row-count { margin-top: calc(var(--sp-8) * -1); color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
 .sn-row-thumb { flex: none; width: 60px; height: 60px; margin-top: 19px; object-fit: cover; border-radius: var(--r-s); background: var(--panel); box-shadow: 0 0 0 1px var(--line); }
 @media (max-width: 820px) {
-  .sn-board.is-notes .sn-page { padding: var(--sp-10) var(--sp-6) var(--sp-48); }
+  /* the phone's list (restyle RS-72 to RS-76): roomy sides, a 32px title, a 44px field, tiles with no count, larger rows */
+  .sn-board.is-notes .sn-page { padding: var(--sp-8) var(--sp-20) var(--sp-48); }
+  .sn-board.is-notes .sn-topbar .clickable-icon:where(:not(.sn-seg > *)) { width: 44px; height: 44px; color: var(--muted); }
+  .sn-board.is-notes .sn-topbar .clickable-icon:where(:not(.sn-seg > *)) svg { width: 20px; height: 20px; }
+  .sn-list-head { padding-bottom: var(--sp-16); }
+  .sn-list-head .sn-list-title { font-size: var(--fs-title); letter-spacing: var(--ls-title); line-height: var(--lh-title); }
+  .sn-board.is-notes .sn-composer { margin-bottom: var(--sp-16); }
+  .sn-board.is-notes .sn-composer textarea { height: 44px; min-height: 44px; padding: var(--sp-10) var(--sp-14); font-size: var(--fs-text); line-height: 24px; }
+  .sn-row.is-folder .sn-row-count { display: none; }
+  .sn-board .sn-card.sn-row:not(.is-folder) .sn-row-title { font-size: var(--fs-text); }
+  .sn-row-snippet { font-size: var(--fs-md); }
   .sn-row-thumb { width: 52px; height: 52px; }
 }
 
@@ -317,16 +327,16 @@ button.sn-row-enter:hover, .sn-row:focus-visible button.sn-row-enter { backgroun
   .sn-tabbar {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-tabbar); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
     padding: var(--sp-2) var(--sp-8) var(--safe-bottom); border-top: 1px solid var(--line);
-    background: color-mix(in srgb, var(--win) 94%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    background: var(--win);
     transition: transform var(--dur-2) var(--ease);
   }
   .sn-tabbar.is-hidden { transform: translateY(100%); }
   button.sn-tab, button.sn-tab:not(.clickable-icon) {
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-2); height: 54px; padding: 0;
-    border: 0; background: none; box-shadow: none; color: var(--muted); font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: var(--fw-medium);
+    border: 0; background: none; box-shadow: none; color: var(--faint); font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: var(--fw-medium);
   }
   button.sn-tab svg { width: 22px; height: 22px; }
-  #app:not(:has(.sn-board.is-tasks, .sn-board.is-files)) .sn-tab[data-tab="board"], #app:has(.sn-board.is-tasks) .sn-tab[data-tab="agenda"] { color: var(--accent); }
+  #app:not(:has(.sn-board.is-tasks, .sn-board.is-files)) .sn-tab[data-tab="board"], #app:has(.sn-board.is-tasks) .sn-tab[data-tab="agenda"] { color: var(--accent); font-weight: var(--fw-semibold); }
   /* room to scroll the last card, task or file out from under the bar */
   .sn-page, .ag-body, .fv-list { padding-bottom: calc(80px + var(--safe-bottom)); }
   .sn-toast.is-quiet { bottom: calc(66px + var(--safe-bottom)); }

@@ -20,6 +20,7 @@ const sizes = () => ev(() => {
     if (el.matches(".sn-inline-title, .ag-head.is-page .ag-title b") || el.closest(".markdown-rendered :is(h1, h2, h3, h4, h5, h6), .cm-sn-h")) continue;
     const fs = parseFloat(c.fontSize);
     if (!fs) continue;
+    if (fs === 32 && el.closest(".sn-list-title")) continue; // a phone's list title, at the page's size
     (out[fs] ||= []).push(el.tagName.toLowerCase() + "." + String(el.className).split(" ")[0] + (el.closest("kbd") ? " (kbd)" : ""));
   }
   return out;
