@@ -26,9 +26,9 @@ One palette, defined twice: on `body` for the light theme and on `body.theme-dar
 | `--accent` | `#4d64ff` | `#7c8eff` | links, focus, the chosen item, progress |
 | `--accent-soft` | `#ebeeff` | `#1f2547` | an accent plate: an included filter, the selected agenda row |
 | `--cta`, `--cta-hover` | `#4d64ff`, `#3245bb` | `#4d64ff`, `#7c8eff` | the primary button and its hover |
-| `--todo`, `--next`, `--done` | `#c42f27`, `#b25f06`, `#276f36` | `#ff7c70`, `#f0a650`, `#8ccb90` | danger and due; soon; done |
-| `--pri-a` … `--pri-c`, `--now` | | | the agenda's priorities and the "now" line |
-| `--l1`, `--l2`, `--l3`, `--l7`, `--l8` | | | callout and heading-level colours |
+| `--panel-strong` | `#e4e4e1` | `#36383d` | the stronger plate: counts, priority A, an overdue date |
+| `--todo` | `#c42f27` | `#ff7c70` | the only colour besides the accent: actions that destroy, errors, an invalid field |
+| `--l2`, `--l3`, `--l7`, `--l8` | | | syntax colours in code blocks (and the capture form's priority dot); content, not interface |
 | `--flash`, `--code-bg`, `--tbl-head`, `--tbl-head-line` | | | search highlight, code blocks, table heads |
 | `--on-accent` | `#fff` | `#fff` | text and marks on an `--accent`, `--cta` or `--todo` fill |
 | `--paper` | `#fff` | `#fff` | the white of a page: a PDF, the switch's knob |
@@ -143,15 +143,15 @@ seg.append(h("button", { cls: "clickable-icon is-active", type: "button", role: 
 
 ### Chip — `.sn-chip`
 
-Tags, task dates, filters, notebooks. One pill: `--panel` plate, `--tag` text, `--fs-sm`, `--r-pill`.
+Tags, task dates, filters, notebooks. One plate: `--panel`, `--tag` text, `--fs-sm`, medium, `--r-xs`. No tone is a colour: the accent marks what is on, everything else differs in plate, weight and icon.
 
 | | Class | Use |
 |---|---|---|
 | Size | (none) | 24px: chips that are controls (filters, the tag cloud) |
 | | `.is-s` | 20px: chips in a row or a line of text (tags, dates, notebooks) |
-| Tone | `.is-accent` | on, included |
-| | `.is-danger` | due, excluded |
-| | `.is-warn` | soon |
+| Tone | `.is-accent` | on, included: the accent plate |
+| | `.is-danger` | due, excluded: `--panel-strong`, ink, semibold |
+| | `.is-warn` | soon: ink on the plain plate |
 | | `.is-outline` | inherited (a task's tag from its heading) |
 | | `.is-struck` | excluded filter, with `.is-danger` |
 | Kind | `.is-link` | a `span` chip that opens something (a tag in a list row) |
@@ -192,7 +192,7 @@ A month of `.cal-day` buttons in a `role="grid"`: arrows move a day or a week, P
 
 ### Callout
 
-In a note's text: `> [!type]` draws a frame whose colour comes from `--cc`, set per type from the level colours, `--done` and `--todo`.
+In a note's text: `> [!type]` draws a frame with the type's icon and title; the icon is `--muted` for every type.
 
 ## What the tests check
 

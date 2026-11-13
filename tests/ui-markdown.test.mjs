@@ -295,11 +295,11 @@ describe("planning lines", () => {
     assert.equal(r.words, 0, "no Markdown words or timestamps left");
     assert.equal(r.tip, "DEADLINE: <2026-11-07 Sat>", "the Markdown in the tooltip");
     assert.equal(r.pri, "A");
-    // the tones are drawn, not only named: green when closed, amber in the warning days, plain otherwise
+    // the tones are drawn, not only named, without colour (restyle RS-53): closed is plain with its tick, the warning days in the ink, plain otherwise
     const tones = await ev(() => {
       const probe = (v) => { const s = document.createElement("span"); s.style.color = `var(${v})`; document.body.append(s); const c = getComputedStyle(s).color; s.remove(); return c; };
       const color = (sel) => getComputedStyle(document.querySelector(`#editor .sn-reading .org-date${sel}`)).color;
-      return { closed: color(".k-closed") === probe("--done"), soon: color(".is-warn") !== color(".k-sched"), plain: color(".k-sched") === probe("--tag") };
+      return { closed: color(".k-closed") === probe("--tag") && !!document.querySelector("#editor .sn-reading .org-date.k-closed svg"), soon: color(".is-warn") === probe("--ink") && color(".is-warn") !== color(".k-sched"), plain: color(".k-sched") === probe("--tag") };
     });
     assert.deepEqual(tones, { closed: true, soon: true, plain: true });
     await ev(() => openEditor("cards/R.md", { focus: false, edit: true }));

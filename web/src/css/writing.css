@@ -72,7 +72,7 @@ button.sn-table-add-row:hover, button.sn-table-add-col:hover { background: color
 .hp-pop { position: fixed; z-index: var(--z-popup); width: min(420px, calc(100vw - 16px)); max-height: 360px; overflow: hidden; display: flex; flex-direction: column; background: var(--win); border: 1px solid color-mix(in srgb, var(--line) 35%, var(--line)); border-radius: var(--r-s); box-shadow: var(--shadow-3); cursor: pointer; animation: hp-in var(--dur-1) var(--ease); }
 @keyframes hp-in { from { opacity: 0; transform: translateY(-3px); } }
 .hp-head { display: flex; align-items: baseline; gap: var(--sp-8); padding: var(--sp-10) var(--sp-14) var(--sp-6); border-bottom: 1px solid var(--line); }
-.hp-icon { display: inline-flex; align-self: center; color: var(--l1); }
+.hp-icon { display: inline-flex; align-self: center; color: var(--muted); }
 .hp-icon svg { width: var(--icon-s); height: var(--icon-s); }
 .hp-title { font-family: var(--font-ui); font-size: var(--fs-lg); font-weight: var(--fw-medium); color: var(--fg); }
 .hp-path { margin-left: auto; font-family: var(--font-ui); font-size: var(--fs-sm); color: var(--faint); }

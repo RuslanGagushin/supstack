@@ -9,9 +9,9 @@ body.theme-dark {
   --accent:#7c8eff; --accent-soft:#1f2547; --sel:#303236; --flash:#4a3f12; --code-bg:#25272a;
   --ink:#f2f3f4; --cta:#4d64ff; --cta-hover:#7c8eff; --hover-bg:#25272a;
   --tag:#c4c6cb; --tbl-head:#25272a; --tbl-head-line:#2e3034;
-  --l1:#8fa6ff; --l2:#e3a46f; --l3:#c39cf0; --l7:#e2c162; --l8:#78c6d4;
-  --todo:#ff7c70; --next:#f0a650; --done:#8ccb90;
-  --pri-a:#ff7c70; --pri-b:#f0a650; --pri-c:#a8a4a3; --now:#ff7c70;
+  --panel-strong:#36383d;
+  --l2:#e3a46f; --l3:#c39cf0; --l7:#e2c162; --l8:#78c6d4;
+  --todo:#ff7c70;
   color-scheme: dark;
 }
 body {
@@ -22,9 +22,8 @@ body {
      detail, 4.5:1 on --bg and --win only — never on --panel, --sel or --hover-bg). */
   --bg:#f8f8f7; --win:#ffffff; --panel:#f1f1ef; --fg:#2a2c30; --muted:#55585e; --faint:#686b72; --line:#e9e9e7;
   --accent:#4d64ff; --accent-soft:#ebeeff; --sel:#ececea; --flash:#fff1a8; --code-bg:#f4f4f2; --ink:#17181a; --cta:#4d64ff;
-  --cta-hover:#3245bb; --hover-bg:#f4f4f2; --tag:#45484e; --tbl-head:#f4f4f2; --tbl-head-line:#e9e9e7; --l1:#2f4fb5;
-  --l2:#9a5524; --l3:#7a3fb0; --l7:#946500; --l8:#1d7385; --todo:#c42f27; --next:#b25f06;
-  --done:#276f36; --pri-a:#c42f27; --pri-b:#b25f06; --pri-c:#696564; --now:#c42f27;
+  --cta-hover:#3245bb; --hover-bg:#f4f4f2; --tag:#45484e; --tbl-head:#f4f4f2; --tbl-head-line:#e9e9e7; --panel-strong:#e4e4e1;
+  --l2:#9a5524; --l3:#7a3fb0; --l7:#946500; --l8:#1d7385; --todo:#c42f27;
   /* text and marks on --accent, --cta and --todo fills; --paper is the white of a page (a PDF, the switch knob), the same in both themes */
   --on-accent: #fff; --paper: #fff;
   /* two typefaces: Inter for the interface and the notes, JetBrains Mono for code, keys and source */
@@ -153,16 +152,16 @@ input[type="checkbox"] { accent-color: var(--accent); }
 /* task boxes: [ ] [/] [<] [x] [-] [>] drawn as their state's icon (ui/task-icons.js).
    Open states are grey (to do, waiting, forwarded), progress is the accent (in progress, done);
    cancelled is the faintest and its text is struck through, so no two states share both colour and shape. */
-button.task-box, button.task-box:not(.clickable-icon) { flex: none; width: 1.05em; height: 1.05em; min-width: 14px; min-height: 14px; margin: 0 .5em 0 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--task-c); vertical-align: -.16em; cursor: pointer; }
+button.task-box, button.task-box:not(.clickable-icon) { flex: none; width: 1.125em; height: 1.125em; min-width: 14px; min-height: 14px; margin: 0 .625em 0 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--task-c); vertical-align: -.16em; cursor: pointer; }
 button.task-box:not(.clickable-icon):hover { background: transparent; filter: brightness(.85); }
 body.theme-dark button.task-box:not(.clickable-icon):hover { filter: brightness(1.25); }
 button.task-box:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .task-icon, .task-icon.suggestion-icon { display: inline-flex; flex: none; color: var(--task-c); }
 .task-box svg.task-svg, .task-icon svg.task-svg { width: 100%; height: 100%; }
-.s-todo { --task-c: var(--muted); } .s-doing { --task-c: var(--accent); } .s-wait { --task-c: var(--muted); }
-.s-done { --task-c: var(--accent); } .s-cancel { --task-c: var(--faint); } .s-fwd { --task-c: var(--muted); }
+.s-todo { --task-c: var(--faint); } .s-doing { --task-c: var(--accent); } .s-wait { --task-c: var(--faint); }
+.s-done { --task-c: var(--accent); } .s-cancel { --task-c: var(--faint); } .s-fwd { --task-c: var(--faint); }
 .task-box.s-todo:hover, .task-box.s-todo:focus-visible { --task-c: var(--accent); }
-.markdown-rendered li.is-state-done { color: var(--muted); }
+.markdown-rendered li.is-state-done { color: var(--faint); }
 .markdown-rendered li.is-state-fwd { color: var(--muted); }
 .markdown-rendered li.is-state-cancel { color: var(--faint); text-decoration: line-through; }
 .markdown-rendered h1, .markdown-rendered h2, .markdown-rendered h3, .markdown-rendered h4, .markdown-rendered h5, .markdown-rendered h6 { line-height: var(--lh-tight); margin: 1.2em 0 .5em; }
