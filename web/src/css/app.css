@@ -41,7 +41,7 @@ button.clickable-icon.sb-foot-btn:hover { background: var(--hover-bg); color: va
 /* Search fields share one look: 34px, white on the grey with a hairline border, a 14px icon, the accent ring on focus
    (the sidebar's launcher, the board's filter, Files and Settings) */
 :is(button.sb-search, .sn-search, input.sn-set-search, input.fv-search) {
-  height: 34px; border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); color: var(--fg); font-size: var(--fs-ui);
+  height: var(--ctl-field); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); color: var(--fg); font-size: var(--fs-ui);
 }
 :is(.sn-search:focus-within, input.sn-set-search:focus, input.fv-search:focus) { border-color: var(--accent); box-shadow: var(--ring); outline: none; }
 button.sb-search { justify-content: flex-start; gap: var(--sp-8); width: 100%; padding: 0 var(--sp-12) 0 var(--sp-10); font-weight: var(--fw-regular); cursor: text; }

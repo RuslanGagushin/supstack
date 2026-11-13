@@ -19,7 +19,7 @@ button.sn-btn.wb-tasks.is-active { border-color: var(--accent); }
 
 .agbar { display: flex; gap: var(--sp-6); align-items: center; flex-wrap: wrap; padding: var(--sp-8) var(--sp-24); }
 .agbar .ag-btn[aria-pressed="true"] { background: var(--panel); color: var(--ink); }
-.agbar input.ag-input { flex: 1 1 200px; min-width: 0; height: 34px; padding: 0 var(--sp-12); border-radius: var(--r-s); background: var(--win); }
+.agbar input.ag-input { flex: 1 1 200px; min-width: 0; height: var(--ctl-field); padding: 0 var(--sp-12); border-radius: var(--r-s); background: var(--win); }
 .agbar input.ag-input:focus { border-color: var(--accent); box-shadow: var(--ring); outline: none; }
 .ag-chips { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: var(--sp-4); }
 /* wide screens show the log, "Go to…" and the tag chips in the bar; phones put them under the filters button */

@@ -12,17 +12,17 @@ One palette, defined twice: on `body` for the light theme and on `body.theme-dar
 
 | Variable | Light | Dark | Use |
 |---|---|---|---|
-| `--bg` | `#f6f5f4` | `#151515` | the window behind everything: sidebar, list, fields |
-| `--win` | `#ffffff` | `#262626` | sheets: the note, cards, menus, dialogs |
-| `--panel` | `#e7e6e5` | `#333333` | plates: chips, segment tracks, hovered rows |
-| `--hover-bg` | `#edeceb` | `#2c2c2c` | a control under the pointer |
-| `--sel` | `#dfddda` | `#383838` | the selected row; a control being pressed; text selection |
-| `--line` | `#d4d1ce` | `#3a3a3a` | borders and separators |
-| `--fg` | `#212121` | `#e8e8e8` | text |
-| `--ink` | `#141414` | `#f2f2f2` | text that has to stand out: titles, the active segment |
-| `--muted` | `#5c5856` | `#b4b0af` | secondary text; readable on every surface, plates included |
-| `--faint` | `#726e6c` | `#99958f` | optional detail; 4.5:1 on `--bg` and `--win` **only**, never on `--panel`, `--sel` or `--hover-bg` |
-| `--tag` | `#3e3e3e` | `#d6d6d6` | text on a chip |
+| `--bg` | `#f8f8f7` | `#17181a` | the window behind everything: sidebar, list, fields |
+| `--win` | `#ffffff` | `#1c1d1f` | sheets: the note, cards, menus, dialogs |
+| `--panel` | `#f1f1ef` | `#2a2c30` | plates: chips, segment tracks, hovered rows |
+| `--hover-bg` | `#f4f4f2` | `#25272a` | a control under the pointer |
+| `--sel` | `#ececea` | `#303236` | the selected row; a control being pressed; text selection |
+| `--line` | `#e9e9e7` | `#2e3034` | borders and separators |
+| `--fg` | `#2a2c30` | `#dcdde0` | text |
+| `--ink` | `#17181a` | `#f2f3f4` | text that has to stand out: titles, the active segment |
+| `--muted` | `#55585e` | `#a9acb2` | secondary text; readable on every surface, plates included |
+| `--faint` | `#686b72` | `#8e9198` | optional detail; 4.5:1 on `--bg` and `--win` **only**, never on `--panel`, `--sel` or `--hover-bg` |
+| `--tag` | `#45484e` | `#c4c6cb` | text on a chip |
 | `--accent` | `#4d64ff` | `#7c8eff` | links, focus, the chosen item, progress |
 | `--accent-soft` | `#ebeeff` | `#1f2547` | an accent plate: an included filter, the selected agenda row |
 | `--cta`, `--cta-hover` | `#4d64ff`, `#3245bb` | `#4d64ff`, `#7c8eff` | the primary button and its hover |
@@ -50,7 +50,7 @@ Three colours are worked out from the palette: `--accent-hover` (a primary contr
 | `--fs-xl` | 24px | the welcome title |
 | `--h1-size` … `--h6-size` | 28, 24, 20, then 16px | a note's own headings (its title is 32px) |
 | `--fw-regular`, `--fw-medium`, `--fw-semibold`, `--fw-bold` | 400, 500, 600, 700 | weights |
-| `--lh-tight`, `--lh-ui`, `--lh-text` | 1.25, 1.5, 1.65 | titles and headings; the interface; a note's text |
+| `--lh-tight`, `--lh-ui`, `--lh-text` | 1.25, 1.5, 1.7 | titles and headings; the interface; a note's text |
 
 Six sizes and no more (spec UI-20); `tests/typography.test.mjs` measures them on the page.
 
@@ -59,8 +59,8 @@ Six sizes and no more (spec UI-20); `tests/typography.test.mjs` measures them on
 | Group | Variables | Rule |
 |---|---|---|
 | Spacing | `--sp-2`, `-4`, `-6`, `-8`, `-10`, `-12`, `-14`, `-16`, `-20`, `-24`, `-32`, `-40`, `-48` | named by their size in pixels; every `padding`, `margin` and `gap`. Negative: `calc(var(--sp-8) * -1)`. In a note's text, `em` follows the font size and stays |
-| Corners | `--r-xs` 4, `--r-s` 8, `--r-m` 12, `--r-l` 16, `--r-pill` | xs: keys, inline code; s: controls and rows; m: cards, menus, the note's sheet; l: dialogs; pill: chips and pill buttons. Circles are `50%` |
-| Control heights | `--ctl-xs` 20, `--ctl-s` 24, `--ctl-m` 28, `--ctl-l` 32, `--ctl-touch` 40 | xs: small chips; s: chips, icons in a row; m: fields, buttons in bars; l: sidebar buttons, menu rows; touch: the least a finger gets (spec UI-9) |
+| Corners | `--r-xs` 6, `--r-s` 8, `--r-m` 10, `--r-l` 16, `--r-pill` | xs: keys, inline code; s: controls and rows; m: cards, menus, the note's sheet; l: dialogs; pill: chips and pill buttons. Circles are `50%` |
+| Control heights | `--ctl-xs` 20, `--ctl-s` 24, `--ctl-m` 28, `--ctl-l` 32, `--ctl-field` 34, `--ctl-touch` 40 | xs: small chips; s: chips, icons in a row; m: fields, buttons in bars; l: sidebar buttons, menu rows; field: the search fields; touch: the least a finger gets (spec UI-9) |
 | Icons | `--icon-xs` 12, `--icon-s` 14, `--icon-m` 16, `--icon-l` 18; `--icon-stroke` 1.75px | Lucide icons; one stroke |
 | Bars | `--header-height` 40 | the sidebar's head |
 
