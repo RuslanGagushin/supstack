@@ -10,4 +10,15 @@
          them the notification plugin falls back to an inexact alarm, which may come a few minutes late. -->
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />
+    <application>
+        <!-- "Share to Supstack" (spec TASK-6): the app's own activity, made by `tauri android init`, also takes text
+             and links shared from other apps; VaultPlugin.kt hands them to the page. Merged into the app's manifest. -->
+        <activity android:name="com.supstack.app.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+    </application>
 </manifest>

@@ -76,3 +76,12 @@ pub struct BoolResponse {
 pub struct MtimeResponse {
     pub mtime: f64,
 }
+
+/// Text or a link another app shared with Supstack (Android's "Share"), with its subject when it has one.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct Shared {
+    #[serde(default)]
+    pub text: String,
+    #[serde(default)]
+    pub subject: String,
+}

@@ -82,6 +82,8 @@ export async function openNativeApp({ notes = { "Home.md": "# Home\n\n- TODO Wri
       write: (a) => { const mtime = Math.max(Date.now(), ++clock); files[a.path] = { text: a.text ?? atob(a.base64), mtime }; return mtime; },
       remove: (a) => { delete files[a.path]; return null; },
       list_dir: () => [], remove_dir: () => null, git_info: () => ({ repo: false }), git_save_settings: () => null,
+      // Android's "Share": a test puts { text, subject } in window.__shared, the page takes it once
+      take_shared: () => { const r = window.__shared || null; window.__shared = null; return r; },
     };
     // events from the app: window.__tauriEmit(name, payload) sends one to what the page listens to
     const listeners = new Map();

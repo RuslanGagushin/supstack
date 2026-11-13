@@ -415,6 +415,18 @@
           "markdownDescription": "Denies the remove_dir command without any pre-configured scope."
         },
         {
+          "description": "Enables the take_shared command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-take-shared",
+          "markdownDescription": "Enables the take_shared command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the take_shared command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-take-shared",
+          "markdownDescription": "Denies the take_shared command without any pre-configured scope."
+        },
+        {
           "description": "Enables the unwatch command without any pre-configured scope.",
           "type": "string",
           "const": "allow-unwatch",
@@ -451,10 +463,10 @@
           "markdownDescription": "Denies the write command without any pre-configured scope."
         },
         {
-          "description": "Pick a vault folder, then list, read, write and delete files inside it, watch it for changes, and sync it with a git remote.\n#### This default permission set includes:\n\n- `allow-pick`\n- `allow-list`\n- `allow-read`\n- `allow-write`\n- `allow-remove`\n- `allow-remove-dir`\n- `allow-list-dir`\n- `allow-exists`\n- `allow-git-sync`\n- `allow-git-info`\n- `allow-git-save-settings`\n- `allow-watch`\n- `allow-unwatch`",
+          "description": "Pick a vault folder, then list, read, write and delete files inside it, watch it for changes, and sync it with a git remote.\n#### This default permission set includes:\n\n- `allow-pick`\n- `allow-list`\n- `allow-read`\n- `allow-write`\n- `allow-remove`\n- `allow-remove-dir`\n- `allow-list-dir`\n- `allow-exists`\n- `allow-git-sync`\n- `allow-git-info`\n- `allow-git-save-settings`\n- `allow-watch`\n- `allow-unwatch`\n- `allow-take-shared`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Pick a vault folder, then list, read, write and delete files inside it, watch it for changes, and sync it with a git remote.\n#### This default permission set includes:\n\n- `allow-pick`\n- `allow-list`\n- `allow-read`\n- `allow-write`\n- `allow-remove`\n- `allow-remove-dir`\n- `allow-list-dir`\n- `allow-exists`\n- `allow-git-sync`\n- `allow-git-info`\n- `allow-git-save-settings`\n- `allow-watch`\n- `allow-unwatch`"
+          "markdownDescription": "Pick a vault folder, then list, read, write and delete files inside it, watch it for changes, and sync it with a git remote.\n#### This default permission set includes:\n\n- `allow-pick`\n- `allow-list`\n- `allow-read`\n- `allow-write`\n- `allow-remove`\n- `allow-remove-dir`\n- `allow-list-dir`\n- `allow-exists`\n- `allow-git-sync`\n- `allow-git-info`\n- `allow-git-save-settings`\n- `allow-watch`\n- `allow-unwatch`\n- `allow-take-shared`"
         }
       ]
     }
