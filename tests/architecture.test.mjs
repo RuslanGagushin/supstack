@@ -140,6 +140,47 @@ test("padding, margin and gap use the spacing scale; the measured offsets are li
   assert.deepEqual(bad, []);
 });
 
+test("hex colours only in base.css's palette (masks aside) and, in the scripts, only for the code blocks' language badges", () => {
+  const CSS = fileURLToPath(new URL("../web/src/css/", import.meta.url));
+  const bad = [];
+  for (const f of readdirSync(CSS).filter((f) => f.endsWith(".css") && f !== "base.css")) {
+    const bare = readFileSync(join(CSS, f), "utf8").replace(/\/\*[\s\S]*?\*\//g, " ");
+    // a mask's #000 is how much shows through, not a colour
+    for (const d of bare.matchAll(/([\w-]+)\s*:\s*([^;{}]*)/g)) if (!/mask/.test(d[1]) && /#[0-9a-f]{3,8}\b/i.test(d[2])) bad.push(`${f}: ${d[0].trim().slice(0, 70)}`);
+  }
+  for (const f of modules.filter((f) => f !== "ui/markdown.js")) {
+    for (const m of code(readFileSync(join(JS, f), "utf8")).matchAll(/["'`]#[0-9a-f]{3,8}["'`]/gi)) bad.push(`${f}: ${m[0]}`);
+  }
+  assert.deepEqual(bad, []);
+});
+
+test("corners: the --r-* scale, a circle (50%), none (0) or a 1–2px hairline", () => {
+  const CSS = fileURLToPath(new URL("../web/src/css/", import.meta.url));
+  const ok = /^(var\(--r-(xs|s|m|l|pill)\)|50%|0|1px|2px)$/;
+  const bad = [];
+  for (const f of readdirSync(CSS).filter((f) => f.endsWith(".css"))) {
+    const bare = readFileSync(join(CSS, f), "utf8").replace(/\/\*[\s\S]*?\*\//g, " ");
+    for (const d of bare.matchAll(/border(?:-[a-z]+)*-radius\s*:\s*([^;{}]+)/g)) {
+      if (!d[1].trim().split(/\s+/).every((v) => ok.test(v))) bad.push(`${f}: ${d[0].trim()}`);
+    }
+  }
+  assert.deepEqual(bad, []);
+});
+
+test("retired class names stay retired (docs/design-system.md has the ones that replaced them)", () => {
+  const CSS = fileURLToPath(new URL("../web/src/css/", import.meta.url));
+  const TESTS = fileURLToPath(new URL("./", import.meta.url));
+  const retired = ["wb-btn", "mod-cta", "mod-warning", "is-cta", "fchip", "ag-chip", "sn-tag", "sn-tag-pill", "is-sel", "is-folded", "is-warning", "is-enabled", "is-on"];
+  const sources = [
+    ...readdirSync(CSS).filter((f) => f.endsWith(".css")).map((f) => [f, readFileSync(join(CSS, f), "utf8")]),
+    ...modules.map((f) => [f, readFileSync(join(JS, f), "utf8")]),
+    ...readdirSync(TESTS).filter((f) => f.endsWith(".mjs") && f !== "architecture.test.mjs").map((f) => [f, readFileSync(join(TESTS, f), "utf8")]),
+  ];
+  const bad = [];
+  for (const [f, src] of sources) for (const c of retired) if (new RegExp(`(?<![\\w-])${c}(?![\\w-])`).test(src)) bad.push(`${f}: ${c}`);
+  assert.deepEqual(bad, []);
+});
+
 test("one layer of styles: no body.sn-app prefix; !important only on the hide utilities and for reduced motion", () => {
   const CSS = fileURLToPath(new URL("../web/src/css/", import.meta.url));
   const hide = [".markdown-rendered .org-hidden", ".sn-board .sn-tools > .sn-wide-only", ".sn-hide-narrow"];

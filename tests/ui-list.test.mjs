@@ -16,6 +16,23 @@ const noErrors = () => assert.equal(H.errors.length, 0, H.errors.map((e) => e.st
 describe("board", () => {
   beforeEach(() => openVault());
 
+  test("pressing a button, an icon button or a row shows: one step darker than hovering (spec DS-8)", async () => {
+    const sel = await ev(() => { const s = document.createElement("span"); s.style.color = "var(--sel)"; document.body.append(s); const c = getComputedStyle(s).color; s.remove(); return c; });
+    for (const target of [".sb-nav button.sn-btn", ".sn-editor-head .clickable-icon", "#board .sn-rows .sn-card.sn-row"]) {
+      const box = await page().locator(target).first().boundingBox();
+      await page().mouse.move(box.x + box.width / 2, box.y + Math.min(box.height / 2, 12));
+      const hover = await ev((t) => getComputedStyle(document.querySelector(t)).backgroundColor, target);
+      await page().mouse.down();
+      await H.tick(30);
+      const pressed = await ev((t) => getComputedStyle(document.querySelector(t)).backgroundColor, target);
+      await page().mouse.move(1, 1);
+      await page().mouse.up();
+      assert.equal(pressed, sel, `${target} pressed`);
+      assert.notEqual(pressed, hover, `${target}: pressing differs from hovering`);
+    }
+    noErrors();
+  });
+
   test("the demo board shows the top-level notebooks, then the notes, each in manual order", async () => {
     const t = await titles();
     assert.deepEqual(t.slice(0, 4), ["History", "Architecture", "Knowledge", "This week"]);

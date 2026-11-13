@@ -35,5 +35,6 @@ See [How the app is put together](README.md#how-the-app-is-put-together) for a t
 4. Add or update tests in `tests/` for behaviour you change, and make sure `npm test`, `npm run lint` and `npm run typecheck` pass (CI runs all three).
 5. Interface text lives in `web/src/js/core/strings.js` in English and Russian. Add both when you add a string (a rough translation is fine; it can be polished in review).
 6. For visible changes, attach a before/after screenshot. If the README screenshots change, regenerate them with `npm run screenshots`.
+7. Styles draw on the variables in `web/src/css/base.css` and the components described in [the design system](docs/design-system.md). A new colour, size, spacing, radius, shadow, layer or duration becomes a variable there first; use the existing button (`.sn-btn`), chip (`.sn-chip`) and state classes (`.is-selected`, `.is-active`) rather than new ones. `npm test` fails on a raw value, a variable nobody uses, or a retired class name.
 
 By contributing, you agree that your contributions are licensed under the [MIT License](LICENSE).

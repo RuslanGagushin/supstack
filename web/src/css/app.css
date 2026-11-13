@@ -72,7 +72,7 @@ button.sb-account { justify-content: flex-start; gap: var(--sp-8); width: 100%; 
   border: 0; border-radius: var(--r-s); background: transparent; font-weight: var(--fw-regular);
 }
 button.sb-account:hover { background: var(--hover-bg); }
-.sb-avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--sb-avatar); color: var(--win); font-size: var(--fs-sm); font-weight: var(--fw-semibold); }
+.sb-avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--muted); color: var(--win); font-size: var(--fs-sm); font-weight: var(--fw-semibold); }
 .sb-account-name { flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: left; line-height: var(--lh-tight); }
 .sb-account-name > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sb-account-note { color: var(--muted); font-size: var(--fs-sm); font-weight: var(--fw-regular); }
