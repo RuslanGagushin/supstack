@@ -40,7 +40,7 @@ button.sn-kind svg { width: var(--icon-m); height: var(--icon-m); }
 .sn-props.is-collapsed .sn-props-head svg { transform: rotate(-90deg); }
 .sn-props.is-collapsed .sn-prop { display: none; }
 .sn-prop:hover { background: var(--panel); }
-.sn-prop-key { flex: 0 0 34%; display: flex; align-items: center; gap: var(--sp-6); min-height: 24px; overflow: hidden; color: var(--muted); }
+.sn-prop-key { display: flex; align-items: center; gap: var(--sp-6); min-height: 24px; overflow: hidden; color: var(--muted); }
 .sn-prop-key span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sn-prop-val { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4); min-height: 24px; overflow-wrap: anywhere; }
 .sn-prop-add { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; color: var(--faint); cursor: default; }
@@ -117,7 +117,7 @@ button.sn-kind svg { width: var(--icon-m); height: var(--icon-m); }
 .setting-item-info { flex: 1; min-width: 0; }
 .setting-item-control { flex: 0 0 auto; display: flex; align-items: center; gap: var(--sp-6); }
 .setting-item-control input[type="text"], .setting-item-control input[type="number"] { width: 170px; }
-.setting-heading { margin: var(--sp-20) 0 var(--sp-4); font-size: var(--fs-ui); font-weight: var(--fw-semibold); color: var(--faint); text-transform: uppercase; letter-spacing: .04em; }
+.setting-heading { margin: var(--sp-20) 0 var(--sp-4); font-size: var(--fs-ui); font-weight: var(--fw-semibold); color: var(--faint); }
 .checkbox-container { position: relative; width: 40px; height: 22px; border-radius: var(--r-pill); background: var(--line-hover); cursor: default; transition: background var(--dur-1) var(--ease); flex: 0 0 auto; }
 .checkbox-container::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--paper); box-shadow: var(--shadow-1); transition: transform var(--dur-1) var(--ease); }
 .checkbox-container.is-active { background: var(--cta); }
@@ -132,7 +132,7 @@ button.sn-kind svg { width: var(--icon-m); height: var(--icon-m); }
   box-shadow: var(--shadow-3); font-family: var(--font-ui); font-size: var(--fs-ui); line-height: var(--lh-ui);
 }
 .sn-toast.is-blank { display: none; }
-.sn-toast.is-quiet { left: auto; right: 16px; transform: none; padding: var(--sp-4) var(--sp-12); border-color: transparent; border-radius: var(--r-pill); background: var(--panel); color: var(--muted); box-shadow: none; font-size: var(--fs-sm); }
+.sn-toast.is-quiet { left: auto; right: 16px; transform: none; padding: var(--sp-4) var(--sp-12); border-color: transparent; border-radius: var(--r-s); background: var(--panel); color: var(--muted); box-shadow: none; font-size: var(--fs-sm); }
 .sn-toast.is-new { animation: sn-in var(--dur-2) var(--ease); }
 .sn-toast-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 button.sn-toast-btn, button.sn-toast-x { flex: none; display: inline-flex; align-items: center; gap: var(--sp-6); height: var(--ctl-m); padding: 0 var(--sp-10); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); box-shadow: none; color: var(--fg); font-size: var(--fs-sm); font-weight: var(--fw-medium); cursor: pointer; }

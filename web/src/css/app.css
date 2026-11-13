@@ -132,7 +132,7 @@ button.clickable-icon.wb-icon:hover { background: var(--hover-bg); color: var(--
    plan, a tick for closed) and the date as "11 Nov"; the note keeps the full words and timestamps (org-editing.js data-short) */
 /* the date is an inline-block centred on the line like the icon beside it (its own text is hidden, so it has no baseline to share) */
 .sn-filterbar { padding: var(--sp-8) var(--sp-24); }
-.sn-board .sn-filter-btn, .sn-board .sn-filterbar > .clickable-icon { height: var(--ctl-l); border-radius: var(--r-pill); }
+.sn-board .sn-filter-btn, .sn-board .sn-filterbar > .clickable-icon { height: var(--ctl-l); border-radius: var(--r-s); }
 
 /* ---------- Minibuffer: light, a quiet footer */
 
@@ -282,7 +282,7 @@ a.sn-row-parent:hover { color: var(--ink); text-decoration: underline; }
 .sn-row-meta .sn-row-tags .sn-chip { height: 18px; padding: 0 var(--sp-6); } /* as high as the line it ends (RS-32) */
 button.sn-row-enter {
   flex: none; align-self: center; gap: var(--sp-2); height: var(--ctl-l); padding: 0 var(--sp-6) 0 var(--sp-12);
-  border: 0; border-radius: var(--r-pill); background: var(--panel); color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; cursor: pointer;
+  border: 0; border-radius: var(--r-s); background: var(--panel); color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; cursor: pointer;
 }
 button.sn-row-enter svg { width: var(--icon-m); height: var(--icon-m); }
 button.sn-row-enter:hover, .sn-row:focus-visible button.sn-row-enter { background: var(--accent-soft); color: var(--accent); }
@@ -373,13 +373,13 @@ html.is-native .sn-main { padding-top: max(var(--sp-6), env(safe-area-inset-top)
 
 /* ---------- The welcome screen: the app's icon and name on a card, the ways in below */
 .sn-welcome { position: fixed; inset: 0; z-index: var(--z-welcome); display: flex; align-items: center; justify-content: center; padding: calc(var(--sp-16) + var(--safe-top)) var(--sp-16) calc(var(--sp-16) + var(--safe-bottom)); overflow-y: auto; background: var(--bg); }
-.sn-welcome-card { width: min(440px, 100%); padding: var(--sp-40) var(--sp-32) var(--sp-24); border: 1px solid var(--line); border-radius: var(--r-l); background: var(--win); box-shadow: var(--shadow-2); text-align: center; }
+.sn-welcome-card { width: min(440px, 100%); padding: var(--sp-40) var(--sp-32) var(--sp-24); border: 1px solid var(--line); border-radius: var(--r-l); background: var(--win); box-shadow: none; text-align: center; }
 .sn-welcome-logo { display: block; width: 72px; height: 72px; margin: 0 auto var(--sp-14); }
 body.theme-dark .sn-welcome-logo { filter: brightness(.82); } /* the icon's white tile, toned down so it does not glare on the dark card */
 .sn-welcome-title { margin: 0 0 var(--sp-6); color: var(--ink); font-family: var(--font-ui); font-size: var(--fs-xl); font-weight: var(--fw-bold); letter-spacing: -0.02em; line-height: var(--lh-tight); }
 .sn-welcome-sub { max-width: 340px; margin: 0 auto var(--sp-24); color: var(--muted); font-size: var(--fs-md); line-height: var(--lh-ui); }
 .sn-welcome-actions { display: flex; flex-direction: column; align-items: stretch; gap: var(--sp-8); max-width: 300px; margin: 0 auto; }
-.sn-welcome-actions button.sn-btn { justify-content: center; gap: var(--sp-8); height: var(--ctl-touch); border-radius: var(--r-m); font-size: var(--fs-ui); font-weight: var(--fw-medium); }
+.sn-welcome-actions button.sn-btn { justify-content: center; gap: var(--sp-8); height: var(--ctl-touch); border-radius: var(--r-s); font-size: var(--fs-ui); font-weight: var(--fw-medium); }
 .sn-welcome-actions button.sn-btn:not(.is-primary) { border: 1px solid var(--line); background: var(--win); color: var(--fg); }
 .sn-welcome-actions button.sn-btn:not(.is-primary):hover { background: var(--hover-bg); }
 .sn-welcome-note { max-width: 340px; margin: var(--sp-24) auto 0; color: var(--faint); font-size: var(--fs-sm); line-height: var(--lh-ui); }
@@ -389,7 +389,7 @@ body.theme-dark .sn-welcome-logo { filter: brightness(.82); } /* the icon's whit
 /* ---------- Settings: sections on the left, groups of rows on cards on the right */
 .modal.mod-settings {
   display: flex; flex-direction: column; width: min(960px, calc(100vw - 48px)); height: min(700px, calc(100vh - 48px));
-  padding: 0; overflow: hidden; background: var(--bg);
+  padding: 0; overflow: hidden; background: var(--win);
 }
 .modal.mod-settings > .modal-title { flex: none; margin: 0; padding: var(--sp-14) 52px var(--sp-12) var(--sp-20); border-bottom: 1px solid var(--line); background: var(--win); font-size: var(--fs-text); }
 .modal.mod-settings > .modal-close { top: 9px; right: 10px; }
