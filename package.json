@@ -13,6 +13,8 @@
     "pretest": "node scripts/page.mjs",
     "test": "node --test tests/*.test.mjs",
     "test:rust": "cargo test --manifest-path tauri-plugin-vault/Cargo.toml",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.core.json",
     "screenshots": "node scripts/screenshots.mjs",
     "tauri": "tauri",
     "dev": "tauri dev",
@@ -27,13 +29,17 @@
     "@codemirror/language": "6.13.1",
     "@codemirror/state": "6.7.6",
     "@codemirror/view": "6.43.15",
+    "@eslint/js": "10.0.1",
     "@lezer/highlight": "1.2.5",
     "@lezer/markdown": "1.8.1",
     "@tauri-apps/cli": "2.12.4",
     "dompurify": "3.4.17",
     "esbuild": "0.28.2",
+    "eslint": "10.14.0",
+    "globals": "17.14.0",
     "marked": "18.1.2",
-    "playwright-core": "1.64.1"
+    "playwright-core": "1.64.1",
+    "typescript": "7.0.2"
   },
   "dependencies": {
     "pdfjs-dist": "4.10.38"

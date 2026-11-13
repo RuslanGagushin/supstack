@@ -353,7 +353,6 @@ export function orgSelect(i, scroll = true) {
   const r = $(`.ag-row[data-i="${i}"]`);
   if (r) { r.classList.add("sel"); r.setAttribute("aria-selected", "true"); if (scroll) r.scrollIntoView({ block: "nearest" }); }
 }
-const orgSelRow = () => AGROWS.find((x) => orgRowKey(x) === AG.sel) || null;
 function orgAct(x, act) {
   if (!x) return;
   const e = x.e;

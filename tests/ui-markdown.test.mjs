@@ -133,9 +133,6 @@ describe("tables and fonts", () => {
 describe("table editing", () => {
   const body = "Intro\n\n| a | b |\n|---|:-:|\n| 1 | 22 |\n| 3 |  |";
   beforeEach(async () => { await openVault({ demo: false, notes: { "cards/T.md": body } }); await ev(() => openEditor("cards/T.md", { focus: true })); });
-  const ta = ".sn-editor-text.is-live";
-  const value = () => ev((sel) => $(sel).value, ta);
-  const sel = () => ev(() => { const t = $(".sn-editor-text.is-live"); return t.value.slice(t.selectionStart, t.selectionEnd); });
   const text = () => ev(() => liveText());
   const cell = () => ev(() => { const el = $(".sn-cell-edit"); return el && el.contains(getSelection().anchorNode) ? getSelection().toString() || el.textContent : null; });
   const op = (text, o, row, col) => ev(([text, o, r, c]) => { const tb = findTables(text)[0], out = tableEdit(text, tb, o, r, c); return text.slice(0, out.from) + out.insert + text.slice(out.to); }, [text, o, row, col]);

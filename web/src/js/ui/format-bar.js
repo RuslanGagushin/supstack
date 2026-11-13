@@ -1,11 +1,7 @@
 import { t, wt } from "../core/i18n.js";
-import { baseName, dirName } from "../core/util.js";
 import { editor, vault } from "../services/state.js";
-import { cardIcon, linkText } from "../services/vault.js";
 import { $, h, setIcon } from "./dom.js";
-import { suggestModal } from "./ui.js";
-import { sanitizeTitle } from "./actions.js";
-import { edHeading, edInsert, edLines, edLineState, edLinkStart, edPrefix, edWrap, updateEdToolbar } from "./editor-toolbar.js";
+import { edHeading, edLines, edLineState, edLinkStart, edPrefix, edWrap, updateEdToolbar } from "./editor-toolbar.js";
 import { ac, caretRect } from "./completion.js";
 
 /* ---------- Floating format bar: shown over a selection in the editor text */
@@ -49,21 +45,6 @@ export function updateFmtBar(ta) {
 export function edSetHeading(ta, n) {
   edLines(ta, (lines) => lines.map((l) => { const body = l.replace(/^#{1,6} /, ""); return n ? "#".repeat(n) + " " + body : body; }));
   updateEdToolbar();
-}
-/** Pick a note in a popup and insert a [[link]] at the caret. typedOpen — the user already typed "[[". */
-async function linkPicker(ta, typedOpen) {
-  const caret = ta.selectionStart, end = ta.selectionEnd;
-  const sel = ta.value.slice(caret, end);
-  const items = [...vault.notes.keys()].sort((a, b) => (vault.notes.get(b).mtime - vault.notes.get(a).mtime)).map((p) => ({ value: p, title: baseName(p), icon: cardIcon(p) || "file-text", note: dirName(p) }));
-  const pick = await suggestModal({ placeholder: t("insertLink"), items, allowCreate: true });
-  ta.focus();
-  if (!pick) { ta.setSelectionRange(caret, end); return; }
-  const target = pick.create ? sanitizeTitle(pick.create) : linkText(pick.value);
-  const label = sel && sel !== target ? `|${sel}` : "";
-  if (typedOpen) {
-    const hasClose = ta.value.slice(caret, caret + 2) === "]]";
-    edInsert(ta, caret, hasClose ? caret + 2 : caret, `${target}${label}]]`);
-  } else edInsert(ta, caret, end, `[[${target}${label}]]`);
 }
 export function downloadNote(path) {
   const n = vault.notes.get(path);

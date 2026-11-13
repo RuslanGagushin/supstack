@@ -44,7 +44,6 @@ function iconSvg(name) {
   svgCache.set(name, out);
   return out;
 }
-function hasIcon(name) { return !!iconSvg(name); }
 export function setIcon(el, name, fallback = "file-text") { el.innerHTML = iconSvg(name) || iconSvg(fallback) || ""; return el; }
 export function ic(cls, name, fallback) { return setIcon(h("span", { cls }), name, fallback); }
 export function iconBtn(iconName, label, onClick, cls = "") {

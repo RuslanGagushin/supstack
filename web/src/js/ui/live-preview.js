@@ -1,7 +1,7 @@
 import { CODE_RE, extractLinkpath } from "../core/frontmatter.js";
 import { orgLine, orgSetState, TASK_LINE_RE, taskState } from "../core/org.js";
 import { findTables, tableSpans } from "../core/tables.js";
-import { editor, graph, vault } from "../services/state.js";
+import { editor, graph } from "../services/state.js";
 import { resolveFileLink, resolveLink } from "../services/vault.js";
 import { $, $$, h, isMod } from "./dom.js";
 import { renderMarkdown, wireRendered } from "./markdown.js";

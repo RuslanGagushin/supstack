@@ -337,7 +337,7 @@ function cmEditor(value, o = {}) {
   const ta = view.contentDOM, main = () => view.state.selection.main, len = () => view.state.doc.length;
   ta.cmView = view;
   Object.defineProperties(ta, {
-    value: { get: () => view.state.doc.toString(), set: (v) => view.dispatch({ changes: { from: 0, to: len(), insert: v }, selection: { anchor: v.length }, annotations: CM.Transaction.addToHistory.of(false) }) },
+    value: { get: () => view.state.doc.toString(), set: (v) => { view.dispatch({ changes: { from: 0, to: len(), insert: v }, selection: { anchor: v.length }, annotations: CM.Transaction.addToHistory.of(false) }); } },
     selectionStart: { get: () => main().from },
     selectionEnd: { get: () => main().to },
   });

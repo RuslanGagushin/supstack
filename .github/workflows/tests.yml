@@ -1,4 +1,5 @@
 # Runs the tests on every push and pull request:
+#  - checks: ESLint over the page's code, scripts and tests, and the type check of web/src/js/core/
 #  - page: tests/*.test.mjs, the real page in headless Chrome (ubuntu-latest has Chrome; playwright-core drives it, nothing is downloaded)
 #  - plugin: cargo test for tauri-plugin-vault (desktop file access, git sync)
 name: Tests
@@ -9,6 +10,17 @@ on:
   workflow_dispatch:
 
 jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+
   page:
     runs-on: ubuntu-latest
     steps:

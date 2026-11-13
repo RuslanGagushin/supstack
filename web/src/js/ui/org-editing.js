@@ -37,7 +37,7 @@ export function orgCalendar(opts) {
       if (e.done || orgSkip(e)) continue;
       for (const ts of [e.sched, e.dead, ...e.stamps.map((x) => x.ts)]) if (ts?.active) marks.set(ts.dn, (marks.get(ts.dn) || 0) + 1);
     }
-  } catch {}
+  } catch { /* no dates to mark */ }
   const el = h("div", { cls: "org-cal", role: "group", "aria-label": LANG === "ru" ? "Календарь" : "Calendar" });
   el.addEventListener("mousedown", (e) => { if (!e.target.closest("input, select")) e.preventDefault(); }); // keep focus in the text field
   const value = () => (st.dn == null ? null : { dn: st.dn, time: st.time, end: st.end, rep: st.rep, warn: st.warn });
@@ -258,7 +258,7 @@ async function edOrgAsk(ta, kind) {
   const s0 = ta.selectionStart;
   const lines0 = ta.value.split("\n");
   const cl0 = ta.value.slice(0, s0).split("\n").length - 1;
-  let cur = null, li0 = -1;
+  let cur = null, li0;
   if (kind === "SCHEDULED" || kind === "DEADLINE") {
     li0 = orgHeadAt(lines0, cl0, false);
     if (li0 < 0 && orgHeadAt([...lines0], cl0, true) < 0) { echo(tt("noEntry")); return; }
