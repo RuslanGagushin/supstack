@@ -250,3 +250,37 @@ describe("embedded notes (LINK-1, LINK-2)", () => {
     assert.equal(embedAllowed("A", 0, ["A"]), "cycle", "a note does not embed itself");
   });
 });
+
+const { parseQuery, WordIndex, matchRank, headingsText } = await import("../web/src/js/core/search.js");
+describe("search (SRCH-1, SRCH-2, SRCH-3)", () => {
+  test("a query's words, and +tag / -tag as tag filters", () => {
+    assert.deepEqual(parseQuery("Roman  +Travel -#draft ёлка -5 + c++"), { words: ["roman", "елка", "-5", "+", "c++"], include: ["travel"], exclude: ["draft"] });
+  });
+  test("the index gives every note a substring search finds, and follows changes", () => {
+    const ix = new WordIndex({ commonShare: 1 }), notes = new Map();
+    const put = (p, raw) => notes.set(p, { raw });
+    put("a", "Gravity-fed aqueducts"); put("b", "An amphitheatre"); put("c", "Aqueduct bridges and canals");
+    ix.update(notes, (n) => n.raw);
+    assert.deepEqual([...ix.candidates(["aqueduct"])].sort(), ["a", "c"], "part of a word is found");
+    assert.deepEqual([...ix.candidates(["aqueduct", "brid"])], ["c"]);
+    assert.equal(ix.candidates(["c++"]), null, "a word with other characters narrows nothing");
+    assert.deepEqual([...ix.candidates(["zzz"])], []);
+    put("b", "An amphitheatre by an aqueduct");
+    notes.delete("c");
+    assert.equal(ix.update(notes, (n) => n.raw), 1, "only the changed note is indexed again");
+    assert.deepEqual([...ix.candidates(["aqueduct"])].sort(), ["a", "b"]);
+    assert.equal(ix.postings.has("canals"), false, "a deleted note's words go");
+  });
+  test("a word in most notes narrows nothing: reading the texts is quicker", () => {
+    const ix = new WordIndex(), notes = new Map([["a", "rome forum"], ["b", "rome baths"], ["c", "paris"]].map(([p, raw]) => [p, { raw }]));
+    ix.update(notes, (n) => n.raw);
+    assert.equal(ix.candidates(["rome"]), null, "in two notes of three");
+    assert.deepEqual([...ix.candidates(["rome", "forum"])], ["a"], "a rarer word still narrows");
+  });
+  test("a match in the title ranks above one in a heading, above one in the text", () => {
+    assert.equal(matchRank(["rome"], "Rome trip", ""), 3);
+    assert.equal(matchRank(["rome", "day"], "Rome", "Day 1\n"), 2);
+    assert.equal(matchRank(["rome"], "Trip", "Plans\n"), 1);
+    assert.equal(headingsText("# One\ntext #tag\n### Three ##\n    # code"), "One\nThree ##\n");
+  });
+});

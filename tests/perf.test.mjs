@@ -43,7 +43,7 @@ describe("the big vault (PERF-1)", () => {
  * plugin answered in memory), so the numbers are the page's own work: parsing, the hierarchy, the list; not the disk.
  * A limit fails the test only when something got several times slower; the numbers in docs/specification.md are from the first run.
  */
-export const LIMITS = { open: 5000, reopen: 5000, poll: 300, search: 1500, render: 1500 };
+export const LIMITS = { open: 5000, reopen: 5000, poll: 300, search: 1500, search2: 1500, render: 1500 };
 
 describe("timings on 10 000 notes (PERF-2)", () => {
   test("opening, an idle poll, a two-word search and the first list stay under their limits", async () => {
@@ -61,14 +61,20 @@ describe("timings on 10 000 notes (PERF-2)", () => {
       const poll = await t(() => pollChanges());
       Object.assign(board.filter, { query: "amber river", tags: [], scope: "all" });
       let found = 0;
+      // the word index (SRCH-1) is built in the background after opening: give it the time it takes
+      await new Promise((r) => { const t0 = Date.now(); const wait = () => (syncSearchIndex() === 0 || Date.now() - t0 > 10000 ? r() : setTimeout(wait, 200)); setTimeout(wait, 2500); });
       const search = await t(() => { const m = boardModel(); found = m.truncated ? m.shown.length + "+" : m.shown.length; });
+      board.filter.query = "glacier lantern";
+      const search2 = await t(() => boardModel());
+      // the same search without the index, to compare
+      const plain = await t(() => computeModel(graph, board, { cmp: makeComparator(board.sort), tagsOf: cardTags, maxCards: S.maxCards, textOf: (p) => { const n = vault.notes.get(p); return n.name + "\\n" + n.raw; } }));
       Object.assign(board.filter, { query: "", tags: [], scope: "here" });
       // the list of the notebook that holds the most notes
       const big = [...vault.notes.keys()].sort((a, b) => graph.childrenOf(b).length - graph.childrenOf(a).length)[0];
       const render = await t(() => { setTarget(big); void document.querySelector("#board").offsetHeight; });
-      return { open, cold, reopen, warm, poll, search, render, found, rows: document.querySelectorAll("#board .sn-row").length };
+      return { open, cold, reopen, warm, poll, search, search2, plain, render, found, rows: document.querySelectorAll("#board .sn-row").length };
     });
-    console.log(`10 000 notes: open ${ms.open} ms · reopen from the cache ${ms.reopen} ms · idle poll ${ms.poll} ms · search ${ms.search} ms (${ms.found} found) · list ${ms.render} ms (${ms.rows} rows)`);
+    console.log(`10 000 notes: open ${ms.open} ms · reopen from the cache ${ms.reopen} ms · idle poll ${ms.poll} ms · search ${ms.search} ms (${ms.found} found), another ${ms.search2} ms, the same without the index ${ms.plain} ms · list ${ms.render} ms (${ms.rows} rows)`);
     assert.ok(parseInt(ms.found) > 0 && ms.rows > 0, JSON.stringify(ms));
     assert.ok(ms.cold === 10000 && ms.warm === 10000, `parsed ${ms.cold} the first time, ${ms.warm} from the cache the second`);
     for (const k of Object.keys(LIMITS)) assert.ok(ms[k] < LIMITS[k], `${k}: ${ms[k]} ms, limit ${LIMITS[k]} ms`);

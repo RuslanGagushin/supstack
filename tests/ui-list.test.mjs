@@ -90,7 +90,7 @@ describe("board", () => {
     await page().keyboard.press("Control+f");
     await page().keyboard.type("aqueduct");
     await page().waitForFunction(() => board.filter.query === "aqueduct" && document.querySelectorAll("#board .sn-rows .sn-card").length === 4);
-    assert.deepEqual(await titles(), ["This week", "Roman Empire", "Aqueducts", "Pont du Gard"], "titles and text both match");
+    assert.deepEqual(await titles(), ["Aqueducts", "This week", "Roman Empire", "Pont du Gard"], "titles and text both match, the title first");
     await page().keyboard.press("Escape");
     await page().keyboard.press("Escape");
     assert.equal(await ev(() => board.searchOpen), false);

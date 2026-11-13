@@ -7,6 +7,7 @@ import { baseName, dirName } from "../core/util.js";
 import { fmInner, noteLinks, noteTags, parentLinkpaths, parseYaml, splitNote } from "../core/frontmatter.js";
 import { HierarchyGraph } from "../core/graph.js";
 import { computeModel } from "../core/board-model.js";
+import { headingsText, WordIndex } from "../core/search.js";
 import { lsGet, lsSet } from "./storage.js";
 import { emit } from "./events.js";
 import { board, DEFAULTS, graph, PARENTS_FIELD, resetSettings, S, setGraph, tree, undoStack, vault } from "./state.js";
@@ -103,8 +104,13 @@ function sortInfo(path) {
   const o = Number(n?.fm?.order);
   return { order: Number.isFinite(o) ? o : Number.MAX_SAFE_INTEGER, name: baseName(path), mtime: n?.mtime ?? 0, ctime: n?.ctime ?? 0 };
 }
+/** Names compare as localeCompare(…, { numeric: true, sensitivity: "base" }) does, with one collator made once. */
+const nameCollator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+/** A comparator for one sort: make a new one for each, as it remembers each note's sort keys while it sorts. */
 export function makeComparator(mode) {
-  const byName = (a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" });
+  const byName = (a, b) => nameCollator.compare(a.name, b.name);
+  const infos = new Map();
+  const infoOf = (p) => { let i = infos.get(p); if (!i) infos.set(p, (i = sortInfo(p))); return i; };
   return (pa, pb, parent) => {
     if (mode === "manual" && parent) {
       const ia = graph.positionIn(parent, pa), ib = graph.positionIn(parent, pb);
@@ -114,7 +120,7 @@ export function makeComparator(mode) {
         if (ia !== ib) return ia - ib;
       }
     }
-    const a = sortInfo(pa), b = sortInfo(pb);
+    const a = infoOf(pa), b = infoOf(pb);
     switch (mode) {
       case "name": return byName(a, b);
       case "modified": return b.mtime - a.mtime || byName(a, b);
@@ -210,6 +216,7 @@ export async function readVault(fs) {
   flushIndexCache(vault.notes, vault.sizes);
   lastFullPoll = Date.now(); // reading it was a full look
   watchVault(fs);
+  warmSearchIndex(fs);
 }
 /** On desktop the app tells the page which files changed (PERF-3); the full look in pollChanges is then only a fallback. */
 async function watchVault(fs) {
@@ -359,9 +366,29 @@ async function pickUpNow(list, gone) {
 }
 
 /** The board's cards right now: core/board-model.js on this vault, the board's state and settings. */
+/** The words of the vault's notes (core/search.js), brought up to date when a search needs it: a note whose object
+ *  changed (every save, outside change and reread makes a new one) is indexed again. */
+const searchIndex = new WordIndex();
+const searchText = (n) => n.name + "\n" + n.raw;
+export function syncSearchIndex() { return searchIndex.update(vault.notes, searchText); }
+/** After a vault opens, index it a few hundred notes at a time, so the first search finds the work done
+ *  and the page stays responsive meanwhile. A search before it is finished indexes the rest itself. */
+function warmSearchIndex(fs) {
+  const paths = [...vault.notes.keys()];
+  let i = 0;
+  const step = () => {
+    if (vault.fs !== fs) return;
+    const end = Math.min(paths.length, i + 400);
+    for (; i < end; i++) { const n = vault.notes.get(paths[i]); if (n) searchIndex.set(n.path, n, searchText(n)); }
+    if (i < paths.length) setTimeout(step, 0);
+  };
+  setTimeout(step, 500);
+}
 export function boardModel() {
   return computeModel(graph, board, {
     cmp: makeComparator(board.sort), tagsOf: cardTags, maxCards: S.maxCards,
-    textOf: (p) => { const n = vault.notes.get(p); return n.name + "\n" + n.raw; },
+    textOf: (p) => searchText(vault.notes.get(p)),
+    candidatesOf: (words) => { syncSearchIndex(); return searchIndex.candidates(words); },
+    rankOf: (p) => { const n = vault.notes.get(p); return { title: n.name, headings: headingsText(n.body) }; },
   });
 }
