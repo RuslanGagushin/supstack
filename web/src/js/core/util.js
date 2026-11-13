@@ -16,7 +16,12 @@ export function plainText(md, max = 300) {
     .replace(/\[([^\]\n]*)\]\([^)\n]*\)/g, "$1")
     .replace(/^[ \t]*\|?[ \t]*:?-{3,}[-:| \t]*$/gm, " ")
     .replace(/^[ \t]*(?:>[ \t]*)+(?:\[![^\]\n]*\][+-]?)?/gm, "")
-    .replace(/^[ \t]*(?:#{1,6}[ \t]+|[-*+][ \t]+(?:\[[ xX]\][ \t]+)?|\d+[.)][ \t]+(?:\[[ xX]\][ \t]+)?)/gm, "")
+    // org planning lines under tasks (SCHEDULED: <…> DEADLINE: <…> CLOSED: […]) are not text
+    .replace(/^[ \t]*(?:(?:SCHEDULED|DEADLINE|CLOSED):[ \t]*[<[][^>\]\n]*[>\]][ \t]*)+$/gm, " ")
+    // list markers with any of the six task boxes, then a task's priority and its :tags: at the end of the line
+    .replace(/^[ \t]*(?:#{1,6}[ \t]+|[-*+][ \t]+(?:\[[ xX\/<>-]\][ \t]+)?|\d+[.)][ \t]+(?:\[[ xX\/<>-]\][ \t]+)?)/gm, "")
+    .replace(/^\[#[A-Za-z]\][ \t]*/gm, "")
+    .replace(/[ \t]+:(?:[\p{L}\p{N}_@#%]+:)+[ \t]*$/gmu, "")
     .replace(/^[ \t]*(?:-{3,}|\*{3,}|_{3,})[ \t]*$/gm, " ")
     .replace(/\|/g, " ")
     .replace(/(\*\*|__|~~|==|\*|`)/g, "")
