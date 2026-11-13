@@ -110,6 +110,9 @@ describe("the keyboard (A11Y-2)", () => {
     await ev(() => openTasksView());
     await settle();
     await page().focus(".ag-body");
+    await page().keyboard.press("Shift+Tab");
+    await page().keyboard.press("Tab");
+    assert.equal(await ev(() => document.activeElement.matches(".ag-body")), true);
     await page().keyboard.press("n");
     const a = await ev(() => document.querySelector(".ag-row.sel")?.dataset.i);
     await page().keyboard.press("n");
