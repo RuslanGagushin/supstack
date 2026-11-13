@@ -20,7 +20,7 @@ import { pickVault, showWelcome } from "./welcome.js";
 import { syncButton, syncSettingsBody, syncSettingsModal } from "./sync-panel.js";
 import { openToday, outlineMenu, setFocusMode } from "./completion.js";
 import { orgFoldNote } from "./org-editing.js";
-import { AG, openTasksView, orgCapture, renderTasksButton, tasksButton } from "./agenda.js";
+import { AG, exportCalendar, openTasksView, orgCapture, renderTasksButton, tasksButton } from "./agenda.js";
 import { onow } from "../core/org.js";
 import { filesButton, openFilesView } from "./files.js";
 import { aboutBody } from "./about.js";
@@ -73,6 +73,7 @@ function commandList() {
   add(`${tt("tasks")}: ${tt("vMatch")}`, "tags", () => openTasksView(true, "match"));
   add(`${tt("tasks")}: ${tt("vSearch")}`, "search", () => openTasksView(true, "search"));
   add(tt("capTitle") + "…", "plus-circle", () => orgCapture());
+  add(tt("icsExport"), "calendar-arrow-down", exportCalendar);
   add(fvt("files"), "paperclip", () => openFilesView(), "Ctrl+Shift+E");
   if (editor.path) { add(ft("foldAll"), "chevrons-down-up", () => orgFoldNote(true)); add(ft("unfoldAll"), "chevrons-up-down", () => orgFoldNote(false)); }
   add(wt("focus"), "focus", () => setFocusMode(!UI.focus), "Ctrl+Shift+F", UI.focus);

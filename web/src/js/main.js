@@ -18,6 +18,7 @@ import "./core/org.js";
 import "./core/tables.js";
 import "./core/embed.js";
 import "./core/search.js";
+import "./core/ics.js";
 import "./services/storage.js";
 import "./services/events.js";
 import "./services/fs.js";
