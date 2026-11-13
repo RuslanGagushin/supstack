@@ -21,7 +21,7 @@ body {
   --accent:#4d64ff; --accent-soft:#ebeeff; --sel:#dfddda; --flash:#fff1a8; --code-bg:#f4f3f2; --ink:#141414; --cta:#4d64ff;
   --cta-hover:#3245bb; --hover-bg:#edeceb; --sb-avatar:var(--muted);--tag:#3e3e3e; --tbl-head:#f4f3f2; --tbl-head-line:#d4d1ce; --l1:#2f4fb5;
   --l2:#9a5524; --l3:#7a3fb0; --l5:#2d7a3a; --l7:#946500; --l8:#1d7385; --todo:#c42f27; --next:#b25f06;
-  --done:#2d7a3a; --pri-a:#c42f27; --pri-b:#b25f06; --pri-c:#696564; --now:#c42f27;
+  --done:#276f36; --pri-a:#c42f27; --pri-b:#b25f06; --pri-c:#696564; --now:#c42f27;
   --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; --font-inter: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --fs-xs: 12px;
   --fs-sm: 12px; --fs-ui: 13px; --fs-md: 14px;
   /* the interface's six sizes (spec UI-20): 12, 13, 14, 16, 20, 24; --fs-xs is 12 too, as the smallest text */

@@ -136,3 +136,43 @@ describe("the keyboard (A11Y-2)", () => {
     });
   }
 });
+
+// Every kind of date the app draws, for the chips' colours (spec A11Y-3): overdue, due soon, scheduled, done, events,
+// inactive timestamps and repeats, and a few notes and tags around them.
+const NOW = "2026-11-13T10:00:00";
+const DATES = {
+  "cards/Work.md": "---\ntags: [work]\n---\n# Work\n\n- [ ] Write report #urgent\n  DEADLINE: <2026-11-10 Tue>\n- [ ] [#A] Ship it\n  DEADLINE: <2026-11-16 Mon>\n- [/] Call Bob\n  SCHEDULED: <2026-11-13 Fri 15:00>\n- [x] Old thing\n  SCHEDULED: <2026-11-01 Sun>\n  CLOSED: [2026-11-01 Sun 09:00]\n- [ ] Run\n  SCHEDULED: <2026-11-14 Sat +1w>\n## Meeting <2026-11-13 Fri 14:00-15:00>\n\nNoted [2026-11-12 Thu] with a [[Notes|link]], ==a highlight== and `code`.\n\n> [!note] A callout\n> with text\n",
+  "cards/Notes.md": "---\ntags: [travel]\n---\nSome notes about [[Work]].\n",
+};
+const VIEWS = {
+  note: () => openEditor("cards/Work.md", { focus: false }),
+  reading: () => toggleReading(),
+  list: () => closeEditor(true),
+  agenda: () => openTasksView(),
+  week: () => { AG.span = "week"; renderBoard(); },
+  month: () => { AG.span = "month"; renderBoard(); },
+  files: () => { goBack(); openFilesView(); },
+  settings: () => { goBack(); settingsModal(); },
+};
+
+describe("contrast (A11Y-3)", () => {
+  for (const theme of ["light", "dark"]) {
+    test(`every text on the page against its background, ${theme} theme: 4.5 to 1, 3 to 1 for large text`, async () => {
+      await openVault({ demo: false, time: NOW, notes: DATES });
+      await ev((theme) => { UI.theme = theme; applyTheme(); }, theme);
+      const { contrastAudit } = await import("./contrast.mjs");
+      const low = [];
+      for (const [view, go] of Object.entries(VIEWS)) {
+        await page().evaluate(`(${go})()`);
+        await settle();
+        for (const f of await page().evaluate(contrastAudit, { min: 4.5, minLarge: 3 })) low.push(`${view}: ${f.ratio} < ${f.need} ${f.color} on ${f.back} ${f.where} "${f.text}"`);
+      }
+      await page().keyboard.press("Escape");
+      await page().keyboard.press("Control+p");
+      await settle();
+      for (const f of await page().evaluate(contrastAudit, { min: 4.5, minLarge: 3 })) low.push(`palette: ${f.ratio} < ${f.need} ${f.color} on ${f.back} ${f.where} "${f.text}"`);
+      assert.deepEqual([...new Set(low)], []);
+      noErrors();
+    });
+  }
+});
