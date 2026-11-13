@@ -387,6 +387,10 @@ body.sn-app .sn-board .sn-card.sn-row.is-folder { align-items: center; gap: 10px
   body.sn-app :is(button.task-box)::after { content: ""; position: absolute; inset: -10px; }
   body.sn-app :is(.sn-table-add-row, .sn-table-add-col)::after { content: ""; position: absolute; inset: -14px; }
   body.sn-app :is(.sn-tag, .sn-chip, .tags .tag, .sn-tag-pill, .fchip)::after { content: ""; position: absolute; inset: -8px -2px; }
+  /* buttons a finger can hit: 40px at least, the drawing inside them as it was (spec UI-9) */
+  body.sn-app #app :is(.sn-topbar, .sn-editor-head, .agbar, .sn-ed-toolbar) :is(button, a[href]),
+  body.sn-app #app button.ag-over-head { min-height: 40px; }
+  body.sn-app #app :is(.sn-topbar, .sn-editor-head, .agbar, .sn-ed-toolbar) :is(button.clickable-icon, button.sn-tb-btn, button.sn-tb-insert, button.sn-mode-btn, button.ag-btn, button.ag-capture) { min-width: 40px; }
 }
 
 /* ---------- The native apps (html.is-native, html.is-android: ui/native-shell.js) */

@@ -186,6 +186,11 @@ button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--f
 .setting-item-control .wb-btn.is-cta { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .prompt { position: fixed; z-index: 71; top: 80px; left: 50%; transform: translateX(-50%); width: min(700px, calc(100vw - 32px)); max-height: calc(100vh - 160px); display: flex; flex-direction: column; overflow: hidden; background: var(--win); border: 1px solid var(--line); box-shadow: var(--shadow-l); }
 .prompt-instructions { display: flex; flex-wrap: wrap; gap: var(--size-4-3); padding: var(--size-4-2) var(--size-4-4); border-top: var(--border-width) solid var(--background-modifier-border); color: var(--text-faint); font-size: var(--fs-xs); }
+/* keyboard hints are for keyboards: a device without hover (a phone, a tablet) doesn't show them (spec UI-11) — the line
+   under the agenda, the palette's foot and the keys in its rows, the capture form's keys. Settings › Keyboard shortcuts stays. */
+@media (hover: none) {
+  .ag-keys, .prompt-instructions, .suggestion-item .suggestion-keys, .cap-keys { display: none !important; }
+}
 .suggestion-item.is-selected { background: var(--sel); }
 .icon-grid .suggestion-item { flex-direction: column; gap: var(--size-2-3); padding: var(--size-4-3) var(--size-2-3); color: var(--text-muted); text-align: center; font-size: var(--fs-xs); }
 .icon-grid .suggestion-icon svg { width: 20px; height: 20px; }

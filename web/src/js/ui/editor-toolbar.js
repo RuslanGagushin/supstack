@@ -284,7 +284,22 @@ export function renderEdToolbar() {
     acUpdate(el);
   });
   bar.append(ins);
+  scrollFades(bar);
   return bar;
+}
+/* A bar wider than the screen scrolls; its edge fades where more buttons are past it, so it shows that it does
+   (spec UI-10). One bar at a time is watched: the open note's. */
+const fadeSize = new ResizeObserver((entries) => entries.forEach((e) => updateFades(e.target)));
+let fadeWatched = null;
+function updateFades(bar) {
+  bar.classList.toggle("fade-start", bar.scrollLeft > 1);
+  bar.classList.toggle("fade-end", bar.scrollLeft + bar.clientWidth < bar.scrollWidth - 1);
+}
+function scrollFades(bar) {
+  if (fadeWatched) fadeSize.unobserve(fadeWatched);
+  fadeWatched = bar;
+  fadeSize.observe(bar);
+  bar.addEventListener("scroll", () => updateFades(bar), { passive: true });
 }
 /** Formatting at the caret, for the toolbar's active states. */
 export function edLineState(ta) {

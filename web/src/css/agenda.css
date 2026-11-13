@@ -31,6 +31,11 @@ button.wb-btn.wb-tasks.is-active { border-color: var(--accent); }
 @media (max-width: 820px) {
   .agbar .ag-wide-only, .agbar .ag-chips { display: none; }
   .agbar .ag-narrow-only { display: flex; margin-left: auto; }
+  /* the views and the state filters stay on one line and scroll sideways; their names don't wrap (spec UI-12) */
+  .agbar { flex-wrap: nowrap; } /* the chips, which would wrap, are in the filters menu here */
+  .agbar > .sn-seg { flex: 0 1 auto; min-width: 0; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .agbar > .sn-seg::-webkit-scrollbar { display: none; }
+  .agbar > .sn-seg > button { flex: none; white-space: nowrap; }
 }
 button.fchip, button.fchip:not(.clickable-icon) { height: 24px; padding: 0 9px; border-radius: var(--r-pill); border: 0; background: var(--panel); font-size: var(--fs-sm); font-weight: 400; color: var(--muted); cursor: pointer; }
 button.fchip:hover { background: var(--hover-bg, var(--panel)); color: var(--fg); }

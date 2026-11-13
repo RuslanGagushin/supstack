@@ -120,6 +120,10 @@ button.sn-tag-pill .n { color: var(--muted); font-size: var(--fs-xs); } /* on th
 }
 /* Toolbar fits its pane: tighter spacing, then fewer labels, then fewer buttons — never sideways scrolling on desktop */
 .sn-editor { flex: 0 0 var(--editor-w, 540px); container-type: inline-size; container-name: editor; }
+/* the edges fade where buttons are past them (editor-toolbar.js scrollFades) */
+.sn-ed-toolbar.fade-end { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); }
+.sn-ed-toolbar.fade-start { -webkit-mask-image: linear-gradient(to right, transparent, #000 40px); mask-image: linear-gradient(to right, transparent, #000 40px); }
+.sn-ed-toolbar.fade-start.fade-end { -webkit-mask-image: linear-gradient(to right, transparent, #000 40px, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to right, transparent, #000 40px, #000 calc(100% - 40px), transparent); }
 .sn-ed-toolbar { flex: 0 0 auto; display: flex; align-items: center; min-height: 40px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; gap: 1px; padding: 0 12px 0 14px; } /* the note header's edges (app.css), spec UI-7 */
 .sn-tb-group { display: flex; align-items: center; flex: none; gap: 1px; }
 button.sn-tb-btn, button.sn-tb-btn:not(.clickable-icon) { flex: none; height: 28px; padding: 0; border: 1px solid transparent; background: transparent; color: var(--muted); cursor: pointer; width: 29px; }
