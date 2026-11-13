@@ -20,7 +20,7 @@ import { renderTree } from "./tree.js";
 import { openEditor, saveEditor } from "./editor.js";
 import { refresh, setSide, sideToggle, wbBtn } from "./shell.js";
 
-export const FV = Object.assign({ kind: "all", sort: "name", unused: false }, lsGet("sn-files", {}), { query: "", sel: null, refs: null });
+export const FV = Object.assign({ kind: "all", sort: "name", unused: false }, lsGet("sn-files", {}), { query: "", sel: null, refs: null, shown: true });
 const saveFV = () => lsSet("sn-files", { kind: FV.kind, sort: FV.sort, unused: FV.unused });
 const MEDIA_EXT = /\.(mp3|wav|m4a|ogg|oga|flac|webm|mp4|m4v|mov|ogv|3gp|mkv)$/i;
 const VIDEO_EXT = /\.(mp4|m4v|mov|ogv|webm|mkv)$/i;
@@ -134,7 +134,7 @@ function copyAttachmentLink(path) {
 async function goToAttachmentNote(path, anchor) {
   const refs = FV.refs?.get(path) || attachmentRefs().get(path) || [];
   if (!refs.length) return;
-  const open = (p) => { if (innerWidth <= 820) FV.sel = null; openEditor(p, { focus: false, wide: false }); }; // beside the list of files
+  const open = (p) => { if (fvNarrow()) FV.sel = null; openEditor(p, { focus: false, wide: false }); }; // beside the list of files
   if (refs.length === 1) { open(refs[0]); return; }
   const m = new Menu();
   m.label(fvt("pickNote"));
@@ -215,8 +215,9 @@ export function renderFilesView(root) {
 
   const listPane = h("div", { cls: "fv-pane" });
   const prevPane = h("div", { cls: "fv-preview" });
-  const wrap = h("div", { cls: "fv" + (FV.sel ? " has-sel" : "") }, listPane, prevPane);
+  const wrap = h("div", { cls: "fv" + (FV.sel && FV.shown ? " has-sel" : "") }, listPane, prevPane);
   root.append(wrap);
+  fvFit(wrap);
 
   // head: count, total size, search, kinds, sort
   const head = h("div", { cls: "fv-head" });
@@ -283,12 +284,25 @@ export function fvRenderList() {
   list.append(frag);
   list.scrollTop = sc;
 }
+/* The list and the preview side by side need room for both: 280px of list and 320px of preview (spec UI-4). With
+   less, as beside an open note in a narrow window, the preview is not squeezed into a strip: a file opens in place of
+   the list, with ← back, as on a phone. The width is the view's own, not the window's. */
+const FV_SIDE_BY_SIDE = 280 + 320;
+const fvSize = new ResizeObserver((entries) => { for (const e of entries) e.target.classList.toggle("is-narrow", e.contentRect.width < FV_SIDE_BY_SIDE); });
+function fvFit(wrap) {
+  wrap.classList.toggle("is-narrow", wrap.clientWidth < FV_SIDE_BY_SIDE);
+  fvSize.observe(wrap);
+}
+/** One pane at a time: the list, or the file picked. */
+export const fvNarrow = () => innerWidth <= 820 || !!$(".fv")?.classList.contains("is-narrow");
+/** Pick a file. `scroll` means the keyboard picked it: with one pane at a time it stays in the list, marked, and Enter shows it. */
 export function fvSelect(p, scroll = false) {
   if (!p) return;
   const changed = FV.sel !== p;
   FV.sel = p;
+  FV.shown = !(scroll && fvNarrow());
   $$(".fv-row").forEach((r) => { const on = r.dataset.path === p; r.classList.toggle("sel", on); r.setAttribute("aria-selected", String(on)); if (on && scroll) r.scrollIntoView({ block: "nearest" }); });
-  $(".fv")?.classList.add("has-sel");
+  $(".fv")?.classList.toggle("has-sel", FV.shown);
   if (changed) fvRenderPreview();
 }
 function fvListKey(e) {
@@ -301,12 +315,13 @@ function fvListKey(e) {
   else if (e.key === "Home") { stop(); fvSelect(rows[0]?.dataset.path, true); }
   else if (e.key === "End") { stop(); fvSelect(rows[rows.length - 1]?.dataset.path, true); }
   else if (!FV.sel) { if (e.key === "/") { stop(); $(".fv-search")?.focus(); } }
+  else if (e.key === "Enter" && !FV.shown) { stop(); FV.shown = true; $(".fv")?.classList.add("has-sel"); }
   else if (e.key === "Enter") { stop(); openAttachment(FV.sel); }
   else if (e.key === "F2" || e.key === "r") { stop(); promptRenameAttachment(FV.sel); }
   else if (e.key === "Delete" || e.key === "Backspace") { stop(); deleteAttachment(FV.sel); }
   else if (e.key === "g") { stop(); goToAttachmentNote(FV.sel, $(".fv-goto")); }
   else if (e.key === "/") { stop(); $(".fv-search")?.focus(); }
-  else if (e.key === "Escape" && innerWidth <= 820) { stop(); FV.sel = null; $(".fv")?.classList.remove("has-sel"); }
+  else if (e.key === "Escape" && fvNarrow()) { stop(); FV.sel = null; $(".fv")?.classList.remove("has-sel"); }
 }
 function fvRenderPreview() {
   const pane = $(".fv-preview");
