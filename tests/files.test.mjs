@@ -87,7 +87,7 @@ describe("delete", () => {
   test("asks first, warns about links, cancel keeps the file", async () => {
     const done = ev(() => deleteAttachment("Att/used.svg"));
     assert.match(await page.textContent(".modal .modal-text"), /1 note links to it/);
-    await page.click(".modal-buttons button:not(.mod-warning)");
+    await page.click(".modal-buttons button:not(.is-danger)");
     await done;
     assert.equal(await ev(() => vault.allPaths.has("Att/used.svg")), true);
   });
@@ -95,7 +95,7 @@ describe("delete", () => {
   test("moves the file to .trash on a disk vault", async () => {
     await ev(() => { vault.fs.kind = "disk"; });
     const done = ev(() => deleteAttachment("Att/free.zip"));
-    await page.click(".modal .mod-warning");
+    await page.click(".modal .is-danger");
     await done;
     const st = await ev(async () => ({ gone: !vault.allPaths.has("Att/free.zip") && !vault.fs.files.has("Att/free.zip"), name: vault.files.has("free.zip"), trash: await vault.fs.files.get(".trash/free.zip")?.data.text() }));
     await ev(() => { vault.fs.kind = "demo"; });

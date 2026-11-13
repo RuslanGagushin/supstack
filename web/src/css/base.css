@@ -6,7 +6,7 @@ body.theme-dark {
   --accent:#7c8eff; --accent-soft:#1f2547; --sel:#383838; --flash:#4a3f12; --code-bg:#2e2e2e;
   --ink:#f2f2f2; --cta:#4d64ff; --cta-hover:#7c8eff; --hover-bg:#2c2c2c;
   --tag:#d6d6d6; --tbl-head:#2e2e2e; --tbl-head-line:#3a3a3a;
-  --l1:#8fa6ff; --l2:#e3a46f; --l3:#c39cf0; --l5:#8ccb90; --l7:#e2c162; --l8:#78c6d4;
+  --l1:#8fa6ff; --l2:#e3a46f; --l3:#c39cf0; --l7:#e2c162; --l8:#78c6d4;
   --todo:#ff7c70; --next:#f0a650; --done:#8ccb90;
   --pri-a:#ff7c70; --pri-b:#f0a650; --pri-c:#a8a4a3; --now:#ff7c70;
   color-scheme: dark;
@@ -20,7 +20,7 @@ body {
   --bg:#f6f5f4; --win:#ffffff; --panel:#e7e6e5; --fg:#212121; --muted:#5c5856; --faint:#726e6c; --line:#d4d1ce;
   --accent:#4d64ff; --accent-soft:#ebeeff; --sel:#dfddda; --flash:#fff1a8; --code-bg:#f4f3f2; --ink:#141414; --cta:#4d64ff;
   --cta-hover:#3245bb; --hover-bg:#edeceb; --sb-avatar:var(--muted);--tag:#3e3e3e; --tbl-head:#f4f3f2; --tbl-head-line:#d4d1ce; --l1:#2f4fb5;
-  --l2:#9a5524; --l3:#7a3fb0; --l5:#2d7a3a; --l7:#946500; --l8:#1d7385; --todo:#c42f27; --next:#b25f06;
+  --l2:#9a5524; --l3:#7a3fb0; --l7:#946500; --l8:#1d7385; --todo:#c42f27; --next:#b25f06;
   --done:#276f36; --pri-a:#c42f27; --pri-b:#b25f06; --pri-c:#696564; --now:#c42f27;
   /* text and marks on --accent, --cta and --todo fills; --paper is the white of a page (a PDF, the switch knob), the same in both themes */
   --on-accent: #fff; --paper: #fff;
@@ -49,7 +49,7 @@ body {
   --icon-opacity-hover: 1;
   --header-height: 40px;
   /* control heights: small (chips, icons in a row), medium (fields, buttons in bars), large (sidebar buttons, menu rows), touch */
-  --ctl-s: 24px; --ctl-m: 28px; --ctl-l: 32px; --ctl-touch: 40px;
+  --ctl-xs: 20px; --ctl-s: 24px; --ctl-m: 28px; --ctl-l: 32px; --ctl-touch: 40px;
   /* a note's own headings, in whole pixels of its 16px text: 28, 24, 20, then the text's size (the title is 32, app.css) */
   --h1-size: calc(var(--fs-note) * 1.75); --h2-size: calc(var(--fs-note) * 1.5); --h3-size: calc(var(--fs-note) * 1.25); --h4-size: var(--fs-note); --h5-size: var(--fs-note); --h6-size: var(--fs-note);
 
@@ -58,12 +58,6 @@ body {
   --text-accent: var(--accent);
   --text-selection: var(--sel);
 
-  --pill-color: var(--muted); --pill-color-hover: var(--fg);
-  --pill-background: var(--panel); --pill-background-hover: var(--panel);
-  --pill-border-color-hover: var(--faint);
-  --pill-padding-x: 6px; --pill-padding-y: 1px;
-  --tag-color: var(--tag);
-  --tag-background: var(--panel); --tag-background-hover: var(--line);
   --nav-item-color-hover: var(--fg);
   --nav-item-background-hover: var(--panel);
   --nav-item-weight-active: var(--fw-medium);
@@ -119,7 +113,7 @@ button:not(.clickable-icon) {
   color: var(--text-normal); font-family: inherit; font-size: var(--fs-ui); font-weight: var(--fw-medium); white-space: nowrap;
 }
 button:not(.clickable-icon):hover { background: var(--interactive-hover); }
-button.mod-cta:hover { background: var(--interactive-accent-hover); }
+button.is-primary:hover { background: var(--interactive-accent-hover); }
 input[type="text"], input[type="search"], input[type="number"], input:not([type]), textarea, select {
   background: var(--background-modifier-form-field); border: var(--border-width) solid var(--background-modifier-border);
   border-radius: var(--r-s); color: var(--text-normal); font-family: inherit; font-size: var(--fs-ui);
@@ -135,6 +129,9 @@ select {
 body.theme-dark select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b4b0af' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); }
 select:hover { border-color: var(--background-modifier-border-hover); }
 input:focus, textarea:focus, select:focus { border-color: var(--background-modifier-border-focus); box-shadow: var(--ring); }
+/* a value the field can't take (aria-invalid, which screen readers announce too): red edge and a soft red ring, focused or not */
+:is(input, textarea, select)[aria-invalid="true"], :is(input, textarea, select)[aria-invalid="true"]:focus { border-color: var(--todo); box-shadow: 0 0 0 2px color-mix(in srgb, var(--todo) 20%, transparent); }
+:is(input, textarea, select):disabled { opacity: var(--disabled); cursor: not-allowed; }
 input[type="checkbox"] { accent-color: var(--interactive-accent); }
 .clickable-icon {
   display: flex; align-items: center; justify-content: center;

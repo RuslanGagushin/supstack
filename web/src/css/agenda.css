@@ -4,7 +4,7 @@
 .wb-tasks .wb-count { min-width: 18px; height: 17px; padding: 0 var(--sp-6); border-radius: var(--r-pill); font-size: var(--fs-sm); line-height: 17px; font-variant-numeric: tabular-nums; }
 .wb-tasks .wb-count.is-today { background: color-mix(in srgb, var(--next) 18%, transparent); color: var(--next); }
 .wb-tasks .wb-count.is-overdue { background: var(--todo); color: var(--win); } /* --win: white in light themes, near-black on the dark theme's lighter red */
-button.wb-btn.wb-tasks.is-active { border-color: var(--accent); }
+button.sn-btn.wb-tasks.is-active { border-color: var(--accent); }
 .sn-task-prog { display: inline-flex; align-items: center; gap: var(--sp-4); padding-left: var(--sp-8); color: var(--muted); font-variant-numeric: tabular-nums; }
 .sn-task-prog svg { width: var(--icon-xs); height: var(--icon-xs); }
 .sn-task-prog.is-complete { color: var(--done); }
@@ -15,13 +15,9 @@ button.wb-btn.wb-tasks.is-active { border-color: var(--accent); }
 .pri { font-size: var(--fs-sm); font-weight: var(--fw-bold); padding: 1px var(--sp-6); border-radius: var(--r-pill); background: color-mix(in srgb, currentColor 8%, transparent); line-height: var(--lh-ui); white-space: nowrap; }
 .pri.A { color: var(--pri-a); } .pri.B { color: var(--pri-b); } .pri.C { color: var(--pri-c); }
 .tags { display: inline-flex; gap: var(--sp-4); flex-wrap: wrap; }
-.tags .tag { font-size: var(--fs-sm); color: var(--tag); background: var(--panel); padding: 1px var(--sp-8); border-radius: var(--r-pill); line-height: 16px; }
 /* a tag the task takes from its note: outlined rather than faded, so its text keeps 4.5:1 (spec A11Y-3) */
-.tags .tag.inh { background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
 
 .agbar { display: flex; gap: var(--sp-6); align-items: center; flex-wrap: wrap; padding: var(--sp-8) var(--sp-24); }
-.sn-board .agbar .sn-seg .clickable-icon, .sn-board .ag-views .clickable-icon { height: var(--ctl-m); padding: 0 var(--sp-10); border-radius: var(--r-s); font-size: var(--fs-ui); }
-.sn-board .agbar .sn-seg .clickable-icon.is-active, .sn-board .ag-views .clickable-icon.is-active { background: var(--win); color: var(--ink, var(--fg)); box-shadow: var(--shadow-1); }
 .agbar .ag-btn[aria-pressed="true"] { background: var(--panel); color: var(--ink, var(--fg)); }
 .agbar input.ag-input { flex: 1 1 200px; min-width: 0; height: 34px; padding: 0 var(--sp-12); border-radius: var(--r-s); background: var(--win); }
 .agbar input.ag-input:focus { border-color: var(--accent); box-shadow: var(--ring); outline: none; }
@@ -38,10 +34,6 @@ button.wb-btn.wb-tasks.is-active { border-color: var(--accent); }
   .agbar > .sn-seg::-webkit-scrollbar { display: none; }
   .agbar > .sn-seg > button { flex: none; white-space: nowrap; }
 }
-button.fchip, button.fchip:not(.clickable-icon) { height: var(--ctl-s); padding: 0 var(--sp-10); border-radius: var(--r-pill); border: 0; background: var(--panel); font-size: var(--fs-sm); font-weight: var(--fw-regular); color: var(--muted); cursor: pointer; }
-button.fchip:hover { background: var(--hover-bg, var(--panel)); color: var(--fg); }
-button.fchip.inc { background: var(--accent-soft); color: var(--accent); }
-button.fchip.exc { background: color-mix(in srgb, var(--todo) 12%, transparent); color: var(--todo); text-decoration: line-through; }
 .ag-body { display: flex; flex-direction: column; gap: var(--sp-12); min-height: 100%; padding: var(--sp-6) var(--sp-24) var(--sp-48); }
 
 /* the screen title, in the look of the list of notes and Files (app.css) */
@@ -71,22 +63,17 @@ button.fchip.exc { background: color-mix(in srgb, var(--todo) 12%, transparent);
 .ag-row { cursor: pointer; position: relative; border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
 .ag-card > .ag-row:first-child { border-top: 0; }
 .ag-row:hover { background: var(--hover-bg, var(--panel)); }
-.ag-row.sel { background: var(--accent-soft); }
+.ag-row.is-selected { background: var(--accent-soft); }
 /* the keyboard's place in the agenda: a ring on the chosen row, or on the list while none is chosen (spec A11Y-2) */
 .ag-body:focus { outline: none; }
-body.sn-kb .ag-body:focus-visible .ag-row.sel { box-shadow: var(--ring-inset); }
-body.sn-kb .ag-body:focus-visible:not(:has(.ag-row.sel)) { box-shadow: var(--ring-inset); }
+body.sn-kb .ag-body:focus-visible .ag-row.is-selected { box-shadow: var(--ring-inset); }
+body.sn-kb .ag-body:focus-visible:not(:has(.ag-row.is-selected)) { box-shadow: var(--ring-inset); }
 .ag-main .ag-cat { margin-left: var(--sp-6); color: var(--faint); font-size: var(--fs-ui); white-space: nowrap; }
 .ag-main .ag-cat::before { content: "· "; }
 .ag-time { color: var(--fg); font-size: var(--fs-ui); white-space: nowrap; }
 .ag-lab { max-width: 20ch; color: var(--muted); font-size: var(--fs-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* the label is a chip: a calendar for a scheduled date (grey), a flag for a deadline (red when due, amber in its warning days) */
-.ag-chip { display: inline-flex; align-items: center; gap: var(--sp-4); max-width: 100%; padding: 0 var(--sp-8); border-radius: var(--r-pill); background: var(--panel); font-size: var(--fs-sm); line-height: 19px; }
-.ag-chip > span { overflow: hidden; text-overflow: ellipsis; }
-.ag-chip svg { flex: none; width: var(--icon-xs); height: var(--icon-xs); }
-.ag-chip.is-due { background: color-mix(in srgb, var(--todo) 11%, transparent); color: var(--todo); }
-.ag-chip.is-soon { background: color-mix(in srgb, var(--next) 10%, transparent); color: color-mix(in srgb, var(--next) 75%, var(--ink)); }
-.k-closed .ag-chip, .ag-chip.k-closed { color: var(--done); }
+.k-closed :is(.sn-chip, .markdown-rendered a.tag), :is(.sn-chip, .markdown-rendered a.tag).k-closed { color: var(--done); }
 /* overdue entries, gathered above today */
 .ag-overdue { border-color: color-mix(in srgb, var(--todo) 35%, var(--line)); }
 .ag-overdue.is-closed > .ag-day { padding-bottom: var(--sp-10); }
@@ -109,8 +96,8 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: var(--sp-8)
 .is-done .ag-ttl { color: var(--faint); text-decoration: line-through; }
 .ag-act { display: flex; gap: var(--sp-4); visibility: hidden; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); padding: var(--sp-2); border-radius: var(--r-s); background: var(--win); }
 .ag-row:hover .ag-act { background: var(--hover-bg, var(--panel)); }
-.ag-row.sel .ag-act { background: var(--accent-soft); }
-.ag-row:hover .ag-act, .ag-row.sel .ag-act { visibility: visible; }
+.ag-row.is-selected .ag-act { background: var(--accent-soft); }
+.ag-row:hover .ag-act, .ag-row.is-selected .ag-act { visibility: visible; }
 .ag-act button, .ag-act button:not(.clickable-icon) { height: var(--ctl-s); font-size: var(--fs-sm); padding: 0 var(--sp-10); border: 1px solid var(--line); background: var(--win); cursor: pointer; }
 .ag-act button:hover { border-color: var(--faint); }
 /* the hours of today's grid: quiet markers, each on a line of its own height */
@@ -130,7 +117,7 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: var(--sp-8)
   .ag-meta > * { grid-area: auto; }
   .ag-lab { max-width: none; }
   .ag-act { visibility: visible; display: none; }
-  .ag-row.sel .ag-act { display: flex; position: static; transform: none; justify-self: start; margin-top: var(--sp-4); }
+  .ag-row.is-selected .ag-act { display: flex; position: static; transform: none; justify-self: start; margin-top: var(--sp-4); }
   .ag-grid, .ag-body.one-cat .ag-grid { grid-template-columns: 7ch minmax(0, 1fr); grid-template-areas: none; }
   .ag-grid .ag-time { grid-area: auto; }
   .ag-grid .dots { grid-column: 2; }
@@ -151,9 +138,9 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: var(--sp-8)
 .markdown-rendered .org-ts .cm-sn-fmt { color: var(--faint); }
 .markdown-rendered .org-ts.is-inactive { background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
 /* a note being read: each date one chip, as in the agenda (org-editing.js planChip); the priority one letter */
-.markdown-rendered .ag-chip.org-date { vertical-align: 1px; margin-right: var(--sp-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.markdown-rendered .ag-chip.org-date .org-date-rep { display: inline-flex; }
-.markdown-rendered .ag-chip.org-date .org-date-rep svg { width: var(--icon-xs); height: var(--icon-xs); }
+.markdown-rendered .sn-chip.org-date { vertical-align: 1px; margin-right: var(--sp-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.markdown-rendered .sn-chip.org-date .org-date-rep { display: inline-flex; }
+.markdown-rendered .sn-chip.org-date .org-date-rep svg { width: var(--icon-xs); height: var(--icon-xs); }
 /* capture */
 .cap-tpl { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-6); margin: var(--sp-4) 0 var(--sp-14); }
 button.cap-tpl-btn, button.cap-tpl-btn:not(.clickable-icon) { flex-direction: column; align-items: flex-start; gap: var(--sp-4); padding: var(--sp-8) var(--sp-10); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--bg); font-weight: var(--fw-regular); cursor: pointer; text-align: left; }
@@ -190,14 +177,14 @@ button.cap-tpl-btn[aria-pressed="true"] svg { color: var(--accent); }
 .org-cal button.cal-day.is-weekend { color: var(--muted); }
 .org-cal button.cal-day.is-out { color: var(--faint); opacity: .5; }
 .org-cal button.cal-day.is-today { color: var(--accent); font-weight: var(--fw-bold); box-shadow: inset 0 0 0 1.5px var(--accent); }
-.org-cal button.cal-day.is-sel, .org-cal button.cal-day.is-sel:hover { background: var(--accent); color: var(--on-accent); font-weight: var(--fw-bold); box-shadow: none; }
-body.theme-dark .org-cal button.cal-day.is-sel { color: var(--bg); }
+.org-cal button.cal-day.is-selected, .org-cal button.cal-day.is-selected:hover { background: var(--accent); color: var(--on-accent); font-weight: var(--fw-bold); box-shadow: none; }
+body.theme-dark .org-cal button.cal-day.is-selected { color: var(--bg); }
 .cal-dot { position: absolute; left: 50%; bottom: 4px; width: 4px; height: 4px; margin-left: calc(var(--sp-2) * -1); border-radius: 50%; background: var(--next); }
-.cal-day.is-sel .cal-dot { background: currentColor; }
+.cal-day.is-selected .cal-dot { background: currentColor; }
 .cal-quick { display: flex; flex-wrap: wrap; gap: var(--sp-6); margin-top: var(--sp-10); }
 .org-cal button.cal-q, .org-cal button.cal-q:not(.clickable-icon) { height: var(--ctl-m); padding: 0 var(--sp-12); border: 0; border-radius: var(--r-pill); background: var(--panel); box-shadow: none; font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--muted); }
 .org-cal button.cal-q:hover { background: var(--sel); color: var(--fg); }
-.org-cal button.cal-q.is-on { background: var(--accent-soft); color: var(--accent); }
+.org-cal button.cal-q.is-active { background: var(--accent-soft); color: var(--accent); }
 .org-cal button.cal-q.is-clear { background: transparent; color: var(--todo); padding: 0 var(--sp-6); }
 .org-cal button.cal-q.is-clear:hover { background: var(--hover-bg); }
 /* time and repeat: a labelled row each, the time typed as text */
@@ -212,7 +199,6 @@ body.theme-dark .org-cal button.cal-day.is-sel { color: var(--bg); }
 .org-cal input.cal-t { width: 132px; height: var(--ctl-l); padding: 0 var(--sp-10); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); box-shadow: none; font-family: inherit; font-size: var(--fs-ui); color: var(--fg); font-variant-numeric: tabular-nums; }
 .org-cal input.cal-t.is-end { width: 84px; }
 .org-cal input.cal-t::placeholder { color: var(--faint); }
-.org-cal input.cal-t.is-bad { border-color: var(--todo); box-shadow: 0 0 0 2px color-mix(in srgb, var(--todo) 20%, transparent); }
 .org-cal input.cal-t:focus, .org-cal select.cal-rep:focus { border-color: var(--accent); outline: none; box-shadow: var(--ring); }
 .cal-dash { color: var(--faint); }
 .org-cal button.cal-x, .org-cal button.cal-x:not(.clickable-icon) { width: 26px; height: var(--ctl-m); padding: 0; border: 0; border-radius: var(--r-pill); background: transparent; box-shadow: none; color: var(--faint); }
@@ -241,18 +227,18 @@ button.cap-cal-btn svg { width: var(--icon-s); height: var(--icon-s); }
 .markdown-rendered .org-entry .org-body { display: block; padding-left: calc(18px + max(var(--sp-14), var(--fs-ui) * 1.05) + var(--fs-ui) * .5 + .25em); } /* .25em: the space after the box */
 .markdown-rendered .org-entry .org-body > br:first-child { display: none; }
 .markdown-rendered button.org-fold:hover { background: var(--panel); color: var(--fg); }
-.markdown-rendered .org-foldable.is-folded > button.org-fold svg, .markdown-rendered .org-foldable.is-folded > p > button.org-fold svg { transform: rotate(-90deg); }
+.markdown-rendered .org-foldable.is-collapsed > button.org-fold svg, .markdown-rendered .org-foldable.is-collapsed > p > button.org-fold svg { transform: rotate(-90deg); }
 .markdown-rendered button.org-ellipsis, .markdown-rendered button.org-ellipsis:not(.clickable-icon) { display: none; margin-left: var(--sp-4); padding: 0 var(--sp-4); border: 1px solid var(--line); border-radius: var(--r-xs); background: var(--panel); font-size: .8em; font-weight: var(--fw-regular); line-height: var(--lh-tight); color: var(--muted); cursor: pointer; vertical-align: .1em; }
-.markdown-rendered .org-foldable.is-folded > button.org-ellipsis, .markdown-rendered .org-foldable.is-folded > p > button.org-ellipsis { display: inline-block; }
+.markdown-rendered .org-foldable.is-collapsed > button.org-ellipsis, .markdown-rendered .org-foldable.is-collapsed > p > button.org-ellipsis { display: inline-block; }
 .markdown-rendered button.org-ellipsis:hover { color: var(--fg); border-color: var(--faint); }
 /* plain headings fold too; their chevron shows on hover (always when folded or on touch screens) */
 .markdown-rendered :is(h1, h2, h3, h4, h5, h6):not(.org-entry) { position: relative; }
 .markdown-rendered :is(h1, h2, h3, h4, h5, h6):not(.org-entry) > button.org-fold { position: absolute; left: -22px; top: .35em; margin: 0; opacity: 0; transition: opacity var(--dur-1) var(--ease); }
-.markdown-rendered :is(h1, h2, h3, h4, h5, h6):not(.org-entry):hover > button.org-fold, .markdown-rendered :is(h1, h2, h3, h4, h5, h6):not(.org-entry).is-folded > button.org-fold, .markdown-rendered :is(h1, h2, h3, h4, h5, h6) > button.org-fold:focus-visible { opacity: 1; }
+.markdown-rendered :is(h1, h2, h3, h4, h5, h6):not(.org-entry):hover > button.org-fold, .markdown-rendered :is(h1, h2, h3, h4, h5, h6):not(.org-entry).is-collapsed > button.org-fold, .markdown-rendered :is(h1, h2, h3, h4, h5, h6) > button.org-fold:focus-visible { opacity: 1; }
 @media (hover: none), (max-width: 820px) { .markdown-rendered :is(h1, h2, h3, h4, h5, h6):not(.org-entry) > button.org-fold { position: static; margin: 0 var(--sp-4) 0 calc(var(--sp-2) * -1); opacity: 1; } }
 
 /* Files view: every attachment in the vault, list + preview */
-button.wb-btn.wb-files.is-active { border-color: var(--accent); }
+button.sn-btn.wb-files.is-active { border-color: var(--accent); }
 /* side by side the preview keeps 320px and the list gives way to 280px; with less room, files.js shows one at a time */
 .fv { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(280px, 380px) minmax(320px, 1fr); }
 /* the list sits on the grey like the list of notes; the preview opens on a white sheet like a note */
@@ -265,14 +251,12 @@ button.wb-btn.wb-files.is-active { border-color: var(--accent); }
 .fv-search-row { display: flex; gap: var(--sp-6); align-items: center; }
 /* the field itself looks like every search field (app.css) */
 .fv-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-6); }
-.sn-board .fv-kinds .clickable-icon { height: 22px; padding: 0 var(--sp-8); }
-.sn-board .fv-kinds .clickable-icon.is-active { background: var(--win); color: var(--fg); box-shadow: 0 0 0 1px var(--line); }
 .fv-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: var(--sp-4) var(--sp-8) var(--sp-40); }
 .fv-row { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; align-items: center; gap: var(--sp-10); padding: var(--sp-8) var(--sp-8) var(--sp-8) var(--sp-10); border-radius: var(--r-s); cursor: pointer; }
 .fv-row:hover { background: var(--hover-bg); }
-.fv-row.sel { background: var(--sel); }
+.fv-row.is-selected { background: var(--sel); }
 .fv-icon svg { width: var(--icon-l); height: var(--icon-l); color: var(--muted); display: block; }
-.fv-row.sel .fv-icon svg { color: var(--accent); }
+.fv-row.is-selected .fv-icon svg { color: var(--accent); }
 .fv-row-main { min-width: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
 .fv-row-name { display: flex; align-items: baseline; gap: var(--sp-6); min-width: 0; }
 .fv-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--fg); font-size: var(--fs-md); }
@@ -282,7 +266,7 @@ button.wb-btn.wb-files.is-active { border-color: var(--accent); }
 .fv-sub-icon svg { width: var(--icon-xs); height: var(--icon-xs); display: block; }
 .fv-row.is-unused .fv-row-sub { color: var(--faint); font-style: italic; }
 .fv-row .fv-more { visibility: hidden; }
-.fv-row:hover .fv-more, .fv-row.sel .fv-more { visibility: visible; }
+.fv-row:hover .fv-more, .fv-row.is-selected .fv-more { visibility: visible; }
 @media (hover: none) { .fv-row .fv-more { visibility: visible; } }
 /* empty states, in the list and in the preview alike: muted, centred, at the interface size */
 .fv-empty { padding: var(--sp-32) var(--sp-20); color: var(--muted); font-size: var(--fs-ui); line-height: var(--lh-ui); text-align: center; }
@@ -338,7 +322,7 @@ audio.fv-media { width: min(520px, 100%); }
   .ag-strip-day .dot { width: 4px; height: 4px; border-radius: 50%; }
   .ag-strip-day .dot.has { background: var(--muted); }
   .ag-strip-day.is-today .dn { color: var(--accent); }
-  .ag-strip-day.is-on { background: var(--win); box-shadow: var(--shadow-1); }
+  .ag-strip-day.is-selected { background: var(--win); box-shadow: var(--shadow-1); }
 }
 
 /* the month (TASK-4): a grid of days, each with how many entries it has; a day of another month is quiet */

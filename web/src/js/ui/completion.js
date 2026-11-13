@@ -412,7 +412,7 @@ export function tagsSection(box) {
   const wrap = h("div", { cls: "sn-tag-cloud" });
   for (const [tg, n] of [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 40)) {
     const on = board.tagView === tg;
-    const b = h("button", { cls: "sn-tag-pill" + (on ? " is-on" : ""), type: "button", title: `#${tg} · ${n}` }, h("span", { text: "#" + tg }), h("span", { cls: "n", text: String(n) }));
+    const b = h("button", { cls: "sn-chip" + (on ? " is-accent" : ""), type: "button", title: `#${tg} · ${n}` }, h("span", { text: "#" + tg }), h("span", { cls: "n", text: String(n) }));
     b.addEventListener("click", () => { if (on) goBack(); else openTagView(tg); });
     wrap.append(b);
   }

@@ -85,7 +85,7 @@ describe("Files without files (UI-30)", () => {
     await openVault({ demo: false, notes: { "cards/A.md": "Text\n" } });
     await ev(() => { closeEditor(true); openFilesView(); });
     await settle();
-    const parts = () => ev(() => Object.fromEntries([".fv-search-row", ".fv-filters", ".fv-total", ".fv-preview", ".fv-empty, .fv-list .sn-empty, .fv-list > *", ".sn-topbar button[title='Add files'], .sn-topbar .wb-btn"].map((s) => [s.split(",")[0], [...document.querySelectorAll(s)].some((e) => getComputedStyle(e).display !== "none" && e.getBoundingClientRect().height > 0)])));
+    const parts = () => ev(() => Object.fromEntries([".fv-search-row", ".fv-filters", ".fv-total", ".fv-preview", ".fv-empty, .fv-list .sn-empty, .fv-list > *", ".sn-topbar button[title='Add files'], .sn-topbar .sn-btn"].map((s) => [s.split(",")[0], [...document.querySelectorAll(s)].some((e) => getComputedStyle(e).display !== "none" && e.getBoundingClientRect().height > 0)])));
     assert.deepEqual(await parts(), { ".fv-search-row": false, ".fv-filters": false, ".fv-total": false, ".fv-preview": false, ".fv-empty": true, ".sn-topbar button[title='Add files']": true });
     await ev(() => { vault.fs.add("attachments/a.txt", new Blob(["x"])); vault.allPaths.add("attachments/a.txt"); addAttachment("attachments/a.txt"); fvRenderList(); });
     await settle();

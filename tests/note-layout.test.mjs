@@ -23,7 +23,7 @@ describe("a task's lines in the reading view (UI-5)", () => {
       const note = [...body.childNodes].find((x) => x.nodeType === 3 && x.data.trim());
       const rn = document.createRange();
       if (note) { const i = note.data.search(/\S/); rn.setStart(note, i); rn.setEnd(note, i + 1); }
-      return { text: Math.round(r.getBoundingClientRect().left), chip: Math.round(body.querySelector(".ag-chip").getBoundingClientRect().left), note: note ? Math.round(rn.getBoundingClientRect().left) : null };
+      return { text: Math.round(r.getBoundingClientRect().left), chip: Math.round(body.querySelector(".sn-chip").getBoundingClientRect().left), note: note ? Math.round(rn.getBoundingClientRect().left) : null };
     }));
     assert.equal(rows.length, 2);
     for (const r of rows) assert.ok(Math.abs(r.chip - r.text) <= 1 && (r.note == null || Math.abs(r.note - r.text) <= 1), JSON.stringify(rows));

@@ -22,7 +22,7 @@ export class Menu {
     for (const it of items) {
       if (it === "sep") { m.append(h("div", { cls: "menu-separator" })); continue; }
       if (it.label) { m.append(h("div", { cls: "menu-label", text: it.label })); continue; }
-      const row = h("div", { cls: "menu-item" + (it.warning ? " is-warning" : "") + (it.disabled ? " is-disabled" : ""), role: "menuitem" },
+      const row = h("div", { cls: "menu-item" + (it.warning ? " is-warn" : "") + (it.disabled ? " is-disabled" : ""), role: "menuitem" },
         it.icon ? ic("menu-item-icon", it.icon) : h("span", { cls: "menu-item-icon" }), h("span", { cls: "menu-item-title", text: it.title }),
         it.checked ? ic("menu-item-check", "check") : null);
       row.addEventListener("click", (e) => { e.stopPropagation(); closeMenu(); it.onClick?.(e); });
@@ -195,7 +195,7 @@ export function promptModal(title, value = "") {
 }
 export function confirmModal(title, text, okText) {
   return new Promise((resolve) => {
-    const ok = h("button", { cls: "mod-warning", text: okText });
+    const ok = h("button", { cls: "is-danger", text: okText });
     const panel = h("div", { cls: "modal" }, h("div", { cls: "modal-title", text: title }), h("p", { cls: "modal-text", text }),
       h("div", { cls: "modal-buttons" }, h("button", { text: t("close"), onClick: () => close(false) }), ok));
     const close = openLayer(panel, (v) => resolve(!!v));

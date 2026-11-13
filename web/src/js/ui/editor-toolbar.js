@@ -45,7 +45,7 @@ export function renderEditorProps() {
     // parents
     const pv = [];
     for (const p of graph.parentsOf(path).filter((x) => graph.has(x))) pv.push(parentChip(p, () => removeParent(path, p)));
-    for (const u of graph.unresolvedParentsOf(path)) { const c = h("span", { cls: "sn-chip is-missing", title: t("parentMissing") }, ic("sn-chip-icon", "alert-triangle"), h("span", { text: u })); const x = ic("sn-chip-x", "x"); x.addEventListener("click", () => removeParent(path, u)); c.append(x); pv.push(c); }
+    for (const u of graph.unresolvedParentsOf(path)) { const c = h("span", { cls: "sn-chip is-s is-missing", title: t("parentMissing") }, ic("sn-chip-icon", "alert-triangle"), h("span", { text: u })); const x = ic("sn-chip-x", "x"); x.addEventListener("click", () => removeParent(path, u)); c.append(x); pv.push(c); }
     const addP = ic("sn-prop-add", "plus"); addP.title = t("menuAddParent"); addP.addEventListener("click", () => promptAddParent([path]));
     props.append(row("git-fork", field, ...pv, addP));
     // icon
@@ -56,7 +56,7 @@ export function renderEditorProps() {
     // tags (frontmatter)
     const fmTags = fmTagList(n.fm);
     const tagVals = fmTags.map((tg) => {
-      const c = h("span", { cls: "sn-tag" }, "#" + tg);
+      const c = h("span", { cls: "sn-chip is-s" }, "#" + tg);
       const x = ic("sn-chip-x", "x");
       x.addEventListener("click", () => removeTag(path, tg));
       c.append(x);
@@ -75,7 +75,7 @@ export function renderEditorProps() {
     props.append(row("tags", "tags", ...tagVals, tagIn));
     // template
     const tpl = templateFor(path);
-    if (tpl) props.append(row("layout-template", "child_template", h("a", { cls: "sn-chip", href: "#", onClick: (e) => { e.preventDefault(); openEditor(tpl); } }, ic("sn-chip-icon", "layout-template"), h("span", { text: baseName(tpl) }))));
+    if (tpl) props.append(row("layout-template", "child_template", h("a", { cls: "sn-chip is-s", href: "#", onClick: (e) => { e.preventDefault(); openEditor(tpl); } }, ic("sn-chip-icon", "layout-template"), h("span", { text: baseName(tpl) }))));
     // others
     const known = new Set([field, "icon", "tags", "tag", "child_template"]);
     const others = Object.entries(n.fm).filter(([k]) => !known.has(k));
@@ -101,7 +101,7 @@ export function renderEditorProps() {
       const list = h("div", { cls: "sn-unlinked" });
       for (const u of unlinked) {
         const c = parentChip(u); c.onclick = (e) => { e.preventDefault(); openEditor(u); };
-        list.append(h("div", { cls: "sn-unlinked-row" }, c, h("button", { cls: "wb-btn mini", type: "button", onClick: () => linkMention(u, path) }, ic("", "link"), wt("linkIt"))));
+        list.append(h("div", { cls: "sn-unlinked-row" }, c, h("button", { cls: "sn-btn is-s", type: "button", onClick: () => linkMention(u, path) }, ic("", "link"), wt("linkIt"))));
       }
       box.append(list);
     }
@@ -114,8 +114,8 @@ export function renderEditorProps() {
 function infoLine(path, n) {
   const line = h("div", { cls: "sn-info" });
   line.append(h("span", { cls: "sn-info-date", text: t("modifiedAt", { date: formatDate(n.mtime || 0) }), title: new Date(n.mtime || 0).toLocaleString(LANG) }));
-  for (const u of graph.unresolvedParentsOf(path)) line.append(h("span", { cls: "sn-chip is-missing", title: t("parentMissing") }, ic("sn-chip-icon", "alert-triangle"), h("span", { text: u })));
-  if (!n.fmError) for (const tg of fmTagList(n.fm)) line.append(h("button", { cls: "sn-tag sn-info-tag", type: "button", text: "#" + tg, onClick: () => openTagView(tg) }));
+  for (const u of graph.unresolvedParentsOf(path)) line.append(h("span", { cls: "sn-chip is-s is-missing", title: t("parentMissing") }, ic("sn-chip-icon", "alert-triangle"), h("span", { text: u })));
+  if (!n.fmError) for (const tg of fmTagList(n.fm)) line.append(h("button", { cls: "sn-chip is-s sn-info-tag", type: "button", text: "#" + tg, onClick: () => openTagView(tg) }));
   return line;
 }
 export function editorKeys(e) {

@@ -173,7 +173,7 @@ describe("delete and undo", () => {
   test("deleting several cards asks first", async () => {
     const page = (await import("./harness.mjs")).page;
     const done = ev(() => deleteCards(["cards/Shed.md", "cards/Garden.md"]));
-    await page.click(".modal .mod-warning");
+    await page.click(".modal .is-danger");
     await done;
     assert.deepEqual(await ev(() => [vault.notes.has("cards/Shed.md"), vault.notes.has("cards/Garden.md")]), [false, false]);
   });

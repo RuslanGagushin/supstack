@@ -41,14 +41,14 @@ body.sn-app .sb-foot-btn svg { width: var(--icon-m); height: var(--icon-m); }
 @media (max-width: 820px) { body.sn-app .sb-collapse { display: none; } } /* the drawer closes on the grey around it */
 /* The sidebar's places: the agenda, Files and sync, as rows like the tree's, each with its count or state at the right */
 body.sn-app .sb-nav { display: flex; flex-direction: column; gap: 1px; padding: 0 var(--sp-12) var(--sp-6) var(--sp-14); }
-body.sn-app .sb-nav button.wb-btn { justify-content: flex-start; gap: var(--sp-8); width: 100%; height: var(--ctl-l); padding: 0 var(--sp-8); border: 0; border-radius: var(--r-s);
+body.sn-app .sb-nav button.sn-btn { justify-content: flex-start; gap: var(--sp-8); width: 100%; height: var(--ctl-l); padding: 0 var(--sp-8); border: 0; border-radius: var(--r-s);
   background: transparent; color: var(--fg); font-size: var(--fs-md); font-weight: var(--fw-regular); }
-body.sn-app .sb-nav button.wb-btn:hover { background: var(--hover-bg); }
-body.sn-app .sb-nav button.wb-btn.is-active { background: var(--sel); color: var(--ink); }
-body.sn-app .sb-nav button.wb-btn svg { width: var(--icon-m); height: var(--icon-m); color: var(--muted); }
+body.sn-app .sb-nav button.sn-btn:hover { background: var(--hover-bg); }
+body.sn-app .sb-nav button.sn-btn.is-active { background: var(--sel); color: var(--ink); }
+body.sn-app .sb-nav button.sn-btn svg { width: var(--icon-m); height: var(--icon-m); color: var(--muted); }
 body.sn-app .sb-nav .wb-label { display: inline !important; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 body.sn-app .sb-nav .wb-count { margin-left: auto; }
-body.sn-app .sb-nav button.wb-btn.wb-sync { max-width: none; }
+body.sn-app .sb-nav button.sn-btn.wb-sync { max-width: none; }
 .sb-nav .wb-sync[hidden] { display: none; }
 /* Search fields share one look: 34px, white on the grey with a hairline border, a 14px icon, the accent ring on focus
    (the sidebar's launcher, the board's filter, Files and Settings) */
@@ -64,17 +64,17 @@ button.sb-search svg, .sn-search-icon svg, .fv-search-icon svg { width: var(--ic
 .fv-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); display: inline-flex; color: var(--muted); pointer-events: none; }
 body.sn-app input.fv-search { width: 100%; padding: 0 var(--sp-10) 0 30px; }
 .sb-actions { display: flex; align-items: center; gap: var(--sp-8); }
-body.sn-app button.wb-btn.sb-new, body.sn-app button.wb-btn.primary {
+body.sn-app button.sn-btn.sb-new, body.sn-app :where(.sn-welcome-actions) button.sn-btn.is-primary {
   height: 38px; padding: 0 var(--sp-16) 0 var(--sp-14); border-radius: var(--r-pill); background: var(--cta); color: var(--on-accent);
   font-size: var(--fs-md); font-weight: var(--fw-semibold); gap: var(--sp-6);
 }
-body.sn-app button.wb-btn.sb-new:hover, body.sn-app button.wb-btn.primary:hover { background: var(--cta-hover); opacity: 1; }
-body.sn-app button.wb-btn.sb-new svg { width: var(--icon-m); height: var(--icon-m); }
+body.sn-app button.sn-btn.sb-new:hover, body.sn-app :where(.sn-welcome-actions) button.sn-btn.is-primary:hover { background: var(--cta-hover); opacity: 1; }
+body.sn-app button.sn-btn.sb-new svg { width: var(--icon-m); height: var(--icon-m); }
 button.clickable-icon.sb-round { width: 38px; height: 38px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: var(--win); }
 /* Today, beside New note: a labelled button, quieter than New note */
-body.sn-app button.wb-btn.sb-today { height: 38px; padding: 0 var(--sp-14); border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--win); color: var(--fg); font-weight: var(--fw-medium); }
-body.sn-app button.wb-btn.sb-today:hover { background: var(--hover-bg); }
-body.sn-app button.wb-btn.sb-today svg { width: var(--icon-m); height: var(--icon-m); color: var(--muted); }
+body.sn-app button.sn-btn.sb-today { height: 38px; padding: 0 var(--sp-14); border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--win); color: var(--fg); font-weight: var(--fw-medium); }
+body.sn-app button.sn-btn.sb-today:hover { background: var(--hover-bg); }
+body.sn-app button.sn-btn.sb-today svg { width: var(--icon-m); height: var(--icon-m); color: var(--muted); }
 body.sn-app .sb-today .wb-label { display: inline; }
 .sn-keys-or { display: inline-flex; align-items: center; gap: var(--sp-6); }
 .sn-keys-or .sn-or { color: var(--faint); font-size: var(--fs-sm); }
@@ -120,17 +120,15 @@ body.sn-app .tree-item-flair { font-size: var(--fs-sm); color: var(--faint); }
 /* on a hovered or current row's grey, the counts and times step up to --muted to stay readable */
 body.sn-app .sn-tree-row:is(:hover, .is-active) .tree-item-flair { color: var(--muted); }
 body.sn-app .tree-item-children { margin-inline-start: 11px; border-color: transparent; }
-body.sn-app .sn-tag-pill { padding: 1px var(--sp-10); border: 0; border-radius: var(--r-pill); background: var(--panel); color: var(--tag); font-size: var(--fs-sm); }
-body.sn-app .sn-tag-pill:hover { background: color-mix(in srgb, var(--panel) 80%, var(--fg) 10%); }
 body.sn-app .sb-new .wb-label { display: inline; } /* the sidebar's button keeps its label on phones */
 
 /* ---------- Top bar: quiet ghost buttons; search, new card, brand and vault are in the sidebar */
-body.sn-app button.wb-btn { height: var(--ctl-l); padding: 0 var(--sp-10); border: 0; border-radius: var(--r-s); background: transparent; color: var(--muted); }
-body.sn-app button.wb-btn:hover { background: var(--hover-bg); color: var(--fg); }
-body.sn-app button.wb-btn.is-active { background: var(--panel); color: var(--ink); }
+body.sn-app button.sn-btn { height: var(--ctl-l); padding: 0 var(--sp-10); border: 0; border-radius: var(--r-s); background: transparent; color: var(--muted); }
+body.sn-app button.sn-btn:hover { background: var(--hover-bg); color: var(--fg); }
+body.sn-app button.sn-btn.is-active { background: var(--panel); color: var(--ink); }
 body.sn-app button.clickable-icon.wb-icon { width: 34px; height: var(--ctl-l); border-radius: var(--r-s); }
 body.sn-app button.clickable-icon.wb-icon:hover { background: var(--hover-bg); color: var(--fg); }
-body.sn-app .wb-icon svg, body.sn-app .wb-btn svg { width: var(--icon-m); height: var(--icon-m); }
+body.sn-app .wb-icon svg, body.sn-app .sn-btn svg { width: var(--icon-m); height: var(--icon-m); }
 
 /* ---------- Board */
 body.sn-app .sn-topbar { min-height: 44px; padding: var(--sp-4) var(--sp-14) var(--sp-4) var(--sp-10); }
@@ -142,9 +140,13 @@ body.sn-app .sn-board .sn-topbar .clickable-icon, body.sn-app .sn-editor .sn-edi
 }
 body.sn-app .sn-board .sn-topbar .clickable-icon:hover, body.sn-app .sn-editor .sn-editor-head .clickable-icon:hover { background: var(--hover-bg); color: var(--fg); border: 0; }
 body.sn-app .sn-board .sn-topbar .clickable-icon.is-active, body.sn-app .sn-editor .sn-editor-head .clickable-icon.is-active { background: var(--panel); color: var(--ink); }
-body.sn-app .sn-seg { background: var(--panel); border-radius: var(--r-s); }
-body.sn-app .sn-board .sn-topbar .sn-seg .clickable-icon { height: var(--ctl-m); font-size: var(--fs-ui); border-radius: var(--r-s); }
-body.sn-app .sn-board .sn-topbar .sn-seg .clickable-icon.is-active { background: var(--win); box-shadow: var(--shadow-1); }
+/* ---------- Segmented control, the one definition: a --panel track; segments 28px (24 in .is-s); the chosen one a raised --win plate.
+   After the topbar's icon buttons, whose rule it has to outweigh. */
+body.sn-app .sn-seg { display: inline-flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2); border: 0; border-radius: var(--r-s); background: var(--panel); }
+body.sn-app .sn-board .sn-seg > .clickable-icon { height: var(--ctl-m); min-width: var(--ctl-s); padding: 0 var(--sp-8); border-radius: var(--r-s); color: var(--muted); font-size: var(--fs-ui); font-variant-numeric: tabular-nums; }
+body.sn-app .sn-board .sn-seg.is-s > .clickable-icon { height: var(--ctl-s); }
+body.sn-app .sn-board .sn-seg > .clickable-icon:hover { background: transparent; color: var(--fg); }
+body.sn-app .sn-board .sn-seg > .clickable-icon.is-active { background: var(--win); color: var(--ink); box-shadow: var(--shadow-1); }
 body.sn-app .sn-page { padding: var(--sp-14) var(--sp-24) var(--sp-48); }
 
 /* Cards: white notes on the grey, parent above the title, muted preview, pill tags */
@@ -163,9 +165,6 @@ body.sn-app .sn-card-icon { color: var(--muted); }
    plan, a tick for closed) and the date as "11 Nov"; the note keeps the full words and timestamps (org-editing.js data-short) */
 /* the date is an inline-block centred on the line like the icon beside it (its own text is hidden, so it has no baseline to share) */
 body.sn-app .sn-tags { gap: var(--sp-6); margin-top: var(--sp-8); }
-body.sn-app .sn-tag, body.sn-app .markdown-rendered a.tag { padding: 1px var(--sp-8); border-radius: var(--r-pill); background: var(--panel); color: var(--tag); font-size: var(--fs-sm); line-height: 16px; }
-body.sn-app .sn-tag:hover { background: color-mix(in srgb, var(--panel) 80%, var(--fg) 10%); }
-body.sn-app .sn-chip { font-size: var(--fs-sm); border-radius: var(--r-pill); }
 body.sn-app .sn-composer { border-radius: var(--r-m); background: var(--win); box-shadow: 0 0 0 1px var(--line); }
 body.sn-app .sn-composer:focus-within { box-shadow: var(--ring); }
 body.sn-app .sn-board .sn-composer textarea { font-size: var(--fs-md); height: 44px; min-height: 44px; padding: var(--sp-12) var(--sp-16); }
@@ -173,7 +172,6 @@ body.sn-app .sn-composer-hint { font-size: var(--fs-sm); padding: 0 var(--sp-16)
 body.sn-app .sn-filterbar { padding: var(--sp-8) var(--sp-24); border-bottom: 0; }
 body.sn-app .sn-board .sn-filter-btn, body.sn-app .sn-board .sn-filterbar > .clickable-icon { height: var(--ctl-l); border-radius: var(--r-pill); font-size: var(--fs-ui); }
 body.sn-app .sn-board .sn-filter-btn.is-active { border-color: var(--line); background: var(--panel); color: var(--ink); }
-body.sn-app .sn-board .sn-filter-chip { height: var(--ctl-s); border: 0; border-radius: var(--r-pill); background: var(--panel); color: var(--tag); font-family: var(--font-ui); font-size: var(--fs-sm); }
 body.sn-app .sn-selbar { border-radius: var(--r-m); }
 
 /* ---------- Minibuffer: light, a quiet footer */
@@ -216,7 +214,6 @@ button.sn-mode-btn.is-editing:hover { background: var(--cta-hover); }
 /* reading: one quiet line under the title in place of Properties, and no rule between it and the text (editor-toolbar.js infoLine) */
 .sn-info { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-6); min-height: 22px; margin: calc(var(--sp-4) * -1) 0 var(--sp-16); font-size: var(--fs-sm); color: var(--muted); }
 .sn-info-date { margin-right: var(--sp-4); }
-body.sn-app button.sn-tag.sn-info-tag { height: auto; border: 0; font-weight: var(--fw-regular); cursor: pointer; }
 body.sn-app .sn-props-head, body.sn-app .sn-editor-foot h4 { font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--muted); }
 body.sn-app .sn-prop:hover { background: var(--hover-bg); }
 body.sn-app .sn-prop-key { color: var(--muted); }
@@ -230,7 +227,7 @@ body.sn-app .sn-fm-error { font-family: var(--font-code); }
 body.sn-app .markdown-rendered :is(h1, h2, h3, h4, h5, h6) { color: var(--ink); letter-spacing: -.01em; }
 body.sn-app .markdown-rendered :is(ul, ol) li::marker { color: var(--muted); }
 body.sn-app .markdown-rendered ol li::marker { font-family: var(--font-ui); }
-body.sn-app .markdown-rendered a { color: var(--accent); }
+body.sn-app .markdown-rendered a:where(:not(.tag)) { color: var(--accent); }
 body.sn-app .markdown-rendered input[type="checkbox"] { accent-color: var(--accent); }
 body.sn-app .markdown-rendered code { font-family: var(--font-code); color: var(--ink); background: var(--code-bg); }
 /* the grey chip is for inline code only: inside a code block the text sits on the block itself */
@@ -250,16 +247,16 @@ body.sn-app .modal { border-radius: var(--r-l); }
 body.sn-app .modal-title { font-weight: var(--fw-semibold); font-size: var(--fs-lg); border-bottom: 0; }
 body.sn-app .modal input[type="text"] { height: 36px; border-radius: var(--r-s); font-size: var(--fs-md); }
 body.sn-app .modal-buttons button, body.sn-app .modal-buttons button:not(.clickable-icon) { height: 34px; padding: 0 var(--sp-16); border-radius: var(--r-pill); font-weight: var(--fw-semibold); }
-body.sn-app .modal-buttons button.mod-cta, body.sn-app .setting-item-control .wb-btn.is-cta, body.sn-app button.mod-cta { background: var(--cta); color: var(--on-accent); border-color: var(--cta); }
+body.sn-app .modal-buttons button.is-primary, body.sn-app .setting-item-control .sn-btn.is-primary, body.sn-app button.is-primary { background: var(--cta); color: var(--on-accent); border-color: var(--cta); }
 body.sn-app .setting-heading { letter-spacing: 0; text-transform: none; font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--muted); }
 body.sn-app .setting-item-name { font-size: var(--fs-md); }
 body.sn-app .setting-item-description { font-size: var(--fs-sm); }
 body.sn-app .setting-item-control select, body.sn-app .setting-item-control input { height: var(--ctl-l); border-radius: var(--r-s); background-color: var(--win); }
-body.sn-app .checkbox-container.is-enabled { background: var(--cta); }
+body.sn-app .checkbox-container.is-active { background: var(--cta); }
 body.sn-app .sn-about-name { font-family: var(--font-ui); font-weight: var(--fw-bold); }
 body.sn-app .prompt { border-radius: var(--r-l); }
 body.sn-app .prompt-input { font-size: var(--fs-text) !important; }
-body.sn-app :is(.wb-btn kbd, button.sn-tb-insert kbd) { font-family: var(--font-code); }
+body.sn-app :is(.sn-btn kbd, button.sn-tb-insert kbd) { font-family: var(--font-code); }
 
 /* ---------- List of notes (layout "notes"): rows on the grey, the open note on a white sheet beside them */
 @media (min-width: 821px) {
@@ -392,10 +389,10 @@ body.sn-app .sn-board .sn-card.sn-row.is-folder { align-items: center; gap: var(
   #app.editor-open ~ .sn-toast.is-quiet { bottom: calc(10px + var(--safe-bottom)); } /* the note covers the bar */
   /* hit areas of about 40px around small controls, without moving anything */
   /* (the table + buttons are already absolute, under and beside the table: making them relative piled them up in a corner) */
-  body.sn-app :is(button.task-box, .sn-tag, .sn-chip, .tags .tag, .sn-tag-pill, .fchip) { position: relative; }
+  body.sn-app :is(button.task-box, .sn-chip) { position: relative; }
   body.sn-app :is(button.task-box)::after { content: ""; position: absolute; inset: -10px; }
   body.sn-app :is(.sn-table-add-row, .sn-table-add-col)::after { content: ""; position: absolute; inset: -14px; }
-  body.sn-app :is(.sn-tag, .sn-chip, .tags .tag, .sn-tag-pill, .fchip)::after { content: ""; position: absolute; inset: -8px -2px; }
+  body.sn-app .sn-chip::after { content: ""; position: absolute; inset: -8px -2px; }
   /* buttons a finger can hit: 40px at least, the drawing inside them as it was (spec UI-9) */
   body.sn-app #app :is(.sn-topbar, .sn-editor-head, .agbar, .sn-ed-toolbar) :is(button, a[href]),
   body.sn-app #app button.ag-over-head { min-height: var(--ctl-touch); }
@@ -429,9 +426,9 @@ body.theme-dark .sn-welcome-logo { filter: brightness(.82); } /* the icon's whit
 .sn-welcome-title { margin: 0 0 var(--sp-6); color: var(--ink); font-family: var(--font-ui); font-size: var(--fs-xl); font-weight: var(--fw-bold); letter-spacing: -0.02em; line-height: var(--lh-tight); }
 .sn-welcome-sub { max-width: 340px; margin: 0 auto var(--sp-24); color: var(--muted); font-size: var(--fs-md); line-height: var(--lh-ui); }
 .sn-welcome-actions { display: flex; flex-direction: column; align-items: stretch; gap: var(--sp-8); max-width: 300px; margin: 0 auto; }
-body.sn-app .sn-welcome-actions button.wb-btn { justify-content: center; gap: var(--sp-8); height: var(--ctl-touch); border-radius: var(--r-m); font-size: var(--fs-ui); font-weight: var(--fw-medium); }
-body.sn-app .sn-welcome-actions button.wb-btn:not(.primary) { border: 1px solid var(--line); background: var(--win); color: var(--fg); }
-body.sn-app .sn-welcome-actions button.wb-btn:not(.primary):hover { background: var(--hover-bg); }
+body.sn-app .sn-welcome-actions button.sn-btn { justify-content: center; gap: var(--sp-8); height: var(--ctl-touch); border-radius: var(--r-m); font-size: var(--fs-ui); font-weight: var(--fw-medium); }
+body.sn-app .sn-welcome-actions button.sn-btn:not(.is-primary) { border: 1px solid var(--line); background: var(--win); color: var(--fg); }
+body.sn-app .sn-welcome-actions button.sn-btn:not(.is-primary):hover { background: var(--hover-bg); }
 .sn-welcome-note { max-width: 340px; margin: var(--sp-24) auto 0; color: var(--faint); font-size: var(--fs-sm); line-height: var(--lh-ui); }
 .sn-welcome-corner { position: absolute; top: calc(12px + var(--safe-top)); right: 12px; display: flex; gap: var(--sp-6); }
 .sn-welcome-corner .clickable-icon { width: 32px; height: var(--ctl-l); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); }
@@ -490,3 +487,8 @@ body.sn-app .sn-set-group .setting-item-control select { max-width: 240px; }
   .sn-set-body { padding: var(--sp-16) var(--sp-12) var(--sp-24); }
   body.sn-app .sn-set-group .setting-item { flex-wrap: wrap; gap: var(--sp-10); padding: var(--sp-12) var(--sp-14); }
 }
+
+/* ---------- Pressed: one step darker than hovering (--sel), and the only feedback where nothing hovers.
+   Last in the styles and ahead of every hover rule, so it shows whatever the hover rule of a control is. */
+html body.sn-app :is(button:not(.is-primary, .is-danger, .task-box), .clickable-icon, .sn-card.sn-row, .tree-item-self.is-clickable):active:not([disabled]) { background: var(--sel); }
+html body.sn-app button.is-primary:active:not([disabled]) { background: var(--cta-hover); }

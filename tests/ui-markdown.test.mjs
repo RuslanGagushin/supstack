@@ -279,9 +279,9 @@ describe("planning lines", () => {
       + "- [ ] Weekly review\n  SCHEDULED: <2026-11-09 Mon 10:00 +1w>\n- [x] Set up\n  CLOSED: [2026-11-03 Tue 18:20]\n- [x] Old\n  DEADLINE: <2026-11-01 Sun>\n\nLunch <2026-11-06 Fri 13:00-14:00>\n";
     await openVault({ demo: false, time: "2026-11-06T09:00:00", openNotes: "read", notes: { "cards/R.md": note } });
     await ev(() => openEditor("cards/R.md", { focus: false }));
-    const chips = await ev(() => [...document.querySelectorAll("#editor .sn-reading .org-date")].map((c) => [c.className.replace(/\b(ag-chip|org-date)\b/g, "").trim(), c.innerText.trim(), !!c.querySelector(".org-date-rep")]));
+    const chips = await ev(() => [...document.querySelectorAll("#editor .sn-reading .org-date")].map((c) => [c.className.replace(/\b(sn-chip|is-s|org-date)\b/g, "").replace(/\s+/g, " ").trim(), c.innerText.trim(), !!c.querySelector(".org-date-rep")]));
     assert.deepEqual(chips, [
-      ["k-dead is-soon", "Tomorrow", false], ["k-sched", "Yesterday", false],
+      ["k-dead is-warn", "Tomorrow", false], ["k-sched", "Yesterday", false],
       ["k-dead", "30 Nov", false], // past its warning days: no colour yet
       ["k-sched", "In 3 days, 10:00", true],
       ["k-closed", "3 Nov", false],
@@ -295,6 +295,13 @@ describe("planning lines", () => {
     assert.equal(r.words, 0, "no Markdown words or timestamps left");
     assert.equal(r.tip, "DEADLINE: <2026-11-07 Sat>", "the Markdown in the tooltip");
     assert.equal(r.pri, "A");
+    // the tones are drawn, not only named: green when closed, amber in the warning days, plain otherwise
+    const tones = await ev(() => {
+      const probe = (v) => { const s = document.createElement("span"); s.style.color = `var(${v})`; document.body.append(s); const c = getComputedStyle(s).color; s.remove(); return c; };
+      const color = (sel) => getComputedStyle(document.querySelector(`#editor .sn-reading .org-date${sel}`)).color;
+      return { closed: color(".k-closed") === probe("--done"), soon: color(".is-warn") !== color(".k-sched"), plain: color(".k-sched") === probe("--tag") };
+    });
+    assert.deepEqual(tones, { closed: true, soon: true, plain: true });
     await ev(() => openEditor("cards/R.md", { focus: false, edit: true }));
     assert.equal(await ev(() => document.querySelectorAll("#editor .org-date").length), 0, "editing shows the Markdown again");
     assert.equal(await raw("cards/R.md"), note, "the note's text is unchanged");

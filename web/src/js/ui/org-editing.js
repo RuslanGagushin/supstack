@@ -68,12 +68,12 @@ export function orgCalendar(opts) {
   const readTime = (x) => {
     const v = x.value.trim();
     const m = v ? toMin(v) : null;
-    x.classList.toggle("is-bad", m === undefined);
+    if (m === undefined) x.setAttribute("aria-invalid", "true"); else x.removeAttribute("aria-invalid");
     return m;
   };
   for (const x of [tIn, eIn]) {
     x.addEventListener("keydown", (e) => { if (e.key === "Enter") x.dispatchEvent(new Event("change")); });
-    x.addEventListener("input", () => x.classList.remove("is-bad"));
+    x.addEventListener("input", () => x.removeAttribute("aria-invalid"));
   }
   tIn.addEventListener("change", () => { const m = readTime(tIn); if (m === undefined) return; st.time = m; if (m == null) st.end = null; if (st.dn == null) st.dn = T; changed(); });
   eIn.addEventListener("change", () => { const m = readTime(eIn); if (m === undefined) return; st.end = st.time == null || m == null || m <= st.time ? null : m; changed(); });
@@ -106,7 +106,7 @@ export function orgCalendar(opts) {
       grid.append(h("span", { cls: "cal-wk", text: String(oisoWeek(rowStart)) }));
       for (let i = 0; i < 7; i++) {
         const dn = rowStart + i, d = oymd(dn);
-        const b = h("button", { type: "button", role: "gridcell", cls: "cal-day" + (d.m !== o.m ? " is-out" : "") + (i >= 5 ? " is-weekend" : "") + (dn === T ? " is-today" : "") + (dn === st.dn ? " is-sel" : ""),
+        const b = h("button", { type: "button", role: "gridcell", cls: "cal-day" + (d.m !== o.m ? " is-out" : "") + (i >= 5 ? " is-weekend" : "") + (dn === T ? " is-today" : "") + (dn === st.dn ? " is-selected" : ""),
           "aria-selected": String(dn === st.dn), "aria-label": oFmt(dn, "dddd D MMMM YYYY"), title: marks.get(dn) ? `${oFmt(dn, "ddd D MMM")} · ${marks.get(dn)}` : oFmt(dn, "ddd D MMM") }, String(d.d), marks.get(dn) ? h("i", { cls: "cal-dot" }) : null);
         b.addEventListener("click", () => { st.dn = dn; view = dn; changed(); });
         b.addEventListener("dblclick", () => { st.dn = dn; opts.onAccept?.(value()); });
@@ -114,13 +114,13 @@ export function orgCalendar(opts) {
       }
     }
     const nextMon = T + (((8 - oymd(T).w) % 7) || 7);
-    const qb = (text, dn) => { const b = h("button", { type: "button", cls: "cal-q" + (st.dn === dn ? " is-on" : ""), text }); b.addEventListener("click", () => { st.dn = dn; view = dn; changed(); }); return b; };
+    const qb = (text, dn) => { const b = h("button", { type: "button", cls: "cal-q" + (st.dn === dn ? " is-active" : ""), text }); b.addEventListener("click", () => { st.dn = dn; view = dn; changed(); }); return b; };
     quick.replaceChildren(qb(tt("today"), T), qb(ct("tomorrow"), T + 1), qb(ct("nextMon"), nextMon), qb(ct("nextWeek"), T + 7));
     foot.replaceChildren();
     if (opts.onClear) { const c = h("button", { type: "button", cls: "cal-q is-clear", text: ct("clear") }); c.addEventListener("click", () => opts.onClear()); foot.append(c); }
     if (opts.onAccept) { const ok = h("button", { type: "button", cls: "cal-ok", text: ct("ok"), disabled: st.dn == null }); ok.addEventListener("click", () => st.dn != null && opts.onAccept(value())); foot.append(ok); }
-    if (document.activeElement !== tIn) { tIn.value = st.time == null ? "" : ohm(st.time); tIn.classList.remove("is-bad"); }
-    if (document.activeElement !== eIn) { eIn.value = st.end == null ? "" : ohm(st.end); eIn.classList.remove("is-bad"); }
+    if (document.activeElement !== tIn) { tIn.value = st.time == null ? "" : ohm(st.time); tIn.removeAttribute("aria-invalid"); }
+    if (document.activeElement !== eIn) { eIn.value = st.end == null ? "" : ohm(st.end); eIn.removeAttribute("aria-invalid"); }
     endPart.hidden = st.time == null;
     clearT.hidden = st.time == null;
     const rv = st.rep && st.rep.n === 1 ? "+1" + st.rep.u : "";
@@ -429,7 +429,7 @@ export function orgDecorate(el, path, { short = false } = {}) {
       if (nx && !(nx.nodeType === 1 && /^(BR|UL|OL)$/.test(nx.tagName))) continue;
       const m = /(\s):((?:[\p{L}\p{N}_@#%-]+:)+)(\s*)$/u.exec(n.data);
       if (!m) continue;
-      const tags = h("span", { cls: "tags org-tags" }, m[2].split(":").filter(Boolean).map((x) => h("span", { cls: "tag", text: x })));
+      const tags = h("span", { cls: "tags org-tags" }, m[2].split(":").filter(Boolean).map((x) => h("span", { cls: "sn-chip is-s", text: x })));
       n.replaceWith(n.data.slice(0, m.index) + m[1], tags);
     }
   }
@@ -515,7 +515,7 @@ function orgFoldSetup(el, path) {
 function orgApplyFold(el) {
   for (const blk of el.querySelectorAll(".org-foldable")) {
     const folded = !!ORG_FOLD.get(blk._orgKey);
-    blk.classList.toggle("is-folded", folded);
+    blk.classList.toggle("is-collapsed", folded);
     const btn = blk.querySelector(":scope > .org-fold, :scope > p > .org-fold");
     if (btn) { btn.setAttribute("aria-expanded", String(!folded)); btn.title = folded ? ft("unfold") : ft("fold"); btn.setAttribute("aria-label", btn.title); }
     const dots = blk.querySelector(":scope > .org-ellipsis, :scope > p > .org-ellipsis");
@@ -524,7 +524,7 @@ function orgApplyFold(el) {
   // hide in document order so nested folds and sections inside folded headings behave like Org
   const hidden = new Set();
   for (const blk of el.querySelectorAll(".org-foldable")) {
-    if (!blk.classList.contains("is-folded")) continue;
+    if (!blk.classList.contains("is-collapsed")) continue;
     for (const b of blk._orgBodies) hidden.add(b);
   }
   for (const blk of el.querySelectorAll(".org-foldable")) for (const b of blk._orgBodies) b.classList.toggle("org-hidden", hidden.has(b));

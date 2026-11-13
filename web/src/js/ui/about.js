@@ -18,7 +18,7 @@ export function aboutBody(item, toggle) {
   const platform = !IS_NATIVE ? ut("web") : IS_ANDROID ? "Android" : /Mac/i.test(ua) ? "macOS" : /Win/i.test(ua) ? "Windows" : "Linux";
   const out = [h("div", { cls: "sn-about" }, h("div", { cls: "sn-about-name", text: "Supstack" }), h("div", { cls: "sn-about-ver" }, ut("version") + " ", ver, " · " + platform))];
   if (IS_NATIVE) {
-    const btn = h("button", { cls: "wb-btn", type: "button", onClick: () => (upd.state === "available" ? installUpdate() : checkUpdate()) });
+    const btn = h("button", { cls: "sn-btn", type: "button", onClick: () => (upd.state === "available" ? installUpdate() : checkUpdate()) });
     const row = item(ut("updates"), " ", btn);
     const desc = row.querySelector(".setting-item-description");
     row.classList.add("sn-update-row");
@@ -29,14 +29,14 @@ export function aboutBody(item, toggle) {
         : s === "available" ? ut(upd.update || !IS_ANDROID ? "available" : "availableAndroid", { v }) : s === "installing" ? ut("downloading", { v, p: pct })
         : s === "restarting" ? ut("restarting") : UI.updateChecked ? ut("lastChecked", { time: new Date(UI.updateChecked).toLocaleString(LANG === "ru" ? "ru-RU" : "en-US", { dateStyle: "medium", timeStyle: "short" }) }) : ut("never");
       btn.textContent = s === "available" ? ut(upd.update ? "install" : "download") : ut("check");
-      btn.classList.toggle("is-cta", s === "available");
+      btn.classList.toggle("is-primary", s === "available");
       btn.disabled = ["checking", "installing", "restarting"].includes(s);
       row.classList.toggle("is-available", s === "available");
     };
     upd.view();
     out.push(row, item(ut("auto"), ut("autoDesc"), toggle(UI.autoUpdate !== false, (v) => { UI.autoUpdate = v; saveUI(); })));
   } else out.push(h("p", { cls: "modal-text", text: ut("webNote") }));
-  out.push(item(ut("releaseNotes"), ut("releaseNotesDesc"), h("button", { cls: "wb-btn", type: "button", text: st("open"), onClick: () => openExternal(RELEASES) })));
+  out.push(item(ut("releaseNotes"), ut("releaseNotesDesc"), h("button", { cls: "sn-btn", type: "button", text: st("open"), onClick: () => openExternal(RELEASES) })));
   return out;
 }
 on("update", () => notice(ut("availableNotice", { v: upd.version }), { keep: true, action: { label: ut("open"), run: () => settingsModal("about") } }));

@@ -15,12 +15,12 @@ function renderSyncButton() {
   // nothing to show where sync can't run or isn't set up (Settings › Git sets it up). A row in the sidebar: what is
   // happening when it is busy or needs attention, else "Git" and when it last synced
   b.hidden = !syncAvailable() || (!syncConfigured() && !sync.busy && !sync.crash && !sync.error);
-  b.className = `wb-btn wb-sync is-${s.state}` + (s.spin ? " is-spin" : "");
+  b.className = `sn-btn wb-sync is-${s.state}` + (s.spin ? " is-spin" : "");
   b.title = s.text;
   b.replaceChildren(ic("wb-sync-icon", s.icon, "refresh-cw"), h("span", { cls: "wb-label", text: s.state === "busy" || s.state === "warn" ? s.short : `Git · ${s.short}` }));
 }
 export function syncButton() {
-  const b = h("button", { id: "sync-btn", type: "button", cls: "wb-btn wb-sync" });
+  const b = h("button", { id: "sync-btn", type: "button", cls: "sn-btn wb-sync" });
   b.addEventListener("click", () => openSyncPanel());
   setTimeout(renderSyncButton, 0);
   return b;
@@ -36,7 +36,7 @@ export function syncSettingsBody(item, toggle, heading = () => null) {
   const text = (key, ph, type = "text", after) => { const i = h("input", { type, placeholder: ph || "", spellcheck: "false", autocomplete: "off" }); i.value = String(SS[key] ?? ""); i.addEventListener("change", () => { SS[key] = type === "number" ? Number(i.value) || GIT_DEFAULTS[key] : i.value.trim(); saveSyncSettings(); after?.(); }); return i; };
   const status = h("div", { cls: "sn-sync-status" });
   const result = h("p", { cls: "sn-sync-note" });
-  const syncBtn = h("button", { cls: "mod-cta", type: "button", text: st("syncNow"), onClick: async () => { await runSync(); } });
+  const syncBtn = h("button", { cls: "is-primary", type: "button", text: st("syncNow"), onClick: async () => { await runSync(); } });
   const render = () => {
     const s = syncStatus();
     status.className = `sn-sync-status is-${s.state}` + (s.spin ? " is-spin" : "");

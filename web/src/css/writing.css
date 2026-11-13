@@ -69,7 +69,7 @@ button.sn-table-add-row:hover, button.sn-table-add-col:hover { background: color
 .ac-empty { padding: var(--sp-6) var(--sp-8); color: var(--faint); }
 
 /* Link hover preview */
-.hp-pop { position: fixed; z-index: var(--z-popup); width: min(420px, calc(100vw - 16px)); max-height: 360px; overflow: hidden; display: flex; flex-direction: column; background: var(--win); border: 1px solid color-mix(in srgb, var(--line) 35%, var(--line)); border-radius: var(--r-s); box-shadow: var(--shadow-3); cursor: pointer; animation: hp-in var(--dur-1) var(--ease); --sn-surface: var(--win); }
+.hp-pop { position: fixed; z-index: var(--z-popup); width: min(420px, calc(100vw - 16px)); max-height: 360px; overflow: hidden; display: flex; flex-direction: column; background: var(--win); border: 1px solid color-mix(in srgb, var(--line) 35%, var(--line)); border-radius: var(--r-s); box-shadow: var(--shadow-3); cursor: pointer; animation: hp-in var(--dur-1) var(--ease); }
 @keyframes hp-in { from { opacity: 0; transform: translateY(-3px); } }
 .hp-head { display: flex; align-items: baseline; gap: var(--sp-8); padding: var(--sp-10) var(--sp-14) var(--sp-6); border-bottom: 1px solid var(--line); }
 .hp-icon { display: inline-flex; align-self: center; color: var(--l1); }
@@ -89,16 +89,13 @@ button.sn-table-add-row:hover, button.sn-table-add-col:hover { background: color
 .sn-tree-section.is-toggle:not(.is-open) .sn-sec-caret svg { transform: rotate(-90deg); }
 .sn-sec-count { margin-left: auto; font-weight: var(--fw-regular); }
 .sn-tag-cloud { display: flex; flex-wrap: wrap; gap: var(--sp-4); padding: 0 var(--sp-2) var(--sp-4); }
-button.sn-tag-pill { gap: var(--sp-4); height: 22px; font-weight: var(--fw-regular); cursor: pointer;
-}
-button.sn-tag-pill:hover { border-color: var(--faint); background: var(--panel); color: var(--fg); }
-button.sn-tag-pill .n { color: var(--muted); font-size: var(--fs-sm); } /* on the pill's --panel, where --faint is too light */
+.sn-tag-cloud .sn-chip .n { color: var(--muted); font-size: var(--fs-sm); } /* on the pill's --panel, where --faint is too light */
 
 /* Unlinked mentions */
 .sn-unlinked { display: flex; flex-direction: column; gap: var(--sp-4); margin-bottom: var(--sp-12); }
 .sn-unlinked-row { display: flex; align-items: center; gap: var(--sp-8); }
-.sn-unlinked-row .wb-btn.mini { height: 22px; padding: 0 var(--sp-8); font-size: var(--fs-sm); }
-.sn-unlinked-row .wb-btn.mini svg { width: var(--icon-xs); height: var(--icon-xs); }
+.sn-unlinked-row .sn-btn.is-s { height: 22px; padding: 0 var(--sp-8); font-size: var(--fs-sm); }
+.sn-unlinked-row .sn-btn.is-s svg { width: var(--icon-xs); height: var(--icon-xs); }
 
 /* Focus mode: just the writing (or the board) */
 #app.focus-mode .sn-side, #app.focus-mode .sn-resizer, #app.focus-mode .sn-side-scrim { display: none !important; }

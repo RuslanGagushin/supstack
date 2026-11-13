@@ -99,7 +99,7 @@ class LpText extends CM.WidgetType {
 class LpTags extends CM.WidgetType {
   constructor(tags) { super(); this.tags = tags; }
   eq(o) { return o.tags.join(":") === this.tags.join(":"); }
-  toDOM() { return h("span", { cls: "tags org-tags" }, this.tags.map((x) => h("span", { cls: "tag", text: x }))); }
+  toDOM() { return h("span", { cls: "tags org-tags" }, this.tags.map((x) => h("span", { cls: "sn-chip is-s", text: x }))); }
 }
 class LpRule extends CM.WidgetType { eq() { return true; } toDOM() { return h("hr", { cls: "lp-hr" }); } }
 /** Set the state of the task on the line at `pos`: `pick(current)` gives the new box character (undefined leaves it). */

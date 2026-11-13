@@ -67,7 +67,7 @@ export function shareDialog(shared) {
     h("label", { cls: "cap-field" }, h("span", { text: t("shareHead") }), title),
     h("label", { cls: "cap-field" }, h("span", { text: t("shareText") }), body),
     h("label", { cls: "cap-field" }, h("span", { text: t("shareTo") }), to),
-    h("div", { cls: "modal-buttons" }, h("button", { type: "button", text: t("shareCancel"), onClick: () => close() }), h("button", { type: "button", cls: "mod-cta", text: t("shareSave"), onClick: save })));
+    h("div", { cls: "modal-buttons" }, h("button", { type: "button", text: t("shareCancel"), onClick: () => close() }), h("button", { type: "button", cls: "is-primary", text: t("shareSave"), onClick: save })));
   setTimeout(() => title.focus(), 0);
 }
 

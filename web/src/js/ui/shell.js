@@ -140,7 +140,7 @@ export async function commandPalette() {
   pick.run();
 }
 export function wbBtn(iconName, label, onClick, cls = "", kbd = null) {
-  const b = h("button", { cls: "wb-btn " + cls, type: "button", title: label }, iconName ? ic("", iconName) : null, h("span", { cls: "wb-label", text: label }), kbd ? h("kbd", { text: kbd }) : null);
+  const b = h("button", { cls: "sn-btn " + cls, type: "button", title: label }, iconName ? ic("", iconName) : null, h("span", { cls: "wb-label", text: label }), kbd ? h("kbd", { text: kbd }) : null);
   if (onClick) b.addEventListener("click", onClick);
   return b;
 }
@@ -258,8 +258,8 @@ export function settingsModal(tab) {
   const select = (value, options, onChange) => { const s = h("select", {}, options.map(([v, l]) => h("option", { value: v, text: l, selected: String(v) === String(value) }))); s.addEventListener("change", () => onChange(s.value)); return s; };
   const text = (value, ph, onChange, type = "text") => { const i = h("input", { type, value: String(value ?? ""), placeholder: ph || "" }); i.addEventListener("change", () => onChange(i.value)); return i; };
   const toggle = (value, onChange) => {
-    const c = h("div", { cls: "checkbox-container" + (value ? " is-enabled" : ""), role: "switch", tabindex: "0", "aria-checked": String(!!value) });
-    const flip = () => { const on = c.classList.toggle("is-enabled"); c.setAttribute("aria-checked", String(on)); onChange(on); };
+    const c = h("div", { cls: "checkbox-container" + (value ? " is-active" : ""), role: "switch", tabindex: "0", "aria-checked": String(!!value) });
+    const flip = () => { const on = c.classList.toggle("is-active"); c.setAttribute("aria-checked", String(on)); onChange(on); };
     c.addEventListener("click", flip);
     c.addEventListener("keydown", (e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); } });
     return c;

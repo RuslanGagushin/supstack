@@ -5,7 +5,6 @@
 .sn-outline,
 .sn-editor {
   --sn-bg: var(--background-primary);
-  --sn-surface: var(--background-primary);
   --sn-text: var(--text-normal);
 
   --sn-line: var(--background-modifier-border);
@@ -13,7 +12,6 @@
   --sn-hover: var(--background-modifier-hover);
   --sn-mark: var(--text-highlight-bg);
   --sn-accent: var(--interactive-accent);
-  --sn-c-accent: color-mix(in srgb, var(--interactive-accent) 12%, var(--sn-surface));
 }
 
 .sn-board {
@@ -53,7 +51,6 @@
 .sn-crumb-icon svg { width: var(--icon-xs); height: var(--icon-xs); }
 .sn-crumb-sep { flex: 0 0 auto; padding: 0 var(--sp-2); }
 
-.sn-tools > .sn-seg + .sn-seg { border-inline-start: 0; }
 /* the phone's bar: the sort and grouping fold into one "View" button (board.js) */
 .sn-board .sn-tools > .sn-narrow-only { display: none; }
 @media (max-width: 820px) {
@@ -62,7 +59,6 @@
 }
 /* at the top the crumbs are empty: they only push the tools right, and need no room of their own */
 .sn-crumbs:empty { min-width: 0; }
-.sn-board .sn-seg .clickable-icon { min-width: 24px; font-variant-numeric: tabular-nums; }
 @container (max-width: 640px) { .sn-hide-narrow { display: none !important; } }
 
 /* ---------- Scroll area */
@@ -94,22 +90,12 @@
 
 
 /* Parent chips: Properties-panel pills */
-.sn-chip:hover { border-color: var(--pill-border-color-hover, var(--sn-line-hover)); background: var(--pill-background-hover, var(--sn-hover)); color: var(--pill-color-hover, var(--sn-text)); }
-.sn-chip-icon { display: inline-flex; }
-.sn-chip.is-missing { cursor: default; }
-.sn-chip-x { display: inline-flex; margin-inline-start: var(--sp-2); margin-inline-end: calc(var(--sp-4) * -1); opacity: .55; border-radius: 50%; }
-.sn-chip-x:hover { opacity: 1; background: var(--background-modifier-hover); }
-.sn-chip-x svg { width: var(--icon-xs); height: var(--icon-xs); }
 
 /* Card text */
 .sn-mark { background: var(--sn-mark); color: inherit; border-radius: 2px; }
 
 /* Tags */
 .sn-tags { display: flex; flex-wrap: wrap; }
-.sn-tag {
-  cursor: var(--cursor-link, pointer);
-}
-.sn-tag:hover { background: var(--tag-background-hover); }
 
 /* Footer */
 /* the card's "⋯" shows with the pointer over the card or the focus in it; touch screens always show it */
@@ -157,11 +143,9 @@
 .sn-search:focus-within { border-color: var(--background-modifier-border-focus); box-shadow: var(--ring); }
 .sn-search-icon { display: inline-flex; color: var(--text-muted); }
 .sn-board .sn-search-input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; box-shadow: none !important; }
-.sn-board .sn-filter-btn, .sn-board .sn-filter-chip { gap: var(--sp-6); }
-.sn-board .sn-filter-btn svg, .sn-board .sn-filter-chip svg { width: var(--icon-xs); height: var(--icon-xs); }
+.sn-board .sn-filter-btn { gap: var(--sp-6); }
+.sn-board .sn-filter-btn svg { width: var(--icon-xs); height: var(--icon-xs); }
 .sn-board .sn-filter-btn.is-active { color: var(--text-accent); }
-.sn-board .sn-filter-chip { background: var(--tag-background, var(--sn-c-accent)); color: var(--tag-color, var(--text-accent)); box-shadow: none; border-radius: var(--r-xs); }
-.sn-board .sn-filter-chip:hover { background: var(--tag-background-hover, var(--sn-c-accent)); color: var(--tag-color); }
 .sn-board .sn-filter-btn[disabled] { opacity: var(--disabled); pointer-events: none; }
 .sn-filter-chip-x { display: inline-flex; opacity: 0.6; }
 .sn-filterbar .sn-spacer { flex: 1; }
@@ -177,7 +161,7 @@
 @media (hover: hover) { .sn-board .sn-tools > .sn-desktop-optional:not(.is-active) { opacity: 0.6; } }
 .sn-board .sn-selbar-btn { padding: var(--sp-6) var(--sp-8); }
 .sn-board .sn-selbar-btn:hover { color: var(--sn-text); }
-.sn-board .sn-selbar-btn.is-warning { color: var(--text-error); }
+.sn-board .sn-selbar-btn.is-warn { color: var(--text-error); }
 .sn-board .sn-selbar-btn svg { width: var(--icon-xs); height: var(--icon-xs); }
 
 .sn-card:focus { outline: none; }

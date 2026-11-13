@@ -23,7 +23,7 @@ async function share(shared) {
 }
 const saveTo = async (label) => {
   await page().selectOption(".sn-share-to", { label });
-  await page().click(".sn-share .mod-cta");
+  await page().click(".sn-share .is-primary");
   await settle();
 };
 
@@ -59,7 +59,7 @@ describe("share to Supstack", () => {
     const d = await share({ text: "y", subject: "Second" });
     assert.equal(await ev(() => document.querySelector(".sn-share-to").selectedOptions[0].textContent), "A new note in Reading");
     assert.ok(d);
-    await page().click(".sn-share button:not(.mod-cta):not(.modal-close)");
+    await page().click(".sn-share button:not(.is-primary):not(.modal-close)");
     assert.equal(await share(null), null);
     await open(null); // the desktop app
     assert.equal(await share({ text: "z", subject: "" }), null, "only Android takes shares");

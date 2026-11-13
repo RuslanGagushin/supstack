@@ -82,15 +82,15 @@ export async function showWelcome() {
   const actions = h("div", { cls: "sn-welcome-actions" });
   if (IS_NATIVE) {
     const ln = lastNative();
-    if (ln) actions.append(h("button", { cls: "wb-btn primary", onClick: () => nativeReopen(ln) }, ic("", "history"), t("reopen", { name: ln.name })));
-    actions.append(h("button", { cls: "wb-btn" + (ln ? "" : " primary"), onClick: () => nativePick() }, ic("", "folder-open"), nt("openFolder")));
+    if (ln) actions.append(h("button", { cls: "sn-btn is-primary", onClick: () => nativeReopen(ln) }, ic("", "history"), t("reopen", { name: ln.name })));
+    actions.append(h("button", { cls: "sn-btn" + (ln ? "" : " is-primary"), onClick: () => nativePick() }, ic("", "folder-open"), nt("openFolder")));
   } else if (hasFsApi) {
-    actions.append(h("button", { cls: "wb-btn primary", onClick: () => pickVault() }, ic("", "folder-open"), t("openVault")));
-    if (last) actions.append(h("button", { cls: "wb-btn", onClick: () => reopenVault(last) }, ic("", "history"), t("reopen", { name: last.name })));
+    actions.append(h("button", { cls: "sn-btn is-primary", onClick: () => pickVault() }, ic("", "folder-open"), t("openVault")));
+    if (last) actions.append(h("button", { cls: "sn-btn", onClick: () => reopenVault(last) }, ic("", "history"), t("reopen", { name: last.name })));
   } else {
-    actions.append(h("button", { cls: "wb-btn primary", onClick: () => $("#folder-input").click() }, ic("", "folder-open"), t("loadCopy")));
+    actions.append(h("button", { cls: "sn-btn is-primary", onClick: () => $("#folder-input").click() }, ic("", "folder-open"), t("loadCopy")));
   }
-  actions.append(h("button", { cls: "wb-btn", onClick: () => loadVault(demoVault()) }, ic("", "flask-conical"), t("demo")));
+  actions.append(h("button", { cls: "sn-btn", onClick: () => loadVault(demoVault()) }, ic("", "flask-conical"), t("demo")));
   card.append(actions, h("p", { cls: "sn-welcome-note", text: IS_NATIVE ? nt(IS_ANDROID ? "appNoteAndroid" : "appNote") : hasFsApi ? t("browserNote") : t("noFsApi") }));
   const corner = h("div", { cls: "sn-welcome-corner" },
     iconBtn("languages", "Language", (e) => { const m = new Menu(); for (const [v, l] of [["auto", "Auto"], ["en", "English"], ["ru", "Русский"]]) m.add(l, null, () => { UI.lang = v; saveUI(); showWelcome(); }, { checked: UI.lang === v }); m.showBelow(e.currentTarget); }),

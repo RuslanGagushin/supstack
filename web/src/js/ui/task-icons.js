@@ -8,8 +8,9 @@ import { h, ic } from "./dom.js";
 const DATE_ICON = { dead: "flag", sched: "calendar", closed: "check", event: "calendar-clock" };
 /** A task's date as a chip, in the agenda and in a note being read: a deadline is a flag (red when due or overdue, amber
  *  in its warning days), a scheduled date a calendar, a closed one a tick. */
+const CHIP_TONE = { due: "is-danger", soon: "is-warn" };
 export function dateChip(kind, text, tone = "", title = "") {
-  return h("span", { cls: "ag-chip k-" + kind + (tone ? " is-" + tone : ""), title: title || null }, DATE_ICON[kind] ? ic("", DATE_ICON[kind]) : null, h("span", { text }));
+  return h("span", { cls: "sn-chip is-s k-" + kind + (tone ? " " + CHIP_TONE[tone] : ""), title: title || null }, DATE_ICON[kind] ? ic("", DATE_ICON[kind]) : null, h("span", { text }));
 }
 
 const RING = '<circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5"/>';

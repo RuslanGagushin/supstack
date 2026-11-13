@@ -210,7 +210,7 @@ export function renderFilesView(root) {
   bar.append(h("div", { cls: "sn-nav" }, sideToggle(), back));
   // no breadcrumbs, as above the list of notes: the view's title says where it is, ← and the sidebar go back
   bar.append(h("div", { cls: "sn-crumbs" }));
-  bar.append(h("div", { cls: "sn-tools" }, h("button", { cls: "wb-btn", type: "button", title: fvt("upload"), onClick: () => uploadAttachments() }, ic("", "upload"), h("span", { cls: "wb-label", text: fvt("upload") }))));
+  bar.append(h("div", { cls: "sn-tools" }, h("button", { cls: "sn-btn", type: "button", title: fvt("upload"), onClick: () => uploadAttachments() }, ic("", "upload"), h("span", { cls: "wb-label", text: fvt("upload") }))));
   root.append(bar);
 
   const listPane = h("div", { cls: "fv-pane" });
@@ -225,16 +225,16 @@ export function renderFilesView(root) {
   search.value = FV.query;
   search.addEventListener("input", debounce(() => { FV.query = search.value; fvRenderList(); }, 120));
   search.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowDown" || e.key === "Enter") { e.preventDefault(); const l = $(".fv-list"); l?.focus(); if (!FV.sel || !l?.querySelector(".fv-row.sel")) fvSelect(l?.querySelector(".fv-row")?.dataset.path); }
+    if (e.key === "ArrowDown" || e.key === "Enter") { e.preventDefault(); const l = $(".fv-list"); l?.focus(); if (!FV.sel || !l?.querySelector(".fv-row.is-selected")) fvSelect(l?.querySelector(".fv-row")?.dataset.path); }
     else if (e.key === "Escape" && search.value) { e.stopPropagation(); search.value = ""; FV.query = ""; fvRenderList(); }
   });
-  const seg = h("div", { cls: "sn-seg fv-kinds", role: "tablist" });
+  const seg = h("div", { cls: "sn-seg is-s fv-kinds", role: "tablist" });
   for (const [k, l] of [["all", "kAll"], ["images", "kImages"], ["pdf", "kPdf"], ["media", "kMedia"], ["other", "kOther"]]) {
     const b = h("button", { cls: "clickable-icon" + (FV.kind === k ? " is-active" : ""), type: "button", text: fvt(l), role: "tab", "aria-selected": String(FV.kind === k) });
     b.addEventListener("click", () => { FV.kind = k; saveFV(); $$(".fv-kinds .clickable-icon").forEach((x) => x.classList.toggle("is-active", x === b)); fvRenderList(); });
     seg.append(b);
   }
-  const unused = h("button", { cls: "fchip fv-unused" + (FV.unused ? " inc" : ""), type: "button", text: fvt("unused"), title: fvt("unusedHint"), "aria-pressed": String(FV.unused) });
+  const unused = h("button", { cls: "sn-chip fv-unused" + (FV.unused ? " is-accent" : ""), type: "button", text: fvt("unused"), title: fvt("unusedHint"), "aria-pressed": String(FV.unused) });
   unused.addEventListener("click", () => { FV.unused = !FV.unused; saveFV(); unused.classList.toggle("inc", FV.unused); unused.setAttribute("aria-pressed", String(FV.unused)); fvRenderList(); });
   const sortBtn = iconBtn("arrow-up-down", fvt("sort"), (e) => {
     const m = new Menu();
@@ -271,7 +271,7 @@ export function fvRenderList() {
   for (const p of rows) {
     const refs = FV.refs.get(p) || [];
     const sub = refs.length ? baseName(refs[0]) + (refs.length > 1 ? ` +${refs.length - 1}` : "") : dirName(p) || fvt("root");
-    const row = h("div", { cls: "fv-row" + (p === FV.sel ? " sel" : "") + (refs.length ? "" : " is-unused"), role: "option", "aria-selected": String(p === FV.sel), dataset: { path: p }, title: p },
+    const row = h("div", { cls: "fv-row" + (p === FV.sel ? " is-selected" : "") + (refs.length ? "" : " is-unused"), role: "option", "aria-selected": String(p === FV.sel), dataset: { path: p }, title: p },
       ic("fv-icon", fileIcon(p)),
       h("div", { cls: "fv-row-main" },
         h("div", { cls: "fv-row-name" }, h("span", { cls: "fv-name", text: fileName(p) }), h("span", { cls: "fv-size", text: fmtSize(vault.sizes.get(p)) })),
@@ -303,7 +303,7 @@ export function fvSelect(p, scroll = false) {
   const changed = FV.sel !== p;
   FV.sel = p;
   FV.shown = !(scroll && fvNarrow());
-  $$(".fv-row").forEach((r) => { const on = r.dataset.path === p; r.classList.toggle("sel", on); r.setAttribute("aria-selected", String(on)); if (on && scroll) r.scrollIntoView({ block: "nearest" }); });
+  $$(".fv-row").forEach((r) => { const on = r.dataset.path === p; r.classList.toggle("is-selected", on); r.setAttribute("aria-selected", String(on)); if (on && scroll) r.scrollIntoView({ block: "nearest" }); });
   $(".fv")?.classList.toggle("has-sel", FV.shown);
   if (changed) fvRenderPreview();
 }
@@ -332,10 +332,10 @@ function fvRenderPreview() {
   pane.replaceChildren();
   if (!p || !vault.allPaths.has(p)) { pane.append(h("div", { cls: "fv-placeholder" }, ic("", "paperclip"), h("span", { text: fvt("select") }))); return; }
   const refs = FV.refs?.get(p) || [];
-  const close = iconBtn("arrow-left", t("back"), () => { FV.sel = null; $(".fv")?.classList.remove("has-sel"); $$(".fv-row.sel").forEach((r) => r.classList.remove("sel")); }, "fv-close");
+  const close = iconBtn("arrow-left", t("back"), () => { FV.sel = null; $(".fv")?.classList.remove("has-sel"); $$(".fv-row.is-selected").forEach((r) => r.classList.remove("is-selected")); }, "fv-close");
   const crumb = h("div", { cls: "fv-crumb" }, h("span", { cls: "fv-crumb-folder", text: dirName(p) || fvt("root") }), h("span", { cls: "sn-crumb-sep", text: "/" }),
     h("span", { cls: "fv-crumb-name", text: fileName(p), title: fvt("rename").replace("…", ""), onClick: () => promptRenameAttachment(p) }));
-  const goto = h("button", { cls: "mod-cta fv-goto", type: "button", disabled: !refs.length, title: refs.length ? refs.map(baseName).join(", ") : fvt("notUsed") }, ic("", "file-symlink"), h("span", { text: fvt("goToNote") }));
+  const goto = h("button", { cls: "is-primary fv-goto", type: "button", disabled: !refs.length, title: refs.length ? refs.map(baseName).join(", ") : fvt("notUsed") }, ic("", "file-symlink"), h("span", { text: fvt("goToNote") }));
   goto.addEventListener("click", (e) => goToAttachmentNote(p, e.currentTarget));
   const tools = h("div", { cls: "fv-ptools" },
     iconBtn("download", fvt("download"), () => downloadAttachment(p)),
@@ -348,7 +348,7 @@ function fvRenderPreview() {
   pane.append(h("div", { cls: "fv-phead" }, close, crumb, tools), h("div", { cls: "fv-meta", text: meta }), body);
   const fail = (e) => body.replaceChildren(h("div", { cls: "fv-placeholder", text: String(e?.message || e) }));
   const generic = () => body.replaceChildren(h("div", { cls: "fv-placeholder" }, ic("fv-big", fileIcon(p)), h("span", { text: fvt("noPreview") }),
-    h("button", { cls: "wb-btn", type: "button", onClick: () => openAttachment(p) }, ic("", "external-link"), h("span", { text: fvt("open") }))));
+    h("button", { cls: "sn-btn", type: "button", onClick: () => openAttachment(p) }, ic("", "external-link"), h("span", { text: fvt("open") }))));
   const kind = fileKind(p);
   if (kind === "images") attachmentUrl(p).then((u) => body.append(h("img", { cls: "fv-img", src: u, alt: fileName(p) }))).catch(fail);
   else if (kind === "pdf") {

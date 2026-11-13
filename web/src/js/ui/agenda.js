@@ -44,7 +44,7 @@ export function openTasksView(push = true, view) {
   setTimeout(() => $(".ag-body")?.focus({ preventScroll: true }), 0);
 }
 export function tasksButton() {
-  const b = h("button", { id: "tasks-btn", type: "button", cls: "wb-btn wb-tasks" });
+  const b = h("button", { id: "tasks-btn", type: "button", cls: "sn-btn wb-tasks" });
   b.addEventListener("click", () => (board.view === "tasks" ? goBack() : openTasksView()));
   setTimeout(renderTasksButton, 0);
   return b;
@@ -166,13 +166,13 @@ export function renderTasksView(root) {
     b.addEventListener("click", () => orgSetView(v));
     seg.append(b);
   }
-  tools.append(seg, h("button", { cls: "wb-btn ag-capture", type: "button", title: tt("capture") + " (c)", onClick: () => orgCapture() }, ic("", "plus"), h("span", { cls: "wb-label", text: tt("capture") })));
+  tools.append(seg, h("button", { cls: "sn-btn ag-capture", type: "button", title: tt("capture") + " (c)", onClick: () => orgCapture() }, ic("", "plus"), h("span", { cls: "wb-label", text: tt("capture") })));
   bar.append(tools);
   root.append(bar);
 
   // agenda bar
   const agbar = h("div", { cls: "agbar" });
-  const btn = (text, title, fn, pressed, cls = "") => { const b = h("button", { cls: "wb-btn ag-btn " + cls, type: "button", text, title, "aria-pressed": pressed == null ? null : String(!!pressed) }); b.addEventListener("click", fn); return b; };
+  const btn = (text, title, fn, pressed, cls = "") => { const b = h("button", { cls: "sn-btn ag-btn " + cls, type: "button", text, title, "aria-pressed": pressed == null ? null : String(!!pressed) }); b.addEventListener("click", fn); return b; };
   if (AG.view === "agenda") {
     const sp = h("div", { cls: "sn-seg" });
     for (const [v, k, key] of [["day", "day", "d"], ["week", "week", "w"], ["month", "month", "M"]]) { const b = h("button", { cls: "clickable-icon" + (AG.span === v ? " is-active" : ""), type: "button", text: tt(k), title: `${tt(k)} (${key})` }); b.addEventListener("click", () => { AG.span = v; saveAG(); renderBoard(); }); sp.append(b); }
@@ -205,7 +205,7 @@ export function renderTasksView(root) {
     const chips = h("div", { cls: "ag-chips" });
     for (const tg of tags) {
       const v = AG.filter[tg];
-      const c = h("button", { cls: "fchip" + (v === 1 ? " inc" : v === -1 ? " exc" : ""), type: "button", text: (v === 1 ? "+" : v === -1 ? "−" : "") + tg, title: "include · exclude · off (/)" });
+      const c = h("button", { cls: "sn-chip" + (v === 1 ? " is-accent" : v === -1 ? " is-danger is-struck" : ""), type: "button", text: (v === 1 ? "+" : v === -1 ? "−" : "") + tg, title: "include · exclude · off (/)" });
       c.addEventListener("click", () => { if (v === 1) AG.filter[tg] = -1; else if (v === -1) delete AG.filter[tg]; else AG.filter[tg] = 1; renderBoard(); });
       chips.append(c);
     }
@@ -252,7 +252,7 @@ export function renderTasksView(root) {
     const strip = h("div", { cls: "ag-strip", role: "toolbar", "aria-label": tt("week") });
     for (let i = 0; i < 7; i++) {
       const dn = week0 + i, has = orgDayEntries(dn, all, T, { log: AG.log, carried: true }).some((x) => !x.grid && pass(x.e));
-      const b = h("button", { type: "button", cls: "ag-strip-day" + (dn === T ? " is-today" : "") + (AG.span === "day" && dn === AG.anchor ? " is-on" : ""), "aria-label": oFmt(dn, "dddd D MMMM") },
+      const b = h("button", { type: "button", cls: "ag-strip-day" + (dn === T ? " is-today" : "") + (AG.span === "day" && dn === AG.anchor ? " is-selected" : ""), "aria-label": oFmt(dn, "dddd D MMMM") },
         h("span", { cls: "wd", text: oFmt(dn, "ddd") }), h("span", { cls: "dn", text: String(oymd(dn).d) }), h("span", { cls: "dot" + (has ? " has" : "") }));
       b.addEventListener("click", () => { AG.span = "day"; AG.anchor = dn; saveAG(); renderBoard(); });
       strip.append(b);
@@ -380,7 +380,7 @@ function orgRow(x) {
   // the note it is in, quietly after its title (spec UI-18); left out when every row comes from one note (.one-cat)
   main.append(h("span", { cls: "ag-cat", title: e.path, text: e.category }));
   const shown = e.alltags.filter((x) => !(e.title || "").toLowerCase().includes("#" + x.toLowerCase()));
-  if (shown.length) main.append(h("span", { cls: "tags" }, shown.map((tg) => h("span", { cls: "tag" + (e.inherited.includes(tg) ? " inh" : ""), text: tg }))));
+  if (shown.length) main.append(h("span", { cls: "tags" }, shown.map((tg) => h("span", { cls: "sn-chip is-s" + (e.inherited.includes(tg) ? " is-outline" : ""), text: tg }))));
   const act = h("span", { cls: "ag-act" });
   if (e.kind !== "event") act.append(h("button", { type: "button", dataset: { act: "state" }, text: tt("actState"), title: "T" }));
   if (x.kind === "sched" || x.kind === "dead" || x.kind === "ts") act.append(h("button", { type: "button", dataset: { act: "later" }, text: tt("actLater"), title: "Shift+→" }));
@@ -401,9 +401,9 @@ export function orgSelect(i, scroll = true) {
   if (!x) return;
   AG.sel = orgRowKey(x);
   AG.selRaw = { path: x.e.path, raw: x.e.raw };
-  $$(".ag-row.sel").forEach((r) => { r.classList.remove("sel"); r.setAttribute("aria-selected", "false"); });
+  $$(".ag-row.is-selected").forEach((r) => { r.classList.remove("is-selected"); r.setAttribute("aria-selected", "false"); });
   const r = $(`.ag-row[data-i="${i}"]`);
-  if (r) { r.classList.add("sel"); r.setAttribute("aria-selected", "true"); if (scroll) r.scrollIntoView({ block: "nearest" }); }
+  if (r) { r.classList.add("is-selected"); r.setAttribute("aria-selected", "true"); if (scroll) r.scrollIntoView({ block: "nearest" }); }
 }
 function orgAct(x, act) {
   if (!x) return;
@@ -576,7 +576,7 @@ export function orgCapture(pre = {}) {
   };
   panel.append(iconBtn("x", t("close"), () => close(), "modal-close"), h("div", { cls: "modal-title", text: tt("capTitle") }), tplRow,
     h("label", { cls: "cap-field" }, h("span", { text: tt("capHead") }), head), whenWrap, h("label", { cls: "cap-field" }, h("span", { text: tt("capNotes") }), notes), toWrap,
-    h("div", { cls: "modal-buttons" }, h("span", { cls: "cap-keys", text: tt("capHint") }), h("button", { type: "button", text: tt("capAbort"), onClick: () => close() }), h("button", { type: "button", cls: "mod-cta", text: tt("capOk"), onClick: finish })));
+    h("div", { cls: "modal-buttons" }, h("span", { cls: "cap-keys", text: tt("capHint") }), h("button", { type: "button", text: tt("capAbort"), onClick: () => close() }), h("button", { type: "button", cls: "is-primary", text: tt("capOk"), onClick: finish })));
   when.addEventListener("input", upd);
   panel.addEventListener("keydown", (e) => {
     if (isMod(e) && e.key === "Enter") { e.preventDefault(); finish(); return; }

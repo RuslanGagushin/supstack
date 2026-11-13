@@ -117,7 +117,7 @@ describe("board", () => {
     assert.match(await page().textContent(".sn-selbar"), /2 selected/);
     await page().focus('#board .sn-card[data-path="cards/Knowledge.md"]');
     await page().keyboard.press("Delete");
-    await page().click(".modal .mod-warning");
+    await page().click(".modal .is-danger");
     await page().waitForFunction(() => !vault.notes.has("cards/Knowledge.md") && !vault.notes.has("cards/Draft thoughts.md"));
     await page().keyboard.press("Control+z");
     await page().waitForFunction(() => vault.notes.has("cards/Knowledge.md") && vault.notes.has("cards/Draft thoughts.md"));
@@ -451,7 +451,7 @@ describe("sidebar", () => {
     const r = ev(() => orgAskDate("Schedule", null));
     await page().waitForSelector(".prompt.mod-ask .org-cal");
     const state = () => ev(() => ({
-      sel: $(".cal-day.is-sel")?.classList.contains("is-today") ?? false, today: $$(".cal-day.is-today").length,
+      sel: $(".cal-day.is-selected")?.classList.contains("is-today") ?? false, today: $$(".cal-day.is-today").length,
       ok: !$(".cal-ok").disabled, end: !$(".cal-end").hidden, input: $(".prompt-input").value,
     }));
     assert.deepEqual(await state(), { sel: true, today: 1, ok: true, end: false, input: "" }, "today is picked, so OK works at once");
@@ -462,7 +462,7 @@ describe("sidebar", () => {
     await type(".cal-t.is-end", "1530");
     assert.match(await page().inputValue(".prompt-input"), / 14:00-15:30$/);
     await type(".cal-t.is-start", "25:99");
-    assert.equal(await ev(() => $(".cal-t.is-start").classList.contains("is-bad")), true, "a time it can't read is marked");
+    assert.equal(await ev(() => $(".cal-t.is-start").getAttribute("aria-invalid") === "true"), true, "a time it can't read is marked");
     assert.match(await page().inputValue(".prompt-input"), / 14:00-15:30$/, "and changes nothing");
     await page().fill(".cal-t.is-start", "930");
     await page().press(".cal-t.is-start", "Enter");

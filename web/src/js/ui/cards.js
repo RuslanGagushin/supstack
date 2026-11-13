@@ -26,7 +26,7 @@ export function formatDate(ms) {
   return d.toLocaleDateString(LANG, sameYear ? { day: "numeric", month: "short" } : { day: "numeric", month: "short", year: "numeric" });
 }
 export function parentChip(parentPath, onRemove) {
-  const chip = h("a", { cls: "sn-chip", href: "#", title: parentPath });
+  const chip = h("a", { cls: "sn-chip is-s", href: "#", title: parentPath });
   chip.append(ic("sn-chip-icon", cardIcon(parentPath) || "layers", "layers"), h("span", { text: baseName(parentPath) }));
   chip.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); if (isMod(e)) openEditor(parentPath); else setTarget(parentPath); });
   if (onRemove) {
@@ -152,7 +152,7 @@ export function renderRow(path, via, folder = false) {
   const tags = n?.tags || [];
   if (tags.length) {
     const tr = h("span", { cls: "sn-tags sn-row-tags" });
-    for (const tg of tags) tr.append(h("span", { cls: "sn-tag", text: tg.replace(/^#/, ""), onClick: (e) => { e.stopPropagation(); openTagView(tg); } }));
+    for (const tg of tags) tr.append(h("span", { cls: "sn-chip is-s is-link", text: tg.replace(/^#/, ""), onClick: (e) => { e.stopPropagation(); openTagView(tg); } }));
     meta.append(tr);
   }
   text.append(meta);

@@ -16,7 +16,7 @@ const ringShown = () => ev(() => {
   const a = document.activeElement;
   if (!a || a === document.body || a.isContentEditable) return true; // a text field shows its caret
   const ring = (el) => { const s = getComputedStyle(el); return (s.outlineStyle !== "none" && parseFloat(s.outlineWidth) > 0) || s.boxShadow !== "none"; };
-  if (ring(a) || [...a.children].some((c) => c.matches(".sn-tree-row, .ag-row.sel") && ring(c)) || [...a.querySelectorAll(".ag-row.sel")].some(ring)) return true;
+  if (ring(a) || [...a.children].some((c) => c.matches(".sn-tree-row, .ag-row.is-selected") && ring(c)) || [...a.querySelectorAll(".ag-row.is-selected")].some(ring)) return true;
   for (let e = a.parentElement, k = 0; e && k < 3; e = e.parentElement, k++) if (e.matches(".sn-search, .sn-composer") && ring(e)) return true;
   return false;
 });
@@ -114,11 +114,11 @@ describe("the keyboard (A11Y-2)", () => {
     await page().keyboard.press("Tab");
     assert.equal(await ev(() => document.activeElement.matches(".ag-body")), true);
     await page().keyboard.press("n");
-    const a = await ev(() => document.querySelector(".ag-row.sel")?.dataset.i);
+    const a = await ev(() => document.querySelector(".ag-row.is-selected")?.dataset.i);
     await page().keyboard.press("n");
     await page().keyboard.press("p");
-    assert.equal(await ev(() => document.querySelector(".ag-row.sel")?.dataset.i), a);
-    assert.equal(await ev(() => document.querySelector(".ag-row.sel").getAttribute("aria-selected")), "true");
+    assert.equal(await ev(() => document.querySelector(".ag-row.is-selected")?.dataset.i), a);
+    assert.equal(await ev(() => document.querySelector(".ag-row.is-selected").getAttribute("aria-selected")), "true");
     assert.equal(await ringShown(), true, "the chosen row is ringed while the agenda has the focus");
     noErrors();
   });

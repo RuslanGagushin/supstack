@@ -336,7 +336,7 @@ function renderFilterBar(model) {
     if (e.key === "Enter") { e.preventDefault(); $(".sn-board .sn-rows .sn-card")?.focus(); }
   });
   bar.append(h("div", { cls: "sn-search" }, ic("sn-search-icon", "search"), input));
-  const scope = h("div", { cls: "sn-seg sn-scope" });
+  const scope = h("div", { cls: "sn-seg is-s sn-scope" });
   for (const [v, label] of [["here", t("scopeHere")], ["all", t("scopeAll")]]) {
     const cur = board.filter.scope === "all" ? "all" : "here";
     const b = h("button", { cls: "clickable-icon" + (cur === v ? " is-active" : ""), type: "button", text: label });
@@ -355,7 +355,7 @@ function renderFilterBar(model) {
     m.showBelow(e.currentTarget);
   });
   bar.append(tb);
-  for (const tg of board.filter.tags) bar.append(h("button", { cls: "clickable-icon sn-filter-chip", type: "button", onClick: () => toggleTagFilter(tg) }, h("span", { text: "#" + tg }), ic("sn-filter-chip-x", "x")));
+  for (const tg of board.filter.tags) bar.append(h("button", { cls: "sn-chip sn-filter-chip", type: "button", onClick: () => toggleTagFilter(tg) }, h("span", { text: "#" + tg }), ic("sn-filter-chip-x", "x")));
   bar.append(h("div", { cls: "sn-spacer" }));
   if (filterActive(board.filter)) bar.append(h("button", { cls: "clickable-icon", type: "button", text: t("clear"), onClick: () => { board.filter = { query: "", tags: [], scope: board.filter.scope }; persistBoard(); renderBoard(); $(".sn-search-input")?.focus(); } }));
   bar.append(iconBtn("x", t("close"), () => toggleSearch(false)));
@@ -387,7 +387,7 @@ function renderSelbar() {
   const sel = [...board.selection].filter((p) => graph.has(p));
   if (!sel.length) return;
   const bar = h("div", { cls: "sn-selbar" }, h("span", { cls: "sn-selbar-count", text: t("selected", { n: sel.length }) }));
-  const btn = (icn, label, fn, warn) => { const b = h("button", { cls: "clickable-icon sn-selbar-btn" + (warn ? " is-warning" : ""), type: "button" }, ic("", icn), h("span", { text: label })); b.addEventListener("click", fn); bar.append(b); };
+  const btn = (icn, label, fn, warn) => { const b = h("button", { cls: "clickable-icon sn-selbar-btn" + (warn ? " is-warn" : ""), type: "button" }, ic("", icn), h("span", { text: label })); b.addEventListener("click", fn); bar.append(b); };
   const viaOf = (p) => $(`.sn-card[data-path="${CSS.escape(p)}"]`)?.dataset.via || null;
   btn("smile", t("icon"), () => promptIcon(sel));
   btn("tag", t("selAddTag"), () => promptAddTag(sel));
