@@ -22,6 +22,7 @@ import { openToday, outlineMenu, setFocusMode } from "./completion.js";
 import { orgFoldNote } from "./org-editing.js";
 import { AG, exportCalendar, openTasksView, orgCapture, renderTasksButton, tasksButton } from "./agenda.js";
 import { CAPTURE_KEY_DEFAULT, captureKey, captureShortcutAvailable, setCaptureKey } from "./native-shell.js";
+import { applyLayout, foldDrawer, sideIsDrawer, sideSetByHand } from "./layout.js";
 import { onow } from "../core/org.js";
 import { filesButton, openFilesView } from "./files.js";
 import { aboutBody } from "./about.js";
@@ -38,8 +39,11 @@ export function applyLanguage() {
   document.documentElement.lang = LANG;
 }
 export function setSide(open) {
+  // a drawer the layout put over the page closes without changing the setting (ui/layout.js)
+  if (!open && sideIsDrawer()) { foldDrawer(); return; }
   UI.sideOpen = open;
   saveUI();
+  sideSetByHand(open);
   $("#app").classList.toggle("side-closed", !open);
 }
 function showLoading(on) {
@@ -186,6 +190,7 @@ function renderAll() {
   expandTo(board.target); // a vault reopens on its last list: the tree shows that notebook too
   renderTree();
   renderBoard(true);
+  applyLayout();
 }
 /** The phone's bottom bar (shown only on touch screens, see app.css): the board, the agenda (a second tap goes to today),
    finding a card by name, and capture. It slides away while a list scrolls down and comes back when it scrolls up. */

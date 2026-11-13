@@ -20,6 +20,7 @@ import { editorTable, editorTableOp, tableMenu } from "./table-editor.js";
 import { editorKeys, renderEditorProps, renderEdToolbar, toggleReading, updateEdToolbar } from "./editor-toolbar.js";
 import { downloadNote, updateFmtBar } from "./format-bar.js";
 import { refresh } from "./shell.js";
+import { applyLayout } from "./layout.js";
 import { markOpenInTree } from "./tree.js";
 import { ac, acClose, acUpdate, caretRect, outlineMenu, setFocusMode, wireEditorFiles } from "./completion.js";
 
@@ -39,6 +40,7 @@ export function openEditor(path, o = {}) {
   if (editor.mode === "source" && o.keepMode !== true) editor.mode = "edit";
   $("#app").classList.add("editor-open");
   $("#app").classList.toggle("editor-wide", editor.wide);
+  applyLayout();
   renderEditor();
   $$(":is(.sn-card, .sn-list-desc).is-editing").forEach((c) => c.classList.remove("is-editing"));
   $$(`.sn-list-desc[data-path="${CSS.escape(path)}"]`).forEach((c) => c.classList.add("is-editing"));
@@ -59,6 +61,7 @@ export function closeEditor(force = false) {
   editor.path = null;
   editor.live = null;
   $("#app")?.classList.remove("editor-open", "editor-wide");
+  applyLayout();
   $$(":is(.sn-card, .sn-list-desc).is-editing").forEach((c) => c.classList.remove("is-editing"));
   markOpenInTree();
   const host = $("#editor");

@@ -257,8 +257,22 @@ body.sn-app :is(.wb-btn kbd, button.sn-tb-insert kbd) { font-family: var(--font-
 
 /* ---------- List of notes (layout "notes"): rows on the grey, the open note on a white sheet beside them */
 @media (min-width: 821px) {
-  body.sn-app #app.notes-layout.editor-open:not(.editor-wide):not(.focus-mode) { grid-template-columns: auto auto var(--list-w, 380px) auto minmax(0, 1fr); }
+  /* the list gives way, down to 260px, before the note beside it goes under 500px (spec UI-1); a sidebar that lies
+     over the page as a drawer (is-mid, ui/layout.js) takes no room */
+  body.sn-app #app.notes-layout.editor-open:not(.editor-wide):not(.focus-mode) { grid-template-columns: auto auto clamp(260px, var(--list-w, 380px), calc(100vw - 500px)) auto minmax(0, 1fr); }
+  body.sn-app #app.notes-layout.editor-open:not(.editor-wide):not(.focus-mode):not(.side-closed):not(.is-mid) { grid-template-columns: auto auto clamp(260px, var(--list-w, 380px), calc(100vw - var(--side-w, 280px) - 500px)) auto minmax(0, 1fr); }
   body.sn-app #app.notes-layout.editor-open:not(.editor-wide) .sn-editor { width: auto; max-width: none; }
+
+  /* under 1180px with a note open the sidebar is folded away; opened by hand, it lies over the page as a drawer (UI-2) */
+  body.sn-app #app.is-mid.editor-open:not(.focus-mode) .sn-side { position: fixed; z-index: 30; top: 0; bottom: 0; left: 0; box-shadow: var(--shadow-l); }
+  body.sn-app #app.is-mid.editor-open .sn-resizer.is-side { display: none; }
+  body.sn-app #app.is-mid.editor-open:not(.side-closed):not(.focus-mode) .sn-side-scrim { display: block; position: fixed; inset: 0; z-index: 29; background: var(--background-modifier-cover); }
+
+  /* under 960px the note covers the list, with "‹ its notebook" to go back, as on a phone (UI-3) */
+  body.sn-app #app.is-stacked.editor-open .sn-editor.win { position: fixed; z-index: 35; inset: 0; width: auto; max-width: none; margin: 0; border: 0; border-radius: 0; }
+  body.sn-app #app.is-stacked.editor-open .sn-resizer.is-editor { display: none; }
+  body.sn-app #app.is-stacked a.sn-editor-back { display: inline-flex; }
+  body.sn-app #app.is-stacked .sn-editor-head :is(.sn-editor-path, .sn-editor-places, .sn-editor-close) { display: none; }
 }
 body.sn-app .sn-board.is-notes .sn-page { max-width: 760px; margin: 0 auto; padding: 14px 12px 48px; }
 body.sn-app #app.notes-layout.editor-open .sn-board.is-notes .sn-page { max-width: none; }
