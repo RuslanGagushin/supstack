@@ -111,17 +111,17 @@ test("padding, margin and gap use the spacing scale; the measured offsets are li
   // [a selector the rule starts with, the pixel value it keeps, why]
   const allowed = [
     [".markdown-rendered .org-entry .org-body", "18px", "a task's body starts under its text: box, gap and state letter"],
-    ["body.sn-app input.fv-search", "30px", "room for the search icon"],
-    ["body.sn-app input.sn-set-search", "30px", "room for the search icon"],
-    ["body.sn-app .tree-item-children", "11px", "the indent guide runs under the toggle's centre"],
+    ["input.fv-search", "30px", "room for the search icon"],
+    ["input.sn-set-search", "30px", "room for the search icon"],
+    [".tree-item-children", "11px", "the indent guide runs under the toggle's centre"],
     [".sn-reading:not(.sn-live) .sn-table-wrap", "17px", "room for the add-column button"],
     [".sn-table-host", "17px", "room for the add-column button"],
     [".sn-table-host", "15px", "room for the add-row button"],
     [".sn-row-thumb", "19px", "the thumbnail's top meets the row's title"],
-    ["body.sn-app .sn-page", "80px", "clears the phone's tab bar"],
-    ["body.sn-app .modal.mod-settings > .modal-title", "52px", "room for the close button"],
+    [".sn-page", "80px", "clears the phone's tab bar"],
+    [".modal.mod-settings > .modal-title", "52px", "room for the close button"],
     [".modal-title", "44px", "room for the close button"],
-    ["select", "28px", "room for the chevron"],
+    [":where(select)", "28px", "room for the chevron"],
   ];
   const bad = [];
   for (const f of readdirSync(CSS).filter((f) => f.endsWith(".css"))) {

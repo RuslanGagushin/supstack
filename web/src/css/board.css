@@ -1,19 +1,6 @@
 /* ==========================================================
    Board, cards and tree
    ========================================================== */
-.sn-board,
-.sn-outline,
-.sn-editor {
-  --sn-bg: var(--background-primary);
-  --sn-text: var(--text-normal);
-
-  --sn-line: var(--background-modifier-border);
-  --sn-line-hover: var(--background-modifier-border-hover);
-  --sn-hover: var(--background-modifier-hover);
-  --sn-mark: var(--text-highlight-bg);
-  --sn-accent: var(--interactive-accent);
-}
-
 .sn-board {
   position: relative;
   display: flex;
@@ -36,7 +23,7 @@
 .sn-board .clickable-icon:hover,
 .sn-outline .clickable-icon:hover,
 .sn-editor .clickable-icon:hover,
-.sn-side-head .clickable-icon:hover { background: var(--background-modifier-hover); color: var(--icon-color-hover); }
+.sn-side-head .clickable-icon:hover { background: var(--panel); color: var(--fg); }
 .sn-board .clickable-icon[disabled] { opacity: var(--disabled); pointer-events: none; }
 .sn-board .clickable-icon svg,
 .sn-outline .clickable-icon svg,
@@ -45,11 +32,11 @@
 
 /* ---------- Top bar */
 .sn-nav { display: flex; gap: var(--sp-2); }
-.sn-crumb:hover { background: var(--sn-hover); color: var(--sn-text); }
+.sn-crumb:hover { background: var(--panel); color: var(--fg); }
 .sn-crumb > span:last-child { overflow: hidden; text-overflow: ellipsis; }
 .sn-crumb-icon { flex: 0 0 auto; display: inline-flex; }
 .sn-crumb-icon svg { width: var(--icon-xs); height: var(--icon-xs); }
-.sn-crumb-sep { flex: 0 0 auto; padding: 0 var(--sp-2); }
+.sn-crumb-sep { flex: 0 0 auto; padding: 0 var(--sp-2); color: var(--faint); }
 
 /* the phone's bar: the sort and grouping fold into one "View" button (board.js) */
 .sn-board .sn-tools > .sn-narrow-only { display: none; }
@@ -65,37 +52,28 @@
 .sn-scroll { flex: 1 1 auto; overflow-y: auto; }
 
 /* ---------- Quick-create field */
-.sn-composer {
-  transition: box-shadow var(--dur-1) var(--ease);
-}
-.sn-composer:hover { box-shadow: 0 0 0 var(--border-width) var(--sn-line-hover); }
+.sn-composer { transition: box-shadow var(--dur-1) var(--ease); border-radius: var(--r-m); background: var(--win); box-shadow: 0 0 0 1px var(--line); }
+.sn-composer:hover { box-shadow: 0 0 0 1px var(--line-hover); }
 .sn-composer:focus-within { box-shadow: var(--ring); }
-.sn-board .sn-composer textarea {
-  display: block; width: 100%;
-  resize: none; overflow: hidden;
-  border: 0; background: transparent; line-height: var(--lh-text);
-}
+.sn-board .sn-composer textarea { display: block; width: 100%; resize: none; overflow: hidden; border: 0; background: transparent; line-height: var(--lh-text); font-size: var(--fs-md); height: 44px; min-height: 44px; padding: var(--sp-12) var(--sp-16); }
 /* the composer box draws the focus ring; the field's own ring would double it */
 .sn-board .sn-composer textarea:focus { box-shadow: none; outline: none; }
-.sn-board .sn-composer textarea::placeholder { color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sn-composer-hint { display: none; padding: 0 var(--sp-12) var(--sp-8); color: var(--text-faint); }
+.sn-board .sn-composer textarea::placeholder { color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sn-composer-hint { display: none; padding: 0 var(--sp-16) var(--sp-10); color: var(--faint); font-size: var(--fs-sm); }
 .sn-composer:focus-within .sn-composer-hint { display: block; }
 
 /* ---------- Card */
-.sn-card {
-  position: relative;
-  transition: box-shadow var(--dur-1) var(--ease);
-}
-.sn-card:hover { box-shadow: 0 0 0 var(--border-width) var(--sn-card-border-hover, var(--sn-line-hover)), var(--shadow-2); }
+.sn-card { position: relative; transition: box-shadow var(--dur-1) var(--ease); display: flex; flex-direction: column; padding: var(--sp-14) var(--sp-16) var(--sp-8); border-radius: var(--r-m); background: var(--win); box-shadow: 0 0 0 1px var(--line); }
+.sn-card:hover { box-shadow: 0 0 0 1px var(--line-hover), var(--shadow-2); }
 
 
 /* Parent chips: Properties-panel pills */
 
 /* Card text */
-.sn-mark { background: var(--sn-mark); color: inherit; border-radius: 2px; }
+.sn-mark { background: var(--flash); color: inherit; border-radius: 2px; }
 
 /* Tags */
-.sn-tags { display: flex; flex-wrap: wrap; }
+.sn-tags { display: flex; flex-wrap: wrap; gap: var(--sp-6); margin-top: var(--sp-8); }
 
 /* Footer */
 /* the card's "⋯" shows with the pointer over the card or the focus in it; touch screens always show it */
@@ -103,18 +81,18 @@
 /* Branch blocks when grouped */
 
 /* ---------- Sidebar tree */
-.sn-tree { flex: 1 1 auto; overflow-y: auto; }
-.sn-tree-empty { padding: var(--sp-12); font-size: var(--fs-ui); color: var(--text-muted); }
-.sn-outline .tree-item-self.sn-tree-row { align-items: center; user-select: none; }
+.sn-tree { flex: 1 1 auto; overflow-y: auto; padding: 0 var(--sp-12) var(--sp-16) var(--sp-14); }
+.sn-tree-empty { padding: var(--sp-12); font-size: var(--fs-ui); color: var(--muted); }
+.sn-outline .tree-item-self.sn-tree-row { align-items: center; user-select: none; min-height: 32px; padding: var(--sp-4) var(--sp-8) var(--sp-4) var(--sp-2); border-radius: var(--r-s); font-size: var(--fs-md); gap: var(--sp-8); }
 .sn-outline .sn-tree-toggle {
   flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
-  width: 16px; height: 16px; border-radius: var(--r-xs); color: var(--nav-collapse-icon-color, var(--text-faint));
+  width: 16px; height: 16px; border-radius: var(--r-xs); color: var(--faint);
 }
 .sn-outline .sn-tree-toggle.is-leaf { visibility: hidden; }
-.sn-outline .sn-tree-toggle:hover { color: var(--text-muted); }
+.sn-outline .sn-tree-toggle:hover { color: var(--muted); }
 .sn-outline .sn-tree-toggle svg { width: 10px; height: 10px; stroke-width: 4px; transition: transform var(--dur-1) var(--ease); }
 .sn-outline .sn-tree-row:not(.is-open) .sn-tree-toggle svg { transform: rotate(-90deg); }
-.sn-tree-icon { flex: 0 0 auto; display: inline-flex; }
+.sn-tree-icon { flex: 0 0 auto; display: inline-flex; color: var(--muted); }
 .sn-outline .sn-tree-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sn-outline .tree-item-flair-outer { flex: 0 0 auto; }
 .sn-tree-count { font-variant-numeric: tabular-nums; }
@@ -122,10 +100,10 @@
 
 /* ---------- Drag & drop */
 .sn-card.is-dragging, .sn-tree-row.is-dragging { opacity: 0.4; }
-.sn-card.is-drop-inside, .sn-tree-row.is-drop-inside { outline: 2px solid var(--sn-accent); outline-offset: 2px; }
+.sn-card.is-drop-inside, .sn-tree-row.is-drop-inside { outline: 2px solid var(--accent); outline-offset: 2px; }
 .sn-card.is-drop-before::after, .sn-card.is-drop-after::after,
 .sn-tree-row.is-drop-before::after, .sn-tree-row.is-drop-after::after {
-  content: ""; position: absolute; left: 8px; right: 8px; height: 2px; border-radius: 1px; background: var(--sn-accent); pointer-events: none;
+  content: ""; position: absolute; left: 8px; right: 8px; height: 2px; border-radius: 1px; background: var(--accent); pointer-events: none;
 }
 .sn-card.is-drop-before::after { top: -8px; }
 .sn-card.is-drop-after::after { bottom: -8px; }
@@ -135,17 +113,17 @@
 .sn-drag-ghost {
   position: fixed; top: -100px; left: -100px;
   padding: var(--sp-6) var(--sp-12); border-radius: var(--r-s);
-  background: var(--interactive-accent); color: var(--on-accent);
+  background: var(--accent); color: var(--on-accent);
   font-size: var(--fs-ui); font-weight: var(--fw-semibold); font-family: var(--font-ui);
 }
 
 /* ---------- Search and filters */
-.sn-search:focus-within { border-color: var(--background-modifier-border-focus); box-shadow: var(--ring); }
-.sn-search-icon { display: inline-flex; color: var(--text-muted); }
-.sn-board .sn-search-input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; box-shadow: none !important; }
+.sn-search:focus-within { border-color: var(--accent); box-shadow: var(--ring); }
+.sn-search-icon { display: inline-flex; color: var(--muted); }
+.sn-board .sn-search-input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; box-shadow: none; }
 .sn-board .sn-filter-btn { gap: var(--sp-6); }
 .sn-board .sn-filter-btn svg { width: var(--icon-xs); height: var(--icon-xs); }
-.sn-board .sn-filter-btn.is-active { color: var(--text-accent); }
+.sn-board .sn-filter-btn.is-active { color: var(--accent); }
 .sn-board .sn-filter-btn[disabled] { opacity: var(--disabled); pointer-events: none; }
 .sn-filter-chip-x { display: inline-flex; opacity: 0.6; }
 .sn-filterbar .sn-spacer { flex: 1; }
@@ -155,19 +133,19 @@
   content: ""; position: absolute; top: -7px; left: -7px; width: 18px; height: 18px; border-radius: 50%; z-index: var(--z-raised);
 }
 .sn-card.is-picked::before {
-  background: var(--interactive-accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / 11px no-repeat;
-  box-shadow: 0 0 0 2px var(--sn-bg);
+  background: var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / 11px no-repeat;
+  box-shadow: 0 0 0 2px var(--win);
 }
 @media (hover: hover) { .sn-board .sn-tools > .sn-desktop-optional:not(.is-active) { opacity: 0.6; } }
 .sn-board .sn-selbar-btn { padding: var(--sp-6) var(--sp-8); }
-.sn-board .sn-selbar-btn:hover { color: var(--sn-text); }
-.sn-board .sn-selbar-btn.is-warn { color: var(--text-error); }
+.sn-board .sn-selbar-btn:hover { color: var(--fg); }
+.sn-board .sn-selbar-btn.is-warn { color: var(--todo); }
 .sn-board .sn-selbar-btn svg { width: var(--icon-xs); height: var(--icon-xs); }
 
 .sn-card:focus { outline: none; }
 .sn-card:focus-visible { box-shadow: var(--ring); }
 
 .sn-empty { margin: var(--sp-48) auto; text-align: center; }
-.sn-footnote { margin-top: var(--sp-20); font-size: var(--fs-sm); color: var(--text-faint); text-align: center; }
+.sn-footnote { margin-top: var(--sp-20); font-size: var(--fs-sm); color: var(--faint); text-align: center; }
 .sn-sentinel { height: 1px; }
 

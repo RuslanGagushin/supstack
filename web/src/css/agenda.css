@@ -18,7 +18,7 @@ button.sn-btn.wb-tasks.is-active { border-color: var(--accent); }
 /* a tag the task takes from its note: outlined rather than faded, so its text keeps 4.5:1 (spec A11Y-3) */
 
 .agbar { display: flex; gap: var(--sp-6); align-items: center; flex-wrap: wrap; padding: var(--sp-8) var(--sp-24); }
-.agbar .ag-btn[aria-pressed="true"] { background: var(--panel); color: var(--ink, var(--fg)); }
+.agbar .ag-btn[aria-pressed="true"] { background: var(--panel); color: var(--ink); }
 .agbar input.ag-input { flex: 1 1 200px; min-width: 0; height: 34px; padding: 0 var(--sp-12); border-radius: var(--r-s); background: var(--win); }
 .agbar input.ag-input:focus { border-color: var(--accent); box-shadow: var(--ring); outline: none; }
 .ag-chips { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: var(--sp-4); }
@@ -38,12 +38,12 @@ button.sn-btn.wb-tasks.is-active { border-color: var(--accent); }
 
 /* the screen title, in the look of the list of notes and Files (app.css) */
 .ag-title { display: flex; align-items: center; flex-wrap: wrap; gap: 0 var(--sp-8); padding: 0 var(--sp-2); color: var(--muted); font-size: var(--fs-lg); line-height: var(--lh-tight); }
-.ag-title b { color: var(--ink, var(--fg)); font-weight: var(--fw-semibold); letter-spacing: -.01em; }
+.ag-title b { color: var(--ink); font-weight: var(--fw-semibold); letter-spacing: -.01em; }
 .ag-title .ag-week { color: var(--faint); font-size: var(--fs-md); font-variant-numeric: tabular-nums; }
 /* a day (or the list of a TODO, match or search view) is a card, like a code block or a table */
 .ag-card { border: 1px solid var(--line); border-radius: var(--r-m); background: var(--win); overflow: hidden; }
 .ag-card.is-today { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
-.ag-day { display: flex; align-items: baseline; gap: var(--sp-10); padding: var(--sp-10) var(--sp-14); font-weight: var(--fw-semibold); font-size: var(--fs-md); color: var(--ink, var(--fg)); text-transform: capitalize; }
+.ag-day { display: flex; align-items: baseline; gap: var(--sp-10); padding: var(--sp-10) var(--sp-14); font-weight: var(--fw-semibold); font-size: var(--fs-md); color: var(--ink); text-transform: capitalize; }
 .ag-card:not(.is-empty) > .ag-day { padding-bottom: var(--sp-6); }
 /* a day without entries is one quiet line, not a card (spec UI-15) */
 .ag-card.is-empty { border-color: transparent; background: none; }
@@ -62,7 +62,7 @@ button.sn-btn.wb-tasks.is-active { border-color: var(--accent); }
 .ag-meta { display: contents; }
 .ag-row { cursor: pointer; position: relative; border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
 .ag-card > .ag-row:first-child { border-top: 0; }
-.ag-row:hover { background: var(--hover-bg, var(--panel)); }
+.ag-row:hover { background: var(--hover-bg); }
 .ag-row.is-selected { background: var(--accent-soft); }
 /* the keyboard's place in the agenda: a ring on the chosen row, or on the list while none is chosen (spec A11Y-2) */
 .ag-body:focus { outline: none; }
@@ -95,7 +95,7 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: var(--sp-8)
 .ag-cookie { color: var(--muted); font-size: var(--fs-sm); }
 .is-done .ag-ttl { color: var(--faint); text-decoration: line-through; }
 .ag-act { display: flex; gap: var(--sp-4); visibility: hidden; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); padding: var(--sp-2); border-radius: var(--r-s); background: var(--win); }
-.ag-row:hover .ag-act { background: var(--hover-bg, var(--panel)); }
+.ag-row:hover .ag-act { background: var(--hover-bg); }
 .ag-row.is-selected .ag-act { background: var(--accent-soft); }
 .ag-row:hover .ag-act, .ag-row.is-selected .ag-act { visibility: visible; }
 .ag-act button, .ag-act button:not(.clickable-icon) { height: var(--ctl-s); font-size: var(--fs-sm); padding: 0 var(--sp-10); border: 1px solid var(--line); background: var(--win); cursor: pointer; }
@@ -134,7 +134,7 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: var(--sp-8)
 .markdown-rendered .org-plan.k-deadline { color: var(--todo); }
 .markdown-rendered .org-plan.k-scheduled { color: var(--muted); }
 .markdown-rendered .org-plan.k-closed { color: var(--done); }
-.markdown-rendered .org-ts { font-size: var(--fs-sm); font-weight: var(--fw-medium); line-height: var(--lh-ui); font-variant-numeric: tabular-nums; padding: 1px var(--sp-8); border-radius: var(--r-pill); background: var(--panel); color: var(--tag, var(--fg)); white-space: nowrap; }
+.markdown-rendered .org-ts { font-size: var(--fs-sm); font-weight: var(--fw-medium); line-height: var(--lh-ui); font-variant-numeric: tabular-nums; padding: 1px var(--sp-8); border-radius: var(--r-pill); background: var(--panel); color: var(--tag); white-space: nowrap; }
 .markdown-rendered .org-ts .cm-sn-fmt { color: var(--faint); }
 .markdown-rendered .org-ts.is-inactive { background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
 /* a note being read: each date one chip, as in the agenda (org-editing.js planChip); the priority one letter */
@@ -336,7 +336,7 @@ button.ag-mday.is-out { background: none; border-color: transparent; }
 button.ag-mday.is-out .dn { color: var(--faint); }
 button.ag-mday.is-today { border-color: var(--accent); }
 button.ag-mday.is-today .dn { color: var(--accent); font-weight: var(--fw-semibold); }
-button.ag-mday .cnt { align-self: flex-end; min-width: 20px; padding: 0 var(--sp-6); border-radius: var(--r-pill); background: var(--accent-soft); color: color-mix(in srgb, var(--accent) 80%, var(--ink, var(--fg))); font-size: var(--fs-sm); font-weight: var(--fw-semibold); line-height: 18px; text-align: center; }
+button.ag-mday .cnt { align-self: flex-end; min-width: 20px; padding: 0 var(--sp-6); border-radius: var(--r-pill); background: var(--accent-soft); color: color-mix(in srgb, var(--accent) 80%, var(--ink)); font-size: var(--fs-sm); font-weight: var(--fw-semibold); line-height: 18px; text-align: center; }
 @media (max-width: 820px) {
   .ag-month, .ag-month-row { gap: var(--sp-2); }
   button.ag-mday { min-height: 48px; padding: var(--sp-4); }

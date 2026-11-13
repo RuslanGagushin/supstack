@@ -6,7 +6,7 @@
 .sn-editor-text::placeholder { color: var(--faint); }
 .sn-live { min-height: 40vh; cursor: text; }
 /* live preview (lpInline, lpBlocks): away from the caret the Markdown reads as in reading mode */
-.sn-live .cm-sn-h { font-weight: var(--fw-bold); color: var(--ink, var(--fg)); line-height: var(--lh-tight); letter-spacing: -.01em; padding-top: .45em; }
+.sn-live .cm-sn-h { font-weight: var(--fw-bold); color: var(--ink); line-height: var(--lh-tight); letter-spacing: -.01em; padding-top: .45em; }
 .sn-live .cm-sn-h1 { font-size: var(--h1-size); } .sn-live .cm-sn-h2 { font-size: var(--h2-size); } .sn-live .cm-sn-h3 { font-size: var(--h3-size); }
 .sn-live .cm-sn-h4 { font-size: var(--h4-size); }.sn-live .cm-sn-strong { font-weight: var(--fw-bold); }
 .sn-live .cm-sn-em { font-style: italic; }
@@ -98,7 +98,7 @@ button.sn-table-add-row:hover, button.sn-table-add-col:hover { background: color
 .sn-unlinked-row .sn-btn.is-s svg { width: var(--icon-xs); height: var(--icon-xs); }
 
 /* Focus mode: just the writing (or the board) */
-#app.focus-mode .sn-side, #app.focus-mode .sn-resizer, #app.focus-mode .sn-side-scrim { display: none !important; }
+#app.focus-mode .sn-side, #app.focus-mode .sn-resizer, #app.focus-mode .sn-side-scrim { display: none; }
 #app.focus-mode { padding-top: 0; }
 #app.focus-mode .win { border-radius: 0; border-top: 0; }
 #app.focus-mode .sn-editor .sn-editor-head, #app.focus-mode .sn-ed-toolbar { opacity: .25; transition: opacity var(--dur-2) var(--ease); }
@@ -120,7 +120,7 @@ body.sn-kb :is(.sn-board, .sn-reading):focus-visible { box-shadow: var(--ring-in
   *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; scroll-behavior: auto !important; }
 }
 /* Toolbar fits its pane: tighter spacing, then fewer labels, then fewer buttons — never sideways scrolling on desktop */
-.sn-editor { flex: 0 0 var(--editor-w, 540px); container-type: inline-size; container-name: editor; }
+.sn-editor { flex: 0 0 var(--editor-w, 540px); container-type: inline-size; container-name: editor; grid-column: 5; grid-row: 2; }
 /* the edges fade where buttons are past them (editor-toolbar.js scrollFades) */
 .sn-ed-toolbar.fade-end { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); }
 .sn-ed-toolbar.fade-start { -webkit-mask-image: linear-gradient(to right, transparent, #000 40px); mask-image: linear-gradient(to right, transparent, #000 40px); }
@@ -130,19 +130,19 @@ body.sn-kb :is(.sn-board, .sn-reading):focus-visible { box-shadow: var(--ring-in
 button.sn-tb-btn, button.sn-tb-btn:not(.clickable-icon) { flex: none; height: var(--ctl-m); padding: 0; border: 1px solid transparent; background: transparent; color: var(--muted); cursor: pointer; width: 29px; }
 .sn-tb-sep { flex: none; width: 1px; height: 18px; background: var(--line); margin: 0 var(--sp-4); }
 @container editor (max-width: 760px) {
-  .sn-tb-insert .sn-tb-insert-label { display: none !important; }
+  .sn-tb-insert .sn-tb-insert-label { display: none; }
   button.sn-tb-insert, button.sn-tb-insert:not(.clickable-icon) { padding: 0 var(--sp-6); gap: var(--sp-4); }
   .sn-tb-sep { margin: 0 var(--sp-4); }
-  .sn-tb-btn[data-act="strikethrough"], .sn-tb-btn[data-act="highlighter"], .sn-tb-btn[data-act="calendar-plus"] { display: none !important; }
+  .sn-tb-btn[data-act="strikethrough"], .sn-tb-btn[data-act="highlighter"], .sn-tb-btn[data-act="calendar-plus"] { display: none; }
 }
 @container editor (max-width: 600px) {
-  .sn-tb-btn[data-act="code"] { display: none !important; }
+  .sn-tb-btn[data-act="code"] { display: none; }
 }
 @container editor (max-width: 470px) {
-  .sn-tb-btn[data-act="flag"], .sn-tb-btn[data-act="alarm-clock"], .sn-tb-insert kbd { display: none !important; }
+  .sn-tb-btn[data-act="flag"], .sn-tb-btn[data-act="alarm-clock"], button.sn-tb-insert kbd { display: none; }
 }
 @container editor (max-width: 360px) {
-  .sn-tb-btn[data-act="italic"], .sn-tb-btn[data-act="list-checks"] { display: none !important; }
+  .sn-tb-btn[data-act="italic"], .sn-tb-btn[data-act="list-checks"] { display: none; }
 }
 .sn-tb-insert-icon { display: inline-flex; }
 

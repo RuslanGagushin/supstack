@@ -1,4 +1,7 @@
 html, body { margin: 0; height: 100%; }
+/* the edges the system draws over: the notch and the gesture bar; on Android at least its bars, measured or not */
+:root { --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px); }
+html.is-android { --safe-top: max(env(safe-area-inset-top, 0px), 44px); --safe-bottom: max(env(safe-area-inset-bottom, 0px), 24px); -webkit-tap-highlight-color: transparent; }
 * { box-sizing: border-box; }
 body.theme-dark {
   --shade: #000;
@@ -43,40 +46,20 @@ body {
      m for surfaces (cards, menus, popups, the note's sheet), l for dialogs, pill for tags, badges and pill buttons. */
   --r-xs: 4px; --r-s: 8px; --r-m: 12px; --r-l: 16px; --r-pill: 999px;
 
-  --border-width: 1px;
+
   --icon-xs: 12px; --icon-s: 14px; --icon-m: 16px; --icon-l: 18px;
   --icon-stroke: 1.75px;
-  --icon-opacity-hover: 1;
+
   --header-height: 40px;
   /* control heights: small (chips, icons in a row), medium (fields, buttons in bars), large (sidebar buttons, menu rows), touch */
   --ctl-xs: 20px; --ctl-s: 24px; --ctl-m: 28px; --ctl-l: 32px; --ctl-touch: 40px;
   /* a note's own headings, in whole pixels of its 16px text: 28, 24, 20, then the text's size (the title is 32, app.css) */
   --h1-size: calc(var(--fs-note) * 1.75); --h2-size: calc(var(--fs-note) * 1.5); --h3-size: calc(var(--fs-note) * 1.25); --h4-size: var(--fs-note); --h5-size: var(--fs-note); --h6-size: var(--fs-note);
 
-  --interactive-accent: var(--accent);
-  --interactive-accent-hover: color-mix(in srgb, var(--accent) 85%, var(--fg));
-  --text-accent: var(--accent);
-  --text-selection: var(--sel);
-
-  --nav-item-color-hover: var(--fg);
-  --nav-item-background-hover: var(--panel);
-  --nav-item-weight-active: var(--fw-medium);
-
-  --nav-item-children-padding-start: 2px; --nav-item-children-margin-start: 12px;
-  --nav-indentation-guide-width: 1px; --nav-indentation-guide-color: var(--line);
-  --nav-collapse-icon-color: var(--faint);
-
-  --background-primary: var(--win);
-  --background-secondary: var(--bg);
-  --background-modifier-border: var(--line);
-  --background-modifier-border-hover: color-mix(in srgb, var(--faint) 55%, var(--line));
-  --background-modifier-border-focus: var(--accent);
-  --background-modifier-hover: var(--panel); --background-modifier-form-field: var(--bg);
-  --background-modifier-cover: color-mix(in srgb, var(--shade) 28%, transparent);
-  --interactive-hover: var(--bg);
-  --text-normal: var(--fg); --text-muted: var(--muted); --text-faint: var(--faint); --text-error: var(--todo);
-  --icon-color: var(--muted); --icon-color-hover: var(--fg);
-  --text-highlight-bg: var(--flash);
+  /* the few colours worked out from the palette: the primary button's hover, a border under the pointer, the dim behind a dialog */
+  --accent-hover: color-mix(in srgb, var(--accent) 85%, var(--fg));
+  --line-hover: color-mix(in srgb, var(--faint) 55%, var(--line));
+  --scrim: color-mix(in srgb, var(--shade) 28%, transparent);
   /* elevation, four steps, all from --shade: 1 a raised segment, a switch knob, the edge of a page or image;
      2 a card under the pointer, the note's sheet, the welcome card; 3 menus, popups, the toast and the bars that float;
      4 dialogs and the side panel over the note */
@@ -95,14 +78,14 @@ body {
 
   --scrollbar-thumb: color-mix(in srgb, var(--fg) 14%, transparent); --scrollbar-thumb-hover: color-mix(in srgb, var(--fg) 28%, transparent);
 
-  font-family: var(--font-ui);
+  font-family: var(--font-ui); font-size: var(--fs-ui);
   color: var(--fg);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
   font-variant-ligatures: none;
   overflow: hidden;
 }
-::selection { background: var(--text-selection); }
+::selection { background: var(--sel); }
 ::-webkit-scrollbar { width: 12px; height: 12px; background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: var(--r-m); border: 3px solid transparent; background-clip: padding-box; }
 ::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover); }
@@ -110,48 +93,49 @@ body {
 /* ---------- Base elements */
 button:not(.clickable-icon) {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-6); border-radius: var(--r-s);
-  color: var(--text-normal); font-family: inherit; font-size: var(--fs-ui); font-weight: var(--fw-medium); white-space: nowrap;
+  color: var(--fg); font-family: inherit; font-size: var(--fs-ui); font-weight: var(--fw-medium); white-space: nowrap;
 }
-button:not(.clickable-icon):hover { background: var(--interactive-hover); }
-button.is-primary:hover { background: var(--interactive-accent-hover); }
-input[type="text"], input[type="search"], input[type="number"], input:not([type]), textarea, select {
-  background: var(--background-modifier-form-field); border: var(--border-width) solid var(--background-modifier-border);
-  border-radius: var(--r-s); color: var(--text-normal); font-family: inherit; font-size: var(--fs-ui);
+button:not(.clickable-icon):hover { background: var(--bg); }
+button.is-primary:hover { background: var(--accent-hover); }
+/* fields: the base look at zero specificity (:where), so that a field's own class always outweighs it */
+:where(input[type="text"], input[type="search"], input[type="number"], input:not([type]), textarea, select) {
+  background: var(--bg); border: 1px solid var(--line);
+  border-radius: var(--r-s); color: var(--fg); font-family: inherit; font-size: var(--fs-ui);
   padding: var(--sp-4) var(--sp-8); outline: none; height: var(--ctl-m);
 }
-textarea { height: auto; }
+:where(textarea) { height: auto; }
 /* drop-downs drawn by the app rather than the system: the field's own look and a chevron in the muted colour */
-select {
+:where(select) {
   -webkit-appearance: none; appearance: none; padding-right: 28px; cursor: pointer;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235c5856' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 9px center; background-size: 12px;
 }
-body.theme-dark select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b4b0af' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); }
-select:hover { border-color: var(--background-modifier-border-hover); }
-input:focus, textarea:focus, select:focus { border-color: var(--background-modifier-border-focus); box-shadow: var(--ring); }
+body.theme-dark :where(select) { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b4b0af' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); }
+:where(select:hover) { border-color: var(--line-hover); }
+:where(input:focus, textarea:focus, select:focus) { border-color: var(--accent); box-shadow: var(--ring); }
 /* a value the field can't take (aria-invalid, which screen readers announce too): red edge and a soft red ring, focused or not */
 :is(input, textarea, select)[aria-invalid="true"], :is(input, textarea, select)[aria-invalid="true"]:focus { border-color: var(--todo); box-shadow: 0 0 0 2px color-mix(in srgb, var(--todo) 20%, transparent); }
 :is(input, textarea, select):disabled { opacity: var(--disabled); cursor: not-allowed; }
-input[type="checkbox"] { accent-color: var(--interactive-accent); }
+input[type="checkbox"] { accent-color: var(--accent); }
 .clickable-icon {
   display: flex; align-items: center; justify-content: center;
   padding: var(--sp-4) var(--sp-6); border: 0; border-radius: var(--r-s);
-  background: transparent; color: var(--icon-color);
+  background: transparent; color: var(--muted);
   font-family: inherit;
 }
-.clickable-icon:hover { background: var(--background-modifier-hover); color: var(--icon-color-hover); opacity: var(--icon-opacity-hover); }
+.clickable-icon:hover { background: var(--panel); color: var(--fg); opacity: 1; }
 .clickable-icon[disabled] { opacity: var(--disabled); pointer-events: none; }
 .svg-icon { stroke-width: var(--icon-stroke); }
 .clickable-icon .svg-icon { width: var(--icon-s); height: var(--icon-s); }
 .tree-item-self {
   position: relative; display: flex; line-height: var(--lh-tight);
-  cursor: var(--cursor, default);
+  cursor: default;
 }
-.tree-item-self.is-clickable:hover { background: var(--nav-item-background-hover); color: var(--nav-item-color-hover); }
-.tree-item-self.is-active { font-weight: var(--nav-item-weight-active); }
+.tree-item-self.is-clickable:hover { background: var(--panel); color: var(--fg); }
+.tree-item-self.is-active { font-weight: var(--fw-medium); }
 .tree-item-children {
-  padding-inline-start: var(--nav-item-children-padding-start); margin-inline-start: var(--nav-item-children-margin-start);
-  border-inline-start: var(--nav-indentation-guide-width) solid var(--nav-indentation-guide-color);
+  padding-inline-start: var(--sp-2); margin-inline-start: var(--sp-12);
+  border-inline-start: 1px solid var(--line);
 }
 .tree-item-inner { flex: 1 1 auto; min-width: 0; }
 .tree-item-flair-outer { margin-inline-start: auto; padding-inline-start: var(--sp-4); }
@@ -178,14 +162,14 @@ button.task-box:focus-visible { outline: 2px solid var(--accent); outline-offset
 .s-todo { --task-c: var(--muted); } .s-doing { --task-c: var(--accent); } .s-wait { --task-c: var(--muted); }
 .s-done { --task-c: var(--accent); } .s-cancel { --task-c: var(--faint); } .s-fwd { --task-c: var(--muted); }
 .task-box.s-todo:hover, .task-box.s-todo:focus-visible { --task-c: var(--accent); }
-.markdown-rendered li.is-state-done { color: var(--text-muted); }
-.markdown-rendered li.is-state-fwd { color: var(--text-muted); }
-.markdown-rendered li.is-state-cancel { color: var(--text-faint); text-decoration: line-through; }
+.markdown-rendered li.is-state-done { color: var(--muted); }
+.markdown-rendered li.is-state-fwd { color: var(--muted); }
+.markdown-rendered li.is-state-cancel { color: var(--faint); text-decoration: line-through; }
 .markdown-rendered h1, .markdown-rendered h2, .markdown-rendered h3, .markdown-rendered h4, .markdown-rendered h5, .markdown-rendered h6 { line-height: var(--lh-tight); margin: 1.2em 0 .5em; }
 .markdown-rendered h1 { font-size: var(--h1-size); } .markdown-rendered h2 { font-size: var(--h2-size); } .markdown-rendered h3 { font-size: var(--h3-size); }
 .markdown-rendered h4 { font-size: var(--h4-size); } .markdown-rendered h5 { font-size: var(--h5-size); } .markdown-rendered h6 { font-size: var(--h6-size); }
 .markdown-rendered pre { overflow-x: auto; }
-.markdown-rendered hr { border: 0; border-top: 2px solid var(--background-modifier-border); margin: 2em 0; }
+.markdown-rendered hr { border: 0; border-top: 2px solid var(--line); margin: 2em 0; }
 .markdown-rendered img { max-width: 100%; border-radius: var(--r-xs); }
 /* the frame and colours are in frame.css */
 .markdown-rendered .callout-content > :last-child { margin-bottom: 0; }

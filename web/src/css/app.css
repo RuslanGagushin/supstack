@@ -1,81 +1,69 @@
 /* ==========================================================
-   App style (body.sn-app):
+   App style: the layout of the windows and the parts that sit in them
    warm grey sidebar with search, a blue pill for new cards and the vault at the bottom;
    Inter everywhere but code; white notes on grey; neutral ink instead of outline-level colours.
    ========================================================== */
-body.sn-app {
-  /* colours and fonts live in base.css */
-  font-size: var(--fs-ui);
-}
 
 /* Layout: the sidebar runs full height beside the board and the note; there is no top bar (row 1 stays empty) */
-body.sn-app #app {
-  display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto auto; grid-template-rows: auto minmax(0, 1fr);
-  gap: 0;
-}
-body.sn-app .wb-frame { display: contents; }
-body.sn-app .sn-side { grid-column: 1; grid-row: 1 / 3; background: var(--bg); }
-body.sn-app .sn-resizer.is-side { grid-column: 2; grid-row: 1 / 3; }
-body.sn-app .sn-main { padding-top: var(--sp-6); }
-body.sn-app .sn-main { grid-column: 3; grid-row: 2; }
-body.sn-app .sn-editor { grid-column: 5; grid-row: 2; }
-body.sn-app #app.editor-wide .sn-editor { grid-column: 3 / 6; }
-body.sn-app #app.focus-mode .sn-editor { grid-column: 3 / 6; }
+.sn-resizer.is-side { grid-column: 2; grid-row: 1 / 3; }
+.sn-main { padding-top: var(--sp-6); }
+.sn-main { grid-column: 3; grid-row: 2; }
+#app.focus-mode .sn-editor { grid-column: 3 / 6; }
 
 /* the board sits on the grey; the note opens on a white sheet */
-body.sn-app .win { border: 0; }
-body.sn-app .sn-editor.win {
+.sn-editor.win {
   margin-top: var(--sp-8); background: var(--win); border: 1px solid var(--line); border-right: 0; border-bottom: 0; border-radius: var(--r-m) 0 0 0;
   box-shadow: var(--shadow-2);
 }
-body.sn-app #app.editor-wide .sn-editor.win { border-radius: var(--r-m) 0 0 0; }
-body.sn-app .sn-resizer.is-editor { grid-column: 4; grid-row: 2; flex-basis: 8px; }
+#app.editor-wide .sn-editor.win { border-radius: var(--r-m) 0 0 0; }
+.sn-resizer.is-editor { grid-column: 4; grid-row: 2; flex-basis: 8px; }
 
 /* ---------- Sidebar */
-body.sn-app .sb-head { display: flex; flex-direction: column; gap: var(--sp-12); padding: var(--sp-14) var(--sp-12) var(--sp-10) var(--sp-14); }
-body.sn-app .sb-foot { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-8) var(--sp-10) var(--sp-12) var(--sp-12); }
-body.sn-app .sb-foot button.sb-account { flex: 1 1 auto; min-width: 0; width: auto; }
-body.sn-app button.clickable-icon.sb-foot-btn { flex: none; width: 32px; height: var(--ctl-l); padding: 0; border-radius: var(--r-s); color: var(--muted); }
-body.sn-app button.clickable-icon.sb-foot-btn:hover { background: var(--hover-bg); color: var(--fg); }
-body.sn-app .sb-foot-btn svg { width: var(--icon-m); height: var(--icon-m); }
-@media (max-width: 820px) { body.sn-app .sb-collapse { display: none; } } /* the drawer closes on the grey around it */
+.sb-head { display: flex; flex-direction: column; gap: var(--sp-12); padding: var(--sp-14) var(--sp-12) var(--sp-10) var(--sp-14); }
+.sb-foot { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-8) var(--sp-10) var(--sp-12) var(--sp-12); }
+.sb-foot button.sb-account { flex: 1 1 auto; min-width: 0; width: auto; }
+button.clickable-icon.sb-foot-btn { flex: none; width: 32px; height: var(--ctl-l); padding: 0; border-radius: var(--r-s); color: var(--muted); }
+button.clickable-icon.sb-foot-btn:hover { background: var(--hover-bg); color: var(--fg); }
+.sb-foot-btn svg.svg-icon { width: var(--icon-m); height: var(--icon-m); }
+@media (max-width: 820px) { .sb-collapse { display: none; } } /* the drawer closes on the grey around it */
 /* The sidebar's places: the agenda, Files and sync, as rows like the tree's, each with its count or state at the right */
-body.sn-app .sb-nav { display: flex; flex-direction: column; gap: 1px; padding: 0 var(--sp-12) var(--sp-6) var(--sp-14); }
-body.sn-app .sb-nav button.sn-btn { justify-content: flex-start; gap: var(--sp-8); width: 100%; height: var(--ctl-l); padding: 0 var(--sp-8); border: 0; border-radius: var(--r-s);
+.sb-nav { display: flex; flex-direction: column; gap: 1px; padding: 0 var(--sp-12) var(--sp-6) var(--sp-14); }
+.sb-nav button.sn-btn { justify-content: flex-start; gap: var(--sp-8); width: 100%; height: var(--ctl-l); padding: 0 var(--sp-8); border: 0; border-radius: var(--r-s);
   background: transparent; color: var(--fg); font-size: var(--fs-md); font-weight: var(--fw-regular); }
-body.sn-app .sb-nav button.sn-btn:hover { background: var(--hover-bg); }
-body.sn-app .sb-nav button.sn-btn.is-active { background: var(--sel); color: var(--ink); }
-body.sn-app .sb-nav button.sn-btn svg { width: var(--icon-m); height: var(--icon-m); color: var(--muted); }
-body.sn-app .sb-nav .wb-label { display: inline !important; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-body.sn-app .sb-nav .wb-count { margin-left: auto; }
-body.sn-app .sb-nav button.sn-btn.wb-sync { max-width: none; }
+.sb-nav button.sn-btn:hover { background: var(--hover-bg); }
+.sb-nav button.sn-btn.is-active { background: var(--sel); color: var(--ink); }
+.sb-nav button.sn-btn svg { width: var(--icon-m); height: var(--icon-m); color: var(--muted); }
+/* the sidebar's buttons keep their labels at every width (outweighing .sn-btn .wb-label in frame.css) */
+.sb-nav button.sn-btn .wb-label { display: inline; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.sb-nav .wb-count { margin-left: auto; }
+.sb-nav button.sn-btn.wb-sync { max-width: none; }
 .sb-nav .wb-sync[hidden] { display: none; }
 /* Search fields share one look: 34px, white on the grey with a hairline border, a 14px icon, the accent ring on focus
    (the sidebar's launcher, the board's filter, Files and Settings) */
-body.sn-app :is(button.sb-search, .sn-search, input.sn-set-search, input.fv-search) {
+:is(button.sb-search, .sn-search, input.sn-set-search, input.fv-search) {
   height: 34px; border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); color: var(--fg); font-size: var(--fs-ui);
 }
-body.sn-app :is(.sn-search:focus-within, input.sn-set-search:focus, input.fv-search:focus) { border-color: var(--accent); box-shadow: var(--ring); outline: none; }
+:is(.sn-search:focus-within, input.sn-set-search:focus, input.fv-search:focus) { border-color: var(--accent); box-shadow: var(--ring); outline: none; }
 button.sb-search { justify-content: flex-start; gap: var(--sp-8); width: 100%; padding: 0 var(--sp-12) 0 var(--sp-10); font-weight: var(--fw-regular); cursor: text; }
-body.sn-app button.sb-search { color: var(--muted); }
-body.sn-app button.sb-search:hover { border-color: color-mix(in srgb, var(--faint) 55%, var(--line)); background: var(--win); }
+button.sb-search { color: var(--muted); }
+button.sb-search:hover { border-color: color-mix(in srgb, var(--faint) 55%, var(--line)); background: var(--win); }
 button.sb-search svg, .sn-search-icon svg, .fv-search-icon svg { width: var(--icon-s); height: var(--icon-s); }
 .fv-search-wrap { position: relative; flex: 1 1 auto; min-width: 0; display: flex; }
 .fv-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); display: inline-flex; color: var(--muted); pointer-events: none; }
-body.sn-app input.fv-search { width: 100%; padding: 0 var(--sp-10) 0 30px; }
+input.fv-search { width: 100%; padding: 0 var(--sp-10) 0 30px; }
 .sb-actions { display: flex; align-items: center; gap: var(--sp-8); }
-body.sn-app button.sn-btn.sb-new, body.sn-app :where(.sn-welcome-actions) button.sn-btn.is-primary {
+button.sn-btn.sb-new, :where(.sn-welcome-actions) button.sn-btn.is-primary {
   height: 38px; padding: 0 var(--sp-16) 0 var(--sp-14); border-radius: var(--r-pill); background: var(--cta); color: var(--on-accent);
   font-size: var(--fs-md); font-weight: var(--fw-semibold); gap: var(--sp-6);
 }
-body.sn-app button.sn-btn.sb-new:hover, body.sn-app :where(.sn-welcome-actions) button.sn-btn.is-primary:hover { background: var(--cta-hover); opacity: 1; }
-body.sn-app button.sn-btn.sb-new svg { width: var(--icon-m); height: var(--icon-m); }
+button.sn-btn.sb-new:hover, :where(.sn-welcome-actions) button.sn-btn.is-primary:hover { background: var(--cta-hover); opacity: 1; }
+button.sn-btn.sb-new svg { width: var(--icon-m); height: var(--icon-m); }
 button.clickable-icon.sb-round { width: 38px; height: 38px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: var(--win); }
 /* Today, beside New note: a labelled button, quieter than New note */
-body.sn-app button.sn-btn.sb-today { height: 38px; padding: 0 var(--sp-14); border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--win); color: var(--fg); font-weight: var(--fw-medium); }
-body.sn-app button.sn-btn.sb-today:hover { background: var(--hover-bg); }
-body.sn-app button.sn-btn.sb-today svg { width: var(--icon-m); height: var(--icon-m); color: var(--muted); }
-body.sn-app .sb-today .wb-label { display: inline; }
+button.sn-btn.sb-today { height: 38px; padding: 0 var(--sp-14); border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--win); color: var(--fg); font-weight: var(--fw-medium); }
+button.sn-btn.sb-today:hover { background: var(--hover-bg); }
+button.sn-btn.sb-today svg { width: var(--icon-m); height: var(--icon-m); color: var(--muted); }
+.sb-today .wb-label { display: inline; }
 .sn-keys-or { display: inline-flex; align-items: center; gap: var(--sp-6); }
 .sn-keys-or .sn-or { color: var(--faint); font-size: var(--fs-sm); }
 button.clickable-icon.sb-round:hover { background: var(--hover-bg); color: var(--fg); }
@@ -91,97 +79,65 @@ button.sb-account:hover { background: var(--hover-bg); }
 button.sb-account.has-note { height: 42px; }
 
 /* the tree's tools on its "Cards" heading: they show with the pointer over the sidebar or the focus in them; touch shows them always */
-body.sn-app .sn-tree-section.has-tools { display: flex; align-items: center; gap: var(--sp-4); min-height: 24px; }
+.sn-tree-section.has-tools { display: flex; align-items: center; gap: var(--sp-4); min-height: 24px; }
 .sn-sec-tools { display: flex; gap: var(--sp-2); margin-left: auto; opacity: 0; transition: opacity var(--dur-1) var(--ease); }
 .sn-side:hover .sn-sec-tools, .sn-sec-tools:focus-within { opacity: 1; }
 @media (hover: none) { .sn-sec-tools { opacity: 1; } }
-body.sn-app .sn-sec-tools .clickable-icon { width: 26px; height: var(--ctl-s); padding: 0; border-radius: var(--r-s); color: var(--muted); }
-body.sn-app .sn-sec-tools .clickable-icon:hover { background: var(--hover-bg); color: var(--fg); }
-body.sn-app .sn-sec-tools .clickable-icon svg { width: var(--icon-s); height: var(--icon-s); }
-body.sn-app .sn-tree { padding: 0 var(--sp-12) var(--sp-16) var(--sp-14); }
-body.sn-app .sn-tree-section, body.sn-app .sn-tree-section:first-child {
+.sn-sec-tools .clickable-icon { width: 26px; height: var(--ctl-s); padding: 0; border-radius: var(--r-s); color: var(--muted); }
+.sn-sec-tools .clickable-icon:hover { background: var(--hover-bg); color: var(--fg); }
+.sn-sec-tools .clickable-icon svg { width: var(--icon-s); height: var(--icon-s); }
+.sn-tree-section, .sn-tree-section:first-child {
   margin: var(--sp-16) 0 var(--sp-4); padding-left: var(--sp-8); font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--muted);
 }
-body.sn-app .sn-tree-section:first-child { margin-top: var(--sp-4); }
-body.sn-app .sn-outline .tree-item-self.sn-tree-row { min-height: 32px; padding: var(--sp-4) var(--sp-8) var(--sp-4) var(--sp-2); border-radius: var(--r-s); font-size: var(--fs-md); gap: var(--sp-8); }
-body.sn-app .sn-outline .tree-item-self.sn-tree-row:hover { background: var(--hover-bg); }
-body.sn-app .sn-outline .tree-item-self.sn-tree-row.is-active { background: var(--sel); }
+.sn-tree-section:first-child { margin-top: var(--sp-4); }
+.sn-outline .tree-item-self.sn-tree-row.is-active { background: var(--sel); }
 /* the keyboard's place in the tree: a ring on the item's row, not around its whole branch (spec A11Y-2) */
 .sn-aria-tree [role=treeitem] { outline: none; }
 .sn-aria-tree [role=treeitem]:focus-visible > .sn-tree-row { box-shadow: var(--ring-inset); }
-body.sn-app .sn-outline .tree-item-self.sn-tree-row.is-active .sn-tree-label { color: var(--ink); }
+.sn-outline .tree-item-self.sn-tree-row.is-active .sn-tree-label { color: var(--ink); }
 /* the notebook the open note sits in, when the list beside it shows another place (and the open note's Recent row): a quiet mark, not a second selection */
-body.sn-app .sn-outline .sn-tree-row:is(.is-holding, .is-editing):not(.is-active) :is(.sn-tree-label, .sn-tree-icon) { color: var(--ink); }
-body.sn-app .sn-outline .sn-tree-row:is(.is-holding, .is-editing):not(.is-active) .sn-tree-label { font-weight: var(--fw-medium); }
-body.sn-app .sn-tree-row .sn-tree-label { font-weight: var(--fw-regular); }
-body.sn-app .sn-tree-icon { color: var(--muted); }
-body.sn-app .sn-tree-icon svg { width: var(--icon-m); height: var(--icon-m); }
-body.sn-app .tree-item-flair { font-size: var(--fs-sm); color: var(--faint); }
+.sn-outline .sn-tree-row:is(.is-holding, .is-editing):not(.is-active) :is(.sn-tree-label, .sn-tree-icon) { color: var(--ink); }
+.sn-outline .sn-tree-row:is(.is-holding, .is-editing):not(.is-active) .sn-tree-label { font-weight: var(--fw-medium); }
+.sn-tree-row .sn-tree-label { font-weight: var(--fw-regular); }
+.sn-tree-icon svg { width: var(--icon-m); height: var(--icon-m); }
+.tree-item-flair { font-size: var(--fs-sm); color: var(--faint); }
 /* on a hovered or current row's grey, the counts and times step up to --muted to stay readable */
-body.sn-app .sn-tree-row:is(:hover, .is-active) .tree-item-flair { color: var(--muted); }
-body.sn-app .tree-item-children { margin-inline-start: 11px; border-color: transparent; }
-body.sn-app .sb-new .wb-label { display: inline; } /* the sidebar's button keeps its label on phones */
+.sn-tree-row:is(:hover, .is-active) .tree-item-flair { color: var(--muted); }
+.sb-new .wb-label { display: inline; } /* the sidebar's button keeps its label on phones */
 
 /* ---------- Top bar: quiet ghost buttons; search, new card, brand and vault are in the sidebar */
-body.sn-app button.sn-btn { height: var(--ctl-l); padding: 0 var(--sp-10); border: 0; border-radius: var(--r-s); background: transparent; color: var(--muted); }
-body.sn-app button.sn-btn:hover { background: var(--hover-bg); color: var(--fg); }
-body.sn-app button.sn-btn.is-active { background: var(--panel); color: var(--ink); }
-body.sn-app button.clickable-icon.wb-icon { width: 34px; height: var(--ctl-l); border-radius: var(--r-s); }
-body.sn-app button.clickable-icon.wb-icon:hover { background: var(--hover-bg); color: var(--fg); }
-body.sn-app .wb-icon svg, body.sn-app .sn-btn svg { width: var(--icon-m); height: var(--icon-m); }
+button.sn-btn { height: var(--ctl-l); padding: 0 var(--sp-10); border: 0; border-radius: var(--r-s); background: transparent; color: var(--muted); }
+button.sn-btn:hover { background: var(--hover-bg); color: var(--fg); }
+button.sn-btn.is-active { background: var(--panel); color: var(--ink); }
+button.clickable-icon.wb-icon { width: 34px; height: var(--ctl-l); border-radius: var(--r-s); }
+button.clickable-icon.wb-icon:hover { background: var(--hover-bg); color: var(--fg); }
+.wb-icon svg, .sn-btn svg { width: var(--icon-m); height: var(--icon-m); }
 
 /* ---------- Board */
-body.sn-app .sn-topbar { min-height: 44px; padding: var(--sp-4) var(--sp-14) var(--sp-4) var(--sp-10); }
-body.sn-app .sn-crumb { color: var(--muted); font-weight: var(--fw-medium); }
-body.sn-app .sn-crumb.is-current { color: var(--ink); font-weight: var(--fw-semibold); }
-body.sn-app .sn-crumb-sep { color: var(--faint); }
-body.sn-app .sn-board .sn-topbar .clickable-icon, body.sn-app .sn-editor .sn-editor-head .clickable-icon {
-  height: var(--ctl-l); min-width: var(--ctl-l); border-radius: var(--r-s);
-}
-body.sn-app .sn-board .sn-topbar .clickable-icon:hover, body.sn-app .sn-editor .sn-editor-head .clickable-icon:hover { background: var(--hover-bg); color: var(--fg); border: 0; }
-body.sn-app .sn-board .sn-topbar .clickable-icon.is-active, body.sn-app .sn-editor .sn-editor-head .clickable-icon.is-active { background: var(--panel); color: var(--ink); }
-/* ---------- Segmented control, the one definition: a --panel track; segments 28px (24 in .is-s); the chosen one a raised --win plate.
-   After the topbar's icon buttons, whose rule it has to outweigh. */
-body.sn-app .sn-seg { display: inline-flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2); border: 0; border-radius: var(--r-s); background: var(--panel); }
-body.sn-app .sn-board .sn-seg > .clickable-icon { height: var(--ctl-m); min-width: var(--ctl-s); padding: 0 var(--sp-8); border-radius: var(--r-s); color: var(--muted); font-size: var(--fs-ui); font-variant-numeric: tabular-nums; }
-body.sn-app .sn-board .sn-seg.is-s > .clickable-icon { height: var(--ctl-s); }
-body.sn-app .sn-board .sn-seg > .clickable-icon:hover { background: transparent; color: var(--fg); }
-body.sn-app .sn-board .sn-seg > .clickable-icon.is-active { background: var(--win); color: var(--ink); box-shadow: var(--shadow-1); }
-body.sn-app .sn-page { padding: var(--sp-14) var(--sp-24) var(--sp-48); }
+.sn-board .sn-topbar .clickable-icon:where(:not(.sn-seg > *)), .sn-editor .sn-editor-head .clickable-icon { height: var(--ctl-l); min-width: var(--ctl-l); border-radius: var(--r-s); }
+.sn-board .sn-topbar .clickable-icon:where(:not(.sn-seg > *)):hover, .sn-editor .sn-editor-head .clickable-icon:hover { background: var(--hover-bg); color: var(--fg); border: 0; }
+.sn-board .sn-topbar .clickable-icon:where(:not(.sn-seg > *)).is-active, .sn-editor .sn-editor-head .clickable-icon.is-active { background: var(--panel); color: var(--ink); }
+.sn-page { padding: var(--sp-14) var(--sp-24) var(--sp-48); }
 
 /* Cards: white notes on the grey, parent above the title, muted preview, pill tags */
-body.sn-app .sn-card {
-  display: flex; flex-direction: column; padding: var(--sp-14) var(--sp-16) var(--sp-8); border-radius: var(--r-m);
-  background: var(--win); box-shadow: 0 0 0 1px var(--sn-card-border, var(--line));
-}
-body.sn-app .sn-card:hover { box-shadow: 0 0 0 1px var(--sn-card-border-hover, color-mix(in srgb, var(--faint) 50%, var(--line))), var(--shadow-2); }
-body.sn-app .sn-card.is-editing { box-shadow: var(--ring); }
-body.sn-app .sn-card:focus:not(.is-picked), body.sn-app .sn-card:focus-visible { box-shadow: var(--ring); }
-body.sn-app .sn-card.is-picked { box-shadow: var(--ring); background: color-mix(in srgb, var(--accent-soft) 60%, var(--win)); }
-body.sn-app .sn-card-icon { color: var(--muted); }
+.sn-card:hover { box-shadow: 0 0 0 1px color-mix(in srgb, var(--faint) 50%, var(--line)), var(--shadow-2); }
+.sn-card.is-editing { box-shadow: var(--ring); }
+.sn-card:focus:not(.is-picked), .sn-card:focus-visible { box-shadow: var(--ring); }
+.sn-card.is-picked { box-shadow: var(--ring); background: color-mix(in srgb, var(--accent-soft) 60%, var(--win)); }
 /* the head's markers: children (a board inside, "layers") and several parents ("copy", like a mirror) — shapes, no new colour */
 /* card faces: full, compact (a few lines), title only */
 /* A task's dates on a card's face: one short line, an icon for each kind (a flag for the deadline, a calendar for the
    plan, a tick for closed) and the date as "11 Nov"; the note keeps the full words and timestamps (org-editing.js data-short) */
 /* the date is an inline-block centred on the line like the icon beside it (its own text is hidden, so it has no baseline to share) */
-body.sn-app .sn-tags { gap: var(--sp-6); margin-top: var(--sp-8); }
-body.sn-app .sn-composer { border-radius: var(--r-m); background: var(--win); box-shadow: 0 0 0 1px var(--line); }
-body.sn-app .sn-composer:focus-within { box-shadow: var(--ring); }
-body.sn-app .sn-board .sn-composer textarea { font-size: var(--fs-md); height: 44px; min-height: 44px; padding: var(--sp-12) var(--sp-16); }
-body.sn-app .sn-composer-hint { font-size: var(--fs-sm); padding: 0 var(--sp-16) var(--sp-10); }
-body.sn-app .sn-filterbar { padding: var(--sp-8) var(--sp-24); border-bottom: 0; }
-body.sn-app .sn-board .sn-filter-btn, body.sn-app .sn-board .sn-filterbar > .clickable-icon { height: var(--ctl-l); border-radius: var(--r-pill); font-size: var(--fs-ui); }
-body.sn-app .sn-board .sn-filter-btn.is-active { border-color: var(--line); background: var(--panel); color: var(--ink); }
-body.sn-app .sn-selbar { border-radius: var(--r-m); }
+.sn-filterbar { padding: var(--sp-8) var(--sp-24); }
+.sn-board .sn-filter-btn, .sn-board .sn-filterbar > .clickable-icon { height: var(--ctl-l); border-radius: var(--r-pill); }
 
 /* ---------- Minibuffer: light, a quiet footer */
 
 /* ---------- Note editor: a white sheet with a big bold title */
-body.sn-app .sn-editor-head { height: 52px; padding: 0 var(--sp-12) 0 var(--sp-14); border-bottom: 0; }
-body.sn-app .sn-editor-path { font-weight: var(--fw-medium); color: var(--muted); }
 /* the notebooks a note sits in (editor.js notebookPath): links to their lists, "+N" for its other places, the move button */
 .sn-editor-where { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--sp-2); }
-body.sn-app .sn-editor-where .sn-editor-path { flex: 0 1 auto; display: flex; align-items: baseline; min-width: 0; }
+.sn-editor-where .sn-editor-path { flex: 0 1 auto; display: flex; align-items: baseline; min-width: 0; }
 .sn-editor-path > a { min-width: 1.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 a.sn-editor-crumb { color: var(--muted); text-decoration: none; }
 a.sn-editor-crumb:hover { color: var(--ink); text-decoration: underline; }
@@ -195,12 +151,9 @@ a.sn-editor-back svg { flex: none; width: 22px; height: 22px; }
 a.sn-editor-back:active { background: var(--hover-bg); }
 @media (max-width: 820px) {
   a.sn-editor-back { display: inline-flex; }
-  body.sn-app .sn-editor-head :is(.sn-editor-path, .sn-editor-places, .sn-editor-close) { display: none; }
+  .sn-editor-head :is(.sn-editor-path, .sn-editor-places, .sn-editor-close) { display: none; }
 }
 /* the note reads at 16px in a column of about 75 characters (600px of text inside the padding) */
-body.sn-app .sn-editor-page { max-width: 680px; padding: var(--sp-16) var(--sp-40) 40vh; }
-body.sn-app .sn-editor-badge { color: var(--muted); }
-body.sn-app .sn-inline-title { font-weight: var(--fw-bold); font-size: 32px; line-height: var(--lh-tight); letter-spacing: -.02em; color: var(--ink); margin: var(--sp-6) 0 var(--sp-12); }
 /* the note's one labelled action: Edit while reading, Done (blue) while editing (editor.js) */
 button.sn-mode-btn { flex: none; display: inline-flex; align-items: center; gap: var(--sp-6); height: var(--ctl-l); margin: 0 var(--sp-2) 0 var(--sp-6); padding: 0 var(--sp-12) 0 var(--sp-10);
   border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--win); color: var(--fg); font-size: var(--fs-ui); font-weight: var(--fw-medium); cursor: pointer; }
@@ -214,71 +167,48 @@ button.sn-mode-btn.is-editing:hover { background: var(--cta-hover); }
 /* reading: one quiet line under the title in place of Properties, and no rule between it and the text (editor-toolbar.js infoLine) */
 .sn-info { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-6); min-height: 22px; margin: calc(var(--sp-4) * -1) 0 var(--sp-16); font-size: var(--fs-sm); color: var(--muted); }
 .sn-info-date { margin-right: var(--sp-4); }
-body.sn-app .sn-props-head, body.sn-app .sn-editor-foot h4 { font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--muted); }
-body.sn-app .sn-prop:hover { background: var(--hover-bg); }
-body.sn-app .sn-prop-key { color: var(--muted); }
-body.sn-app .sn-editor-text.is-source { font-family: var(--font-code); font-size: var(--fs-ui); }
-body.sn-app .sn-reading { font-size: var(--fs-note); line-height: var(--lh-text); }
+.sn-props-head, .sn-editor-foot h4 { font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--muted); }
 /* a table being read keeps the room editing leaves on its right for "+ column" (writing.css .sn-table-host), so it doesn't widen and re-split its columns */
 .sn-reading:not(.sn-live) .sn-table-wrap { margin-right: 17px; }
-body.sn-app .sn-fm-error { font-family: var(--font-code); }
 
 /* Rendered Markdown: black bold headings, grey quotes, monospace code */
-body.sn-app .markdown-rendered :is(h1, h2, h3, h4, h5, h6) { color: var(--ink); letter-spacing: -.01em; }
-body.sn-app .markdown-rendered :is(ul, ol) li::marker { color: var(--muted); }
-body.sn-app .markdown-rendered ol li::marker { font-family: var(--font-ui); }
-body.sn-app .markdown-rendered a:where(:not(.tag)) { color: var(--accent); }
-body.sn-app .markdown-rendered input[type="checkbox"] { accent-color: var(--accent); }
-body.sn-app .markdown-rendered code { font-family: var(--font-code); color: var(--ink); background: var(--code-bg); }
+.markdown-rendered :is(h1, h2, h3, h4, h5, h6) { color: var(--ink); letter-spacing: -.01em; }
+.markdown-rendered :is(ul, ol) li::marker { color: var(--muted); }
+.markdown-rendered a:where(:not(.tag)) { color: var(--accent); }
 /* the grey chip is for inline code only: inside a code block the text sits on the block itself */
-body.sn-app .markdown-rendered pre code, body.sn-app .markdown-rendered .code-body code { color: inherit; background: none; padding: 0; border-radius: 0; }
-body.sn-app .markdown-rendered .code-body, body.sn-app .fv-text { font-family: var(--font-code); }
-body.sn-app .markdown-rendered .code-block, body.sn-app .markdown-rendered .sn-table-wrap { border-radius: var(--r-m); }
-body.sn-app .markdown-rendered th { font-weight: var(--fw-semibold); text-align: left; }
-body.sn-app .markdown-rendered blockquote { border-inline-start: 3px solid var(--panel); }
-body.sn-app .markdown-rendered .sn-pdf-head { font-family: var(--font-ui); }
+.markdown-rendered pre code, .markdown-rendered .code-body code { color: inherit; background: none; padding: 0; border-radius: 0; }
+.markdown-rendered .code-body, .fv-text { font-family: var(--font-code); }
+.markdown-rendered .code-block, .markdown-rendered .sn-table-wrap { border-radius: var(--r-m); }
 
 /* ---------- Menus, dialogs, pickers */
-body.sn-app .menu { border-radius: var(--r-m); padding: var(--sp-6); box-shadow: var(--shadow-3); }
-body.sn-app .menu-item { padding: var(--sp-6) var(--sp-10); border-radius: var(--r-s); }
-body.sn-app .menu-item:hover, body.sn-app .menu-item.is-selected { background: var(--hover-bg); }
-body.sn-app .menu-label { font-size: var(--fs-sm); letter-spacing: 0; text-transform: none; font-weight: var(--fw-medium); color: var(--muted); }
-body.sn-app .modal { border-radius: var(--r-l); }
-body.sn-app .modal-title { font-weight: var(--fw-semibold); font-size: var(--fs-lg); border-bottom: 0; }
-body.sn-app .modal input[type="text"] { height: 36px; border-radius: var(--r-s); font-size: var(--fs-md); }
-body.sn-app .modal-buttons button, body.sn-app .modal-buttons button:not(.clickable-icon) { height: 34px; padding: 0 var(--sp-16); border-radius: var(--r-pill); font-weight: var(--fw-semibold); }
-body.sn-app .modal-buttons button.is-primary, body.sn-app .setting-item-control .sn-btn.is-primary, body.sn-app button.is-primary { background: var(--cta); color: var(--on-accent); border-color: var(--cta); }
-body.sn-app .setting-heading { letter-spacing: 0; text-transform: none; font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--muted); }
-body.sn-app .setting-item-name { font-size: var(--fs-md); }
-body.sn-app .setting-item-description { font-size: var(--fs-sm); }
-body.sn-app .setting-item-control select, body.sn-app .setting-item-control input { height: var(--ctl-l); border-radius: var(--r-s); background-color: var(--win); }
-body.sn-app .checkbox-container.is-active { background: var(--cta); }
-body.sn-app .sn-about-name { font-family: var(--font-ui); font-weight: var(--fw-bold); }
-body.sn-app .prompt { border-radius: var(--r-l); }
-body.sn-app .prompt-input { font-size: var(--fs-text) !important; }
-body.sn-app :is(.sn-btn kbd, button.sn-tb-insert kbd) { font-family: var(--font-code); }
+.menu-item:hover, .menu-item.is-selected { background: var(--hover-bg); }
+.modal input[type="text"] { height: 36px; border-radius: var(--r-s); font-size: var(--fs-md); }
+.modal-buttons button.is-primary, .setting-item-control .sn-btn.is-primary, button.is-primary { background: var(--cta); color: var(--on-accent); border-color: var(--cta); }
+.setting-item-name { font-size: var(--fs-md); }
+.setting-item-control select, .setting-item-control input { height: var(--ctl-l); border-radius: var(--r-s); background-color: var(--win); }
+:is(.sn-btn kbd, button.sn-tb-insert kbd) { font-family: var(--font-code); }
 
 /* ---------- List of notes (layout "notes"): rows on the grey, the open note on a white sheet beside them */
 @media (min-width: 821px) {
   /* the list gives way, down to 260px, before the note beside it goes under 500px (spec UI-1); a sidebar that lies
      over the page as a drawer (is-mid, ui/layout.js) takes no room */
-  body.sn-app #app.notes-layout.editor-open:not(.editor-wide):not(.focus-mode) { grid-template-columns: auto auto clamp(260px, var(--list-w, 380px), calc(100vw - 500px)) auto minmax(0, 1fr); }
-  body.sn-app #app.notes-layout.editor-open:not(.editor-wide):not(.focus-mode):not(.side-closed):not(.is-mid) { grid-template-columns: auto auto clamp(260px, var(--list-w, 380px), calc(100vw - var(--side-w, 280px) - 500px)) auto minmax(0, 1fr); }
-  body.sn-app #app.notes-layout.editor-open:not(.editor-wide) .sn-editor { width: auto; max-width: none; }
+  #app.notes-layout.editor-open:not(.editor-wide):not(.focus-mode) { grid-template-columns: auto auto clamp(260px, var(--list-w, 380px), calc(100vw - 500px)) auto minmax(0, 1fr); }
+  #app.notes-layout.editor-open:not(.editor-wide):not(.focus-mode):not(.side-closed):not(.is-mid) { grid-template-columns: auto auto clamp(260px, var(--list-w, 380px), calc(100vw - var(--side-w, 280px) - 500px)) auto minmax(0, 1fr); }
+  #app.notes-layout.editor-open:not(.editor-wide) .sn-editor { width: auto; max-width: none; }
 
   /* under 1180px with a note open the sidebar is folded away; opened by hand, it lies over the page as a drawer (UI-2) */
-  body.sn-app #app.is-mid.editor-open:not(.focus-mode) .sn-side { position: fixed; z-index: var(--z-side); top: 0; bottom: 0; left: 0; box-shadow: var(--shadow-4); }
-  body.sn-app #app.is-mid.editor-open .sn-resizer.is-side { display: none; }
-  body.sn-app #app.is-mid.editor-open:not(.side-closed):not(.focus-mode) .sn-side-scrim { display: block; position: fixed; inset: 0; z-index: calc(var(--z-side) - 1); background: var(--background-modifier-cover); }
+  #app.is-mid.editor-open:not(.focus-mode) .sn-side { position: fixed; z-index: var(--z-side); top: 0; bottom: 0; left: 0; box-shadow: var(--shadow-4); }
+  #app.is-mid.editor-open .sn-resizer.is-side { display: none; }
+  #app.is-mid.editor-open:not(.side-closed):not(.focus-mode) .sn-side-scrim { display: block; position: fixed; inset: 0; z-index: calc(var(--z-side) - 1); background: var(--scrim); }
 
   /* under 960px the note covers the list, with "‹ its notebook" to go back, as on a phone (UI-3) */
-  body.sn-app #app.is-stacked.editor-open .sn-editor.win { position: fixed; z-index: var(--z-editor); inset: 0; width: auto; max-width: none; margin: 0; border: 0; border-radius: 0; }
-  body.sn-app #app.is-stacked.editor-open .sn-resizer.is-editor { display: none; }
-  body.sn-app #app.is-stacked a.sn-editor-back { display: inline-flex; }
-  body.sn-app #app.is-stacked .sn-editor-head :is(.sn-editor-path, .sn-editor-places, .sn-editor-close) { display: none; }
+  #app.is-stacked.editor-open .sn-editor.win { position: fixed; z-index: var(--z-editor); inset: 0; width: auto; max-width: none; margin: 0; border: 0; border-radius: 0; }
+  #app.is-stacked.editor-open .sn-resizer.is-editor { display: none; }
+  #app.is-stacked a.sn-editor-back { display: inline-flex; }
+  #app.is-stacked .sn-editor-head :is(.sn-editor-path, .sn-editor-places, .sn-editor-close) { display: none; }
 }
-body.sn-app .sn-board.is-notes .sn-page { max-width: 760px; margin: 0 auto; padding: var(--sp-14) var(--sp-12) var(--sp-48); }
-body.sn-app #app.notes-layout.editor-open .sn-board.is-notes .sn-page { max-width: none; }
+.sn-board.is-notes .sn-page { max-width: 760px; margin: 0 auto; padding: var(--sp-14) var(--sp-12) var(--sp-48); }
+#app.notes-layout.editor-open .sn-board.is-notes .sn-page { max-width: none; }
 .sn-list-head { display: flex; align-items: baseline; gap: var(--sp-10); padding: var(--sp-4) var(--sp-8) var(--sp-12); min-width: 0; }
 /* The screen title: icon, name at 20px, a faint count. The list of notes, Files and the agenda share it (agenda.css) */
 .sn-list-head .sn-list-title { display: flex; align-items: center; gap: var(--sp-8); min-width: 0; margin: 0; font-size: var(--fs-lg); font-weight: var(--fw-semibold); line-height: var(--lh-tight); letter-spacing: -.01em; color: var(--ink); }
@@ -294,20 +224,20 @@ body.sn-app #app.notes-layout.editor-open .sn-board.is-notes .sn-page { max-widt
 .sn-list-desc.is-editing { background: var(--sel); color: var(--fg); }
 .sn-list-desc:focus { outline: none; }
 .sn-list-desc:focus-visible { box-shadow: var(--ring); }
-body.sn-app .sn-board.is-notes .sn-composer { margin: 0 0 var(--sp-10); }
+.sn-board.is-notes .sn-composer { margin: 0 0 var(--sp-10); }
 .sn-rows { display: flex; flex-direction: column; gap: var(--sp-6); }
-body.sn-app .sn-board .sn-card.sn-row {
+.sn-board .sn-card.sn-row {
   flex-direction: row; align-items: flex-start; gap: var(--sp-12); padding: var(--sp-12) var(--sp-14);
   background: transparent; box-shadow: none; cursor: default;
 }
-body.sn-app .sn-board .sn-card.sn-row:hover { background: var(--hover-bg); box-shadow: none; }
-body.sn-app .sn-board .sn-card.sn-row:focus { box-shadow: none; }
-body.sn-app .sn-board .sn-card.sn-row:focus-visible:not(.is-editing) { box-shadow: var(--ring); }
+.sn-board .sn-card.sn-row:hover { background: var(--hover-bg); box-shadow: none; }
+.sn-board .sn-card.sn-row:focus { box-shadow: none; }
+.sn-board .sn-card.sn-row:focus-visible:not(.is-editing) { box-shadow: var(--ring); }
 /* the open note: the same grey as the current row in the sidebar, not a white card that competes with the note's own sheet */
-body.sn-app .sn-board .sn-card.sn-row.is-editing { background: var(--sel); box-shadow: none; }
+.sn-board .sn-card.sn-row.is-editing { background: var(--sel); box-shadow: none; }
 /* --faint is for --bg and --win only: on a row's grey the date, the dots and the counts step up to --muted, as in the sidebar */
 .sn-row:is(:hover, .is-editing) :is(.sn-row-meta, .sn-row-meta > *::before, .sn-row-count) { color: var(--muted); }
-body.sn-app .sn-board .sn-card.sn-row.is-picked { background: color-mix(in srgb, var(--accent-soft) 70%, var(--win)); box-shadow: 0 0 0 1px var(--accent); }
+.sn-board .sn-card.sn-row.is-picked { background: color-mix(in srgb, var(--accent-soft) 70%, var(--win)); box-shadow: 0 0 0 1px var(--accent); }
 /* rules between notes; none above a notebook row, so the notebooks at the top of the list read as one block */
 .sn-rows > .sn-row:not(.is-editing):not(:hover) + .sn-row:not(.is-editing):not(:hover):not(.is-folder)::before {
   content: ""; position: absolute; top: -3.5px; left: 14px; right: 14px; border-top: 1px solid var(--line);
@@ -332,9 +262,9 @@ a.sn-row-parent:hover { color: var(--ink); text-decoration: underline; }
   overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
 }
 /* the tags end the row's last line, after the date: one line, cut at the row's edge */
-body.sn-app .sn-row-meta { overflow: hidden; height: 18px; } /* as high with tags as without: rows of the same text are the same height */
-body.sn-app .sn-row-meta .sn-tags.sn-row-tags { display: inline-flex; flex-wrap: nowrap; gap: var(--sp-4); min-width: 0; margin: 0 0 0 var(--sp-2); overflow: hidden; }
-body.sn-app .sn-row-meta > .sn-row-tags::before { content: none; }
+.sn-row-meta { overflow: hidden; height: 18px; } /* as high with tags as without: rows of the same text are the same height */
+.sn-row-meta .sn-tags.sn-row-tags { display: inline-flex; flex-wrap: nowrap; gap: var(--sp-4); min-width: 0; margin: 0 0 0 var(--sp-2); overflow: hidden; }
+.sn-row-meta > .sn-row-tags::before { content: none; }
 button.sn-row-enter {
   flex: none; align-self: center; gap: var(--sp-2); height: var(--ctl-l); padding: 0 var(--sp-6) 0 var(--sp-12);
   border: 0; border-radius: var(--r-pill); background: var(--panel); color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; cursor: pointer;
@@ -342,7 +272,7 @@ button.sn-row-enter {
 button.sn-row-enter svg { width: var(--icon-m); height: var(--icon-m); }
 button.sn-row-enter:hover, .sn-row:focus-visible button.sn-row-enter { background: var(--accent-soft); color: var(--accent); }
 /* a notebook: one compact line at the top of the list (cards.js renderFolderRow) */
-body.sn-app .sn-board .sn-card.sn-row.is-folder { align-items: center; gap: var(--sp-10); padding: var(--sp-8) var(--sp-10) var(--sp-8) var(--sp-14); cursor: pointer; }
+.sn-board .sn-card.sn-row.is-folder { align-items: center; gap: var(--sp-10); padding: var(--sp-8) var(--sp-10) var(--sp-8) var(--sp-14); cursor: pointer; }
 .sn-row.is-folder .sn-row-title { flex: 1 1 auto; font-size: var(--fs-md); font-weight: var(--fw-medium); -webkit-line-clamp: 1; }
 .sn-row-folder-icon { flex: none; display: inline-flex; color: var(--muted); }
 .sn-row-folder-icon svg { width: var(--icon-m); height: var(--icon-m); }
@@ -353,17 +283,16 @@ body.sn-app .sn-board .sn-card.sn-row.is-folder { align-items: center; gap: var(
 .sn-rows > .sn-row.is-folder + .sn-row.is-folder { margin-top: calc(var(--sp-4) * -1); }
 .sn-row-thumb { flex: none; width: 60px; height: 60px; margin-top: 19px; object-fit: cover; border-radius: var(--r-s); background: var(--panel); box-shadow: 0 0 0 1px var(--line); }
 @media (max-width: 820px) {
-  body.sn-app .sn-board.is-notes .sn-page { padding: var(--sp-10) var(--sp-6) var(--sp-48); }
+  .sn-board.is-notes .sn-page { padding: var(--sp-10) var(--sp-6) var(--sp-48); }
   .sn-row-thumb { width: 52px; height: 52px; }
 }
 
 @media (max-width: 820px) {
-  body.sn-app #app { grid-template-columns: minmax(0, 1fr); }
-  body.sn-app .sn-main { grid-column: 1; }
-  body.sn-app .sn-side { box-shadow: var(--shadow-4); }
-  body.sn-app .sn-editor.win { margin-top: 0; border-radius: 0; border: 0; } /* the note over the board fills the screen */
-  body.sn-app .sn-page { padding: var(--sp-12) var(--sp-14) var(--sp-48); }
-  body.sn-app .sn-editor-page { padding: var(--sp-12) var(--sp-14) 40vh; }
+  #app { grid-template-columns: minmax(0, 1fr); }
+  .sn-main { grid-column: 1; }
+    .sn-editor.win { margin-top: 0; border-radius: 0; border: 0; } /* the note over the board fills the screen */
+  .sn-page { padding: var(--sp-12) var(--sp-14) var(--sp-48); }
+  .sn-editor-page { padding: var(--sp-12) var(--sp-14) 40vh; }
 }
 
 /* ---------- Touch screens: a bottom bar on phones, and targets a finger can hit */
@@ -384,38 +313,34 @@ body.sn-app .sn-board .sn-card.sn-row.is-folder { align-items: center; gap: var(
   button.sn-tab svg { width: 22px; height: 22px; }
   #app:not(:has(.sn-board.is-tasks, .sn-board.is-files)) .sn-tab[data-tab="board"], #app:has(.sn-board.is-tasks) .sn-tab[data-tab="agenda"] { color: var(--accent); }
   /* room to scroll the last card, task or file out from under the bar */
-  body.sn-app .sn-page, body.sn-app .ag-body, body.sn-app .fv-list { padding-bottom: calc(80px + var(--safe-bottom)); }
+  .sn-page, .ag-body, .fv-list { padding-bottom: calc(80px + var(--safe-bottom)); }
   .sn-toast.is-quiet { bottom: calc(66px + var(--safe-bottom)); }
   #app.editor-open ~ .sn-toast.is-quiet { bottom: calc(10px + var(--safe-bottom)); } /* the note covers the bar */
   /* hit areas of about 40px around small controls, without moving anything */
   /* (the table + buttons are already absolute, under and beside the table: making them relative piled them up in a corner) */
-  body.sn-app :is(button.task-box, .sn-chip) { position: relative; }
-  body.sn-app :is(button.task-box)::after { content: ""; position: absolute; inset: -10px; }
-  body.sn-app :is(.sn-table-add-row, .sn-table-add-col)::after { content: ""; position: absolute; inset: -14px; }
-  body.sn-app .sn-chip::after { content: ""; position: absolute; inset: -8px -2px; }
+  :is(button.task-box, .sn-chip) { position: relative; }
+  :is(button.task-box)::after { content: ""; position: absolute; inset: -10px; }
+  :is(.sn-table-add-row, .sn-table-add-col)::after { content: ""; position: absolute; inset: -14px; }
+  .sn-chip::after { content: ""; position: absolute; inset: -8px -2px; }
   /* buttons a finger can hit: 40px at least, the drawing inside them as it was (spec UI-9) */
-  body.sn-app #app :is(.sn-topbar, .sn-editor-head, .agbar, .sn-ed-toolbar) :is(button, a[href]),
-  body.sn-app #app button.ag-over-head { min-height: var(--ctl-touch); }
-  body.sn-app #app :is(.sn-topbar, .sn-editor-head, .agbar, .sn-ed-toolbar) :is(button.clickable-icon, button.sn-tb-btn, button.sn-tb-insert, button.sn-mode-btn, button.ag-btn, button.ag-capture) { min-width: 40px; }
+  #app :is(.sn-topbar, .sn-editor-head, .agbar, .sn-ed-toolbar) :is(button, a[href]),
+  #app button.ag-over-head { min-height: var(--ctl-touch); }
+  #app :is(.sn-topbar, .sn-editor-head, .agbar, .sn-ed-toolbar) :is(button.clickable-icon, button.sn-tb-btn, button.sn-tb-insert, button.sn-mode-btn, button.ag-btn, button.ag-capture) { min-width: 40px; }
 }
 
 /* ---------- The native apps (html.is-native, html.is-android: ui/native-shell.js) */
 /* the screen's safe areas. The Android app draws edge to edge (under the status bar and the gesture bar); a WebView
    that still reports no insets gets room for both anyway */
-:root { --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px); }
-html.is-android { --safe-top: max(env(safe-area-inset-top, 0px), 44px); --safe-bottom: max(env(safe-area-inset-bottom, 0px), 24px); }
 /* the app's own controls are not text: a long press or a drag over them selects nothing */
 html.is-native :is(.sn-side, .sn-tabbar, .sn-topbar, .agbar, .ag-strip, .sn-seg, button) { -webkit-user-select: none; user-select: none; }
-html.is-android { -webkit-tap-highlight-color: transparent; }
 /* edge-to-edge screens: the board's own bar keeps clear of the status bar and rounded corners. On Android the vault
    plugin already moves #app below the status bar (VaultPlugin.kt, --sn-inset-*), so nothing more is added here */
-html.is-native body.sn-app .sn-main { padding-top: max(var(--sp-6), env(safe-area-inset-top)); padding-right: env(safe-area-inset-right); }
+html.is-native .sn-main { padding-top: max(var(--sp-6), env(safe-area-inset-top)); padding-right: env(safe-area-inset-right); }
 @media (max-width: 820px) {
   /* the drawer and the note over the board start below the status bar and end above the gesture bar */
-  html.is-android body.sn-app .sn-side { padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
-  /* the note covers the whole screen, its sheet under the bars and its text clear of them: the plugin's own rule
-     (.sn-editor.win, 8px in from the edges) is outweighed here, and its measured insets used when it has sent them */
-  html.is-android body.sn-app .sn-editor.win { inset: 0 !important; padding-top: var(--sn-inset-top, var(--safe-top)) !important; padding-bottom: var(--sn-inset-bottom, var(--safe-bottom)) !important; }
+  html.is-android .sn-side { padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
+  /* the note covers the whole screen, its sheet under the bars and its text clear of them */
+  html.is-android .sn-editor.win { inset: 0; padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
 }
 
 /* ---------- The welcome screen: the app's icon and name on a card, the ways in below */
@@ -426,36 +351,36 @@ body.theme-dark .sn-welcome-logo { filter: brightness(.82); } /* the icon's whit
 .sn-welcome-title { margin: 0 0 var(--sp-6); color: var(--ink); font-family: var(--font-ui); font-size: var(--fs-xl); font-weight: var(--fw-bold); letter-spacing: -0.02em; line-height: var(--lh-tight); }
 .sn-welcome-sub { max-width: 340px; margin: 0 auto var(--sp-24); color: var(--muted); font-size: var(--fs-md); line-height: var(--lh-ui); }
 .sn-welcome-actions { display: flex; flex-direction: column; align-items: stretch; gap: var(--sp-8); max-width: 300px; margin: 0 auto; }
-body.sn-app .sn-welcome-actions button.sn-btn { justify-content: center; gap: var(--sp-8); height: var(--ctl-touch); border-radius: var(--r-m); font-size: var(--fs-ui); font-weight: var(--fw-medium); }
-body.sn-app .sn-welcome-actions button.sn-btn:not(.is-primary) { border: 1px solid var(--line); background: var(--win); color: var(--fg); }
-body.sn-app .sn-welcome-actions button.sn-btn:not(.is-primary):hover { background: var(--hover-bg); }
+.sn-welcome-actions button.sn-btn { justify-content: center; gap: var(--sp-8); height: var(--ctl-touch); border-radius: var(--r-m); font-size: var(--fs-ui); font-weight: var(--fw-medium); }
+.sn-welcome-actions button.sn-btn:not(.is-primary) { border: 1px solid var(--line); background: var(--win); color: var(--fg); }
+.sn-welcome-actions button.sn-btn:not(.is-primary):hover { background: var(--hover-bg); }
 .sn-welcome-note { max-width: 340px; margin: var(--sp-24) auto 0; color: var(--faint); font-size: var(--fs-sm); line-height: var(--lh-ui); }
 .sn-welcome-corner { position: absolute; top: calc(12px + var(--safe-top)); right: 12px; display: flex; gap: var(--sp-6); }
 .sn-welcome-corner .clickable-icon { width: 32px; height: var(--ctl-l); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); }
 
 /* ---------- Settings: sections on the left, groups of rows on cards on the right */
-body.sn-app .modal.mod-settings {
+.modal.mod-settings {
   display: flex; flex-direction: column; width: min(960px, calc(100vw - 48px)); height: min(700px, calc(100vh - 48px));
   padding: 0; overflow: hidden; background: var(--bg);
 }
-body.sn-app .modal.mod-settings > .modal-title { flex: none; margin: 0; padding: var(--sp-14) 52px var(--sp-12) var(--sp-20); border-bottom: 1px solid var(--line); background: var(--win); font-size: var(--fs-text); }
-body.sn-app .modal.mod-settings > .modal-close { top: 9px; right: 10px; }
+.modal.mod-settings > .modal-title { flex: none; margin: 0; padding: var(--sp-14) 52px var(--sp-12) var(--sp-20); border-bottom: 1px solid var(--line); background: var(--win); font-size: var(--fs-text); }
+.modal.mod-settings > .modal-close { top: 9px; right: 10px; }
 .modal.mod-settings > :not(.modal-title):not(.modal-close) { margin-inline: 0; }
 .sn-set-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 230px minmax(0, 1fr); }
 .sn-set-side { display: flex; flex-direction: column; gap: var(--sp-6); min-height: 0; padding: var(--sp-12) var(--sp-10); border-right: 1px solid var(--line); overflow-y: auto; }
 .sn-set-search-row { position: relative; flex: none; margin-bottom: var(--sp-6); }
 .sn-set-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); display: inline-flex; color: var(--muted); pointer-events: none; }
 .sn-set-search-icon svg { width: var(--icon-s); height: var(--icon-s); }
-body.sn-app input.sn-set-search { width: 100%; padding: 0 var(--sp-10) 0 30px; }
+input.sn-set-search { width: 100%; padding: 0 var(--sp-10) 0 30px; }
 .sn-set-tabs { display: flex; flex-direction: column; gap: 1px; }
 .sn-set-nav-group { padding: var(--sp-12) var(--sp-10) var(--sp-4); color: var(--muted); font-size: var(--fs-sm); font-weight: var(--fw-medium); }
 .sn-set-nav-group:first-child { padding-top: var(--sp-2); }
-body.sn-app button.sn-set-tab, body.sn-app button.sn-set-tab:not(.clickable-icon) {
+button.sn-set-tab, button.sn-set-tab:not(.clickable-icon) {
   display: flex; align-items: center; justify-content: flex-start; gap: var(--sp-10); width: 100%; height: var(--ctl-l); padding: 0 var(--sp-10); border: 0; border-radius: var(--r-s);
   background: none; box-shadow: none; color: var(--fg); font-size: var(--fs-ui); font-weight: var(--fw-regular); text-align: left; cursor: pointer;
 }
-body.sn-app button.sn-set-tab:hover { background: var(--hover-bg); }
-body.sn-app button.sn-set-tab.is-active { background: var(--sel); color: var(--ink); font-weight: var(--fw-medium); }
+button.sn-set-tab:hover { background: var(--hover-bg); }
+button.sn-set-tab.is-active { background: var(--sel); color: var(--ink); font-weight: var(--fw-medium); }
 button.sn-set-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .sn-set-tab-icon { display: inline-flex; color: var(--muted); }
 .sn-set-tab-icon svg { width: var(--icon-m); height: var(--icon-m); }
@@ -465,11 +390,11 @@ button.sn-set-tab.is-active .sn-set-tab-icon { color: var(--ink); }
 .sn-set-body > .sn-set-heading:first-child { margin-top: 0; }
 .sn-set-group { border: 1px solid var(--line); border-radius: var(--r-m); background: var(--win); overflow: hidden; }
 .sn-set-group + .sn-set-group { margin-top: var(--sp-16); }
-body.sn-app .sn-set-group .setting-item { gap: var(--sp-24); padding: var(--sp-14) var(--sp-16); border-top: 1px solid var(--line); }
-body.sn-app .sn-set-group .setting-item:first-child { border-top: 0; }
-body.sn-app .sn-set-group .setting-item-name { color: var(--ink); font-size: var(--fs-md); font-weight: var(--fw-medium); }
-body.sn-app .sn-set-group .setting-item-description { margin-top: var(--sp-4); color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh-ui); }
-body.sn-app .sn-set-group .setting-item-control select { max-width: 240px; }
+.sn-set-group .setting-item { gap: var(--sp-24); padding: var(--sp-14) var(--sp-16); border-top: 1px solid var(--line); }
+.sn-set-group .setting-item:first-child { border-top: 0; }
+.sn-set-group .setting-item-name { color: var(--ink); font-size: var(--fs-md); font-weight: var(--fw-medium); }
+.sn-set-group .setting-item-description { margin-top: var(--sp-4); color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh-ui); }
+.sn-set-group .setting-item-control select { max-width: 240px; }
 .sn-set-note { margin: var(--sp-12) var(--sp-4) 0; color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh-ui); }
 .sn-set-body .sn-sync-status { margin: 0 var(--sp-2) var(--sp-4); }
 .sn-set-body .sn-sync-note { margin: var(--sp-12) var(--sp-4) 0; color: var(--muted); }
@@ -477,18 +402,18 @@ body.sn-app .sn-set-group .setting-item-control select { max-width: 240px; }
 .sn-set-body .sn-about { margin: 0 0 var(--sp-16); padding: var(--sp-16); border: 1px solid var(--line); border-radius: var(--r-m); background: var(--win); }
 .sn-set-group .suggestion-keys { display: inline-flex; gap: var(--sp-4); }
 @media (max-width: 720px) {
-  body.sn-app .modal.mod-settings { width: 100vw; height: 100dvh; max-height: none; border-radius: 0; padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
+  .modal.mod-settings { width: 100vw; height: 100dvh; max-height: none; border-radius: 0; padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
   .sn-set-layout { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
   .sn-set-side { flex-direction: column; padding: var(--sp-10) var(--sp-12) 0; border-right: 0; border-bottom: 1px solid var(--line); overflow: visible; }
   .sn-set-tabs { flex-direction: row; gap: var(--sp-4); overflow-x: auto; scrollbar-width: none; padding-bottom: var(--sp-8); }
   .sn-set-tabs::-webkit-scrollbar { display: none; }
   .sn-set-nav-group { display: none; }
-  body.sn-app button.sn-set-tab, body.sn-app button.sn-set-tab:not(.clickable-icon) { flex: none; width: auto; }
+  button.sn-set-tab, button.sn-set-tab:not(.clickable-icon) { flex: none; width: auto; }
   .sn-set-body { padding: var(--sp-16) var(--sp-12) var(--sp-24); }
-  body.sn-app .sn-set-group .setting-item { flex-wrap: wrap; gap: var(--sp-10); padding: var(--sp-12) var(--sp-14); }
+  .sn-set-group .setting-item { flex-wrap: wrap; gap: var(--sp-10); padding: var(--sp-12) var(--sp-14); }
 }
 
 /* ---------- Pressed: one step darker than hovering (--sel), and the only feedback where nothing hovers.
    Last in the styles and ahead of every hover rule, so it shows whatever the hover rule of a control is. */
-html body.sn-app :is(button:not(.is-primary, .is-danger, .task-box), .clickable-icon, .sn-card.sn-row, .tree-item-self.is-clickable):active:not([disabled]) { background: var(--sel); }
-html body.sn-app button.is-primary:active:not([disabled]) { background: var(--cta-hover); }
+html :is(button:not(.is-primary, .is-danger, .task-box), .clickable-icon, .sn-card.sn-row, .tree-item-self.is-clickable):active:not([disabled]) { background: var(--sel); }
+html button.is-primary:active:not([disabled]) { background: var(--cta-hover); }
