@@ -1,7 +1,7 @@
 /* ==========================================================
    Agenda and tasks
    ========================================================= */
-.wb-tasks .wb-count { min-width: 18px; height: 17px; padding: 0 5px; border-radius: var(--r-pill); font-size: var(--fs-xs); line-height: 17px; font-variant-numeric: tabular-nums; }
+.wb-tasks .wb-count { min-width: 18px; height: 17px; padding: 0 5px; border-radius: var(--r-pill); font-size: var(--fs-sm); line-height: 17px; font-variant-numeric: tabular-nums; }
 .wb-tasks .wb-count.is-today { background: color-mix(in srgb, var(--next) 18%, transparent); color: var(--next); }
 .wb-tasks .wb-count.is-overdue { background: var(--todo); color: var(--win); } /* --win: white in light themes, near-black on the dark theme's lighter red */
 button.wb-btn.wb-tasks.is-active { border-color: var(--accent); }
@@ -12,10 +12,10 @@ button.wb-btn.wb-tasks.is-active { border-color: var(--accent); }
 /* agenda (after Emacs's *Org Agenda* buffer) */
 /* its colours (--wait, --cancel, --pri-*, --now) are in the palette, base.css */
 /* priorities, tags and timestamps are pills, like the tags on cards */
-.pri { font-size: var(--fs-xs); font-weight: 700; padding: 1px 6px; border-radius: var(--r-pill); background: color-mix(in srgb, currentColor 8%, transparent); line-height: 1.5; white-space: nowrap; }
+.pri { font-size: var(--fs-sm); font-weight: 700; padding: 1px 6px; border-radius: var(--r-pill); background: color-mix(in srgb, currentColor 8%, transparent); line-height: 1.5; white-space: nowrap; }
 .pri.A { color: var(--pri-a); } .pri.B { color: var(--pri-b); } .pri.C { color: var(--pri-c); }
 .tags { display: inline-flex; gap: 4px; flex-wrap: wrap; }
-.tags .tag { font-size: var(--fs-xs); color: var(--tag); background: var(--panel); padding: 1px 8px; border-radius: var(--r-pill); line-height: 16px; }
+.tags .tag { font-size: var(--fs-sm); color: var(--tag); background: var(--panel); padding: 1px 8px; border-radius: var(--r-pill); line-height: 16px; }
 /* a tag the task takes from its note: outlined rather than faded, so its text keeps 4.5:1 (spec A11Y-3) */
 .tags .tag.inh { background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
 
@@ -59,7 +59,7 @@ button.fchip.exc { background: color-mix(in srgb, var(--todo) 12%, transparent);
 .ag-card.is-empty > .ag-day > span:first-child { font-weight: 500; }
 .ag-day .num { font-weight: 400; color: var(--muted); font-size: var(--fs-ui); font-variant-numeric: tabular-nums; text-transform: none; }
 .ag-day.weekend:not(.today) { color: var(--muted); }
-.today-pill { font-size: var(--fs-xs); background: var(--accent); color: var(--win); padding: 1px 8px; border-radius: var(--r-pill); }
+.today-pill { font-size: var(--fs-sm); background: var(--accent); color: var(--win); padding: 1px 8px; border-radius: var(--r-pill); }
 /* a row reads time, then the task with the note it is in, quietly after it (spec UI-18), then its date chip at the right;
    the note's name is left out when every row comes from one note (.one-cat, agenda.js) */
 .ag-row, .ag-grid { display: grid; grid-template-columns: 11ch minmax(0, 1fr) auto; grid-template-areas: "time main lab"; align-items: baseline; column-gap: 8px; padding: 7px 14px; font-variant-numeric: tabular-nums; }
@@ -94,7 +94,7 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: 8px; paddin
 .ag-over-chev { display: inline-flex; }
 .ag-over-chev svg { width: 14px; height: 14px; transition: transform 120ms; }
 .ag-overdue.is-closed .ag-over-chev svg { transform: rotate(-90deg); }
-.ag-over-n { padding: 0 7px; border-radius: var(--r-pill); background: var(--todo); color: var(--win); font-size: var(--fs-xs); line-height: 17px; }
+.ag-over-n { padding: 0 7px; border-radius: var(--r-pill); background: var(--todo); color: var(--win); font-size: var(--fs-sm); line-height: 17px; }
 /* the day's summary under its date */
 .ag-sum { margin-left: auto; color: var(--muted); font-size: var(--fs-sm); font-weight: 400; text-transform: none; white-space: nowrap; }
 /* a task's box is coloured by its state, as on the board and in the note; the priority shows on its own .pri badge */
@@ -104,7 +104,7 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: 8px; paddin
 .agbar .ag-state { gap: 6px; }
 .agbar .ag-state .task-icon { width: 13px; height: 13px; }
 .ag-ttl { overflow-wrap: anywhere; font-size: var(--fs-md); }
-.ag-ttl a.tag { font-size: var(--fs-xs); }
+.ag-ttl a.tag { font-size: var(--fs-sm); }
 .ag-cookie { color: var(--muted); font-size: var(--fs-sm); }
 .is-done .ag-ttl { color: var(--faint); text-decoration: line-through; }
 .ag-act { display: flex; gap: 4px; visibility: hidden; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); padding: 2px; border-radius: var(--r-s); background: var(--win); }
@@ -138,7 +138,7 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: 8px; paddin
 /* org markup in notes */
 .markdown-rendered .pri { font-size: var(--fs-sm); margin-right: .3em; }
 .markdown-rendered .org-tags { margin-left: .4em; font-size: var(--fs-md); }
-.markdown-rendered .org-plan { font-size: var(--fs-xs); font-weight: 600; line-height: 1.5; white-space: nowrap; text-transform: lowercase;
+.markdown-rendered .org-plan { font-size: var(--fs-sm); font-weight: 600; line-height: 1.5; white-space: nowrap; text-transform: lowercase;
   padding: 1px 7px; border-radius: var(--r-pill); background: color-mix(in srgb, currentColor 13%, transparent);
 }
 .markdown-rendered .org-plan.is-near { text-transform: none; } /* the caret is in it: show the Markdown as written */
@@ -159,7 +159,7 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: 8px; paddin
 button.cap-tpl-btn, button.cap-tpl-btn:not(.clickable-icon) { flex-direction: column; align-items: flex-start; gap: 4px; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--r-s); background: var(--bg); font-weight: 400; cursor: pointer; text-align: left; }
 button.cap-tpl-btn svg { width: 15px; height: 15px; color: var(--muted); }
 button.cap-tpl-btn .cap-tpl-name { display: flex; align-items: center; justify-content: space-between; gap: 6px; width: 100%; }
-button.cap-tpl-btn kbd { min-width: 18px; padding: 0 5px; border: 1px solid var(--line); border-radius: var(--r-xs); background: var(--win); color: var(--muted); font-family: var(--font-code); font-size: var(--fs-xs); font-weight: 400; text-align: center; }
+button.cap-tpl-btn kbd { min-width: 18px; padding: 0 5px; border: 1px solid var(--line); border-radius: var(--r-xs); background: var(--win); color: var(--muted); font-family: var(--font-code); font-size: var(--fs-sm); font-weight: 400; text-align: center; }
 button.cap-tpl-btn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
 button.cap-tpl-btn[aria-pressed="true"] svg { color: var(--accent); }
 .cap-field { display: grid; grid-template-columns: 9ch minmax(0, 1fr); align-items: baseline; gap: 4px 10px; margin-bottom: 10px; font-size: var(--fs-sm); color: var(--muted); }
@@ -168,7 +168,7 @@ button.cap-tpl-btn[aria-pressed="true"] svg { color: var(--accent); }
 .cap-field textarea { resize: vertical; min-height: 60px; }
 .cap-hint { grid-column: 2; min-height: 1.2em; color: var(--l8); }
 .cap-hint.is-bad { color: var(--todo); }
-.cap-keys { margin-right: auto; align-self: center; color: var(--faint); font-size: var(--fs-xs); }
+.cap-keys { margin-right: auto; align-self: center; color: var(--faint); font-size: var(--fs-sm); }
 @media (max-width: 520px) { .cap-tpl { grid-template-columns: repeat(2, minmax(0, 1fr)); } .cap-keys { display: none; } }
 @media (max-width: 480px) { .wb-brand { display: none; } }
 
@@ -183,14 +183,14 @@ button.cap-tpl-btn[aria-pressed="true"] svg { color: var(--accent); }
 .org-cal button.cal-nav:hover { background: var(--hover-bg); color: var(--fg); }
 .org-cal button.cal-nav svg { width: 16px; height: 16px; }
 .cal-grid { display: grid; grid-template-columns: 22px repeat(7, minmax(0, 1fr)); gap: 2px; align-items: center; }
-.cal-wd, .cal-wk-h { text-align: center; font-size: var(--fs-xs); font-weight: 500; color: var(--faint); padding-bottom: 4px; }
-.cal-wk { text-align: center; font-size: var(--fs-xs); color: var(--faint); opacity: .7; font-variant-numeric: tabular-nums; }
+.cal-wd, .cal-wk-h { text-align: center; font-size: var(--fs-sm); font-weight: 500; color: var(--faint); padding-bottom: 4px; }
+.cal-wk { text-align: center; font-size: var(--fs-sm); color: var(--faint); opacity: .7; font-variant-numeric: tabular-nums; }
 .org-cal button.cal-day, .org-cal button.cal-day:not(.clickable-icon) { position: relative; height: 34px; padding: 0; border: 0; border-radius: var(--r-s); background: transparent; box-shadow: none; font-size: var(--fs-ui); color: var(--fg); font-variant-numeric: tabular-nums; }
 .org-cal button.cal-day:hover { background: var(--hover-bg); }
 .org-cal button.cal-day.is-weekend { color: var(--muted); }
 .org-cal button.cal-day.is-out { color: var(--faint); opacity: .5; }
 .org-cal button.cal-day.is-today { color: var(--accent); font-weight: 700; box-shadow: inset 0 0 0 1.5px var(--accent); }
-.org-cal button.cal-day.is-sel, .org-cal button.cal-day.is-sel:hover { background: var(--accent); color: #fff; font-weight: 700; box-shadow: none; }
+.org-cal button.cal-day.is-sel, .org-cal button.cal-day.is-sel:hover { background: var(--accent); color: var(--on-accent); font-weight: 700; box-shadow: none; }
 body.theme-dark .org-cal button.cal-day.is-sel { color: var(--bg); }
 .cal-dot { position: absolute; left: 50%; bottom: 4px; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--next); }
 .cal-day.is-sel .cal-dot { background: currentColor; }
@@ -222,7 +222,7 @@ body.theme-dark .org-cal button.cal-day.is-sel { color: var(--bg); }
 .org-cal select.cal-rep { width: auto; min-width: 160px; height: 32px; border-radius: var(--r-s); background-color: var(--win); font-size: var(--fs-ui); }
 .cal-foot { display: flex; align-items: center; gap: 6px; margin-top: 14px; }
 .cal-foot:empty { display: none; }
-.org-cal button.cal-ok, .org-cal button.cal-ok:not(.clickable-icon) { margin-left: auto; height: 32px; padding: 0 20px; border: 0; border-radius: var(--r-pill); background: var(--cta); box-shadow: none; color: #fff; font-size: var(--fs-ui); font-weight: 600; }
+.org-cal button.cal-ok, .org-cal button.cal-ok:not(.clickable-icon) { margin-left: auto; height: 32px; padding: 0 20px; border: 0; border-radius: var(--r-pill); background: var(--cta); box-shadow: none; color: var(--on-accent); font-size: var(--fs-ui); font-weight: 600; }
 .org-cal button.cal-ok:hover { background: var(--cta-hover); }
 .org-cal button.cal-ok:disabled { opacity: .4; cursor: default; }
 .cap-when-row { display: flex; gap: 6px; align-items: center; }
@@ -276,7 +276,7 @@ button.wb-btn.wb-files.is-active { border-color: var(--accent); }
 .fv-row-main { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .fv-row-name { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
 .fv-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--fg); font-size: var(--fs-md); }
-.fv-size { flex: 0 0 auto; color: var(--faint); font-family: var(--font-mono); font-size: var(--fs-xs); }
+.fv-size { flex: 0 0 auto; color: var(--faint); font-family: var(--font-ui); font-size: var(--fs-sm); }
 .fv-row-sub { display: flex; align-items: center; gap: 4px; min-width: 0; color: var(--muted); font-size: var(--fs-sm); }
 .fv-row-sub > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fv-sub-icon svg { width: 12px; height: 12px; display: block; }
@@ -297,14 +297,14 @@ button.wb-btn.wb-files.is-active { border-color: var(--accent); }
 .fv-ptools button.fv-goto { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; }
 .fv-ptools button.fv-goto svg { width: 15px; height: 15px; }
 .fv-ptools button.fv-goto:disabled { opacity: .45; cursor: default; }
-.fv-meta { padding: 6px 14px; color: var(--muted); font-family: var(--font-mono); font-size: var(--fs-sm); border-bottom: 1px solid var(--line); }
+.fv-meta { padding: 6px 14px; color: var(--muted); font-family: var(--font-ui); font-size: var(--fs-sm); border-bottom: 1px solid var(--line); }
 .fv-pbody { flex: 1 1 auto; min-height: 0; overflow: auto; display: flex; flex-direction: column; align-items: center; padding: 16px; }
 .fv-img { max-width: 100%; height: auto; margin: auto; box-shadow: 0 1px 4px rgb(0 0 0 / .15); background: repeating-conic-gradient(var(--panel) 0 25%, transparent 0 50%) 0 0 / 16px 16px; }
 .fv-pbody .fv-pdf { align-self: stretch; flex: 1 1 auto; height: auto; min-height: 60vh; }
 .fv-pbody .fv-pdf iframe { width: 100%; height: 100%; min-height: 60vh; border: 0; }
 .fv-media { max-width: 100%; margin: auto; }
 audio.fv-media { width: min(520px, 100%); }
-.fv-text { align-self: stretch; margin: 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); font-family: var(--font-mono); font-size: var(--fs-sm); white-space: pre-wrap; word-break: break-word; }
+.fv-text { align-self: stretch; margin: 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); font-family: var(--font-ui); font-size: var(--fs-sm); white-space: pre-wrap; word-break: break-word; }
 .fv-placeholder { margin: auto; display: flex; flex-direction: column; align-items: center; gap: 12px; color: var(--muted); font-size: var(--fs-ui); line-height: 1.5; text-align: center; padding: 24px; }
 .fv-placeholder > .svg-icon, .fv-placeholder > span > svg { width: 36px; height: 36px; color: var(--faint); }
 .fv-big svg { width: 56px; height: 56px; color: var(--faint); }
@@ -333,7 +333,7 @@ audio.fv-media { width: min(520px, 100%); }
   .ag-strip { display: flex; align-items: stretch; gap: 2px; padding: 2px; border-radius: var(--r-m); background: var(--panel); }
   button.ag-strip-day, button.ag-strip-month { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 0; height: 52px; padding: 5px 0 4px; border: 0; border-radius: var(--r-m); background: none; box-shadow: none; color: var(--muted); font-family: var(--font-ui); }
   button.ag-strip-month { flex: 0 0 40px; justify-content: center; }
-  .ag-strip-day .wd { font-size: var(--fs-xs); text-transform: capitalize; }
+  .ag-strip-day .wd { font-size: var(--fs-sm); text-transform: capitalize; }
   .ag-strip-day .dn { font-size: var(--fs-text); font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
   .ag-strip-day .dot { width: 4px; height: 4px; border-radius: 50%; }
   .ag-strip-day .dot.has { background: var(--muted); }

@@ -4,10 +4,7 @@
    Inter everywhere but code; white notes on grey; neutral ink instead of outline-level colours.
    ========================================================== */
 body.sn-app {
-  /* colours live in base.css */
-  --font-code: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-  --font-mono: var(--font-inter); --font-display: var(--font-inter);
-  --font-interface: var(--font-inter); --font-monospace: var(--font-code);
+  /* colours and fonts live in base.css */
   --shadow-s: 0 2px 8px rgba(0,0,0,.06);
   font-size: var(--fs-ui);
 }
@@ -69,7 +66,7 @@ button.sb-search svg, .sn-search-icon svg, .fv-search-icon svg { width: 14px; he
 body.sn-app input.fv-search { width: 100%; padding: 0 10px 0 30px; }
 .sb-actions { display: flex; align-items: center; gap: 8px; }
 body.sn-app button.wb-btn.sb-new, body.sn-app button.wb-btn.primary {
-  height: 38px; padding: 0 18px 0 14px; border-radius: var(--r-pill); background: var(--cta); color: #fff;
+  height: 38px; padding: 0 18px 0 14px; border-radius: var(--r-pill); background: var(--cta); color: var(--on-accent);
   font-size: var(--fs-md); font-weight: 600; gap: 7px;
 }
 body.sn-app button.wb-btn.sb-new:hover, body.sn-app button.wb-btn.primary:hover { background: var(--cta-hover); opacity: 1; }
@@ -91,7 +88,7 @@ button.sb-account:hover { background: var(--hover-bg); }
 .sb-avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--sb-avatar); color: var(--win); font-size: var(--fs-sm); font-weight: 600; }
 .sb-account-name { flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: left; line-height: 1.25; }
 .sb-account-name > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sb-account-note { color: var(--muted); font-size: var(--fs-xs); font-weight: 400; }
+.sb-account-note { color: var(--muted); font-size: var(--fs-sm); font-weight: 400; }
 button.sb-account.has-note { height: 42px; }
 
 /* the tree's tools on its "Cards" heading: they show with the pointer over the sidebar or the focus in them; touch shows them always */
@@ -167,7 +164,7 @@ body.sn-app .sn-card-icon { color: var(--muted); }
    plan, a tick for closed) and the date as "11 Nov"; the note keeps the full words and timestamps (org-editing.js data-short) */
 /* the date is an inline-block centred on the line like the icon beside it (its own text is hidden, so it has no baseline to share) */
 body.sn-app .sn-tags { gap: 6px; margin-top: 8px; }
-body.sn-app .sn-tag, body.sn-app .markdown-rendered a.tag { padding: 1px 8px; border-radius: var(--r-pill); background: var(--panel); color: var(--tag); font-size: var(--fs-xs); line-height: 16px; }
+body.sn-app .sn-tag, body.sn-app .markdown-rendered a.tag { padding: 1px 8px; border-radius: var(--r-pill); background: var(--panel); color: var(--tag); font-size: var(--fs-sm); line-height: 16px; }
 body.sn-app .sn-tag:hover { background: color-mix(in srgb, var(--panel) 80%, var(--fg) 10%); }
 body.sn-app .sn-chip { font-size: var(--fs-sm); border-radius: var(--r-pill); }
 body.sn-app .sn-composer { border-radius: var(--r-m); background: var(--win); box-shadow: 0 0 0 1px var(--line); }
@@ -177,7 +174,7 @@ body.sn-app .sn-composer-hint { font-size: var(--fs-sm); padding: 0 16px 10px; }
 body.sn-app .sn-filterbar { padding: 8px 24px; border-bottom: 0; }
 body.sn-app .sn-board .sn-filter-btn, body.sn-app .sn-board .sn-filterbar > .clickable-icon { height: 32px; border-radius: var(--r-pill); font-size: var(--fs-ui); }
 body.sn-app .sn-board .sn-filter-btn.is-active { border-color: var(--line); background: var(--panel); color: var(--ink); }
-body.sn-app .sn-board .sn-filter-chip { height: 24px; border: 0; border-radius: var(--r-pill); background: var(--panel); color: var(--tag); font-family: var(--font-inter); font-size: var(--fs-sm); }
+body.sn-app .sn-board .sn-filter-chip { height: 24px; border: 0; border-radius: var(--r-pill); background: var(--panel); color: var(--tag); font-family: var(--font-ui); font-size: var(--fs-sm); }
 body.sn-app .sn-selbar { border-radius: var(--r-m); }
 
 /* ---------- Minibuffer: light, a quiet footer */
@@ -212,7 +209,7 @@ button.sn-mode-btn { flex: none; display: inline-flex; align-items: center; gap:
   border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--win); color: var(--fg); font-size: var(--fs-ui); font-weight: 500; cursor: pointer; }
 button.sn-mode-btn:hover { background: var(--hover-bg); }
 button.sn-mode-btn svg { display: block; width: 15px; height: 15px; } /* a block, so the icon sits in the middle, not on the text's baseline */
-button.sn-mode-btn.is-editing { border-color: transparent; background: var(--cta); color: #fff; }
+button.sn-mode-btn.is-editing { border-color: transparent; background: var(--cta); color: var(--on-accent); }
 button.sn-mode-btn.is-editing:hover { background: var(--cta-hover); }
 @container (max-width: 640px) { button.sn-mode-btn { width: 30px; padding: 0; justify-content: center; } .sn-mode-label { display: none; } }
 /* reading keeps the room of the editing toolbar above the note, so its title stays put when editing starts */
@@ -233,7 +230,7 @@ body.sn-app .sn-fm-error { font-family: var(--font-code); }
 /* Rendered Markdown: black bold headings, grey quotes, monospace code */
 body.sn-app .markdown-rendered :is(h1, h2, h3, h4, h5, h6) { color: var(--ink); letter-spacing: -.01em; }
 body.sn-app .markdown-rendered :is(ul, ol) li::marker { color: var(--muted); }
-body.sn-app .markdown-rendered ol li::marker { font-family: var(--font-inter); }
+body.sn-app .markdown-rendered ol li::marker { font-family: var(--font-ui); }
 body.sn-app .markdown-rendered a { color: var(--accent); }
 body.sn-app .markdown-rendered input[type="checkbox"] { accent-color: var(--accent); }
 body.sn-app .markdown-rendered code { font-family: var(--font-code); color: var(--ink); background: var(--code-bg); }
@@ -243,7 +240,7 @@ body.sn-app .markdown-rendered .code-body, body.sn-app .fv-text { font-family: v
 body.sn-app .markdown-rendered .code-block, body.sn-app .markdown-rendered .sn-table-wrap { border-radius: var(--r-m); }
 body.sn-app .markdown-rendered th { font-weight: 600; text-align: left; }
 body.sn-app .markdown-rendered blockquote { border-inline-start: 3px solid var(--panel); }
-body.sn-app .markdown-rendered .sn-pdf-head { font-family: var(--font-inter); }
+body.sn-app .markdown-rendered .sn-pdf-head { font-family: var(--font-ui); }
 
 /* ---------- Menus, dialogs, pickers */
 body.sn-app .menu { border-radius: var(--r-m); padding: 6px; box-shadow: 0 8px 28px rgba(0,0,0,.14); }
@@ -254,13 +251,13 @@ body.sn-app .modal { border-radius: var(--r-l); }
 body.sn-app .modal-title { font-weight: 600; font-size: var(--fs-lg); border-bottom: 0; }
 body.sn-app .modal input[type="text"] { height: 36px; border-radius: var(--r-s); font-size: var(--fs-md); }
 body.sn-app .modal-buttons button, body.sn-app .modal-buttons button:not(.clickable-icon) { height: 34px; padding: 0 16px; border-radius: var(--r-pill); font-weight: 600; }
-body.sn-app .modal-buttons button.mod-cta, body.sn-app .setting-item-control .wb-btn.is-cta, body.sn-app button.mod-cta { background: var(--cta); color: #fff; border-color: var(--cta); }
+body.sn-app .modal-buttons button.mod-cta, body.sn-app .setting-item-control .wb-btn.is-cta, body.sn-app button.mod-cta { background: var(--cta); color: var(--on-accent); border-color: var(--cta); }
 body.sn-app .setting-heading { letter-spacing: 0; text-transform: none; font-size: var(--fs-sm); font-weight: 600; color: var(--muted); }
 body.sn-app .setting-item-name { font-size: var(--fs-md); }
 body.sn-app .setting-item-description { font-size: var(--fs-sm); }
 body.sn-app .setting-item-control select, body.sn-app .setting-item-control input { height: 32px; border-radius: var(--r-s); background-color: var(--win); }
 body.sn-app .checkbox-container.is-enabled { background: var(--cta); }
-body.sn-app .sn-about-name { font-family: var(--font-inter); font-weight: 700; }
+body.sn-app .sn-about-name { font-family: var(--font-ui); font-weight: 700; }
 body.sn-app .prompt { border-radius: var(--r-l); }
 body.sn-app .prompt-input { font-size: var(--fs-text) !important; }
 body.sn-app :is(.wb-btn kbd, button.sn-tb-insert kbd) { font-family: var(--font-code); }
@@ -386,7 +383,7 @@ body.sn-app .sn-board .sn-card.sn-row.is-folder { align-items: center; gap: 10px
   .sn-tabbar.is-hidden { transform: translateY(100%); }
   button.sn-tab, button.sn-tab:not(.clickable-icon) {
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; height: 54px; padding: 0;
-    border: 0; background: none; box-shadow: none; color: var(--muted); font-family: var(--font-ui); font-size: var(--fs-xs); font-weight: 500;
+    border: 0; background: none; box-shadow: none; color: var(--muted); font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 500;
   }
   button.sn-tab svg { width: 22px; height: 22px; }
   #app:not(:has(.sn-board.is-tasks, .sn-board.is-files)) .sn-tab[data-tab="board"], #app:has(.sn-board.is-tasks) .sn-tab[data-tab="agenda"] { color: var(--accent); }
@@ -430,13 +427,13 @@ html.is-native body.sn-app .sn-main { padding-top: max(6px, env(safe-area-inset-
 .sn-welcome-card { width: min(440px, 100%); padding: 40px 32px 28px; border: 1px solid var(--line); border-radius: var(--r-l); background: var(--win); box-shadow: 0 12px 40px color-mix(in srgb, var(--shade) 6%, transparent); text-align: center; }
 .sn-welcome-logo { display: block; width: 72px; height: 72px; margin: 0 auto 14px; }
 body.theme-dark .sn-welcome-logo { filter: brightness(.82); } /* the icon's white tile, toned down so it does not glare on the dark card */
-.sn-welcome-title { margin: 0 0 6px; color: var(--ink); font-family: var(--font-display); font-size: var(--fs-xl); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
+.sn-welcome-title { margin: 0 0 6px; color: var(--ink); font-family: var(--font-ui); font-size: var(--fs-xl); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
 .sn-welcome-sub { max-width: 340px; margin: 0 auto 26px; color: var(--muted); font-size: var(--fs-md); line-height: 1.5; }
 .sn-welcome-actions { display: flex; flex-direction: column; align-items: stretch; gap: 8px; max-width: 300px; margin: 0 auto; }
 body.sn-app .sn-welcome-actions button.wb-btn { justify-content: center; gap: 8px; height: 40px; border-radius: var(--r-m); font-size: var(--fs-ui); font-weight: 500; }
 body.sn-app .sn-welcome-actions button.wb-btn:not(.primary) { border: 1px solid var(--line); background: var(--win); color: var(--fg); }
 body.sn-app .sn-welcome-actions button.wb-btn:not(.primary):hover { background: var(--hover-bg); }
-.sn-welcome-note { max-width: 340px; margin: 22px auto 0; color: var(--faint); font-size: var(--fs-xs); line-height: 1.5; }
+.sn-welcome-note { max-width: 340px; margin: 22px auto 0; color: var(--faint); font-size: var(--fs-sm); line-height: 1.5; }
 .sn-welcome-corner { position: absolute; top: calc(12px + var(--safe-top)); right: 12px; display: flex; gap: 6px; }
 .sn-welcome-corner .clickable-icon { width: 32px; height: 30px; border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); }
 

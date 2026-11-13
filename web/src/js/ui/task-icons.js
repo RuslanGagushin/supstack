@@ -19,7 +19,7 @@ const PATHS = {
   wait: '<rect x="2.25" y="3.25" width="11.5" height="10.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>'
     + '<path d="M2.25 5.25a2 2 0 0 1 2-2h7.5a2 2 0 0 1 2 2V7H2.25Z" fill="currentColor"/>'
     + '<path d="M5.25 1.75v2.5M10.75 1.75v2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
-  done: '<circle cx="8" cy="8" r="7" fill="currentColor"/><path d="M4.9 8.2l2.1 2.1 4.1-4.4" fill="none" stroke="var(--task-check, #fff)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>',
+  done: '<circle cx="8" cy="8" r="7" fill="currentColor"/><path d="M4.9 8.2l2.1 2.1 4.1-4.4" fill="none" stroke="var(--on-accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>',
   cancel: '<path d="M2.5 8h11" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>',
   fwd: '<path d="M2 2.4 14.2 8 2 13.6 4.3 8Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>',
 };

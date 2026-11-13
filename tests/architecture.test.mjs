@@ -87,3 +87,12 @@ test("every CSS variable used without a fallback is defined, and no comment clos
   const missing = [...new Set([...bare.matchAll(/var\(\s*(--[\w-]+)\s*\)/g)].map((m) => m[1]))].filter((v) => !defined.has(v) && !fromJs.has(v));
   assert.deepEqual(missing, []);
 });
+
+test("every CSS variable the stylesheets define is used, by a stylesheet or by the scripts", () => {
+  const CSS = fileURLToPath(new URL("../web/src/css/", import.meta.url));
+  const bare = readdirSync(CSS).filter((f) => f.endsWith(".css")).map((f) => readFileSync(join(CSS, f), "utf8")).join("\n").replace(/\/\*[\s\S]*?\*\//g, " ");
+  const js = modules.map((f) => readFileSync(join(JS, f), "utf8")).join("\n");
+  const defined = new Set([...bare.matchAll(/(?<![\w-])(--[\w-]+)\s*:/g)].map((m) => m[1]));
+  const used = new Set([...(bare + js).matchAll(/var\(\s*(--[\w-]+)/g), ...js.matchAll(/["'`](--[\w-]+)["'`]/g)].map((m) => m[1]));
+  assert.deepEqual([...defined].filter((v) => !used.has(v)).sort(), []);
+});

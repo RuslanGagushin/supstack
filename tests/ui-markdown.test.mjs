@@ -121,7 +121,7 @@ describe("tables and fonts", () => {
       document.body.append(reading);
       const interText = getComputedStyle(reading).fontFamily;
       const faces = [...document.fonts].filter((f) => f.family.replace(/"/g, "") === "Inter").length;
-      return { ui, interText, faces, family: family("--font-inter") };
+      return { ui, interText, faces, family: family("--font-ui") };
     });
     assert.match(r.ui, /^"?Inter/);
     assert.match(r.interText, /^"?Inter/);

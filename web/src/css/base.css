@@ -22,42 +22,37 @@ body {
   --cta-hover:#3245bb; --hover-bg:#edeceb; --sb-avatar:var(--muted);--tag:#3e3e3e; --tbl-head:#f4f3f2; --tbl-head-line:#d4d1ce; --l1:#2f4fb5;
   --l2:#9a5524; --l3:#7a3fb0; --l5:#2d7a3a; --l7:#946500; --l8:#1d7385; --todo:#c42f27; --next:#b25f06;
   --done:#276f36; --pri-a:#c42f27; --pri-b:#b25f06; --pri-c:#696564; --now:#c42f27;
-  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; --font-inter: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --fs-xs: 12px;
+  /* text and marks on --accent, --cta and --todo fills; --paper is the white of a page (a PDF, the switch knob), the same in both themes */
+  --on-accent: #fff; --paper: #fff;
+  /* two typefaces: Inter for the interface and the notes, JetBrains Mono for code, keys and source */
+  --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-code: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  /* the interface's six sizes (spec UI-20): 12, 13, 14, 16, 20, 24; --fs-sm is the smallest text */
   --fs-sm: 12px; --fs-ui: 13px; --fs-md: 14px;
-  /* the interface's six sizes (spec UI-20): 12, 13, 14, 16, 20, 24; --fs-xs is 12 too, as the smallest text */
   --fs-text: 16px; --fs-note: 16px; --fs-lg: 20px; --fs-xl: 24px;
-  --font-ui: var(--font-inter); --font-display: var(--font-inter);
-  /* theme variables the board styles use, mapped onto the base palette */
-  --font-interface: var(--font-mono);
 
-  --font-monospace: var(--font-mono);
-  --font-text-size: 14px;
-  --font-ui-smaller: var(--fs-sm); --font-ui-small: var(--fs-ui);
-
-  --font-normal: 400; --font-medium: 500; --font-semibold: 600;
+  --font-medium: 500; --font-semibold: 600;
   --line-height-normal: 1.6; --line-height-tight: 1.3;
   --size-2-1: 2px; --size-2-2: 4px; --size-2-3: 6px;
-  --size-4-1: 4px; --size-4-2: 8px; --size-4-3: 12px; --size-4-4: 16px; --size-4-5: 20px; --size-4-6: 24px; --size-4-8: 32px; --size-4-12: 48px;
+  --size-4-1: 4px; --size-4-2: 8px; --size-4-3: 12px; --size-4-4: 16px; --size-4-5: 20px; --size-4-12: 48px;
   /* The corner scale, the only radii in the styles (besides circles, 50%, and 1–2px hairlines):
      xs for tiny inline things (kbd, inline code), s for controls (buttons, fields, rows, menu items),
      m for surfaces (cards, menus, popups, the note's sheet), l for dialogs, pill for tags, badges and pill buttons. */
   --r-xs: 4px; --r-s: 8px; --r-m: 12px; --r-l: 16px; --r-pill: 999px;
-  --radius-s: var(--r-xs); --radius-m: var(--r-s);
+
   --border-width: 1px;
-  --icon-xs: 13px; --icon-s: 15px; --icon-m: 16px; --icon-xl: 26px;
+  --icon-xs: 13px; --icon-s: 15px; --icon-m: 16px;
   --icon-stroke: 1.75px;
   --icon-s-stroke-width: 1.9px; --icon-m-stroke-width: 1.9px; --icon-xl-stroke-width: 1.5px;
   --icon-opacity-hover: 1;
-  --clickable-icon-radius: var(--r-s);
   --header-height: 40px;
-  --input-height: 28px; --input-radius: var(--r-s); --button-radius: var(--r-s);
-  --file-line-width: 72ch;
+  --input-height: 28px;
   /* a note's own headings, in whole pixels of its 16px text: 28, 24, 20, then the text's size (the title is 32, app.css) */
   --h1-size: calc(var(--fs-note) * 1.75); --h2-size: calc(var(--fs-note) * 1.5); --h3-size: calc(var(--fs-note) * 1.25); --h4-size: var(--fs-note); --h5-size: var(--fs-note); --h6-size: var(--fs-note);
 
   --interactive-accent: var(--accent);
   --interactive-accent-hover: color-mix(in srgb, var(--accent) 85%, var(--fg));
-  --text-accent: var(--accent); --text-on-accent: #fff;
+  --text-accent: var(--accent);
   --text-selection: var(--sel);
 
   --pill-color: var(--muted); --pill-color-hover: var(--fg);
@@ -66,7 +61,6 @@ body {
   --pill-padding-x: 6px; --pill-padding-y: 1px;
   --tag-color: var(--tag);
   --tag-background: var(--panel); --tag-background-hover: var(--line);
-  --tag-radius: var(--r-xs);
   --nav-item-color-hover: var(--fg);
   --nav-item-background-hover: var(--panel);
   --nav-item-weight-active: 500;
@@ -76,7 +70,7 @@ body {
   --nav-collapse-icon-color: var(--faint);
 
   --background-primary: var(--win);
-  --background-secondary: var(--bg); --background-secondary-alt: var(--win);
+  --background-secondary: var(--bg);
   --background-modifier-border: var(--line);
   --background-modifier-border-hover: color-mix(in srgb, var(--faint) 55%, var(--line));
   --background-modifier-border-focus: var(--accent);
@@ -91,7 +85,7 @@ body {
 
   --scrollbar-thumb: color-mix(in srgb, var(--fg) 14%, transparent); --scrollbar-thumb-hover: color-mix(in srgb, var(--fg) 28%, transparent);
 
-  font-family: var(--font-interface);
+  font-family: var(--font-ui);
   color: var(--fg);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
@@ -105,14 +99,14 @@ body {
 
 /* ---------- Base elements */
 button:not(.clickable-icon) {
-  display: inline-flex; align-items: center; justify-content: center; gap: var(--size-2-3); border-radius: var(--button-radius);
-  color: var(--text-normal); font-family: inherit; font-size: var(--font-ui-small); font-weight: var(--font-medium); white-space: nowrap;
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--size-2-3); border-radius: var(--r-s);
+  color: var(--text-normal); font-family: inherit; font-size: var(--fs-ui); font-weight: var(--font-medium); white-space: nowrap;
 }
 button:not(.clickable-icon):hover { background: var(--interactive-hover); }
 button.mod-cta:hover { background: var(--interactive-accent-hover); }
 input[type="text"], input[type="search"], input[type="number"], input:not([type]), textarea, select {
   background: var(--background-modifier-form-field); border: var(--border-width) solid var(--background-modifier-border);
-  border-radius: var(--input-radius); color: var(--text-normal); font-family: inherit; font-size: var(--font-ui-small);
+  border-radius: var(--r-s); color: var(--text-normal); font-family: inherit; font-size: var(--fs-ui);
   padding: var(--size-4-1) var(--size-4-2); outline: none; height: var(--input-height);
 }
 textarea { height: auto; }
@@ -128,7 +122,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--background-modif
 input[type="checkbox"] { accent-color: var(--interactive-accent); }
 .clickable-icon {
   display: flex; align-items: center; justify-content: center;
-  padding: var(--size-2-2) var(--size-2-3); border: 0; border-radius: var(--clickable-icon-radius);
+  padding: var(--size-2-2) var(--size-2-3); border: 0; border-radius: var(--r-s);
   background: transparent; color: var(--icon-color);
   font-family: inherit;
 }
@@ -179,7 +173,7 @@ button.task-box:focus-visible { outline: 2px solid var(--accent); outline-offset
 .markdown-rendered h4 { font-size: var(--h4-size); } .markdown-rendered h5 { font-size: var(--h5-size); } .markdown-rendered h6 { font-size: var(--h6-size); }
 .markdown-rendered pre { overflow-x: auto; }
 .markdown-rendered hr { border: 0; border-top: 2px solid var(--background-modifier-border); margin: 2em 0; }
-.markdown-rendered img { max-width: 100%; border-radius: var(--radius-s); }
+.markdown-rendered img { max-width: 100%; border-radius: var(--r-xs); }
 /* the frame and colours are in frame.css */
 .markdown-rendered .callout-content > :last-child { margin-bottom: 0; }
 
