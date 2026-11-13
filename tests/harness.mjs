@@ -55,7 +55,8 @@ export const SVG = { data: '<svg xmlns="http://www.w3.org/2000/svg" width="40" h
  * Every call to Tauri is recorded in window.__invokes as [command, args].
  * - watch: the plugin watches the folder, as on desktop; a test reports changes with window.__vaultChanged(changes)
  * - clock: the page's clock starts at this time and moves only with page.clock.runFor (timers included)
- * - answers: what other plugins' commands return, by full command ("plugin:notification|request_permission": "granted")
+ * - answers: what other plugins' and the app's commands return, by full command ("plugin:notification|request_permission": "granted");
+ *   "!error: why" makes the command fail
  * - userAgent: e.g. an Android one, for the app as it runs on a phone
  */
 export async function openNativeApp({ notes = { "Home.md": "# Home\n\n- TODO Write" }, viewport = { width: 1280, height: 800 }, expose = false, storage = {}, watch = false, clock = null, answers = {}, userAgent = null } = {}) {
@@ -82,17 +83,23 @@ export async function openNativeApp({ notes = { "Home.md": "# Home\n\n- TODO Wri
       remove: (a) => { delete files[a.path]; return null; },
       list_dir: () => [], remove_dir: () => null, git_info: () => ({ repo: false }), git_save_settings: () => null,
     };
+    // events from the app: window.__tauriEmit(name, payload) sends one to what the page listens to
+    const listeners = new Map();
+    window.__tauriEmit = (name, payload) => { for (const fn of listeners.get(name) || []) fn({ event: name, payload }); };
+    window.__TAURI__ = { event: { listen: async (name, fn) => { (listeners.get(name) || listeners.set(name, new Set()).get(name)).add(fn); return () => listeners.get(name).delete(fn); } } };
     if (watch) {
       // the watcher's events: "vault://changed" with { root, changes: [{ path, mtime, size }] }, mtime null for a file that is gone
-      const listeners = new Set();
       Object.assign(vault, { watch: () => true, unwatch: () => null });
-      window.__vaultChanged = (changes) => { for (const fn of listeners) fn({ event: "vault://changed", payload: { root: "/vault", changes } }); };
-      window.__TAURI__ = { event: { listen: async (name, fn) => { if (name === "vault://changed") listeners.add(fn); return () => listeners.delete(fn); } } };
+      window.__vaultChanged = (changes) => window.__tauriEmit("vault://changed", { root: "/vault", changes });
     }
     window.__TAURI__ = { ...window.__TAURI__, core: { invoke: async (cmd, a) => {
       window.__invokes.push([cmd, a]);
       const [plugin, c] = cmd.split("|");
-      if (plugin !== "plugin:vault") return answers[cmd] ?? null;
+      if (plugin !== "plugin:vault") {
+        const v = answers[cmd];
+        if (typeof v === "string" && v.startsWith("!error:")) throw new Error(v.slice(7).trim()); // a command that fails
+        return v ?? null;
+      }
       if (!vault[c]) throw new Error("no vault command " + c);
       return vault[c](a);
     } } };
