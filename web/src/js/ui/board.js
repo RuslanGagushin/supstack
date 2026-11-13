@@ -195,16 +195,27 @@ function renderRows(page, scroll, model, composer) {
   const listName = board.tagView ? "#" + board.tagView : board.target ? baseName(board.target) : t("allCards");
   const box = h("div", { cls: "sn-rows", role: "listbox", "aria-label": listName, "aria-multiselectable": String(!!board.selectMode) });
   page.append(box);
-  const addRows = (list) => { for (const c of list) { const el = renderRow(c.path, c.via, !!c.folder); box.append(el); rows.push(el); } };
+  // notebooks are tiles at the top; "Notes" heads the notes under them (restyle RS-25, RS-28), seen but not read out:
+  // the list box holds options only
+  let prevFolder = false;
+  const addRows = (list) => {
+    for (const c of list) {
+      if (prevFolder && !c.folder) box.append(h("div", { cls: "sn-list-label", "aria-hidden": "true", text: t("listNotes") }));
+      prevFolder = !!c.folder;
+      const el = renderRow(c.path, c.via, !!c.folder); box.append(el); rows.push(el);
+    }
+  };
   lazyAdd(page, scroll, model.shown, addRows);
   return rows;
 }
 /** The top of the list of notes: the card (or tag) it lists and how many notebooks and notes it shows. */
 function renderListHead(model) {
   const target = board.target, tv = board.tagView;
+  // what kind of list it is, its name, then how much it holds (restyle RS-20 to RS-22)
+  const kind = tv ? t("listKindTag") : model.active ? t("listKindSearch") : t("listKindNotebook");
   const head = h("div", { cls: "sn-list-head" });
-  head.append(h("h1", { cls: "sn-list-title" }, ic("sn-list-badge", tv ? "hash" : target ? cardIcon(target) || "layers" : "home", "layers"),
-    h("span", { text: tv ? "#" + tv : target ? baseName(target) : t("allCards") })));
+  head.append(h("div", { cls: "sn-list-kind", text: kind }));
+  head.append(h("h1", { cls: "sn-list-title" }, h("span", { text: tv ? "#" + tv : target ? baseName(target) : t("allCards") })));
   head.append(h("span", { cls: "sn-list-count", text: countText(model) }));
   return head;
 }

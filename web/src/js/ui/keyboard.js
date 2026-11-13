@@ -17,8 +17,11 @@ import { openTasksView } from "./agenda.js";
 import { openFilesView } from "./files.js";
 
 function spatialNext(from, dir) {
-  const cards = $$(".sn-board .sn-rows .sn-card");
+  const cards = [...$$(".sn-board .sn-rows .sn-card")];
   if (!from) return cards[0];
+  // the list of notes reads in order: up and down step through the notebooks' tiles row by row, then the notes (restyle RS-27);
+  // right and left keep going into a notebook and back out
+  if ((dir === "ArrowDown" || dir === "ArrowUp") && from.closest(".sn-board.is-notes")) return cards[cards.indexOf(from) + (dir === "ArrowDown" ? 1 : -1)] || null;
   const r = from.getBoundingClientRect();
   const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
   let best = null, bestScore = Infinity;

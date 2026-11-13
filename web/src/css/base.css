@@ -9,7 +9,7 @@ body.theme-dark {
   --accent:#7c8eff; --accent-soft:#1f2547; --sel:#303236; --flash:#4a3f12; --code-bg:#25272a;
   --ink:#f2f3f4; --cta:#4d64ff; --cta-hover:#7c8eff; --hover-bg:#25272a;
   --tag:#c4c6cb; --tbl-head:#25272a; --tbl-head-line:#2e3034;
-  --panel-strong:#36383d;
+  --panel-strong:#36383d; --line-strong:#3b3d42;
   --l2:#e3a46f; --l3:#c39cf0; --l7:#e2c162; --l8:#78c6d4;
   --todo:#ff7c70;
   color-scheme: dark;
@@ -22,7 +22,7 @@ body {
      detail, 4.5:1 on --bg and --win only — never on --panel, --sel or --hover-bg). */
   --bg:#f8f8f7; --win:#ffffff; --panel:#f1f1ef; --fg:#2a2c30; --muted:#55585e; --faint:#686b72; --line:#e9e9e7;
   --accent:#4d64ff; --accent-soft:#ebeeff; --sel:#ececea; --flash:#fff1a8; --code-bg:#f4f4f2; --ink:#17181a; --cta:#4d64ff;
-  --cta-hover:#3245bb; --hover-bg:#f4f4f2; --tag:#45484e; --tbl-head:#f4f4f2; --tbl-head-line:#e9e9e7; --panel-strong:#e4e4e1;
+  --cta-hover:#3245bb; --hover-bg:#f4f4f2; --tag:#45484e; --tbl-head:#f4f4f2; --tbl-head-line:#e9e9e7; --panel-strong:#e4e4e1; --line-strong:#d9d9d6;
   --l2:#9a5524; --l3:#7a3fb0; --l7:#946500; --l8:#1d7385; --todo:#c42f27;
   /* text and marks on --accent, --cta and --todo fills; --paper is the white of a page (a PDF, the switch knob), the same in both themes */
   --on-accent: #fff; --paper: #fff;
@@ -36,6 +36,8 @@ body {
   --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700;
   /* line heights: headings and titles, the interface, a note's text */
   --lh-tight: 1.25; --lh-ui: 1.5; --lh-text: 1.7;
+  /* tracking: headings at 24px and the list's title */
+  --ls-head: -0.02em;
   /* the spacing scale, named by its size in pixels: every padding, margin and gap uses it (besides 0, 1px hairlines
      and the few measured offsets listed in tests/architecture.test.mjs) */
   --sp-2: 2px; --sp-4: 4px; --sp-6: 6px; --sp-8: 8px; --sp-10: 10px; --sp-12: 12px; --sp-14: 14px; --sp-16: 16px;

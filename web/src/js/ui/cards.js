@@ -84,9 +84,10 @@ function renderFolderRow(path, via) {
   if (board.selection.has(path)) row.classList.add("is-picked");
   asOption(row, path);
   if (editor.path === path) row.classList.add("is-editing");
+  // a tile: its icon, its name, how many notes and notebooks are right inside it (restyle RS-26)
   const kids = graph.childrenOf(path).length;
-  row.append(ic("sn-row-folder-icon", cardIcon(path) || "folder", "folder"), h("span", { cls: "sn-row-title", text: baseName(path) }),
-    h("span", { cls: "sn-row-count", title: t("rowEnter", { n: kids }) }, h("span", { text: String(kids) }), ic("", "chevron-right")));
+  row.append(ic("sn-row-folder-icon", cardIcon(path) || "folder", "folder"), h("span", { cls: "sn-row-title", text: baseName(path), title: baseName(path) }),
+    h("span", { cls: "sn-row-count", title: t("rowEnter", { n: kids }), text: t("cardsCount", { n: kids }) }));
   row.addEventListener("click", (e) => {
     if (e.shiftKey || board.selectMode) { e.preventDefault(); toggleSelect(path); return; }
     enterRow(path);
@@ -130,7 +131,7 @@ export function renderRow(path, via, folder = false) {
   const mtime = n?.mtime || 0;
   meta.append(h("span", { cls: "sn-row-date", text: formatDate(mtime), title: t("modifiedAt", { date: new Date(mtime).toLocaleString(LANG) }) }));
   const prog = cardTaskProgress(path);
-  if (prog) meta.append(h("span", { cls: "sn-task-prog" + (prog.done === prog.n ? " is-complete" : ""), title: tt("progress", prog) }, ic("", "square-check"), h("span", { text: `${prog.done}/${prog.n}` })));
+  if (prog) meta.append(h("span", { cls: "sn-task-prog" + (prog.done === prog.n ? " is-complete" : ""), title: tt("progress", prog), text: t("rowTasks", prog) }));
 
   const head = h("div", { cls: "sn-row-head" });
   const iconName = cardIcon(path);

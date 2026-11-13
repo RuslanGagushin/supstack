@@ -298,15 +298,15 @@ describe("list of notes", () => {
     noErrors();
   });
 
-  test("a notebook is a compact row that goes inside on a click or →, and ← comes back out on it", async () => {
+  test("a notebook is a tile that goes inside on a click or →, and ← comes back out on it", async () => {
     await ev(() => setTarget("cards/History.md"));
     const r = await ev(() => ({
       gap: getComputedStyle(document.querySelector(".sn-rows")).rowGap, folders: [...document.querySelectorAll(".sn-row.is-folder")].map((x) => x.dataset.path),
       row: document.querySelector(".sn-row.is-folder").textContent, snippet: !!document.querySelector(".sn-row.is-folder .sn-row-snippet"),
     }));
-    assert.equal(r.gap, "6px");
+    assert.equal(r.gap, "8px");
     assert.deepEqual(r.folders, ["cards/Roman Empire.md"]);
-    assert.equal(r.row, "Roman Empire2", "its name and how many cards it holds");
+    assert.equal(r.row, "Roman Empire2 notes", "its name and how many notes it holds");
     assert.equal(r.snippet, false);
     await page().click('.sn-row[data-path="cards/Roman Empire.md"]');
     assert.equal(await ev(() => board.target), "cards/Roman Empire.md");
