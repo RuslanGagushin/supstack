@@ -23,6 +23,7 @@ import * as m18 from "./services/daily-notes.js";
 import * as m19 from "./services/tasks.js";
 import * as m20 from "./services/sync.js";
 import * as m21 from "./services/updates.js";
+import * as m49 from "./services/index-cache.js";
 import * as m22 from "./ui/dom.js";
 import * as m23 from "./ui/ui.js";
 import * as m24 from "./ui/markdown.js";
@@ -51,7 +52,7 @@ import * as m47 from "./ui/task-icons.js";
 import * as m48 from "./ui/app-icon.js";
 
 export function exposeGlobals() {
-  for (const ns of [m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16, m17, m18, m19, m20, m21, m22, m23, m24, m25, m27, m28, m29, m30, m31, m32, m33, m34, m35, m36, m37, m38, m39, m40, m41, m42, m43, m44, m45, m46, m47, m48]) {
+  for (const ns of [m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16, m17, m18, m19, m20, m21, m22, m23, m24, m25, m27, m28, m29, m30, m31, m32, m33, m34, m35, m36, m37, m38, m39, m40, m41, m42, m43, m44, m45, m46, m47, m48, m49]) {
     for (const k of Object.keys(ns)) {
       try { Object.defineProperty(globalThis, k, { get: () => ns[k], configurable: true }); } catch { /* a browser global of that name (top, name…) stays */ }
     }

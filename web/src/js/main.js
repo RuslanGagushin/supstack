@@ -29,6 +29,7 @@ import "./services/daily-notes.js";
 import "./services/tasks.js";
 import "./services/sync.js";
 import "./services/updates.js";
+import "./services/index-cache.js";
 import "./ui/dom.js";
 import "./ui/ui.js";
 import "./ui/markdown.js";

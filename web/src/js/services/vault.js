@@ -13,6 +13,7 @@ import { board, DEFAULTS, graph, PARENTS_FIELD, resetSettings, S, setGraph, tree
 import { ATTACHMENTS, CARDS, DAILY, inFolder, vaultFolder } from "./folders.js";
 import { dropAttachment } from "./attachments.js";
 import { stopSync, syncHook } from "./sync.js";
+import { flushIndexCache, loadIndexCache, scheduleIndexFlush } from "./index-cache.js";
 
 export function isMd(p) { return /\.md$/i.test(p); }
 export function isCard(path) {
@@ -20,12 +21,15 @@ export function isCard(path) {
   if (!inFolder(path, CARDS) && !inFolder(path, DAILY)) return false;
   return true;
 }
-export function parseNote(path, raw, mtime) {
+/** A note from its text. `cached` (from services/index-cache.js, for this same text) skips parsing the frontmatter, tags and links. */
+export function parseNote(path, raw, mtime, cached = null) {
   const { fm: fmRaw, body } = splitNote(raw);
   let fm = {}, fmError = null;
-  if (fmRaw) { try { fm = parseYaml(fmInner(fmRaw)); } catch (e) { fmError = String(e.message || e).split("\n")[0]; } }
+  if (cached) ({ fm, fmError } = cached);
+  else if (fmRaw) { try { fm = parseYaml(fmInner(fmRaw)); } catch (e) { fmError = String(e.message || e).split("\n")[0]; } }
   const created = Date.parse(fm.created ?? fm.date ?? "") || null;
-  return { path, name: baseName(path), raw, fmRaw, body, fm, fmError, mtime, ctime: created || mtime, tags: noteTags(fm, body), links: noteLinks(body) };
+  return { path, name: baseName(path), raw, fmRaw, body, fm, fmError, mtime, ctime: created || mtime,
+    tags: cached ? cached.tags : noteTags(fm, body), links: cached ? cached.links : noteLinks(body) };
 }
 export function indexNames() {
   vault.byName.clear();
@@ -145,6 +149,8 @@ export async function readVault(fs) {
   await stopSync();
   vault.fs = fs;
   vault.notes.clear(); vault.files.clear(); vault.allPaths.clear(); vault.sizes.clear(); vault.mtimes.clear();
+  const cache = await loadIndexCache(fs);
+  const stats = vault.stats = { parsed: 0, cached: 0 };
   const list = await fs.list();
   const md = [], others = [];
   for (const f of list) {
@@ -161,9 +167,18 @@ export async function readVault(fs) {
       let file = null;
       try {
         file = f.handle ? await f.handle.getFile() : await fs.readFile(f.path);
+        // the cache's entry, while the file is as it was read then: no reading, no parsing
+        const c = cache.get(f.path);
+        if (c && file.lastModified && c.mtime === file.lastModified && c.size === file.size) {
+          vault.notes.set(f.path, parseNote(f.path, c.raw, c.mtime, c));
+          vault.sizes.set(f.path, file.size);
+          stats.cached++;
+          continue;
+        }
         const raw = await noteText(file);
         vault.notes.set(f.path, parseNote(f.path, raw, file.lastModified || Date.now()));
         vault.sizes.set(f.path, file.size);
+        stats.parsed++;
       } catch (e) { if (cannotRead(f.path, file?.lastModified ?? f.mtime ?? 0, e)) failed.push(f.path); }
     }
     while (others.length) {
@@ -190,6 +205,7 @@ export async function readVault(fs) {
   if (moved.size) followMoves(moved);
   undoStack.length = 0;
   setGraph(buildGraph());
+  flushIndexCache(vault.notes, vault.sizes);
 }
 const boardKey = () => "sn-board:" + (vault.fs?.kind || "") + ":" + (vault.fs?.name || "");
 export function persistBoard() {
@@ -304,6 +320,7 @@ export async function pollChanges() {
     if (changed) {
       indexNames();
       emit("changed", { disk: true });
+      scheduleIndexFlush(vault.notes, vault.sizes);
     }
   } catch (e) { console.warn("poll failed", e); } finally { polling = false; }
 }

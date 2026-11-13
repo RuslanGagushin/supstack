@@ -71,7 +71,7 @@ export async function openNativeApp({ notes = { "Home.md": "# Home\n\n- TODO Wri
     let clock = 1;
     const vault = {
       exists: (a) => a.path === "" || a.path in files,
-      list: () => Object.keys(files).map((path) => ({ path, mtime: files[path].mtime, size: files[path].text.length })),
+      list: () => Object.keys(files).map((path) => ({ path, mtime: files[path].mtime, size: new TextEncoder().encode(files[path].text).length })), // bytes, as on disk
       read: (a) => ({ data: a.binary ? b64(files[a.path].text) : files[a.path].text, mtime: files[a.path].mtime }),
       write: (a) => { const mtime = Math.max(Date.now(), ++clock); files[a.path] = { text: a.text ?? atob(a.base64), mtime }; return mtime; },
       remove: (a) => { delete files[a.path]; return null; },
