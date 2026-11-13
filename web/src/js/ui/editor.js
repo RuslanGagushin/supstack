@@ -13,7 +13,7 @@ import { $, $$, h, ic, iconBtn } from "./dom.js";
 import { Menu, notice } from "./ui.js";
 import { renderMarkdown, wireRendered } from "./markdown.js";
 import { promptIcon, renameCard } from "./actions.js";
-import { cardMenu } from "./cards.js";
+import { cardMenu, syncRowStates } from "./cards.js";
 import { cardSig, setTarget } from "./board.js";
 import { livePreviewExtensions, liveTa, liveText, refreshLiveEmbeds, renderLive, wireLive } from "./live-preview.js";
 import { editorTable, editorTableOp, tableMenu } from "./table-editor.js";
@@ -45,6 +45,7 @@ export function openEditor(path, o = {}) {
   $$(":is(.sn-card, .sn-list-desc).is-editing").forEach((c) => c.classList.remove("is-editing"));
   $$(`.sn-list-desc[data-path="${CSS.escape(path)}"]`).forEach((c) => c.classList.add("is-editing"));
   $$(`.sn-card[data-path="${CSS.escape(path)}"]`).forEach((c) => { c.classList.add("is-editing"); if (c.classList.contains("sn-row")) c.scrollIntoView({ block: "nearest" }); });
+  syncRowStates();
   if (board.cardSigs) for (const p of [path, ...board.cardSigs.keys()]) if (board.cardSigs.has(p)) board.cardSigs.set(p, cardSig(p));
   markOpenInTree();
   if (o.focus === false) return;
@@ -63,6 +64,7 @@ export function closeEditor(force = false) {
   $("#app")?.classList.remove("editor-open", "editor-wide");
   applyLayout();
   $$(":is(.sn-card, .sn-list-desc).is-editing").forEach((c) => c.classList.remove("is-editing"));
+  syncRowStates();
   markOpenInTree();
   const host = $("#editor");
   if (host) host.replaceChildren();

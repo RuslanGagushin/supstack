@@ -9,7 +9,7 @@ import { boardModel, cardIcon, cardTags, makeComparator, persistBoard } from "..
 import { $, $$, h, ic, iconBtn } from "./dom.js";
 import { Menu } from "./ui.js";
 import { createCard, deleteCards, dropCards, promptAddParent, promptAddTag, promptIcon, promptMove, saveCurrentView } from "./actions.js";
-import { attachLongPress, cardMenu, renderRow } from "./cards.js";
+import { attachLongPress, cardMenu, renderRow, syncRowStates } from "./cards.js";
 import { dnd } from "./dnd.js";
 import { expandTo, renderTree } from "./tree.js";
 import { closeEditor, openEditor, refreshNotebookPath } from "./editor.js";
@@ -76,6 +76,7 @@ export function goBack() {
 export function toggleSelect(path) {
   if (board.selection.has(path)) board.selection.delete(path); else board.selection.add(path);
   $$(`.sn-card`, $("#board")).forEach((c) => c.classList.toggle("is-picked", board.selection.has(c.dataset.path)));
+  syncRowStates();
   renderSelbar();
 }
 function toggleTagFilter(tag) {
@@ -190,7 +191,9 @@ function renderRows(page, scroll, model, composer) {
   if (board.target && !board.tagView && hasText(board.target)) page.append(renderListDesc(board.target));
   page.append(composer.el);
   const rows = [];
-  const box = h("div", { cls: "sn-rows" });
+  // a list box of notes, named as the list's title says (spec A11Y-1)
+  const listName = board.tagView ? "#" + board.tagView : board.target ? baseName(board.target) : t("allCards");
+  const box = h("div", { cls: "sn-rows", role: "listbox", "aria-label": listName, "aria-multiselectable": String(!!board.selectMode) });
   page.append(box);
   const addRows = (list) => { for (const c of list) { const el = renderRow(c.path, c.via, !!c.folder); box.append(el); rows.push(el); } };
   lazyAdd(page, scroll, model.shown, addRows);

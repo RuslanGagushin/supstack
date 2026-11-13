@@ -321,7 +321,7 @@ describe("sidebar", () => {
       "cards/Work.md": "", "cards/Proton.md": "---\nparents: [\"[[Work]]\"]\n---\n", "cards/Radar.md": "---\nparents: [\"[[Proton]]\"]\n---\nradar",
       "cards/Invoice.md": "---\nparents: [\"[[Work]]\"]\n---\nan invoice", "cards/Loose.md": "a note with no notebook",
     } });
-    const rows = () => ev(() => [...document.querySelectorAll("#tree .sn-tree > .tree-item .sn-tree-row[data-path], #tree .sn-tree-children .sn-tree-row[data-path]")]
+    const rows = () => ev(() => [...document.querySelectorAll("#tree .sn-aria-tree > .tree-item .sn-tree-row[data-path], #tree .sn-tree-children .sn-tree-row[data-path]")]
       .map((r) => [r.dataset.path.replace(/^cards\/|\.md$/g, ""), r.querySelector(".sn-tree-count")?.textContent ?? ""]));
     assert.match(await page().textContent("#tree .sn-tree-section.has-tools"), /^Notebooks/);
     assert.deepEqual(await rows(), [["Work", "2"]], "Loose and the notes inside Work are not in the tree");
