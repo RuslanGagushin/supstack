@@ -131,8 +131,8 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: 8px; paddin
   .ag-grid .dots { grid-column: 2; }
 }
 /* org markup in notes */
-.markdown-rendered .pri { font-size: .8em; margin-right: .3em; }
-.markdown-rendered .org-tags { margin-left: .4em; font-size: .9rem; }
+.markdown-rendered .pri { font-size: var(--fs-sm); margin-right: .3em; }
+.markdown-rendered .org-tags { margin-left: .4em; font-size: var(--fs-md); }
 .markdown-rendered .org-plan { font-size: var(--fs-xs); font-weight: 600; line-height: 1.5; white-space: nowrap; text-transform: lowercase;
   padding: 1px 7px; border-radius: var(--r-pill); background: color-mix(in srgb, currentColor 13%, transparent);
 }

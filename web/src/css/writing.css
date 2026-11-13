@@ -18,7 +18,7 @@
 .sn-live .cm-sn-link:hover { text-decoration: underline; }
 .sn-live .cm-sn-link:not(.cm-sn-wikilink) { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent); }
 .sn-live .cm-sn-link.is-unresolved { opacity: .6; }
-.sn-live .cm-sn-tag { padding: 1px 8px; border-radius: var(--r-pill); background: var(--panel); color: var(--tag); font-size: .8em; cursor: pointer; }
+.sn-live .cm-sn-tag { padding: 1px 8px; border-radius: var(--r-pill); background: var(--panel); color: var(--tag); font-size: var(--fs-sm); cursor: pointer; }
 .sn-live .cm-sn-bullet { display: inline-block; min-width: .8em; color: var(--muted); }
 .sn-live .cm-sn-olmark { color: var(--muted); }
 .sn-live .cm-sn-task.s-done, .sn-live .cm-sn-task.s-fwd { color: var(--muted); }

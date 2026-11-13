@@ -107,6 +107,7 @@ export function renderRow(path, via, folder = false) {
   const searching = !!board.tagView || filterActive(board.filter);
   const text = h("div", { cls: "sn-row-text" });
 
+  // the title first, then its text, then one line with where it is, when it changed, its tasks and its tags (spec UI-22)
   const meta = h("div", { cls: "sn-row-meta" });
   const parents = graph.parentsOf(path).filter((p) => graph.has(p));
   const where = via && parents.includes(via) ? via : parents.find((p) => p !== board.target) ?? null;
@@ -115,7 +116,6 @@ export function renderRow(path, via, folder = false) {
   meta.append(h("span", { cls: "sn-row-date", text: formatDate(mtime), title: t("modifiedAt", { date: new Date(mtime).toLocaleString(LANG) }) }));
   const prog = cardTaskProgress(path);
   if (prog) meta.append(h("span", { cls: "sn-task-prog" + (prog.done === prog.n ? " is-complete" : ""), title: tt("progress", prog) }, ic("", "square-check"), h("span", { text: `${prog.done}/${prog.n}` })));
-  text.append(meta);
 
   const head = h("div", { cls: "sn-row-head" });
   const iconName = cardIcon(path);
@@ -136,10 +136,11 @@ export function renderRow(path, via, folder = false) {
   }
   const tags = n?.tags || [];
   if (tags.length) {
-    const tr = h("div", { cls: "sn-tags sn-row-tags" });
+    const tr = h("span", { cls: "sn-tags sn-row-tags" });
     for (const tg of tags) tr.append(h("span", { cls: "sn-tag", text: tg.replace(/^#/, ""), onClick: (e) => { e.stopPropagation(); openTagView(tg); } }));
-    text.append(tr);
+    meta.append(tr);
   }
+  text.append(meta);
   row.append(text);
 
   const img = firstImage(path);

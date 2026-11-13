@@ -22,9 +22,10 @@ body {
   --cta-hover:#3245bb; --hover-bg:#edeceb; --sb-avatar:var(--muted);--tag:#3e3e3e; --tbl-head:#f4f3f2; --tbl-head-line:#d4d1ce; --l1:#2f4fb5;
   --l2:#9a5524; --l3:#7a3fb0; --l5:#2d7a3a; --l7:#946500; --l8:#1d7385; --todo:#c42f27; --next:#b25f06;
   --done:#2d7a3a; --pri-a:#c42f27; --pri-b:#b25f06; --pri-c:#696564; --now:#c42f27;
-  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; --font-inter: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --fs-xs: 11px;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; --font-inter: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --fs-xs: 12px;
   --fs-sm: 12px; --fs-ui: 13px; --fs-md: 14px;
-  --fs-text: 15px; --fs-note: 16px; --fs-lg: 20px; --fs-xl: 28px;
+  /* the interface's six sizes (spec UI-20): 12, 13, 14, 16, 20, 24; --fs-xs is 12 too, as the smallest text */
+  --fs-text: 16px; --fs-note: 16px; --fs-lg: 20px; --fs-xl: 24px;
   --font-ui: var(--font-inter); --font-display: var(--font-inter);
   /* theme variables the board styles use, mapped onto the base palette */
   --font-interface: var(--font-mono);
@@ -51,7 +52,8 @@ body {
   --header-height: 40px;
   --input-height: 28px; --input-radius: var(--r-s); --button-radius: var(--r-s);
   --file-line-width: 72ch;
-  --h1-size: 1.8em; --h2-size: 1.45em; --h3-size: 1.2em; --h4-size: 1.05em; --h5-size: 1em; --h6-size: 1em;
+  /* a note's own headings, in whole pixels of its 16px text: 28, 24, 20, then the text's size (the title is 32, app.css) */
+  --h1-size: calc(var(--fs-note) * 1.75); --h2-size: calc(var(--fs-note) * 1.5); --h3-size: calc(var(--fs-note) * 1.25); --h4-size: var(--fs-note); --h5-size: var(--fs-note); --h6-size: var(--fs-note);
 
   --interactive-accent: var(--accent);
   --interactive-accent-hover: color-mix(in srgb, var(--accent) 85%, var(--fg));
