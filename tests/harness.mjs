@@ -16,7 +16,7 @@ after(async () => (await browser)?.close());
 /**
  * A fresh page with a vault in memory.
  * - demo: start from the demo vault (default) or from an empty one
- * - notes: { path: raw text }, files: { path: { data, type, mtime } } (attachments)
+ * - notes: { path: raw text or { text, mtime } }, files: { path: { data, type, mtime } } (attachments)
  * - time: freeze the clock at this date (agenda and date tests)
  * - touch: a touch screen, so (pointer: coarse) matches as on a phone
  * - openNotes: how a note opens (Settings › Open notes); "edit" here, so the editing tests can type at once — the app opens for reading
@@ -33,7 +33,7 @@ export async function openVault({ demo = true, notes = {}, files = {}, viewport 
   await page.evaluate(async ({ demo, notes, files }) => {
     const fs = demo ? demoVault() : new MemoryFS("Test vault", "demo");
     for (const [p, f] of Object.entries(files)) fs.add(p, new Blob([f.data ?? "x"], { type: f.type || "" }), f.mtime ?? Date.now());
-    for (const [p, raw] of Object.entries(notes)) fs.add(p, raw);
+    for (const [p, raw] of Object.entries(notes)) typeof raw === "string" ? fs.add(p, raw) : fs.add(p, raw.text, raw.mtime);
     await loadVault(fs);
     for (const [p, f] of Object.entries(files)) { vault.sizes.set(p, (f.data ?? "x").length); vault.mtimes.set(p, f.mtime ?? Date.now()); }
     Object.assign(FV, { kind: "all", sort: "name", unused: false, query: "", sel: null });
@@ -64,13 +64,16 @@ export async function openNativeApp({ notes = { "Home.md": "# Home\n\n- TODO Wri
     // no __SN_EXPOSE__ by default: it makes every export a global, which hides a missing import
     if (expose) window.__SN_EXPOSE__ = true;
     window.__invokes = [];
-    const files = { ...notes };
+    // the disk: path → { text, mtime }; a test changes it through window.__vaultFiles as another program would
+    const files = window.__vaultFiles = {};
+    for (const [p, v] of Object.entries(notes)) files[p] = typeof v === "string" ? { text: v, mtime: 1 } : { text: v.text, mtime: v.mtime ?? 1 };
     const b64 = (s) => btoa(String.fromCharCode(...new TextEncoder().encode(s)));
+    let clock = 1;
     const vault = {
       exists: (a) => a.path === "" || a.path in files,
-      list: () => Object.keys(files).map((path) => ({ path, mtime: 1, size: files[path].length })),
-      read: (a) => ({ data: a.binary ? b64(files[a.path]) : files[a.path], mtime: 1 }),
-      write: (a) => { files[a.path] = a.text ?? atob(a.base64); return null; },
+      list: () => Object.keys(files).map((path) => ({ path, mtime: files[path].mtime, size: files[path].text.length })),
+      read: (a) => ({ data: a.binary ? b64(files[a.path].text) : files[a.path].text, mtime: files[a.path].mtime }),
+      write: (a) => { const mtime = Math.max(Date.now(), ++clock); files[a.path] = { text: a.text ?? atob(a.base64), mtime }; return mtime; },
       remove: (a) => { delete files[a.path]; return null; },
       list_dir: () => [], remove_dir: () => null, git_info: () => ({ repo: false }), git_save_settings: () => null,
     };
