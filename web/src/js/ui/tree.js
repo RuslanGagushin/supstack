@@ -42,7 +42,7 @@ export function renderTree() {
   }
   box.append(h("div", { cls: "sn-tree-section has-tools" }, h("span", { text: t("tree") }), header));
   const allRow = h("div", { cls: "tree-item-self is-clickable sn-tree-row" + (!board.target && !board.tagView ? " is-active" : "") }, h("span", { cls: "sn-tree-toggle is-leaf" }), ic("sn-tree-icon", "home"), h("div", { cls: "tree-item-inner sn-tree-label", text: t("allCards") }),
-    h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair sn-tree-count", text: String(graph.collect(null, 0, cmp).cards.length) }))); // the cards the board reaches, as its "of N" says
+    h("div", { cls: "tree-item-flair-outer" }, (() => { const n = graph.collect(null, 0, cmp).cards.length; return h("span", { cls: "tree-item-flair sn-tree-count", text: String(n), title: t("treeCountAll", { n }) }); })())); // the cards the board reaches, as its "of N" says
   allRow.addEventListener("click", () => setTarget(null));
   dnd.dropTarget(allRow, () => ({ path: null, parent: null, zones: ["inside"], root: true }));
   box.append(h("div", { cls: "tree-item" }, allRow));
@@ -143,7 +143,7 @@ function treeNode(path, chain, cmp, o) {
   setIcon(toggle, "chevron-down");
   toggle.addEventListener("click", (e) => { e.stopPropagation(); if (tree.expanded.has(key)) tree.expanded.delete(key); else tree.expanded.add(key); persistBoard(); renderTree(); });
   row.append(toggle, ic("sn-tree-icon", cardIcon(path) || (all.length ? "folder" : "file-text"), "file-text"), h("div", { cls: "tree-item-inner sn-tree-label", text: baseName(path), title: isCycle ? "↻" : path }));
-  if (all.length) row.append(h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair sn-tree-count", text: String(all.length) })));
+  if (all.length) row.append(h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair sn-tree-count", text: String(all.length), title: t("treeCountIn", { n: all.length }) })));
   row.addEventListener("click", (e) => { if (isMod(e)) openEditor(path); else setTarget(path); });
   row.addEventListener("dblclick", () => openEditor(path));
   row.addEventListener("contextmenu", (e) => {

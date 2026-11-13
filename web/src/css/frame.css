@@ -86,7 +86,7 @@ button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--f
 /* the wrapper draws the rounded frame and scrolls a table too wide for the page */
 .markdown-rendered .sn-table-wrap { margin-block: 0 1em; overflow: hidden; border: 1px solid var(--line); }
 .markdown-rendered .sn-table-wrap.is-wide { overflow-x: auto; }
-.markdown-rendered table { border-collapse: collapse; font-size: .95em; width: 100%; font-variant-numeric: tabular-nums; }
+.markdown-rendered table { border-collapse: collapse; font-size: var(--fs-md); width: 100%; font-variant-numeric: tabular-nums; }
 .markdown-rendered th, .markdown-rendered td { border: 1px solid var(--line); border-width: 0 1px 1px 0; padding: .65em .85em; line-height: 1.45; vertical-align: top; }
 /* cells wrap between words only (the editor's lines break anywhere, and the cells would inherit it), so a table too wide
    for a narrow pane scrolls sideways in its frame instead of cutting words into letters */
