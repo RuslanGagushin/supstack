@@ -48,7 +48,7 @@ describe("quick capture from anywhere", () => {
     await open({ answers: { set_capture_shortcut: "!error: HotKey already registered" } });
     await page().waitForFunction(() => vault.notes.size > 0);
     assert.equal(await ev(() => setCaptureKey("Ctrl+Shift+J")), false);
-    assert.match(await ev(() => document.querySelector("#toast").textContent), /Can't use Ctrl\+Shift\+J for quick capture: HotKey already registered/);
+    assert.match(await ev(() => document.querySelector("#toast").textContent), /Can't use (Ctrl\+Shift\+J|⌘⇧J) for quick capture: HotKey already registered/);
     assert.equal(await ev(() => JSON.parse(localStorage.getItem("sn-ui")).captureKey), undefined, "nothing saved");
     await open({ storage: { "sn-ui": { lang: "en", captureKey: "" } } });
     await page().waitForFunction(() => vault.notes.size > 0);
