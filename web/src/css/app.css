@@ -342,6 +342,7 @@ button.sn-row-enter:hover, .sn-row:focus-visible button.sn-row-enter { backgroun
   /* buttons a finger can hit: 40px at least, the drawing inside them as it was (spec UI-9) */
   #app :is(.sn-topbar, .sn-editor-head, .agbar, .sn-ed-toolbar) :is(button, a[href]),
   #app button.ag-over-head { min-height: var(--ctl-touch); }
+  #app .sn-board button.clickable-icon.ag-nav { width: var(--ctl-touch); height: var(--ctl-touch); }
   #app :is(.sn-topbar, .sn-editor-head, .agbar, .sn-ed-toolbar) :is(button.clickable-icon, button.sn-tb-btn, button.sn-tb-insert, button.sn-mode-btn, button.ag-btn, button.ag-capture) { min-width: 40px; }
 }
 

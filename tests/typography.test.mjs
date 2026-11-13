@@ -7,7 +7,8 @@ import * as H from "./harness.mjs";
 const noErrors = () => assert.equal(H.errors.length, 0, H.errors.map((e) => e.stack || e).join("\n"));
 /**
  * The font sizes of the text on screen, with where each is used. The note's own title and headings are left out:
- * they follow the note's type (32px title, then 28, 24, 20), not the interface's six sizes.
+ * they follow the note's type (40px title, then 28, 24, 20), not the interface's six sizes; so is the agenda's title,
+ * set at the page's size like a note's (restyle RS-79).
  */
 const sizes = () => ev(() => {
   const out = {};
@@ -16,7 +17,7 @@ const sizes = () => ev(() => {
     if (!own) continue;
     const r = el.getBoundingClientRect(), c = getComputedStyle(el);
     if (!r.width || !r.height || r.bottom < 0 || r.top > innerHeight || c.visibility === "hidden" || parseFloat(c.opacity) < 0.05) continue;
-    if (el.matches(".sn-inline-title") || el.closest(".markdown-rendered :is(h1, h2, h3, h4, h5, h6), .cm-sn-h")) continue;
+    if (el.matches(".sn-inline-title, .ag-head.is-page .ag-title b") || el.closest(".markdown-rendered :is(h1, h2, h3, h4, h5, h6), .cm-sn-h")) continue;
     const fs = parseFloat(c.fontSize);
     if (!fs) continue;
     (out[fs] ||= []).push(el.tagName.toLowerCase() + "." + String(el.className).split(" ")[0] + (el.closest("kbd") ? " (kbd)" : ""));

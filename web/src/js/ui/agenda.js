@@ -3,7 +3,7 @@
    ========================================================= */
 import { LANG, t, tt } from "../core/i18n.js";
 import { baseName, debounce, norm } from "../core/util.js";
-import { oaddMonths, oFmt, ohm, oisoWeek, onow, opad, orgCache, orgRelDay, orgDayEntries, orgNowTs, orgPriRank, orgReadDate, orgShift, orgSkip, orgStats, orgTsStr, orgWithGrid, oymd, TASK_STATES } from "../core/org.js";
+import { oaddMonths, oFmt, ohm, oisoWeek, onow, orgCache, orgRelDay, orgDayEntries, orgNowTs, orgPriRank, orgReadDate, orgShift, orgSkip, orgStats, orgTsStr, orgWithGrid, oymd, TASK_STATES } from "../core/org.js";
 import { lsGet, lsSet } from "../services/storage.js";
 import { board, vault } from "../services/state.js";
 import { persistBoard } from "../services/vault.js";
@@ -111,10 +111,16 @@ export function dayRange(a, b, T) {
   if (A.y === B.y && A.m === B.m) return `${A.d}–${oFmt(b, "D MMMM")}${year(B)}`;
   return `${oFmt(a, "D MMMM")}${A.y !== B.y ? year(A) : ""} – ${oFmt(b, "D MMMM")}${year(B)}`;
 }
+/** A view's head (restyle RS-58, RS-59): what it shows, in the accent over its title; the agenda's days have ‹ and › beside it. */
+function agHead(icon, kind, title, nav) {
+  const row = h("div", { cls: "ag-title-row" }, title);
+  if (nav) row.append(iconBtn("chevron-left", tt("earlier"), () => orgNav(-1), "ag-nav"), iconBtn("chevron-right", tt("later"), () => orgNav(1), "ag-nav"));
+  return h("div", { cls: "ag-head" + (nav ? " is-page" : "") }, h("div", { cls: "ag-kind" }, ic("", icon), h("span", { text: kind })), row);
+}
 function renderMonth(body, all, T, pass) {
   const first = AG.anchor - (oymd(AG.anchor).d - 1), next = oaddMonths(first, 1);
   const start = first - ((oymd(first).w + 6) % 7), weeks = Math.ceil((next - start) / 7);
-  body.append(h("div", { cls: "ag-title", title: tt("monthAgenda") }, ic("sn-list-badge", "calendar-days"), h("b", { text: oFmt(first, "MMMM YYYY") })));
+  body.append(agHead("calendar-days", tt("vAgenda"), h("div", { cls: "ag-title", title: tt("monthAgenda") }, h("b", { text: oFmt(first, "MMMM YYYY") })), true));
   const grid = h("div", { cls: "ag-month", role: "grid", "aria-label": oFmt(first, "MMMM YYYY") });
   const head = h("div", { cls: "ag-month-row ag-month-head", role: "row" });
   for (let i = 0; i < 7; i++) head.append(h("span", { role: "columnheader", text: oFmt(start + i, "ddd") }));
@@ -176,7 +182,7 @@ export function renderTasksView(root) {
   if (AG.view === "agenda") {
     const sp = h("div", { cls: "sn-seg" });
     for (const [v, k, key] of [["day", "day", "d"], ["week", "week", "w"], ["month", "month", "M"]]) { const b = h("button", { cls: "clickable-icon" + (AG.span === v ? " is-active" : ""), type: "button", text: tt(k), title: `${tt(k)} (${key})` }); b.addEventListener("click", () => { AG.span = v; saveAG(); renderBoard(); }); sp.append(b); }
-    agbar.append(sp, btn("‹", tt("earlier"), () => orgNav(-1)), btn(tt("today"), tt("today") + " (.)", () => orgNav(0)), btn("›", tt("later"), () => orgNav(1)),
+    agbar.append(sp, btn(tt("today"), tt("today") + " (.)", () => orgNav(0)),
       btn(tt("goTo"), tt("goTo") + " (j)", () => orgNav("jump"), null, "ag-wide-only"), btn(tt("log"), tt("log") + " (l)", () => { AG.log = !AG.log; saveAG(); renderBoard(); }, AG.log, "ag-wide-only"),
       iconBtn("calendar-arrow-down", tt("icsExport"), exportCalendar, "ag-wide-only ag-ics"));
   } else if (AG.view === "todo") {
@@ -244,9 +250,9 @@ export function renderTasksView(root) {
   else if (AG.view === "agenda") {
     const days = AG.span === "day" ? [AG.anchor] : Array.from({ length: 7 }, (_, i) => AG.anchor - ((oymd(AG.anchor).w + 6) % 7) + i);
     // the title says which days ("9–15 November", or the day), the week's number beside it; the log is the bar's toggle
-    body.append(h("div", { cls: "ag-title", title: tt(AG.span === "week" ? "weekAgenda" : "dayAgenda") }, ic("sn-list-badge", "calendar-check"),
-      h("b", { text: AG.span === "week" ? dayRange(days[0], days[6], T) : oFmt(days[0], "dddd, D MMMM") + (oymd(days[0]).y !== oymd(T).y ? " " + oymd(days[0]).y : "") }),
-      h("span", { cls: "ag-week", text: `W${opad(oisoWeek(days[0]))}` })));
+    body.append(agHead("calendar-check", tt("vAgenda") + " · " + tt("weekN", { n: oisoWeek(days[0]) }),
+      h("div", { cls: "ag-title", title: tt(AG.span === "week" ? "weekAgenda" : "dayAgenda") },
+        h("b", { text: AG.span === "week" ? dayRange(days[0], days[6], T) : oFmt(days[0], "dddd, D MMMM") + (oymd(days[0]).y !== oymd(T).y ? " " + oymd(days[0]).y : "") })), true));
     // on a phone: the week as a strip of days (a dot where something is on), a tap opens that day; the month is one more tap
     const week0 = AG.anchor - ((oymd(AG.anchor).w + 6) % 7);
     const strip = h("div", { cls: "ag-strip", role: "toolbar", "aria-label": tt("week") });
@@ -274,31 +280,32 @@ export function renderTasksView(root) {
       let ents = orgDayEntries(dn, all, T, { log: AG.log, carried: days.includes(T) }).filter((x) => pass(x.e));
       if (dn === T) ents = ents.filter((x) => !x.overdue);
       const sum = daySummary(ents);
-      const card = h("section", { cls: "ag-card" + (dn === T ? " is-today" : "") + (ents.length ? "" : " is-empty") });
+      // a day's head over a card of its rows (restyle RS-62 to RS-64); today says so in place of its date
+      const card = h("section", { cls: "ag-card is-day" + (dn === T ? " is-today" : "") + (ents.length ? "" : " is-empty") });
       card.append(h("div", { cls: "ag-day" + (dn === T ? " today" : "") + (o.w === 0 || o.w === 6 ? " weekend" : "") },
-        h("span", { text: oFmt(dn, "dddd") }), h("span", { cls: "num", text: oFmt(dn, "D MMMM YYYY") + (o.w === 1 || AG.span === "day" ? ` · W${opad(oisoWeek(dn))}` : "") }),
-        dn === T ? h("span", { cls: "today-pill", text: tt("today").toLowerCase() }) : null,
+        h("span", { text: oFmt(dn, "dddd") }),
+        dn === T ? h("span", { cls: "today-pill", text: tt("today") }) : h("span", { cls: "num", text: oFmt(dn, "D MMMM YYYY") }),
         sum ? h("span", { cls: "ag-sum", text: sum }) : null));
       if (dn === T) ents = orgWithGrid(ents);
-      for (const x of ents) card.append(orgRow(x));
+      if (ents.length) { const rows = h("div", { cls: "ag-rows" }); for (const x of ents) rows.append(orgRow(x)); card.append(rows); }
       body.append(card);
     }
   } else if (AG.view === "todo") {
     const items = all.filter((e) => e.isTodo && !e.done && !orgSkip(e) && (AG.todoKw === "ALL" || e.kw === AG.todoKw) && pass(e))
       .sort((a, b) => orgPriRank(b) - orgPriRank(a) || (a.category < b.category ? -1 : a.category > b.category ? 1 : a.line - b.line));
-    body.append(h("div", { cls: "ag-title" }, ic("sn-list-badge", "list-todo"), tt("todoTitle") + " ", h("b", { text: AG.todoKw === "ALL" ? tt("stAll") : tt("st_" + AG.todoKw) }), ` · ${items.length}`));
+    body.append(agHead("list-todo", tt("vTodo"), h("div", { cls: "ag-title" }, tt("todoTitle") + " ", h("b", { text: AG.todoKw === "ALL" ? tt("stAll") : tt("st_" + AG.todoKw) }), ` · ${items.length}`)));
     if (items.length) body.append(h("section", { cls: "ag-card" }, items.map((e) => orgRow({ e, kind: "todo", label: "", time: null, dn: null }))));
     if (!items.length) body.append(h("div", { cls: "ag-help", text: tt("noTodo") }));
   } else if (AG.view === "match") {
     const fn = orgMatcher(AG.match);
     const items = all.filter((e) => !orgSkip(e) && e.kind !== "event" && fn(e) && pass(e));
-    body.append(h("div", { cls: "ag-title" }, ic("sn-list-badge", "filter"), tt("matchTitle") + " ", h("b", { text: AG.match || tt("everything") }), ` · ${items.length}`));
+    body.append(agHead("filter", tt("vMatch"), h("div", { cls: "ag-title" }, tt("matchTitle") + " ", h("b", { text: AG.match || tt("everything") }), ` · ${items.length}`)));
     if (items.length) body.append(h("section", { cls: "ag-card" }, items.map((e) => orgRow({ e, kind: "match", label: "", time: null, dn: null }))));
     if (!items.length) body.append(h("div", { cls: "ag-help", text: tt("noMatch") }));
     body.append(h("div", { cls: "ag-help", text: tt("matchHelp") }));
   } else {
     const words = norm(AG.search).split(/\s+/).filter(Boolean);
-    body.append(h("div", { cls: "ag-title" }, ic("sn-list-badge", "search"), tt("searchTitle") + " ", h("b", { text: AG.search || tt("typeSomething") })));
+    body.append(agHead("search", tt("vSearch"), h("div", { cls: "ag-title" }, tt("searchTitle") + " ", h("b", { text: AG.search || tt("typeSomething") }))));
     if (words.length) {
       const items = all.filter((e) => {
         if (orgSkip(e) || !pass(e)) return false;
@@ -374,6 +381,7 @@ function orgRow(x) {
   const main = h("span", { cls: "ag-main" });
   // a task's priority colours its box; only the top one also gets a letter, so it does not rest on colour alone
   if (e.isTodo) { const b = taskBox(e.state, { dataset: { act: "tick" } }); if (e.pri) { b.title +=` · ${tt("priority")} ${e.pri}`; } main.append(b); }
+  else if (e.kind === "event") main.append(h("span", { cls: "ag-ev-bar", "aria-hidden": "true" }));
   if (e.pri && (!e.isTodo || e.pri === "A")) main.append(h("span", { cls: `pri ${e.pri}`, text: e.isTodo ? e.pri : `[#${e.pri}]`, title: `${tt("priority")} ${e.pri}` }));
   main.append(renderInline(e.title, e.path));
   if (e.cbTotal) main.append(h("span", { cls: "ag-cookie", text: `[${e.cbDone}/${e.cbTotal}]` }));

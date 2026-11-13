@@ -39,4 +39,6 @@ await shot(await open(), "agenda.png", () => openTasksView());
 await shot(await open(), "notes-layout.png", () => setTarget("cards/Roman Empire.md"));
 await shot(await open("light", devices["Pixel 7"]), "phone-board.png");
 await shot(await open("light", devices["Pixel 7"]), "phone-editor.png", () => openEditor("cards/Aqueducts.md"));
+await shot(await open("light", devices["Pixel 7"]), "phone-agenda.png", () => openTasksView());
+await shot(await open("dark"), "editor-dark.png", () => openEditor("cards/This week.md", { focus: false, wide: true }));
 await browser.close();

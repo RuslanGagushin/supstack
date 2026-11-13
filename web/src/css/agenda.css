@@ -32,34 +32,46 @@ button.sn-btn.wb-tasks.is-active { border-color: var(--accent); }
   .agbar > .sn-seg::-webkit-scrollbar { display: none; }
   .agbar > .sn-seg > button { flex: none; white-space: nowrap; }
 }
-.ag-body { display: flex; flex-direction: column; gap: var(--sp-12); min-height: 100%; padding: var(--sp-6) var(--sp-24) var(--sp-48); }
+/* the agenda reads as a page: one column of 760px at most, centred (restyle RS-55) */
+.ag-body { display: flex; flex-direction: column; gap: var(--sp-24); width: 100%; max-width: 760px; min-height: 100%; margin: 0 auto; padding: var(--sp-40) var(--sp-32) var(--sp-48); }
+@container (max-width: 560px) { .ag-body { padding: var(--sp-24) var(--sp-16) var(--sp-48); } }
 
-/* the screen title, in the look of the list of notes and Files (app.css) */
-.ag-title { display: flex; align-items: center; flex-wrap: wrap; gap: 0 var(--sp-8); padding: 0 var(--sp-2); color: var(--muted); font-size: var(--fs-lg); line-height: var(--lh-tight); }
-.ag-title b { color: var(--ink); font-weight: var(--fw-semibold); letter-spacing: -.01em; }
-.ag-title .ag-week { color: var(--faint); font-size: var(--fs-md); font-variant-numeric: tabular-nums; }
-/* a day (or the list of a TODO, match or search view) is a card, like a code block or a table */
+/* a view's head: what it shows in the accent, then its title at the page's size with ‹ and › beside it (RS-58, RS-59) */
+.ag-head { display: flex; flex-direction: column; gap: var(--sp-6); }
+.ag-kind { display: flex; align-items: center; gap: var(--sp-6); color: var(--accent); font-size: var(--fs-ui); font-weight: var(--fw-semibold); }
+.ag-kind svg { width: var(--icon-m); height: var(--icon-m); }
+.ag-title-row { display: flex; align-items: center; gap: var(--sp-8); min-width: 0; }
+.ag-title { flex: 1 1 auto; min-width: 0; color: var(--muted); font-size: var(--fs-lg); line-height: var(--lh-title); }
+.ag-title b { color: var(--ink); font-weight: var(--fw-semibold); }
+/* the days and the month: the title at the page's size; the lists keep their sentence at 20px */
+.ag-head.is-page .ag-title b { font-size: var(--fs-title); font-weight: var(--fw-bold); letter-spacing: var(--ls-title); }
+.sn-board button.clickable-icon.ag-nav { flex: none; width: var(--ctl-l); height: var(--ctl-l); padding: 0; border: 1px solid var(--line); border-radius: var(--r-s); }
+.sn-board button.clickable-icon.ag-nav:hover { background: var(--hover-bg); }
+/* a TODO, match or search view lists its rows on a card, like a code block or a table */
 .ag-card { border: 1px solid var(--line); border-radius: var(--r-m); background: var(--win); overflow: hidden; }
-.ag-card.is-today { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
-.ag-day { display: flex; align-items: baseline; gap: var(--sp-10); padding: var(--sp-10) var(--sp-14); font-weight: var(--fw-semibold); font-size: var(--fs-md); color: var(--ink); text-transform: capitalize; }
-.ag-card:not(.is-empty) > .ag-day { padding-bottom: var(--sp-6); }
+/* a day: its head over the card of its rows (RS-62 to RS-64) */
+.ag-card.is-day { border: 0 solid transparent; background: none; overflow: visible; }
+.ag-rows { padding: var(--sp-6) 0; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--win); overflow: hidden; }
+.ag-day { display: flex; align-items: baseline; gap: var(--sp-10); padding: 0 var(--sp-2) var(--sp-10); color: var(--ink); font-size: var(--fs-lg); font-weight: var(--fw-bold); letter-spacing: -.015em; text-transform: capitalize; }
 /* a day without entries is one quiet line, not a card (spec UI-15) */
-.ag-card.is-empty { border-color: transparent; background: none; }
-.ag-card.is-empty > .ag-day { min-height: 0; padding-block: var(--sp-4); color: var(--muted); font-weight: var(--fw-regular); }
-.ag-card.is-empty > .ag-day > span:first-child { font-weight: var(--fw-medium); }
-.ag-day .num { font-weight: var(--fw-regular); color: var(--muted); font-size: var(--fs-ui); font-variant-numeric: tabular-nums; text-transform: none; }
-.ag-day.weekend:not(.today) { color: var(--muted); }
-.today-pill { font-size: var(--fs-sm); background: var(--accent); color: var(--win); padding: 1px var(--sp-8); border-radius: var(--r-pill); }
+.ag-card.is-empty > .ag-day { min-height: 0; padding-block: 0; color: var(--muted); font-size: var(--fs-md); font-weight: var(--fw-medium); letter-spacing: 0; }
+.ag-day .num { color: var(--faint); font-size: var(--fs-ui); font-weight: var(--fw-regular); letter-spacing: 0; font-variant-numeric: tabular-nums; text-transform: none; }
+.ag-day.weekend:not(.today) { color: var(--ink); }
+.ag-card.is-empty > .ag-day.weekend { color: var(--muted); }
+.today-pill { align-self: center; padding: var(--sp-2) var(--sp-8); border-radius: var(--r-xs); background: var(--cta); color: var(--on-accent); font-size: var(--fs-sm); font-weight: var(--fw-semibold); letter-spacing: 0; line-height: var(--lh-tight); }
 /* a row reads time, then the task with the note it is in, quietly after it (spec UI-18), then its date chip at the right;
    the note's name is left out when every row comes from one note (.one-cat, agenda.js) */
-.ag-row, .ag-grid { display: grid; grid-template-columns: 11ch minmax(0, 1fr) auto; grid-template-areas: "time main lab"; align-items: baseline; column-gap: var(--sp-8); padding: var(--sp-8) var(--sp-14); font-variant-numeric: tabular-nums; }
+.ag-row, .ag-grid { display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; grid-template-areas: "time main lab"; align-items: baseline; column-gap: var(--sp-16); padding: var(--sp-10) var(--sp-16); font-variant-numeric: tabular-nums; }
 .ag-body.one-cat .ag-cat { display: none; }
 .ag-body.no-time .ag-row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "main lab"; }
 .ag-body.no-time .ag-row .ag-time { display: none; }
 .ag-time { grid-area: time; } .ag-main { grid-area: main; } .ag-lab { grid-area: lab; }
 .ag-meta { display: contents; }
-.ag-row { cursor: pointer; position: relative; border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
-.ag-card > .ag-row:first-child { border-top: 0; }
+.ag-row { cursor: pointer; position: relative; border-top: 1px solid var(--line); }
+:is(.ag-card, .ag-rows) > .ag-row:first-child { border-top: 0; }
+.ag-main { color: var(--ink); font-size: var(--fs-md); font-weight: var(--fw-medium); }
+/* an event has no box: a short bar stands in its place (RS-67) */
+.ag-ev-bar { display: inline-block; width: 3px; height: 20px; margin-right: var(--sp-10); vertical-align: middle; border-radius: 2px; background: var(--muted); }
 .ag-row:hover { background: var(--hover-bg); }
 .ag-row.is-selected { background: var(--accent-soft); }
 /* the keyboard's place in the agenda: a ring on the chosen row, or on the list while none is chosen (spec A11Y-2) */
@@ -68,11 +80,15 @@ body.sn-kb .ag-body:focus-visible .ag-row.is-selected { box-shadow: var(--ring-i
 body.sn-kb .ag-body:focus-visible:not(:has(.ag-row.is-selected)) { box-shadow: var(--ring-inset); }
 .ag-main .ag-cat { margin-left: var(--sp-6); color: var(--faint); font-size: var(--fs-ui); white-space: nowrap; }
 .ag-main .ag-cat::before { content: "· "; }
-.ag-time { color: var(--fg); font-size: var(--fs-ui); white-space: nowrap; }
+.ag-time { color: var(--faint); font-size: var(--fs-ui); white-space: nowrap; }
 .ag-lab { max-width: 20ch; color: var(--muted); font-size: var(--fs-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* the label is a chip: a calendar for a scheduled date (grey), a flag for a deadline (red when due, amber in its warning days) */
-/* overdue entries, gathered above today */
-.ag-overdue.is-closed > .ag-day { padding-bottom: var(--sp-10); }
+/* overdue entries, gathered above today: a quiet block on the grey, its head inside it (RS-61) */
+.ag-card.ag-overdue { border: 0; background: var(--bg); }
+.ag-overdue > .ag-day { padding: var(--sp-14) var(--sp-16) var(--sp-6); font-size: var(--fs-ui); font-weight: var(--fw-semibold); letter-spacing: 0; }
+.ag-overdue.is-closed > .ag-day { padding-bottom: var(--sp-14); }
+.ag-overdue > .ag-row { border-top-color: var(--line); }
+.ag-overdue > .ag-row:last-child { padding-bottom: var(--sp-14); }
 button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: var(--sp-8); padding: 0; border: 0; background: none; font: inherit; color: var(--ink); cursor: pointer; }
 .ag-over-chev { display: inline-flex; }
 .ag-over-chev svg { width: var(--icon-s); height: var(--icon-s); transition: transform var(--dur-1) var(--ease); }
@@ -97,7 +113,7 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: var(--sp-8)
 .ag-act button:hover { border-color: var(--faint); }
 /* the hours of today's grid: quiet markers, each on a line of its own height */
 .ag-grid { align-items: center; min-height: 26px; color: var(--faint); padding-block: 0; font-size: var(--fs-sm); }
-.ag-grid .dots { grid-column: main-start / lab-end; align-self: center; overflow: hidden; white-space: nowrap; border-bottom: 1px solid color-mix(in srgb, var(--line) 80%, transparent); height: .75em; }
+.ag-grid .dots { grid-column: main-start / lab-end; align-self: center; overflow: hidden; white-space: nowrap; border-bottom: 1px solid var(--line); height: .75em; }
 .ag-grid.now { color: var(--ink); font-weight: var(--fw-semibold); }
 .ag-grid.now .dots { border-bottom: 2px solid var(--accent); font-size: 0; }
 .ag-help { padding: 0 var(--sp-2); color: var(--faint); font-size: var(--fs-sm); line-height: var(--lh-ui); max-width: 76ch; }
@@ -306,18 +322,25 @@ audio.fv-media { width: min(520px, 100%); }
   .fv-pbody { padding: var(--sp-10); }
 }
 
-/* the week strip: phones only */
-.ag-strip { display: none; }
+/* the week as a strip of days, at every width (RS-60): today on the accent, the day shown (in the day view) on the grey;
+   a dot where something is on. The month's button is the phone's: wide screens have Month in the bar */
+.ag-strip { display: flex; align-items: stretch; gap: var(--sp-6); }
+button.ag-strip-day, button.ag-strip-month { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); min-width: 0; height: auto; padding: var(--sp-8) 0; border: 0; border-radius: var(--r-m); background: none; box-shadow: none; color: var(--faint); font-family: var(--font-ui); }
+button.ag-strip-day:hover, button.ag-strip-month:hover { background: var(--hover-bg); }
+button.ag-strip-month { display: none; flex: 0 0 40px; justify-content: center; }
+.ag-strip-day .wd { font-size: var(--fs-sm); text-transform: capitalize; }
+.ag-strip-day .dn { color: var(--ink); font-size: var(--fs-text); font-weight: var(--fw-semibold); font-variant-numeric: tabular-nums; }
+.ag-strip-day .dot { width: 4px; height: 4px; border-radius: 50%; }
+.ag-strip-day .dot.has { background: var(--faint); }
+button.ag-strip-day.is-selected { background: var(--sel); }
+button.ag-strip-day.is-selected .wd { color: var(--muted); }
+button.ag-strip-day.is-today, button.ag-strip-day.is-today:hover { background: var(--cta); color: var(--on-accent); }
+.ag-strip-day.is-today :is(.wd, .dn) { color: var(--on-accent); }
+.ag-strip-day.is-today .dn { font-weight: var(--fw-bold); }
+.ag-strip-day.is-today .dot.has { background: var(--on-accent); }
 @media (max-width: 820px) {
-  .ag-strip { display: flex; align-items: stretch; gap: var(--sp-2); padding: var(--sp-2); border-radius: var(--r-m); background: var(--panel); }
-  button.ag-strip-day, button.ag-strip-month { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 0; height: 52px; padding: var(--sp-4) 0 var(--sp-4); border: 0; border-radius: var(--r-m); background: none; box-shadow: none; color: var(--muted); font-family: var(--font-ui); }
-  button.ag-strip-month { flex: 0 0 40px; justify-content: center; }
-  .ag-strip-day .wd { font-size: var(--fs-sm); text-transform: capitalize; }
-  .ag-strip-day .dn { font-size: var(--fs-text); font-weight: var(--fw-semibold); color: var(--ink); font-variant-numeric: tabular-nums; }
-  .ag-strip-day .dot { width: 4px; height: 4px; border-radius: 50%; }
-  .ag-strip-day .dot.has { background: var(--muted); }
-  .ag-strip-day.is-today .dn { color: var(--accent); }
-  .ag-strip-day.is-selected { background: var(--win); box-shadow: var(--shadow-1); }
+  .ag-strip { gap: var(--sp-2); }
+  button.ag-strip-month { display: flex; }
 }
 
 /* the month (TASK-4): a grid of days, each with how many entries it has; a day of another month is quiet */
@@ -325,13 +348,13 @@ audio.fv-media { width: min(520px, 100%); }
 .ag-month-row { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--sp-4); }
 .ag-month-head span { padding: 0 var(--sp-6); color: var(--muted); font-size: var(--fs-sm); text-transform: capitalize; }
 button.ag-mday { display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: var(--sp-4); min-width: 0; height: auto; min-height: 64px; padding: var(--sp-6) var(--sp-8); border: 1px solid var(--line); border-radius: var(--r-m); background: var(--win); box-shadow: none; color: var(--fg); font-family: var(--font-ui); font-weight: var(--fw-regular); text-align: left; }
-button.ag-mday:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+button.ag-mday:hover { border-color: var(--line-hover); }
 button.ag-mday.weekend .dn { color: var(--muted); }
 button.ag-mday.is-out { background: none; border-color: transparent; }
 button.ag-mday.is-out .dn { color: var(--faint); }
-button.ag-mday.is-today { border-color: var(--accent); }
-button.ag-mday.is-today .dn { color: var(--accent); font-weight: var(--fw-semibold); }
-button.ag-mday .cnt { align-self: flex-end; min-width: 20px; padding: 0 var(--sp-6); border-radius: var(--r-pill); background: var(--accent-soft); color: color-mix(in srgb, var(--accent) 80%, var(--ink)); font-size: var(--fs-sm); font-weight: var(--fw-semibold); line-height: 18px; text-align: center; }
+/* today: its number in a circle of the accent (RS-70) */
+button.ag-mday.is-today .dn { display: inline-flex; align-items: center; justify-content: center; width: var(--ctl-s); height: var(--ctl-s); margin: calc(var(--sp-2) * -1) 0 0 calc(var(--sp-4) * -1); border-radius: 50%; background: var(--cta); color: var(--on-accent); font-weight: var(--fw-semibold); }
+button.ag-mday .cnt { align-self: flex-end; min-width: 20px; padding: 0 var(--sp-6); border-radius: var(--r-pill); background: var(--panel-strong); color: var(--ink); font-size: var(--fs-sm); font-weight: var(--fw-semibold); line-height: 18px; text-align: center; }
 @media (max-width: 820px) {
   .ag-month, .ag-month-row { gap: var(--sp-2); }
   button.ag-mday { min-height: 48px; padding: var(--sp-4); }

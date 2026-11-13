@@ -175,7 +175,7 @@ export const TSTR = {
   en: {
     tasks: "Agenda", tasksHint: "Agenda & task list",
     vAgenda: "Agenda", vTodo: "Tasks", vMatch: "Match", vSearch: "Search",
-    day: "Day", week: "Week", today: "Today", earlier: "Earlier (b)", later: "Later (f)", goTo: "Go to…", log: "Log",
+    day: "Day", week: "Week", weekN: "Week {n}", today: "Today", earlier: "Earlier (b)", later: "Later (f)", goTo: "Go to…", log: "Log",
     icsExport: "Export to a calendar (.ics)", icsNone: "No dated tasks or events to export", icsDone: ["Exported {n} entry for a calendar app", "Exported {n} entries for a calendar app"],
     capture: "Capture", weekAgenda: "Week", dayAgenda: "Day", monthAgenda: "Month", sumEntries: ["{n} entry", "{n} entries"],
     todoTitle: "Open tasks:", matchTitle: "Entries matching:", searchTitle: "Search words:",
@@ -209,7 +209,7 @@ export const TSTR = {
   ru: {
     tasks: "Агенда", tasksHint: "Агенда и список задач",
     vAgenda: "Агенда", vTodo: "Задачи", vMatch: "Отбор", vSearch: "Поиск",
-    day: "День", week: "Неделя", today: "Сегодня", earlier: "Раньше (b)", later: "Позже (f)", goTo: "К дате…", log: "Журнал",
+    day: "День", week: "Неделя", weekN: "неделя {n}", today: "Сегодня", earlier: "Раньше (b)", later: "Позже (f)", goTo: "К дате…", log: "Журнал",
     icsExport: "Выгрузить в календарь (.ics)", icsNone: "Нет задач и событий с датами для выгрузки", icsDone: ["Выгружена {n} запись для календаря", "Выгружены {n} записи для календаря", "Выгружено {n} записей для календаря"],
     capture: "Записать", weekAgenda: "Неделя", dayAgenda: "День", monthAgenda: "Месяц", sumEntries: ["{n} запись", "{n} записи", "{n} записей"],
     todoTitle: "Открытые задачи:", matchTitle: "Записи по запросу:", searchTitle: "Поиск слов:",

@@ -46,7 +46,7 @@ describe("the month (TASK-4)", () => {
     await ev(() => { AG.log = true; AG.anchor = null; renderBoard(); });
     assert.match((await month()).rows[3], /^19 20:1 /, "the task closed on the 20th is counted once");
     await ev(() => { AG.log = false; renderBoard(); });
-    await page().click('.agbar button[title^="Later"]');
+    await page().click('.ag-head button[aria-label^="Later"]');
     const nov = await month();
     assert.equal(nov.title, "November 2026");
     assert.deepEqual(nov.rows.map((r) => r.split(" ").filter((d) => d.includes(":") && !d.startsWith("("))).flat(), ["5:1", "12:1", "19:1", "26:1"], "the weekly run repeats");
@@ -139,8 +139,8 @@ describe("the agenda's week (UI-13 to UI-17)", () => {
     assert.deepEqual(r, ["rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0)", 0]);
   });
 
-  test("the title says which days, with the week's number quietly beside it", async () => {
-    assert.deepEqual(await ev(() => [document.querySelector(".ag-title b").textContent, document.querySelector(".ag-title .ag-week").textContent]), ["26 October – 1 November", "W44"]);
+  test("the title says which days, the week's number in the line over it (restyle RS-58)", async () => {
+    assert.deepEqual(await ev(() => [document.querySelector(".ag-title b").textContent, document.querySelector(".ag-head .ag-kind").textContent]), ["26 October – 1 November", "Agenda · Week 44"]);
     const T = await ev(() => onow().dn);
     assert.deepEqual(await ev((T) => [dayRange(odn(2026, 11, 9), odn(2026, 11, 15), T), dayRange(odn(2026, 12, 28), odn(2027, 1, 3), T), dayRange(odn(2027, 3, 1), odn(2027, 3, 7), T)], T),
       ["9–15 November", "28 December 2026 – 3 January 2027", "1–7 March 2027"]);
