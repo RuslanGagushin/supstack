@@ -132,6 +132,7 @@ describe("list", () => {
   });
 
   test("keyboard moves the selection; Go to note opens the note", async () => {
+    await page.setViewportSize({ width: 1440, height: 800 }); // room for the list and the preview beside the open note
     await ev(() => openFilesView());
     await page.focus(".fv-list");
     await page.keyboard.press("ArrowDown");
@@ -199,5 +200,50 @@ describe("opening files in the desktop app", () => {
     const cls = (e) => [...e].map((ch) => (/[a-z]/i.test(ch) ? `[${ch.toLowerCase()}${ch.toUpperCase()}]` : ch)).join("");
     assert.deepEqual(exts.filter((e) => !deny.includes(`**/*.${cls(e)}`)), []);
     assert.ok(deny.includes("**/*.[aA][pP][pP]/**"), "nothing inside an app bundle");
+  });
+});
+
+describe("room for a preview (UI-4)", () => {
+  test("a preview narrower than 320px is not shown beside the list: the file opens in its place, ← goes back", async () => {
+    await openVault({ viewport: { width: 1440, height: 800 }, openNotes: "read", files: { "attachments/car.svg": SVG, "attachments/doc.txt": { data: "hello" } } });
+    const state = () => ev(() => {
+      const fv = document.querySelector(".fv"), show = (s) => { const e = document.querySelector(s); return e && getComputedStyle(e).display !== "none" ? Math.round(e.getBoundingClientRect().width) : 0; };
+      return { narrow: fv.classList.contains("is-narrow"), list: show(".fv-pane"), preview: show(".fv-preview") };
+    });
+    await ev(() => { closeEditor(); openFilesView(); });
+    await frame(100);
+    let s = await state();
+    assert.ok(!s.narrow && s.list >= 280 && s.preview >= 320, "no note open: side by side " + JSON.stringify(s));
+    await ev(() => openEditor("cards/This week.md", { focus: false, wide: false }));
+    await frame(100);
+    s = await state();
+    assert.deepEqual([s.narrow, s.list, s.preview], [false, 280, 320], "a note beside: the list gives way, the preview keeps 320px");
+    await page.setViewportSize({ width: 1300, height: 800 });
+    await frame(150);
+    s = await state();
+    assert.deepEqual([s.narrow, s.preview], [true, 0], "narrower still: no room for both " + JSON.stringify(s));
+    await page.click('.fv-row[data-path="attachments/doc.txt"]');
+    await frame(50);
+    s = await state();
+    assert.deepEqual([s.list, s.preview > 0], [0, true], "the file in place of the list");
+    await page.click(".fv-preview .fv-close");
+    await frame(50);
+    s = await state();
+    assert.deepEqual([s.list > 0, s.preview], [true, 0], "← back to the list");
+    // with the keyboard the list stays: the arrows mark a file, Enter shows it
+    await page.focus(".fv-list");
+    await page.keyboard.press("ArrowDown");
+    await frame(50);
+    s = await state();
+    assert.deepEqual([s.list > 0, s.preview, await ev(() => FV.sel)], [true, 0, "attachments/car.svg"]);
+    await page.keyboard.press("Enter");
+    await frame(50);
+    s = await state();
+    assert.deepEqual([s.list, s.preview > 0], [0, true]);
+    await ev(() => closeEditor());
+    await frame(100);
+    assert.equal((await state()).narrow, false, "the note closed: side by side again");
+    await page.setViewportSize({ width: 1440, height: 800 });
+    assert.equal(errors.length, 0, errors.join("\n"));
   });
 });
