@@ -104,6 +104,8 @@ class VaultPlugin(private val activity: Activity) : Plugin(activity) {
      */
     override fun load(webView: WebView) {
         super.load(webView)
+        // the app was started by a share from another app ("Share to Supstack", spec TASK-6)
+        activity.intent?.let { takeShare(it) }
         ViewCompat.setOnApplyWindowInsetsListener(webView) { v, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
             if (bars != lastInsets) {
@@ -119,6 +121,31 @@ class VaultPlugin(private val activity: Activity) : Plugin(activity) {
             insets
         }
         ViewCompat.requestApplyInsets(webView)
+    }
+
+    /** Text or a link shared from another app, kept until the page asks for it (take_shared). */
+    @Volatile private var shared: JSObject? = null
+
+    /** A share that comes while the app is running. */
+    override fun onNewIntent(intent: Intent) {
+        takeShare(intent)
+    }
+
+    private fun takeShare(intent: Intent) {
+        if (intent.action != Intent.ACTION_SEND || intent.type?.startsWith("text/") != true) return
+        val text = intent.getStringExtra(Intent.EXTRA_TEXT)
+        val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
+        if (text.isNullOrBlank() && subject.isNullOrBlank()) return
+        shared = JSObject().apply { put("text", text ?: ""); put("subject", subject ?: "") }
+        // read once: an activity that is recreated (a rotation) must not offer it again
+        intent.action = Intent.ACTION_MAIN
+    }
+
+    @Command
+    fun take_shared(invoke: Invoke) {
+        val s = shared
+        shared = null
+        invoke.resolve(s ?: JSObject())
     }
 
     private fun insetsJs(top: Float, right: Float, bottom: Float, left: Float): String {

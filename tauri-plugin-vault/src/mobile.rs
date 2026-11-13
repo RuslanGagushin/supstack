@@ -74,4 +74,9 @@ impl<R: Runtime> Vault<R> {
     pub fn unwatch(&self) -> Result<()> {
         Ok(())
     }
+
+    pub fn take_shared(&self) -> Result<Option<Shared>> {
+        let r: Shared = self.0.run_mobile_plugin("take_shared", serde_json::json!({}))?;
+        Ok(if r.text.trim().is_empty() && r.subject.trim().is_empty() { None } else { Some(r) })
+    }
 }

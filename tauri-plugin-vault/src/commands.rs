@@ -59,6 +59,12 @@ pub(crate) async fn unwatch<R: Runtime>(app: AppHandle<R>) -> Result<()> {
     app.vault().unwatch()
 }
 
+/// What another app shared with this one, once (Android); None on desktop and when nothing was shared.
+#[command]
+pub(crate) async fn take_shared<R: Runtime>(app: AppHandle<R>) -> Result<Option<Shared>> {
+    app.vault().take_shared()
+}
+
 #[command]
 pub(crate) async fn git_sync<R: Runtime>(app: AppHandle<R>, root: String, config: crate::git::GitConfig) -> Result<crate::git::GitReport> {
     tauri::async_runtime::spawn_blocking(move || crate::git::sync(&app, root, config))

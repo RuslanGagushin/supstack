@@ -53,6 +53,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             commands::git_save_settings,
             commands::watch,
             commands::unwatch,
+            commands::take_shared,
         ])
         .setup(|app, api| {
             #[cfg(mobile)]

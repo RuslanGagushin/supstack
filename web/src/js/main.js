@@ -59,6 +59,7 @@ import "./ui/agenda.js";
 import "./ui/files.js";
 import "./ui/native-shell.js";
 import "./ui/about.js";
+import "./ui/share.js";
 import { boot } from "./ui/boot.js";
 import { exposeGlobals } from "./expose.js";
 

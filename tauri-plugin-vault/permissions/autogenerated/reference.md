@@ -17,6 +17,7 @@ Pick a vault folder, then list, read, write and delete files inside it, watch it
 - `allow-git-save-settings`
 - `allow-watch`
 - `allow-unwatch`
+- `allow-take-shared`
 
 ## Permission Table
 
@@ -283,6 +284,32 @@ Enables the remove_dir command without any pre-configured scope.
 <td>
 
 Denies the remove_dir command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`vault:allow-take-shared`
+
+</td>
+<td>
+
+Enables the take_shared command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`vault:deny-take-shared`
+
+</td>
+<td>
+
+Denies the take_shared command without any pre-configured scope.
 
 </td>
 </tr>

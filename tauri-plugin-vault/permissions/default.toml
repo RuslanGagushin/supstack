@@ -16,4 +16,5 @@ permissions = [
   "allow-git-save-settings",
   "allow-watch",
   "allow-unwatch",
+  "allow-take-shared",
 ]

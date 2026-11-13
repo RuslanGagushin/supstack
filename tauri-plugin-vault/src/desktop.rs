@@ -201,6 +201,11 @@ impl<R: Runtime> Vault<R> {
         *self.watch.lock().unwrap_or_else(|e| e.into_inner()) = None;
         Ok(())
     }
+
+    /// Nothing is shared with a desktop app: other apps open files instead.
+    pub fn take_shared(&self) -> Result<Option<Shared>> {
+        Ok(None)
+    }
 }
 
 // The file operations themselves, apart from the app handle so they can be tested on a temporary folder.
