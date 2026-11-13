@@ -229,3 +229,24 @@ describe("plain text previews", () => {
   });
 });
 
+const { embedSection, embedAllowed, EMBED_DEPTH } = await import("../web/src/js/core/embed.js");
+describe("embedded notes (LINK-1, LINK-2)", () => {
+  const body = "Intro\n\n# Trip\n\nPack.\n\n## Day 1\n\nWalk.\n\n```md\n# Not a heading\n```\n\n## Day 2  ##\n\nRest.\n\n# Home\n\nBack.\n";
+  test("without a heading an embed shows the whole note", () => assert.equal(embedSection(body, ""), body));
+  test("a heading's section runs to the next heading of its level or higher, past headings in code", () => {
+    assert.equal(embedSection(body, "Day 1"), "## Day 1\n\nWalk.\n\n```md\n# Not a heading\n```\n");
+    assert.equal(embedSection(body, "trip"), "# Trip\n\nPack.\n\n## Day 1\n\nWalk.\n\n```md\n# Not a heading\n```\n\n## Day 2  ##\n\nRest.\n");
+    assert.equal(embedSection(body, "Day 2"), "## Day 2  ##\n\nRest.\n", "closing #s are not part of the name");
+    assert.equal(embedSection(body, "Home"), "# Home\n\nBack.\n", "the last section runs to the end");
+    assert.equal(embedSection(body, "Not a heading"), null);
+    assert.equal(embedSection(body, "Nowhere"), null);
+  });
+  test("embeds go three levels deep and never round a cycle", () => {
+    assert.equal(EMBED_DEPTH, 3);
+    assert.equal(embedAllowed("B", 0, ["A"]), null);
+    assert.equal(embedAllowed("D", 2, ["A", "B", "C"]), null);
+    assert.equal(embedAllowed("E", 3, ["A", "B", "C", "D"]), "depth");
+    assert.equal(embedAllowed("A", 1, ["A", "B"]), "cycle");
+    assert.equal(embedAllowed("A", 0, ["A"]), "cycle", "a note does not embed itself");
+  });
+});

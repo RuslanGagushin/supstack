@@ -16,6 +16,7 @@ import "./core/graph.js";
 import "./core/board-model.js";
 import "./core/org.js";
 import "./core/tables.js";
+import "./core/embed.js";
 import "./services/storage.js";
 import "./services/events.js";
 import "./services/fs.js";

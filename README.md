@@ -90,6 +90,7 @@ Supstack shows a folder of Markdown notes (a *vault*) as notebooks with a list o
 - **Notes open to read.** The reading view puts one line under the title (when the note changed, its tags), shows a task's priority as a letter and its dates as the agenda says them (*Tomorrow*, *In 3 d.*, *12 Nov*; a deadline red when due, amber in its warning days). *Edit*, a double click or `Ctrl+E` switches to editing, where the dates are shown as written and *Properties* sits under the title; the note stays in place as you switch. **Settings › Appearance › Open notes** makes notes open for editing instead.
 - A source mode for the whole file, **full-width** and **focus** modes, and a toolbar for formatting, images and files.
 - `[[` or `Ctrl+L` links to another note; `/` opens the insert menu.
+- **Embedded notes:** `![[Note]]` shows another note's text in place, and `![[Note#Heading]]` just that section, while reading and while editing; its name above it opens it. Embeds inside embeds go three levels deep, and one that would go round in a circle stays a link. Tasks in an embed are shown; tick them in their own note.
 - Turn a selection into a **new note inside** the one you are in.
 
 ### Tasks and the agenda
