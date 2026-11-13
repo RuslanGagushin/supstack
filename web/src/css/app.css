@@ -5,7 +5,6 @@
    ========================================================== */
 body.sn-app {
   /* colours and fonts live in base.css */
-  --shadow-s: 0 2px 8px rgba(0,0,0,.06);
   font-size: var(--fs-ui);
 }
 
@@ -27,7 +26,7 @@ body.sn-app #app.focus-mode .sn-editor { grid-column: 3 / 6; }
 body.sn-app .win { border: 0; }
 body.sn-app .sn-editor.win {
   margin-top: 8px; background: var(--win); border: 1px solid var(--line); border-right: 0; border-bottom: 0; border-radius: var(--r-m) 0 0 0;
-  box-shadow: -2px 0 12px rgba(0,0,0,.03);
+  box-shadow: var(--shadow-2);
 }
 body.sn-app #app.editor-wide .sn-editor.win { border-radius: var(--r-m) 0 0 0; }
 body.sn-app .sn-resizer.is-editor { grid-column: 4; grid-row: 2; flex-basis: 8px; }
@@ -36,17 +35,17 @@ body.sn-app .sn-resizer.is-editor { grid-column: 4; grid-row: 2; flex-basis: 8px
 body.sn-app .sb-head { display: flex; flex-direction: column; gap: 12px; padding: 14px 12px 10px 14px; }
 body.sn-app .sb-foot { display: flex; align-items: center; gap: 2px; padding: 8px 10px 12px 12px; }
 body.sn-app .sb-foot button.sb-account { flex: 1 1 auto; min-width: 0; width: auto; }
-body.sn-app button.clickable-icon.sb-foot-btn { flex: none; width: 32px; height: 32px; padding: 0; border-radius: var(--r-s); color: var(--muted); }
+body.sn-app button.clickable-icon.sb-foot-btn { flex: none; width: 32px; height: var(--ctl-l); padding: 0; border-radius: var(--r-s); color: var(--muted); }
 body.sn-app button.clickable-icon.sb-foot-btn:hover { background: var(--hover-bg); color: var(--fg); }
-body.sn-app .sb-foot-btn svg { width: 16px; height: 16px; }
+body.sn-app .sb-foot-btn svg { width: var(--icon-m); height: var(--icon-m); }
 @media (max-width: 820px) { body.sn-app .sb-collapse { display: none; } } /* the drawer closes on the grey around it */
 /* The sidebar's places: the agenda, Files and sync, as rows like the tree's, each with its count or state at the right */
 body.sn-app .sb-nav { display: flex; flex-direction: column; gap: 1px; padding: 0 12px 6px 14px; }
-body.sn-app .sb-nav button.wb-btn { justify-content: flex-start; gap: 8px; width: 100%; height: 32px; padding: 0 8px; border: 0; border-radius: var(--r-s);
-  background: transparent; color: var(--fg); font-size: var(--fs-md); font-weight: 400; }
+body.sn-app .sb-nav button.wb-btn { justify-content: flex-start; gap: 8px; width: 100%; height: var(--ctl-l); padding: 0 8px; border: 0; border-radius: var(--r-s);
+  background: transparent; color: var(--fg); font-size: var(--fs-md); font-weight: var(--fw-regular); }
 body.sn-app .sb-nav button.wb-btn:hover { background: var(--hover-bg); }
 body.sn-app .sb-nav button.wb-btn.is-active { background: var(--sel); color: var(--ink); }
-body.sn-app .sb-nav button.wb-btn svg { width: 16px; height: 16px; color: var(--muted); }
+body.sn-app .sb-nav button.wb-btn svg { width: var(--icon-m); height: var(--icon-m); color: var(--muted); }
 body.sn-app .sb-nav .wb-label { display: inline !important; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 body.sn-app .sb-nav .wb-count { margin-left: auto; }
 body.sn-app .sb-nav button.wb-btn.wb-sync { max-width: none; }
@@ -56,52 +55,52 @@ body.sn-app .sb-nav button.wb-btn.wb-sync { max-width: none; }
 body.sn-app :is(button.sb-search, .sn-search, input.sn-set-search, input.fv-search) {
   height: 34px; border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); color: var(--fg); font-size: var(--fs-ui);
 }
-body.sn-app :is(.sn-search:focus-within, input.sn-set-search:focus, input.fv-search:focus) { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); outline: none; }
-button.sb-search { justify-content: flex-start; gap: 8px; width: 100%; padding: 0 12px 0 10px; font-weight: 400; cursor: text; }
+body.sn-app :is(.sn-search:focus-within, input.sn-set-search:focus, input.fv-search:focus) { border-color: var(--accent); box-shadow: var(--ring); outline: none; }
+button.sb-search { justify-content: flex-start; gap: 8px; width: 100%; padding: 0 12px 0 10px; font-weight: var(--fw-regular); cursor: text; }
 body.sn-app button.sb-search { color: var(--muted); }
 body.sn-app button.sb-search:hover { border-color: color-mix(in srgb, var(--faint) 55%, var(--line)); background: var(--win); }
-button.sb-search svg, .sn-search-icon svg, .fv-search-icon svg { width: 14px; height: 14px; }
+button.sb-search svg, .sn-search-icon svg, .fv-search-icon svg { width: var(--icon-s); height: var(--icon-s); }
 .fv-search-wrap { position: relative; flex: 1 1 auto; min-width: 0; display: flex; }
 .fv-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); display: inline-flex; color: var(--muted); pointer-events: none; }
 body.sn-app input.fv-search { width: 100%; padding: 0 10px 0 30px; }
 .sb-actions { display: flex; align-items: center; gap: 8px; }
 body.sn-app button.wb-btn.sb-new, body.sn-app button.wb-btn.primary {
   height: 38px; padding: 0 18px 0 14px; border-radius: var(--r-pill); background: var(--cta); color: var(--on-accent);
-  font-size: var(--fs-md); font-weight: 600; gap: 7px;
+  font-size: var(--fs-md); font-weight: var(--fw-semibold); gap: 7px;
 }
 body.sn-app button.wb-btn.sb-new:hover, body.sn-app button.wb-btn.primary:hover { background: var(--cta-hover); opacity: 1; }
-body.sn-app button.wb-btn.sb-new svg { width: 17px; height: 17px; }
+body.sn-app button.wb-btn.sb-new svg { width: var(--icon-m); height: var(--icon-m); }
 button.clickable-icon.sb-round { width: 38px; height: 38px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: var(--win); }
 /* Today, beside New note: a labelled button, quieter than New note */
-body.sn-app button.wb-btn.sb-today { height: 38px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--win); color: var(--fg); font-weight: 500; }
+body.sn-app button.wb-btn.sb-today { height: 38px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--win); color: var(--fg); font-weight: var(--fw-medium); }
 body.sn-app button.wb-btn.sb-today:hover { background: var(--hover-bg); }
-body.sn-app button.wb-btn.sb-today svg { width: 16px; height: 16px; color: var(--muted); }
+body.sn-app button.wb-btn.sb-today svg { width: var(--icon-m); height: var(--icon-m); color: var(--muted); }
 body.sn-app .sb-today .wb-label { display: inline; }
 .sn-keys-or { display: inline-flex; align-items: center; gap: 6px; }
 .sn-keys-or .sn-or { color: var(--faint); font-size: var(--fs-sm); }
 button.clickable-icon.sb-round:hover { background: var(--hover-bg); color: var(--fg); }
-button.clickable-icon.sb-round svg { width: 17px; height: 17px; }
+button.clickable-icon.sb-round svg { width: var(--icon-m); height: var(--icon-m); }
 button.sb-account { justify-content: flex-start; gap: 9px; width: 100%; height: 36px; padding: 0 8px;
-  border: 0; border-radius: var(--r-s); background: transparent; font-weight: 400;
+  border: 0; border-radius: var(--r-s); background: transparent; font-weight: var(--fw-regular);
 }
 button.sb-account:hover { background: var(--hover-bg); }
-.sb-avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--sb-avatar); color: var(--win); font-size: var(--fs-sm); font-weight: 600; }
-.sb-account-name { flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: left; line-height: 1.25; }
+.sb-avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--sb-avatar); color: var(--win); font-size: var(--fs-sm); font-weight: var(--fw-semibold); }
+.sb-account-name { flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: left; line-height: var(--lh-tight); }
 .sb-account-name > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sb-account-note { color: var(--muted); font-size: var(--fs-sm); font-weight: 400; }
+.sb-account-note { color: var(--muted); font-size: var(--fs-sm); font-weight: var(--fw-regular); }
 button.sb-account.has-note { height: 42px; }
 
 /* the tree's tools on its "Cards" heading: they show with the pointer over the sidebar or the focus in them; touch shows them always */
 body.sn-app .sn-tree-section.has-tools { display: flex; align-items: center; gap: 4px; min-height: 24px; }
-.sn-sec-tools { display: flex; gap: 2px; margin-left: auto; opacity: 0; transition: opacity 120ms ease; }
+.sn-sec-tools { display: flex; gap: 2px; margin-left: auto; opacity: 0; transition: opacity var(--dur-1) var(--ease); }
 .sn-side:hover .sn-sec-tools, .sn-sec-tools:focus-within { opacity: 1; }
 @media (hover: none) { .sn-sec-tools { opacity: 1; } }
-body.sn-app .sn-sec-tools .clickable-icon { width: 26px; height: 24px; padding: 0; border-radius: var(--r-s); color: var(--muted); }
+body.sn-app .sn-sec-tools .clickable-icon { width: 26px; height: var(--ctl-s); padding: 0; border-radius: var(--r-s); color: var(--muted); }
 body.sn-app .sn-sec-tools .clickable-icon:hover { background: var(--hover-bg); color: var(--fg); }
-body.sn-app .sn-sec-tools .clickable-icon svg { width: 14px; height: 14px; }
+body.sn-app .sn-sec-tools .clickable-icon svg { width: var(--icon-s); height: var(--icon-s); }
 body.sn-app .sn-tree { padding: 0 12px 16px 14px; }
 body.sn-app .sn-tree-section, body.sn-app .sn-tree-section:first-child {
-  margin: 18px 0 4px; padding-left: 8px; font-size: var(--fs-sm); font-weight: 500; color: var(--muted);
+  margin: 18px 0 4px; padding-left: 8px; font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--muted);
 }
 body.sn-app .sn-tree-section:first-child { margin-top: 4px; }
 body.sn-app .sn-outline .tree-item-self.sn-tree-row { min-height: 32px; padding: 4px 8px 4px 2px; border-radius: var(--r-s); font-size: var(--fs-md); gap: 8px; }
@@ -109,14 +108,14 @@ body.sn-app .sn-outline .tree-item-self.sn-tree-row:hover { background: var(--ho
 body.sn-app .sn-outline .tree-item-self.sn-tree-row.is-active { background: var(--sel); }
 /* the keyboard's place in the tree: a ring on the item's row, not around its whole branch (spec A11Y-2) */
 .sn-aria-tree [role=treeitem] { outline: none; }
-.sn-aria-tree [role=treeitem]:focus-visible > .sn-tree-row { box-shadow: inset 0 0 0 2px var(--accent); }
+.sn-aria-tree [role=treeitem]:focus-visible > .sn-tree-row { box-shadow: var(--ring-inset); }
 body.sn-app .sn-outline .tree-item-self.sn-tree-row.is-active .sn-tree-label { color: var(--ink); }
 /* the notebook the open note sits in, when the list beside it shows another place (and the open note's Recent row): a quiet mark, not a second selection */
 body.sn-app .sn-outline .sn-tree-row:is(.is-holding, .is-editing):not(.is-active) :is(.sn-tree-label, .sn-tree-icon) { color: var(--ink); }
-body.sn-app .sn-outline .sn-tree-row:is(.is-holding, .is-editing):not(.is-active) .sn-tree-label { font-weight: 500; }
-body.sn-app .sn-tree-row .sn-tree-label { font-weight: 400; }
+body.sn-app .sn-outline .sn-tree-row:is(.is-holding, .is-editing):not(.is-active) .sn-tree-label { font-weight: var(--fw-medium); }
+body.sn-app .sn-tree-row .sn-tree-label { font-weight: var(--fw-regular); }
 body.sn-app .sn-tree-icon { color: var(--muted); }
-body.sn-app .sn-tree-icon svg { width: 16px; height: 16px; }
+body.sn-app .sn-tree-icon svg { width: var(--icon-m); height: var(--icon-m); }
 body.sn-app .tree-item-flair { font-size: var(--fs-sm); color: var(--faint); }
 /* on a hovered or current row's grey, the counts and times step up to --muted to stay readable */
 body.sn-app .sn-tree-row:is(:hover, .is-active) .tree-item-flair { color: var(--muted); }
@@ -126,26 +125,26 @@ body.sn-app .sn-tag-pill:hover { background: color-mix(in srgb, var(--panel) 80%
 body.sn-app .sb-new .wb-label { display: inline; } /* the sidebar's button keeps its label on phones */
 
 /* ---------- Top bar: quiet ghost buttons; search, new card, brand and vault are in the sidebar */
-body.sn-app button.wb-btn { height: 32px; padding: 0 10px; border: 0; border-radius: var(--r-s); background: transparent; color: var(--muted); }
+body.sn-app button.wb-btn { height: var(--ctl-l); padding: 0 10px; border: 0; border-radius: var(--r-s); background: transparent; color: var(--muted); }
 body.sn-app button.wb-btn:hover { background: var(--hover-bg); color: var(--fg); }
 body.sn-app button.wb-btn.is-active { background: var(--panel); color: var(--ink); }
-body.sn-app button.clickable-icon.wb-icon { width: 34px; height: 32px; border-radius: var(--r-s); }
+body.sn-app button.clickable-icon.wb-icon { width: 34px; height: var(--ctl-l); border-radius: var(--r-s); }
 body.sn-app button.clickable-icon.wb-icon:hover { background: var(--hover-bg); color: var(--fg); }
-body.sn-app .wb-icon svg, body.sn-app .wb-btn svg { width: 16px; height: 16px; }
+body.sn-app .wb-icon svg, body.sn-app .wb-btn svg { width: var(--icon-m); height: var(--icon-m); }
 
 /* ---------- Board */
 body.sn-app .sn-topbar { min-height: 44px; padding: 4px 14px 4px 10px; }
-body.sn-app .sn-crumb { color: var(--muted); font-weight: 500; }
-body.sn-app .sn-crumb.is-current { color: var(--ink); font-weight: 600; }
+body.sn-app .sn-crumb { color: var(--muted); font-weight: var(--fw-medium); }
+body.sn-app .sn-crumb.is-current { color: var(--ink); font-weight: var(--fw-semibold); }
 body.sn-app .sn-crumb-sep { color: var(--faint); }
 body.sn-app .sn-board .sn-topbar .clickable-icon, body.sn-app .sn-editor .sn-editor-head .clickable-icon {
-  height: 30px; min-width: 30px; border-radius: var(--r-s);
+  height: var(--ctl-l); min-width: var(--ctl-l); border-radius: var(--r-s);
 }
 body.sn-app .sn-board .sn-topbar .clickable-icon:hover, body.sn-app .sn-editor .sn-editor-head .clickable-icon:hover { background: var(--hover-bg); color: var(--fg); border: 0; }
 body.sn-app .sn-board .sn-topbar .clickable-icon.is-active, body.sn-app .sn-editor .sn-editor-head .clickable-icon.is-active { background: var(--panel); color: var(--ink); }
 body.sn-app .sn-seg { background: var(--panel); border-radius: var(--r-s); }
-body.sn-app .sn-board .sn-topbar .sn-seg .clickable-icon { height: 26px; font-size: var(--fs-ui); border-radius: var(--r-s); }
-body.sn-app .sn-board .sn-topbar .sn-seg .clickable-icon.is-active { background: var(--win); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+body.sn-app .sn-board .sn-topbar .sn-seg .clickable-icon { height: var(--ctl-m); font-size: var(--fs-ui); border-radius: var(--r-s); }
+body.sn-app .sn-board .sn-topbar .sn-seg .clickable-icon.is-active { background: var(--win); box-shadow: var(--shadow-1); }
 body.sn-app .sn-page { padding: 14px 24px 60px; }
 
 /* Cards: white notes on the grey, parent above the title, muted preview, pill tags */
@@ -153,10 +152,10 @@ body.sn-app .sn-card {
   display: flex; flex-direction: column; padding: 14px 16px 8px; border-radius: var(--r-m);
   background: var(--win); box-shadow: 0 0 0 1px var(--sn-card-border, var(--line));
 }
-body.sn-app .sn-card:hover { box-shadow: 0 0 0 1px var(--sn-card-border-hover, color-mix(in srgb, var(--faint) 50%, var(--line))), 0 4px 14px rgba(0,0,0,.06); }
-body.sn-app .sn-card.is-editing { box-shadow: 0 0 0 2px var(--accent); }
-body.sn-app .sn-card:focus:not(.is-picked), body.sn-app .sn-card:focus-visible { box-shadow: 0 0 0 2px var(--accent); }
-body.sn-app .sn-card.is-picked { box-shadow: 0 0 0 2px var(--accent); background: color-mix(in srgb, var(--accent-soft) 60%, var(--win)); }
+body.sn-app .sn-card:hover { box-shadow: 0 0 0 1px var(--sn-card-border-hover, color-mix(in srgb, var(--faint) 50%, var(--line))), var(--shadow-2); }
+body.sn-app .sn-card.is-editing { box-shadow: var(--ring); }
+body.sn-app .sn-card:focus:not(.is-picked), body.sn-app .sn-card:focus-visible { box-shadow: var(--ring); }
+body.sn-app .sn-card.is-picked { box-shadow: var(--ring); background: color-mix(in srgb, var(--accent-soft) 60%, var(--win)); }
 body.sn-app .sn-card-icon { color: var(--muted); }
 /* the head's markers: children (a board inside, "layers") and several parents ("copy", like a mirror) — shapes, no new colour */
 /* card faces: full, compact (a few lines), title only */
@@ -168,20 +167,20 @@ body.sn-app .sn-tag, body.sn-app .markdown-rendered a.tag { padding: 1px 8px; bo
 body.sn-app .sn-tag:hover { background: color-mix(in srgb, var(--panel) 80%, var(--fg) 10%); }
 body.sn-app .sn-chip { font-size: var(--fs-sm); border-radius: var(--r-pill); }
 body.sn-app .sn-composer { border-radius: var(--r-m); background: var(--win); box-shadow: 0 0 0 1px var(--line); }
-body.sn-app .sn-composer:focus-within { box-shadow: 0 0 0 2px var(--accent); }
+body.sn-app .sn-composer:focus-within { box-shadow: var(--ring); }
 body.sn-app .sn-board .sn-composer textarea { font-size: var(--fs-md); height: 44px; min-height: 44px; padding: 12px 16px; }
 body.sn-app .sn-composer-hint { font-size: var(--fs-sm); padding: 0 16px 10px; }
 body.sn-app .sn-filterbar { padding: 8px 24px; border-bottom: 0; }
-body.sn-app .sn-board .sn-filter-btn, body.sn-app .sn-board .sn-filterbar > .clickable-icon { height: 32px; border-radius: var(--r-pill); font-size: var(--fs-ui); }
+body.sn-app .sn-board .sn-filter-btn, body.sn-app .sn-board .sn-filterbar > .clickable-icon { height: var(--ctl-l); border-radius: var(--r-pill); font-size: var(--fs-ui); }
 body.sn-app .sn-board .sn-filter-btn.is-active { border-color: var(--line); background: var(--panel); color: var(--ink); }
-body.sn-app .sn-board .sn-filter-chip { height: 24px; border: 0; border-radius: var(--r-pill); background: var(--panel); color: var(--tag); font-family: var(--font-ui); font-size: var(--fs-sm); }
+body.sn-app .sn-board .sn-filter-chip { height: var(--ctl-s); border: 0; border-radius: var(--r-pill); background: var(--panel); color: var(--tag); font-family: var(--font-ui); font-size: var(--fs-sm); }
 body.sn-app .sn-selbar { border-radius: var(--r-m); }
 
 /* ---------- Minibuffer: light, a quiet footer */
 
 /* ---------- Note editor: a white sheet with a big bold title */
 body.sn-app .sn-editor-head { height: 52px; padding: 0 12px 0 14px; border-bottom: 0; }
-body.sn-app .sn-editor-path { font-weight: 500; color: var(--muted); }
+body.sn-app .sn-editor-path { font-weight: var(--fw-medium); color: var(--muted); }
 /* the notebooks a note sits in (editor.js notebookPath): links to their lists, "+N" for its other places, the move button */
 .sn-editor-where { flex: 1; min-width: 0; display: flex; align-items: center; gap: 2px; }
 body.sn-app .sn-editor-where .sn-editor-path { flex: 0 1 auto; display: flex; align-items: baseline; min-width: 0; }
@@ -192,7 +191,7 @@ a.sn-editor-crumb:hover { color: var(--ink); text-decoration: underline; }
 button.sn-editor-places { flex: none; height: 20px; margin-left: 4px; padding: 0 7px; border: 0; border-radius: var(--r-pill); background: var(--panel); color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; cursor: pointer; }
 button.sn-editor-places:hover { background: var(--accent-soft); color: var(--accent); }
 /* a phone: "‹ Its notebook" instead of the path, the ×, and "+N" (which moves into ⋮) */
-a.sn-editor-back { display: none; min-width: 0; align-items: center; gap: 2px; margin-left: -6px; padding: 4px 8px 4px 2px; border-radius: var(--r-s); color: var(--fg); font-weight: 500; text-decoration: none; }
+a.sn-editor-back { display: none; min-width: 0; align-items: center; gap: 2px; margin-left: -6px; padding: 4px 8px 4px 2px; border-radius: var(--r-s); color: var(--fg); font-weight: var(--fw-medium); text-decoration: none; }
 a.sn-editor-back > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 a.sn-editor-back svg { flex: none; width: 22px; height: 22px; }
 a.sn-editor-back:active { background: var(--hover-bg); }
@@ -203,12 +202,12 @@ a.sn-editor-back:active { background: var(--hover-bg); }
 /* the note reads at 16px in a column of about 75 characters (600px of text inside the padding) */
 body.sn-app .sn-editor-page { max-width: 680px; padding: 18px 40px 40vh; }
 body.sn-app .sn-editor-badge { color: var(--muted); }
-body.sn-app .sn-inline-title { font-weight: 700; font-size: 32px; line-height: 1.2; letter-spacing: -.02em; color: var(--ink); margin: 6px 0 12px; }
+body.sn-app .sn-inline-title { font-weight: var(--fw-bold); font-size: 32px; line-height: var(--lh-tight); letter-spacing: -.02em; color: var(--ink); margin: 6px 0 12px; }
 /* the note's one labelled action: Edit while reading, Done (blue) while editing (editor.js) */
-button.sn-mode-btn { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 30px; margin: 0 2px 0 6px; padding: 0 12px 0 10px;
-  border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--win); color: var(--fg); font-size: var(--fs-ui); font-weight: 500; cursor: pointer; }
+button.sn-mode-btn { flex: none; display: inline-flex; align-items: center; gap: 6px; height: var(--ctl-l); margin: 0 2px 0 6px; padding: 0 12px 0 10px;
+  border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--win); color: var(--fg); font-size: var(--fs-ui); font-weight: var(--fw-medium); cursor: pointer; }
 button.sn-mode-btn:hover { background: var(--hover-bg); }
-button.sn-mode-btn svg { display: block; width: 15px; height: 15px; } /* a block, so the icon sits in the middle, not on the text's baseline */
+button.sn-mode-btn svg { display: block; width: var(--icon-s); height: var(--icon-s); } /* a block, so the icon sits in the middle, not on the text's baseline */
 button.sn-mode-btn.is-editing { border-color: transparent; background: var(--cta); color: var(--on-accent); }
 button.sn-mode-btn.is-editing:hover { background: var(--cta-hover); }
 @container (max-width: 640px) { button.sn-mode-btn { width: 30px; padding: 0; justify-content: center; } .sn-mode-label { display: none; } }
@@ -217,12 +216,12 @@ button.sn-mode-btn.is-editing:hover { background: var(--cta-hover); }
 /* reading: one quiet line under the title in place of Properties, and no rule between it and the text (editor-toolbar.js infoLine) */
 .sn-info { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 22px; margin: -4px 0 18px; font-size: var(--fs-sm); color: var(--muted); }
 .sn-info-date { margin-right: 4px; }
-body.sn-app button.sn-tag.sn-info-tag { height: auto; border: 0; font-weight: 400; cursor: pointer; }
-body.sn-app .sn-props-head, body.sn-app .sn-editor-foot h4 { font-size: var(--fs-sm); font-weight: 500; color: var(--muted); }
+body.sn-app button.sn-tag.sn-info-tag { height: auto; border: 0; font-weight: var(--fw-regular); cursor: pointer; }
+body.sn-app .sn-props-head, body.sn-app .sn-editor-foot h4 { font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--muted); }
 body.sn-app .sn-prop:hover { background: var(--hover-bg); }
 body.sn-app .sn-prop-key { color: var(--muted); }
 body.sn-app .sn-editor-text.is-source { font-family: var(--font-code); font-size: var(--fs-ui); }
-body.sn-app .sn-reading { font-size: var(--fs-note); line-height: 1.65; }
+body.sn-app .sn-reading { font-size: var(--fs-note); line-height: var(--lh-text); }
 /* a table being read keeps the room editing leaves on its right for "+ column" (writing.css .sn-table-host), so it doesn't widen and re-split its columns */
 .sn-reading:not(.sn-live) .sn-table-wrap { margin-right: 17px; }
 body.sn-app .sn-fm-error { font-family: var(--font-code); }
@@ -238,26 +237,26 @@ body.sn-app .markdown-rendered code { font-family: var(--font-code); color: var(
 body.sn-app .markdown-rendered pre code, body.sn-app .markdown-rendered .code-body code { color: inherit; background: none; padding: 0; border-radius: 0; }
 body.sn-app .markdown-rendered .code-body, body.sn-app .fv-text { font-family: var(--font-code); }
 body.sn-app .markdown-rendered .code-block, body.sn-app .markdown-rendered .sn-table-wrap { border-radius: var(--r-m); }
-body.sn-app .markdown-rendered th { font-weight: 600; text-align: left; }
+body.sn-app .markdown-rendered th { font-weight: var(--fw-semibold); text-align: left; }
 body.sn-app .markdown-rendered blockquote { border-inline-start: 3px solid var(--panel); }
 body.sn-app .markdown-rendered .sn-pdf-head { font-family: var(--font-ui); }
 
 /* ---------- Menus, dialogs, pickers */
-body.sn-app .menu { border-radius: var(--r-m); padding: 6px; box-shadow: 0 8px 28px rgba(0,0,0,.14); }
+body.sn-app .menu { border-radius: var(--r-m); padding: 6px; box-shadow: var(--shadow-3); }
 body.sn-app .menu-item { padding: 6px 10px; border-radius: var(--r-s); }
 body.sn-app .menu-item:hover, body.sn-app .menu-item.is-selected { background: var(--hover-bg); }
-body.sn-app .menu-label { font-size: var(--fs-sm); letter-spacing: 0; text-transform: none; font-weight: 500; color: var(--muted); }
+body.sn-app .menu-label { font-size: var(--fs-sm); letter-spacing: 0; text-transform: none; font-weight: var(--fw-medium); color: var(--muted); }
 body.sn-app .modal { border-radius: var(--r-l); }
-body.sn-app .modal-title { font-weight: 600; font-size: var(--fs-lg); border-bottom: 0; }
+body.sn-app .modal-title { font-weight: var(--fw-semibold); font-size: var(--fs-lg); border-bottom: 0; }
 body.sn-app .modal input[type="text"] { height: 36px; border-radius: var(--r-s); font-size: var(--fs-md); }
-body.sn-app .modal-buttons button, body.sn-app .modal-buttons button:not(.clickable-icon) { height: 34px; padding: 0 16px; border-radius: var(--r-pill); font-weight: 600; }
+body.sn-app .modal-buttons button, body.sn-app .modal-buttons button:not(.clickable-icon) { height: 34px; padding: 0 16px; border-radius: var(--r-pill); font-weight: var(--fw-semibold); }
 body.sn-app .modal-buttons button.mod-cta, body.sn-app .setting-item-control .wb-btn.is-cta, body.sn-app button.mod-cta { background: var(--cta); color: var(--on-accent); border-color: var(--cta); }
-body.sn-app .setting-heading { letter-spacing: 0; text-transform: none; font-size: var(--fs-sm); font-weight: 600; color: var(--muted); }
+body.sn-app .setting-heading { letter-spacing: 0; text-transform: none; font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--muted); }
 body.sn-app .setting-item-name { font-size: var(--fs-md); }
 body.sn-app .setting-item-description { font-size: var(--fs-sm); }
-body.sn-app .setting-item-control select, body.sn-app .setting-item-control input { height: 32px; border-radius: var(--r-s); background-color: var(--win); }
+body.sn-app .setting-item-control select, body.sn-app .setting-item-control input { height: var(--ctl-l); border-radius: var(--r-s); background-color: var(--win); }
 body.sn-app .checkbox-container.is-enabled { background: var(--cta); }
-body.sn-app .sn-about-name { font-family: var(--font-ui); font-weight: 700; }
+body.sn-app .sn-about-name { font-family: var(--font-ui); font-weight: var(--fw-bold); }
 body.sn-app .prompt { border-radius: var(--r-l); }
 body.sn-app .prompt-input { font-size: var(--fs-text) !important; }
 body.sn-app :is(.wb-btn kbd, button.sn-tb-insert kbd) { font-family: var(--font-code); }
@@ -271,12 +270,12 @@ body.sn-app :is(.wb-btn kbd, button.sn-tb-insert kbd) { font-family: var(--font-
   body.sn-app #app.notes-layout.editor-open:not(.editor-wide) .sn-editor { width: auto; max-width: none; }
 
   /* under 1180px with a note open the sidebar is folded away; opened by hand, it lies over the page as a drawer (UI-2) */
-  body.sn-app #app.is-mid.editor-open:not(.focus-mode) .sn-side { position: fixed; z-index: 30; top: 0; bottom: 0; left: 0; box-shadow: var(--shadow-l); }
+  body.sn-app #app.is-mid.editor-open:not(.focus-mode) .sn-side { position: fixed; z-index: var(--z-side); top: 0; bottom: 0; left: 0; box-shadow: var(--shadow-4); }
   body.sn-app #app.is-mid.editor-open .sn-resizer.is-side { display: none; }
-  body.sn-app #app.is-mid.editor-open:not(.side-closed):not(.focus-mode) .sn-side-scrim { display: block; position: fixed; inset: 0; z-index: 29; background: var(--background-modifier-cover); }
+  body.sn-app #app.is-mid.editor-open:not(.side-closed):not(.focus-mode) .sn-side-scrim { display: block; position: fixed; inset: 0; z-index: calc(var(--z-side) - 1); background: var(--background-modifier-cover); }
 
   /* under 960px the note covers the list, with "‹ its notebook" to go back, as on a phone (UI-3) */
-  body.sn-app #app.is-stacked.editor-open .sn-editor.win { position: fixed; z-index: 35; inset: 0; width: auto; max-width: none; margin: 0; border: 0; border-radius: 0; }
+  body.sn-app #app.is-stacked.editor-open .sn-editor.win { position: fixed; z-index: var(--z-editor); inset: 0; width: auto; max-width: none; margin: 0; border: 0; border-radius: 0; }
   body.sn-app #app.is-stacked.editor-open .sn-resizer.is-editor { display: none; }
   body.sn-app #app.is-stacked a.sn-editor-back { display: inline-flex; }
   body.sn-app #app.is-stacked .sn-editor-head :is(.sn-editor-path, .sn-editor-places, .sn-editor-close) { display: none; }
@@ -285,19 +284,19 @@ body.sn-app .sn-board.is-notes .sn-page { max-width: 760px; margin: 0 auto; padd
 body.sn-app #app.notes-layout.editor-open .sn-board.is-notes .sn-page { max-width: none; }
 .sn-list-head { display: flex; align-items: baseline; gap: 10px; padding: 4px 8px 12px; min-width: 0; }
 /* The screen title: icon, name at 20px, a faint count. The list of notes, Files and the agenda share it (agenda.css) */
-.sn-list-head .sn-list-title { display: flex; align-items: center; gap: 8px; min-width: 0; margin: 0; font-size: var(--fs-lg); font-weight: 600; line-height: 1.25; letter-spacing: -.01em; color: var(--ink); }
+.sn-list-head .sn-list-title { display: flex; align-items: center; gap: 8px; min-width: 0; margin: 0; font-size: var(--fs-lg); font-weight: var(--fw-semibold); line-height: var(--lh-tight); letter-spacing: -.01em; color: var(--ink); }
 /* a long notebook name gets two lines rather than an ellipsis: with no breadcrumbs, the title is where the list says what it is */
 .sn-list-title > span { overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .sn-list-badge { display: inline-flex; color: var(--muted); }
-.sn-list-badge svg { width: 18px; height: 18px; }
+.sn-list-badge svg { width: var(--icon-l); height: var(--icon-l); }
 .sn-list-count { flex: none; color: var(--faint); }
 /* the notebook's own text, under its title: three lines that open it beside the list (board.js renderListDesc) */
-.sn-list-desc { margin: -6px 0 12px; padding: 6px 8px; border-radius: var(--r-s); color: var(--muted); line-height: 1.5; cursor: pointer; }
+.sn-list-desc { margin: -6px 0 12px; padding: 6px 8px; border-radius: var(--r-s); color: var(--muted); line-height: var(--lh-ui); cursor: pointer; }
 .sn-list-desc-text { overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 .sn-list-desc:hover { background: var(--hover-bg); color: var(--fg); }
 .sn-list-desc.is-editing { background: var(--sel); color: var(--fg); }
 .sn-list-desc:focus { outline: none; }
-.sn-list-desc:focus-visible { box-shadow: 0 0 0 2px var(--accent); }
+.sn-list-desc:focus-visible { box-shadow: var(--ring); }
 body.sn-app .sn-board.is-notes .sn-composer { margin: 0 0 10px; }
 .sn-rows { display: flex; flex-direction: column; gap: 6px; }
 body.sn-app .sn-board .sn-card.sn-row {
@@ -306,7 +305,7 @@ body.sn-app .sn-board .sn-card.sn-row {
 }
 body.sn-app .sn-board .sn-card.sn-row:hover { background: var(--hover-bg); box-shadow: none; }
 body.sn-app .sn-board .sn-card.sn-row:focus { box-shadow: none; }
-body.sn-app .sn-board .sn-card.sn-row:focus-visible:not(.is-editing) { box-shadow: 0 0 0 2px var(--accent); }
+body.sn-app .sn-board .sn-card.sn-row:focus-visible:not(.is-editing) { box-shadow: var(--ring); }
 /* the open note: the same grey as the current row in the sidebar, not a white card that competes with the note's own sheet */
 body.sn-app .sn-board .sn-card.sn-row.is-editing { background: var(--sel); box-shadow: none; }
 /* --faint is for --bg and --win only: on a row's grey the date, the dots and the counts step up to --muted, as in the sidebar */
@@ -321,18 +320,18 @@ body.sn-app .sn-board .sn-card.sn-row.is-picked { background: color-mix(in srgb,
 .sn-row-meta > * + *::before { content: "·"; margin-right: 6px; color: var(--faint); }
 .sn-row-meta > .sn-row-meta-icon + *::before { content: none; }
 .sn-row-meta-icon { display: inline-flex; color: var(--muted); }
-.sn-row-meta-icon svg { width: 13px; height: 13px; }
-a.sn-row-parent { min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--muted); font-weight: 500; text-decoration: none; }
+.sn-row-meta-icon svg { width: var(--icon-xs); height: var(--icon-xs); }
+a.sn-row-parent { min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--muted); font-weight: var(--fw-medium); text-decoration: none; }
 a.sn-row-parent:hover { color: var(--ink); text-decoration: underline; }
 .sn-row-date { flex: none; }
 .sn-row-meta .sn-task-prog { display: inline-flex; align-items: center; gap: 3px; }
-.sn-row-meta .sn-task-prog svg { width: 12px; height: 12px; }
+.sn-row-meta .sn-task-prog svg { width: var(--icon-xs); height: var(--icon-xs); }
 .sn-row-head { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .sn-row-title {
-  min-width: 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.35; color: var(--ink);
+  min-width: 0; font-size: var(--fs-md); font-weight: var(--fw-semibold); line-height: var(--lh-tight); color: var(--ink);
   overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
 }
-.sn-row-snippet { line-height: 1.45; color: var(--muted); overflow-wrap: anywhere;
+.sn-row-snippet { line-height: var(--lh-ui); color: var(--muted); overflow-wrap: anywhere;
   overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
 }
 /* the tags end the row's last line, after the date: one line, cut at the row's edge */
@@ -340,18 +339,18 @@ body.sn-app .sn-row-meta { overflow: hidden; height: 18px; } /* as high with tag
 body.sn-app .sn-row-meta .sn-tags.sn-row-tags { display: inline-flex; flex-wrap: nowrap; gap: 4px; min-width: 0; margin: 0 0 0 2px; overflow: hidden; }
 body.sn-app .sn-row-meta > .sn-row-tags::before { content: none; }
 button.sn-row-enter {
-  flex: none; align-self: center; gap: 2px; height: 30px; padding: 0 6px 0 11px;
+  flex: none; align-self: center; gap: 2px; height: var(--ctl-l); padding: 0 6px 0 11px;
   border: 0; border-radius: var(--r-pill); background: var(--panel); color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; cursor: pointer;
 }
-button.sn-row-enter svg { width: 16px; height: 16px; }
+button.sn-row-enter svg { width: var(--icon-m); height: var(--icon-m); }
 button.sn-row-enter:hover, .sn-row:focus-visible button.sn-row-enter { background: var(--accent-soft); color: var(--accent); }
 /* a notebook: one compact line at the top of the list (cards.js renderFolderRow) */
 body.sn-app .sn-board .sn-card.sn-row.is-folder { align-items: center; gap: 10px; padding: 8px 10px 8px 14px; cursor: pointer; }
-.sn-row.is-folder .sn-row-title { flex: 1 1 auto; font-size: var(--fs-md); font-weight: 500; -webkit-line-clamp: 1; }
+.sn-row.is-folder .sn-row-title { flex: 1 1 auto; font-size: var(--fs-md); font-weight: var(--fw-medium); -webkit-line-clamp: 1; }
 .sn-row-folder-icon { flex: none; display: inline-flex; color: var(--muted); }
-.sn-row-folder-icon svg { width: 16px; height: 16px; }
+.sn-row-folder-icon svg { width: var(--icon-m); height: var(--icon-m); }
 .sn-row-count { flex: none; display: inline-flex; align-items: center; gap: 2px; color: var(--faint); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
-.sn-row-count svg { width: 16px; height: 16px; }
+.sn-row-count svg { width: var(--icon-m); height: var(--icon-m); }
 .sn-row.is-folder:hover .sn-row-count, .sn-row.is-folder:focus-visible .sn-row-count { color: var(--accent); }
 .sn-rows > .sn-row.is-folder + .sn-row:not(.is-folder) { margin-top: 10px; }
 .sn-rows > .sn-row.is-folder + .sn-row.is-folder { margin-top: -4px; }
@@ -364,7 +363,7 @@ body.sn-app .sn-board .sn-card.sn-row.is-folder { align-items: center; gap: 10px
 @media (max-width: 820px) {
   body.sn-app #app { grid-template-columns: minmax(0, 1fr); }
   body.sn-app .sn-main { grid-column: 1; }
-  body.sn-app .sn-side { box-shadow: var(--shadow-l); }
+  body.sn-app .sn-side { box-shadow: var(--shadow-4); }
   body.sn-app .sn-editor.win { margin-top: 0; border-radius: 0; border: 0; } /* the note over the board fills the screen */
   body.sn-app .sn-page { padding: 12px 14px 60px; }
   body.sn-app .sn-editor-page { padding: 12px 14px 40vh; }
@@ -375,15 +374,15 @@ body.sn-app .sn-board .sn-card.sn-row.is-folder { align-items: center; gap: 10px
 @media (pointer: coarse) and (max-width: 820px) {
   /* under the sidebar (30), the note (35) and popups: it shows over the board, the agenda and Files */
   .sn-tabbar {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 28; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-tabbar); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
     padding: 2px 8px var(--safe-bottom); border-top: 1px solid var(--line);
     background: color-mix(in srgb, var(--win) 94%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
-    transition: transform 200ms ease;
+    transition: transform var(--dur-2) var(--ease);
   }
   .sn-tabbar.is-hidden { transform: translateY(100%); }
   button.sn-tab, button.sn-tab:not(.clickable-icon) {
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; height: 54px; padding: 0;
-    border: 0; background: none; box-shadow: none; color: var(--muted); font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 500;
+    border: 0; background: none; box-shadow: none; color: var(--muted); font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: var(--fw-medium);
   }
   button.sn-tab svg { width: 22px; height: 22px; }
   #app:not(:has(.sn-board.is-tasks, .sn-board.is-files)) .sn-tab[data-tab="board"], #app:has(.sn-board.is-tasks) .sn-tab[data-tab="agenda"] { color: var(--accent); }
@@ -399,7 +398,7 @@ body.sn-app .sn-board .sn-card.sn-row.is-folder { align-items: center; gap: 10px
   body.sn-app :is(.sn-tag, .sn-chip, .tags .tag, .sn-tag-pill, .fchip)::after { content: ""; position: absolute; inset: -8px -2px; }
   /* buttons a finger can hit: 40px at least, the drawing inside them as it was (spec UI-9) */
   body.sn-app #app :is(.sn-topbar, .sn-editor-head, .agbar, .sn-ed-toolbar) :is(button, a[href]),
-  body.sn-app #app button.ag-over-head { min-height: 40px; }
+  body.sn-app #app button.ag-over-head { min-height: var(--ctl-touch); }
   body.sn-app #app :is(.sn-topbar, .sn-editor-head, .agbar, .sn-ed-toolbar) :is(button.clickable-icon, button.sn-tb-btn, button.sn-tb-insert, button.sn-mode-btn, button.ag-btn, button.ag-capture) { min-width: 40px; }
 }
 
@@ -423,19 +422,19 @@ html.is-native body.sn-app .sn-main { padding-top: max(6px, env(safe-area-inset-
 }
 
 /* ---------- The welcome screen: the app's icon and name on a card, the ways in below */
-.sn-welcome { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: calc(16px + var(--safe-top)) 16px calc(16px + var(--safe-bottom)); overflow-y: auto; background: var(--bg); }
-.sn-welcome-card { width: min(440px, 100%); padding: 40px 32px 28px; border: 1px solid var(--line); border-radius: var(--r-l); background: var(--win); box-shadow: 0 12px 40px color-mix(in srgb, var(--shade) 6%, transparent); text-align: center; }
+.sn-welcome { position: fixed; inset: 0; z-index: var(--z-welcome); display: flex; align-items: center; justify-content: center; padding: calc(16px + var(--safe-top)) 16px calc(16px + var(--safe-bottom)); overflow-y: auto; background: var(--bg); }
+.sn-welcome-card { width: min(440px, 100%); padding: 40px 32px 28px; border: 1px solid var(--line); border-radius: var(--r-l); background: var(--win); box-shadow: var(--shadow-2); text-align: center; }
 .sn-welcome-logo { display: block; width: 72px; height: 72px; margin: 0 auto 14px; }
 body.theme-dark .sn-welcome-logo { filter: brightness(.82); } /* the icon's white tile, toned down so it does not glare on the dark card */
-.sn-welcome-title { margin: 0 0 6px; color: var(--ink); font-family: var(--font-ui); font-size: var(--fs-xl); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
-.sn-welcome-sub { max-width: 340px; margin: 0 auto 26px; color: var(--muted); font-size: var(--fs-md); line-height: 1.5; }
+.sn-welcome-title { margin: 0 0 6px; color: var(--ink); font-family: var(--font-ui); font-size: var(--fs-xl); font-weight: var(--fw-bold); letter-spacing: -0.02em; line-height: var(--lh-tight); }
+.sn-welcome-sub { max-width: 340px; margin: 0 auto 26px; color: var(--muted); font-size: var(--fs-md); line-height: var(--lh-ui); }
 .sn-welcome-actions { display: flex; flex-direction: column; align-items: stretch; gap: 8px; max-width: 300px; margin: 0 auto; }
-body.sn-app .sn-welcome-actions button.wb-btn { justify-content: center; gap: 8px; height: 40px; border-radius: var(--r-m); font-size: var(--fs-ui); font-weight: 500; }
+body.sn-app .sn-welcome-actions button.wb-btn { justify-content: center; gap: 8px; height: var(--ctl-touch); border-radius: var(--r-m); font-size: var(--fs-ui); font-weight: var(--fw-medium); }
 body.sn-app .sn-welcome-actions button.wb-btn:not(.primary) { border: 1px solid var(--line); background: var(--win); color: var(--fg); }
 body.sn-app .sn-welcome-actions button.wb-btn:not(.primary):hover { background: var(--hover-bg); }
-.sn-welcome-note { max-width: 340px; margin: 22px auto 0; color: var(--faint); font-size: var(--fs-sm); line-height: 1.5; }
+.sn-welcome-note { max-width: 340px; margin: 22px auto 0; color: var(--faint); font-size: var(--fs-sm); line-height: var(--lh-ui); }
 .sn-welcome-corner { position: absolute; top: calc(12px + var(--safe-top)); right: 12px; display: flex; gap: 6px; }
-.sn-welcome-corner .clickable-icon { width: 32px; height: 30px; border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); }
+.sn-welcome-corner .clickable-icon { width: 32px; height: var(--ctl-l); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); }
 
 /* ---------- Settings: sections on the left, groups of rows on cards on the right */
 body.sn-app .modal.mod-settings {
@@ -449,32 +448,32 @@ body.sn-app .modal.mod-settings > .modal-close { top: 9px; right: 10px; }
 .sn-set-side { display: flex; flex-direction: column; gap: 6px; min-height: 0; padding: 12px 10px; border-right: 1px solid var(--line); overflow-y: auto; }
 .sn-set-search-row { position: relative; flex: none; margin-bottom: 6px; }
 .sn-set-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); display: inline-flex; color: var(--muted); pointer-events: none; }
-.sn-set-search-icon svg { width: 14px; height: 14px; }
+.sn-set-search-icon svg { width: var(--icon-s); height: var(--icon-s); }
 body.sn-app input.sn-set-search { width: 100%; padding: 0 10px 0 30px; }
 .sn-set-tabs { display: flex; flex-direction: column; gap: 1px; }
-.sn-set-nav-group { padding: 12px 10px 4px; color: var(--muted); font-size: var(--fs-sm); font-weight: 500; }
+.sn-set-nav-group { padding: 12px 10px 4px; color: var(--muted); font-size: var(--fs-sm); font-weight: var(--fw-medium); }
 .sn-set-nav-group:first-child { padding-top: 2px; }
 body.sn-app button.sn-set-tab, body.sn-app button.sn-set-tab:not(.clickable-icon) {
-  display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%; height: 32px; padding: 0 10px; border: 0; border-radius: var(--r-s);
-  background: none; box-shadow: none; color: var(--fg); font-size: var(--fs-ui); font-weight: 400; text-align: left; cursor: pointer;
+  display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%; height: var(--ctl-l); padding: 0 10px; border: 0; border-radius: var(--r-s);
+  background: none; box-shadow: none; color: var(--fg); font-size: var(--fs-ui); font-weight: var(--fw-regular); text-align: left; cursor: pointer;
 }
 body.sn-app button.sn-set-tab:hover { background: var(--hover-bg); }
-body.sn-app button.sn-set-tab.is-active { background: var(--sel); color: var(--ink); font-weight: 500; }
+body.sn-app button.sn-set-tab.is-active { background: var(--sel); color: var(--ink); font-weight: var(--fw-medium); }
 button.sn-set-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .sn-set-tab-icon { display: inline-flex; color: var(--muted); }
-.sn-set-tab-icon svg { width: 16px; height: 16px; }
+.sn-set-tab-icon svg { width: var(--icon-m); height: var(--icon-m); }
 button.sn-set-tab.is-active .sn-set-tab-icon { color: var(--ink); }
 .sn-set-body { min-height: 0; overflow-y: auto; padding: 20px 28px 32px; }
-.sn-set-heading { margin: 26px 2px 10px; color: var(--ink); font-size: var(--fs-text); font-weight: 600; }
+.sn-set-heading { margin: 26px 2px 10px; color: var(--ink); font-size: var(--fs-text); font-weight: var(--fw-semibold); }
 .sn-set-body > .sn-set-heading:first-child { margin-top: 0; }
 .sn-set-group { border: 1px solid var(--line); border-radius: var(--r-m); background: var(--win); overflow: hidden; }
 .sn-set-group + .sn-set-group { margin-top: 16px; }
 body.sn-app .sn-set-group .setting-item { gap: 24px; padding: 14px 18px; border-top: 1px solid var(--line); }
 body.sn-app .sn-set-group .setting-item:first-child { border-top: 0; }
-body.sn-app .sn-set-group .setting-item-name { color: var(--ink); font-size: var(--fs-md); font-weight: 500; }
-body.sn-app .sn-set-group .setting-item-description { margin-top: 3px; color: var(--muted); font-size: var(--fs-sm); line-height: 1.45; }
+body.sn-app .sn-set-group .setting-item-name { color: var(--ink); font-size: var(--fs-md); font-weight: var(--fw-medium); }
+body.sn-app .sn-set-group .setting-item-description { margin-top: 3px; color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh-ui); }
 body.sn-app .sn-set-group .setting-item-control select { max-width: 240px; }
-.sn-set-note { margin: 12px 4px 0; color: var(--muted); font-size: var(--fs-sm); line-height: 1.5; }
+.sn-set-note { margin: 12px 4px 0; color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh-ui); }
 .sn-set-body .sn-sync-status { margin: 0 2px 4px; }
 .sn-set-body .sn-sync-note { margin: 12px 4px 0; color: var(--muted); }
 .sn-set-body .modal-buttons { margin-top: 16px; }

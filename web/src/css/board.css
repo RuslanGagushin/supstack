@@ -13,7 +13,6 @@
   --sn-hover: var(--background-modifier-hover);
   --sn-mark: var(--text-highlight-bg);
   --sn-accent: var(--interactive-accent);
-  --sn-focus-ring: 0 0 0 2px var(--interactive-accent);
   --sn-c-accent: color-mix(in srgb, var(--interactive-accent) 12%, var(--sn-surface));
 }
 
@@ -33,18 +32,18 @@
   gap: var(--size-2-2);
   min-width: 0;
   font-size: var(--fs-sm);
-  font-weight: var(--font-medium);
+  font-weight: var(--fw-medium);
   line-height: 1;
 }
 .sn-board .clickable-icon:hover,
 .sn-outline .clickable-icon:hover,
 .sn-editor .clickable-icon:hover,
 .sn-side-head .clickable-icon:hover { background: var(--background-modifier-hover); color: var(--icon-color-hover); }
-.sn-board .clickable-icon[disabled] { opacity: 0.35; pointer-events: none; }
+.sn-board .clickable-icon[disabled] { opacity: var(--disabled); pointer-events: none; }
 .sn-board .clickable-icon svg,
 .sn-outline .clickable-icon svg,
 .sn-editor .clickable-icon svg,
-.sn-side-head .clickable-icon svg { width: var(--icon-s); height: var(--icon-s); stroke-width: var(--icon-s-stroke-width, 2px); }
+.sn-side-head .clickable-icon svg { width: var(--icon-s); height: var(--icon-s); stroke-width: var(--icon-stroke); }
 
 /* ---------- Top bar */
 .sn-nav { display: flex; gap: var(--size-2-1); }
@@ -71,14 +70,14 @@
 
 /* ---------- Quick-create field */
 .sn-composer {
-  transition: box-shadow 120ms ease;
+  transition: box-shadow var(--dur-1) var(--ease);
 }
 .sn-composer:hover { box-shadow: 0 0 0 var(--border-width) var(--sn-line-hover); }
-.sn-composer:focus-within { box-shadow: 0 0 0 var(--border-width) var(--background-modifier-border-focus), 0 0 0 2px var(--background-modifier-border-focus); }
+.sn-composer:focus-within { box-shadow: var(--ring); }
 .sn-board .sn-composer textarea {
   display: block; width: 100%;
   resize: none; overflow: hidden;
-  border: 0; background: transparent; line-height: var(--line-height-normal);
+  border: 0; background: transparent; line-height: var(--lh-text);
 }
 /* the composer box draws the focus ring; the field's own ring would double it */
 .sn-board .sn-composer textarea:focus { box-shadow: none; outline: none; }
@@ -89,9 +88,9 @@
 /* ---------- Card */
 .sn-card {
   position: relative;
-  transition: box-shadow 120ms ease;
+  transition: box-shadow var(--dur-1) var(--ease);
 }
-.sn-card:hover { box-shadow: 0 0 0 var(--border-width) var(--sn-card-border-hover, var(--sn-line-hover)), var(--shadow-s); }
+.sn-card:hover { box-shadow: 0 0 0 var(--border-width) var(--sn-card-border-hover, var(--sn-line-hover)), var(--shadow-2); }
 
 
 /* Parent chips: Properties-panel pills */
@@ -100,7 +99,7 @@
 .sn-chip.is-missing { cursor: default; }
 .sn-chip-x { display: inline-flex; margin-inline-start: 2px; margin-inline-end: -4px; opacity: .55; border-radius: 50%; }
 .sn-chip-x:hover { opacity: 1; background: var(--background-modifier-hover); }
-.sn-chip-x svg { width: 12px; height: 12px; }
+.sn-chip-x svg { width: var(--icon-xs); height: var(--icon-xs); }
 
 /* Card text */
 .sn-mark { background: var(--sn-mark); color: inherit; border-radius: 2px; }
@@ -127,7 +126,7 @@
 }
 .sn-outline .sn-tree-toggle.is-leaf { visibility: hidden; }
 .sn-outline .sn-tree-toggle:hover { color: var(--text-muted); }
-.sn-outline .sn-tree-toggle svg { width: 10px; height: 10px; stroke-width: 4px; transition: transform 100ms ease-in-out; }
+.sn-outline .sn-tree-toggle svg { width: 10px; height: 10px; stroke-width: 4px; transition: transform var(--dur-1) var(--ease); }
 .sn-outline .sn-tree-row:not(.is-open) .sn-tree-toggle svg { transform: rotate(-90deg); }
 .sn-tree-icon { flex: 0 0 auto; display: inline-flex; }
 .sn-outline .sn-tree-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -151,11 +150,11 @@
   position: fixed; top: -100px; left: -100px;
   padding: var(--size-2-3) var(--size-4-3); border-radius: var(--r-s);
   background: var(--interactive-accent); color: var(--on-accent);
-  font-size: var(--fs-ui); font-weight: var(--font-semibold); font-family: var(--font-ui);
+  font-size: var(--fs-ui); font-weight: var(--fw-semibold); font-family: var(--font-ui);
 }
 
 /* ---------- Search and filters */
-.sn-search:focus-within { border-color: var(--background-modifier-border-focus); box-shadow: 0 0 0 2px var(--background-modifier-border-focus); }
+.sn-search:focus-within { border-color: var(--background-modifier-border-focus); box-shadow: var(--ring); }
 .sn-search-icon { display: inline-flex; color: var(--text-muted); }
 .sn-board .sn-search-input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; box-shadow: none !important; }
 .sn-board .sn-filter-btn, .sn-board .sn-filter-chip { gap: var(--size-2-3); }
@@ -163,13 +162,13 @@
 .sn-board .sn-filter-btn.is-active { color: var(--text-accent); }
 .sn-board .sn-filter-chip { background: var(--tag-background, var(--sn-c-accent)); color: var(--tag-color, var(--text-accent)); box-shadow: none; border-radius: var(--r-xs); }
 .sn-board .sn-filter-chip:hover { background: var(--tag-background-hover, var(--sn-c-accent)); color: var(--tag-color); }
-.sn-board .sn-filter-btn[disabled] { opacity: 0.4; pointer-events: none; }
+.sn-board .sn-filter-btn[disabled] { opacity: var(--disabled); pointer-events: none; }
 .sn-filter-chip-x { display: inline-flex; opacity: 0.6; }
 .sn-filterbar .sn-spacer { flex: 1; }
 
 /* ---------- Multi-select */
 .sn-card.is-picked::before {
-  content: ""; position: absolute; top: -7px; left: -7px; width: 18px; height: 18px; border-radius: 50%; z-index: 1;
+  content: ""; position: absolute; top: -7px; left: -7px; width: 18px; height: 18px; border-radius: 50%; z-index: var(--z-raised);
 }
 .sn-card.is-picked::before {
   background: var(--interactive-accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / 11px no-repeat;
@@ -182,7 +181,7 @@
 .sn-board .sn-selbar-btn svg { width: var(--icon-xs); height: var(--icon-xs); }
 
 .sn-card:focus { outline: none; }
-.sn-card:focus-visible { box-shadow: var(--sn-focus-ring); }
+.sn-card:focus-visible { box-shadow: var(--ring); }
 
 .sn-empty { margin: var(--size-4-12) auto; text-align: center; }
 .sn-footnote { margin-top: var(--size-4-5); font-size: var(--fs-sm); color: var(--text-faint); text-align: center; }

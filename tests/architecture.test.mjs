@@ -88,6 +88,24 @@ test("every CSS variable used without a fallback is defined, and no comment clos
   assert.deepEqual(missing, []);
 });
 
+test("shadows, layers, weights and motion come from base.css's variables", () => {
+  const CSS = fileURLToPath(new URL("../web/src/css/", import.meta.url));
+  const bad = [];
+  for (const f of readdirSync(CSS).filter((f) => f.endsWith(".css"))) {
+    const lines = readFileSync(join(CSS, f), "utf8").replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, " ")).split("\n");
+    lines.forEach((l, i) => {
+      const at = `${f}:${i + 1}`;
+      if (f !== "base.css" && /\b(?:rgba?|hsla?)\(/.test(l)) bad.push(`${at} colour function`);
+      if (/z-index:\s*-?\d/.test(l)) bad.push(`${at} z-index`);
+      if (/font-weight:\s*\d/.test(l)) bad.push(`${at} font-weight`);
+      // spinners, the new card's flash and the reduced-motion override keep their own times
+      if (/transition[\w-]*:[^;}]*\d+m?s\b/.test(l) && !/!important/.test(l)) bad.push(`${at} transition`);
+      if (/animation:[^;}]*\d+m?s\b/.test(l) && !/sn-spin|wb-card-new/.test(l)) bad.push(`${at} animation`);
+    });
+  }
+  assert.deepEqual(bad, []);
+});
+
 test("every CSS variable the stylesheets define is used, by a stylesheet or by the scripts", () => {
   const CSS = fileURLToPath(new URL("../web/src/css/", import.meta.url));
   const bare = readdirSync(CSS).filter((f) => f.endsWith(".css")).map((f) => readFileSync(join(CSS, f), "utf8")).join("\n").replace(/\/\*[\s\S]*?\*\//g, " ");
