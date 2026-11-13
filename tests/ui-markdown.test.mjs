@@ -283,9 +283,9 @@ describe("planning lines", () => {
     assert.deepEqual(chips, [
       ["k-dead is-soon", "Tomorrow", false], ["k-sched", "Yesterday", false],
       ["k-dead", "30 Nov", false], // past its warning days: no colour yet
-      ["k-sched", "In 3 d., 10:00", true],
+      ["k-sched", "In 3 days, 10:00", true],
       ["k-closed", "3 Nov", false],
-      ["k-dead", "5 d. ago", false], // overdue, but the task is done: no red
+      ["k-dead", "5 days ago", false], // overdue, but the task is done: no red
       ["k-event", "Today, 13:00–14:00", false],
     ]);
     const r = await ev(() => ({

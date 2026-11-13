@@ -361,11 +361,19 @@ export function orgRelDay(dn) {
   const d = dn - onow().dn;
   return d === 0 ? tt("relToday") : d === 1 ? tt("relTomorrow") : d === -1 ? tt("relYesterday") : d > 1 && d <= 7 ? tt("relIn", { n: d }) : d < -1 && d >= -7 ? tt("relAgo", { n: -d }) : oFmt(dn, "D MMM");
 }
-/** The agenda lines of day `dn` (today is T); `log` adds the entries closed that day. */
-export function orgDayEntries(dn, all, T, { log = false } = {}) {
+/** Is the open task's date `ts` overdue today (T), listed with "Overdue" rather than on a day of its own? */
+const overdueToday = (e, ts, T) => !!ts?.active && !e.done && ts.dn < T && !orgOccursOn(ts, T);
+/**
+ * The agenda lines of day `dn` (today is T); `log` adds the entries closed that day.
+ * `carried`: the view lists what is overdue under today (a week or a day with today in it), so a past day leaves out
+ * the open tasks that are listed there (spec UI-13). Today a task is listed once: a deadline's early warning
+ * ("In 3 days") only when nothing else lists the task today.
+ */
+export function orgDayEntries(dn, all, T, { log = false, carried = false } = {}) {
   const out = [];
   for (const e of all) {
     if (orgSkip(e)) continue;
+    const start = out.length;
     // with the log on, a task closed on this day is listed once, as closed, not also as scheduled or due
     const closedHere = log && e.done && e.closed && e.closed.dn === dn;
     const push = (kind, label, ts, x) => (closedHere && (kind === "sched" || kind === "dead")) ? null : out.push({ e, kind, label, dn, time: ts?.time ?? null, end: ts?.end ?? null, rank: 5, ...x });
@@ -377,7 +385,7 @@ export function orgDayEntries(dn, all, T, { log = false } = {}) {
     const s = e.sched;
     if (s?.active) {
       if (orgOccursOn(s, dn) && (dn === s.dn || (dn >= T && !e.done))) push("sched", tt("lScheduled"), s, { rank: 3 });
-      else if (dn === T && !e.done && s.dn < T) push("sched", tt("lSchedX", { n: T - s.dn + 1 }), null, { overdue: true, rank: 4 });
+      else if (dn === T && !e.done && s.dn < T) push("sched", tt("lSchedLate", { n: T - s.dn }), null, { overdue: true, rank: 4 });
     }
     for (const st of e.stamps) {
       const a = st.ts, b = st.endTs;
@@ -385,6 +393,13 @@ export function orgDayEntries(dn, all, T, { log = false } = {}) {
       else if (orgOccursOn(a, dn) && (dn === a.dn || dn >= T)) push("ts", "", a, { rank: 5 });
     }
     if (log && e.closed && e.closed.dn === dn) push("closed", tt("lClosed"), e.closed, { rank: 6 });
+    const mine = out.splice(start);
+    const keep = mine.filter((x) => {
+      if (carried && dn < T && ((x.kind === "sched" && overdueToday(e, e.sched, T)) || (x.kind === "dead" && overdueToday(e, e.dead, T)))) return false;
+      if (dn === T && x.soon != null && mine.some((y) => y !== x && (y.kind === "sched" || y.kind === "dead"))) return false;
+      return true;
+    });
+    out.push(...keep);
   }
   out.sort((a, b) => {
     const at = a.time != null, bt = b.time != null;
@@ -394,10 +409,16 @@ export function orgDayEntries(dn, all, T, { log = false } = {}) {
   });
   return out;
 }
+/**
+ * Today's entries with an hour grid among those that have a time (spec UI-14): the hours from the first one's to the
+ * last one's end, one an hour, and a line for now. A day with nothing at a time has no grid.
+ */
 export function orgWithGrid(ents) {
   const timed = ents.filter((x) => x.time != null), untimed = ents.filter((x) => x.time == null);
+  if (!timed.length) return untimed;
   const rows = [...timed];
-  for (const g of [8, 10, 12, 14, 16, 18, 20].map((x) => x * 60)) if (!timed.some((x) => x.time === g)) rows.push({ grid: true, time: g });
+  const from = Math.floor(Math.min(...timed.map((x) => x.time)) / 60), to = Math.ceil(Math.max(...timed.map((x) => x.end ?? x.time)) / 60);
+  for (let hr = from; hr <= to; hr++) if (!timed.some((x) => x.time === hr * 60)) rows.push({ grid: true, time: hr * 60 });
   rows.push({ grid: true, now: true, time: onow().min });
   rows.sort((a, b) => a.time - b.time || (a.grid ? 1 : 0) - (b.grid ? 1 : 0) || (a.now ? 1 : 0) - (b.now ? 1 : 0));
   return [...rows, ...untimed];

@@ -105,10 +105,16 @@ export function orgMatcher(q) {
  * The month (spec TASK-4): its weeks as a grid from Monday, each day with how many entries it has (tasks scheduled or
  * due, events, and with the log on, what was closed); a click opens that day. Overdue tasks count on their own day.
  */
+/** A week's days as a title: "9–15 November", "30 November – 6 December", with the year when it is not this one. */
+export function dayRange(a, b, T) {
+  const A = oymd(a), B = oymd(b), year = (o) => (o.y !== oymd(T).y || A.y !== B.y ? " " + o.y : "");
+  if (A.y === B.y && A.m === B.m) return `${A.d}–${oFmt(b, "D MMMM")}${year(B)}`;
+  return `${oFmt(a, "D MMMM")}${A.y !== B.y ? year(A) : ""} – ${oFmt(b, "D MMMM")}${year(B)}`;
+}
 function renderMonth(body, all, T, pass) {
   const first = AG.anchor - (oymd(AG.anchor).d - 1), next = oaddMonths(first, 1);
   const start = first - ((oymd(first).w + 6) % 7), weeks = Math.ceil((next - start) / 7);
-  body.append(h("div", { cls: "ag-title" }, ic("sn-list-badge", "calendar-days"), h("b", { text: tt("monthAgenda") }), " " + oFmt(first, "MMMM YYYY"), AG.log ? h("span", { cls: "ag-flag", text: " · " + tt("log") }) : null));
+  body.append(h("div", { cls: "ag-title", title: tt("monthAgenda") }, ic("sn-list-badge", "calendar-days"), h("b", { text: oFmt(first, "MMMM YYYY") })));
   const grid = h("div", { cls: "ag-month", role: "grid", "aria-label": oFmt(first, "MMMM YYYY") });
   const head = h("div", { cls: "ag-month-row ag-month-head", role: "row" });
   for (let i = 0; i < 7; i++) head.append(h("span", { role: "columnheader", text: oFmt(start + i, "ddd") }));
@@ -237,12 +243,15 @@ export function renderTasksView(root) {
   if (AG.view === "agenda" && AG.span === "month") renderMonth(body, all, T, pass);
   else if (AG.view === "agenda") {
     const days = AG.span === "day" ? [AG.anchor] : Array.from({ length: 7 }, (_, i) => AG.anchor - ((oymd(AG.anchor).w + 6) % 7) + i);
-    body.append(h("div", { cls: "ag-title" }, ic("sn-list-badge", "calendar-check"), h("b", { text: tt(AG.span === "week" ? "weekAgenda" : "dayAgenda") }), ` (W${opad(oisoWeek(days[0]))})`, AG.log ? h("span", { cls: "ag-flag", text: " · " + tt("log") }) : null));
+    // the title says which days ("9–15 November", or the day), the week's number beside it; the log is the bar's toggle
+    body.append(h("div", { cls: "ag-title", title: tt(AG.span === "week" ? "weekAgenda" : "dayAgenda") }, ic("sn-list-badge", "calendar-check"),
+      h("b", { text: AG.span === "week" ? dayRange(days[0], days[6], T) : oFmt(days[0], "dddd, D MMMM") + (oymd(days[0]).y !== oymd(T).y ? " " + oymd(days[0]).y : "") }),
+      h("span", { cls: "ag-week", text: `W${opad(oisoWeek(days[0]))}` })));
     // on a phone: the week as a strip of days (a dot where something is on), a tap opens that day; the month is one more tap
     const week0 = AG.anchor - ((oymd(AG.anchor).w + 6) % 7);
     const strip = h("div", { cls: "ag-strip", role: "toolbar", "aria-label": tt("week") });
     for (let i = 0; i < 7; i++) {
-      const dn = week0 + i, has = orgDayEntries(dn, all, T, { log: AG.log }).some((x) => !x.grid && pass(x.e));
+      const dn = week0 + i, has = orgDayEntries(dn, all, T, { log: AG.log, carried: true }).some((x) => !x.grid && pass(x.e));
       const b = h("button", { type: "button", cls: "ag-strip-day" + (dn === T ? " is-today" : "") + (AG.span === "day" && dn === AG.anchor ? " is-on" : ""), "aria-label": oFmt(dn, "dddd D MMMM") },
         h("span", { cls: "wd", text: oFmt(dn, "ddd") }), h("span", { cls: "dn", text: String(oymd(dn).d) }), h("span", { cls: "dot" + (has ? " has" : "") }));
       b.addEventListener("click", () => { AG.span = "day"; AG.anchor = dn; saveAG(); renderBoard(); });
@@ -262,7 +271,7 @@ export function renderTasksView(root) {
     }
     for (const dn of days) {
       const o = oymd(dn);
-      let ents = orgDayEntries(dn, all, T, { log: AG.log }).filter((x) => pass(x.e));
+      let ents = orgDayEntries(dn, all, T, { log: AG.log, carried: days.includes(T) }).filter((x) => pass(x.e));
       if (dn === T) ents = ents.filter((x) => !x.overdue);
       const sum = daySummary(ents);
       const card = h("section", { cls: "ag-card" + (dn === T ? " is-today" : "") + (ents.length ? "" : " is-empty") });
@@ -303,6 +312,8 @@ export function renderTasksView(root) {
   }
   // the category ("Week:", from the note) only tells something when the rows come from more than one
   body.classList.toggle("one-cat", new Set(AGROWS.map((x) => x.e.category)).size <= 1);
+  // a list where nothing has a time (the task list, a search) has no column for it
+  body.classList.toggle("no-time", !AGROWS.some((x) => x.time != null));
   body.append(h("div", { cls: "ag-help ag-keys", text: tt("keysAgenda") }));
   body.addEventListener("keydown", orgAgendaKey);
   body.addEventListener("click", (e) => {
@@ -348,7 +359,7 @@ const relDay = orgRelDay;
 /** The label of a row as a chip (task-icons.js dateChip, which a note being read uses too). */
 const labelChip = (kind, text, tone) => (text ? dateChip(kind.split(" ")[0], text.replace(/:$/, ""), tone) : "");
 function orgRow(x) {
-  if (x.grid) return h("div", { cls: "ag-grid" + (x.now ? " now" : "") }, h("span", { cls: "ag-cat" }), h("span", { cls: "ag-time", text: ohm(x.time) }), h("span", { cls: "dots", text: x.now ? (LANG === "ru" ? "сейчас " : "now ") : "" }));
+  if (x.grid) return h("div", { cls: "ag-grid" + (x.now ? " now" : "") }, h("span", { cls: "ag-time", text: ohm(x.time) }), h("span", { cls: "dots", text: x.now ? (LANG === "ru" ? "сейчас " : "now ") : "" }));
   const i = AGROWS.push(x) - 1;
   const e = x.e;
   let label = x.label;
@@ -360,20 +371,21 @@ function orgRow(x) {
   }
   const time = x.time != null ? ohm(x.time) + (x.end != null ? "–" + ohm(x.end) : "") : "";
   const row = h("div", { cls: `ag-row k-${kindCls}` + (x.overdue ? " overdue" : "") + (e.done ? " is-done" : ""), role: "option", dataset: { i: String(i), path: e.path, line: String(e.line) } });
-  const cat = h("span", { cls: "ag-cat", title: e.path, text: e.category + ":" });
   const main = h("span", { cls: "ag-main" });
   // a task's priority colours its box; only the top one also gets a letter, so it does not rest on colour alone
   if (e.isTodo) { const b = taskBox(e.state, { dataset: { act: "tick" } }); if (e.pri) { b.title +=` · ${tt("priority")} ${e.pri}`; } main.append(b); }
   if (e.pri && (!e.isTodo || e.pri === "A")) main.append(h("span", { cls: `pri ${e.pri}`, text: e.isTodo ? e.pri : `[#${e.pri}]`, title: `${tt("priority")} ${e.pri}` }));
   main.append(renderInline(e.title, e.path));
   if (e.cbTotal) main.append(h("span", { cls: "ag-cookie", text: `[${e.cbDone}/${e.cbTotal}]` }));
+  // the note it is in, quietly after its title (spec UI-18); left out when every row comes from one note (.one-cat)
+  main.append(h("span", { cls: "ag-cat", title: e.path, text: e.category }));
   const shown = e.alltags.filter((x) => !(e.title || "").toLowerCase().includes("#" + x.toLowerCase()));
   if (shown.length) main.append(h("span", { cls: "tags" }, shown.map((tg) => h("span", { cls: "tag" + (e.inherited.includes(tg) ? " inh" : ""), text: tg }))));
   const act = h("span", { cls: "ag-act" });
   if (e.kind !== "event") act.append(h("button", { type: "button", dataset: { act: "state" }, text: tt("actState"), title: "T" }));
   if (x.kind === "sched" || x.kind === "dead" || x.kind === "ts") act.append(h("button", { type: "button", dataset: { act: "later" }, text: tt("actLater"), title: "Shift+→" }));
   act.append(h("button", { type: "button", dataset: { act: "goto" }, text: tt("actOpen"), title: "Enter" }));
-  row.append(h("span", { cls: "ag-meta" }, cat, h("span", { cls: "ag-time", text: time }), h("span", { cls: "ag-lab" }, labelChip(kindCls, label, tone))), main, act);
+  row.append(h("span", { cls: "ag-meta" }, h("span", { cls: "ag-time", text: time }), h("span", { cls: "ag-lab" }, labelChip(kindCls, label, tone))), main, act);
   return row;
 }
 function renderInline(text, path) {
@@ -533,7 +545,8 @@ export function orgCapture(pre = {}) {
     hint.classList.toggle("is-bad", !!v && !r);
   };
   for (const [k, label, icon] of tpls) {
-    const b = h("button", { type: "button", cls: "cap-tpl-btn", dataset: { tpl: k } }, ic("", icon), h("b", {}, h("span", { cls: "k", text: `[${k}]` }), " " + tt(label)));
+    // the template's name, and its key as a key beside it (spec UI-19)
+    const b = h("button", { type: "button", cls: "cap-tpl-btn", dataset: { tpl: k }, title: `${tt(label)} (${k})` }, ic("", icon), h("span", { cls: "cap-tpl-name" }, h("b", { text: tt(label) }), h("kbd", { text: k })));
     b.addEventListener("click", () => { tpl = k; upd(); head.focus(); });
     tplRow.append(b);
   }

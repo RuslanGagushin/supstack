@@ -46,28 +46,33 @@ button.fchip.exc { background: color-mix(in srgb, var(--todo) 12%, transparent);
 /* the screen title, in the look of the list of notes and Files (app.css) */
 .ag-title { display: flex; align-items: center; flex-wrap: wrap; gap: 0 8px; padding: 0 2px; color: var(--muted); font-size: var(--fs-lg); line-height: 1.25; }
 .ag-title b { color: var(--ink, var(--fg)); font-weight: 600; letter-spacing: -.01em; }
-.ag-title .ag-flag { font-size: var(--fs-md); }
+.ag-title .ag-week { color: var(--faint); font-size: var(--fs-md); font-variant-numeric: tabular-nums; }
 /* a day (or the list of a TODO, match or search view) is a card, like a code block or a table */
 .ag-card { border: 1px solid var(--line); border-radius: var(--r-m); background: var(--win); overflow: hidden; }
 .ag-card.is-today { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
 .ag-day { display: flex; align-items: baseline; gap: 10px; padding: 10px 14px; font-weight: 600; font-size: var(--fs-md); color: var(--ink, var(--fg)); text-transform: capitalize; }
 .ag-card:not(.is-empty) > .ag-day { padding-bottom: 6px; }
-.ag-card.is-empty > .ag-day { color: var(--muted); font-weight: 500; }
+/* a day without entries is one quiet line, not a card (spec UI-15) */
+.ag-card.is-empty { border-color: transparent; background: none; }
+.ag-card.is-empty > .ag-day { min-height: 0; padding-block: 4px; color: var(--muted); font-weight: 400; }
+.ag-card.is-empty > .ag-day > span:first-child { font-weight: 500; }
 .ag-day .num { font-weight: 400; color: var(--muted); font-size: var(--fs-ui); font-variant-numeric: tabular-nums; text-transform: none; }
 .ag-day.weekend:not(.today) { color: var(--muted); }
 .today-pill { font-size: var(--fs-xs); background: var(--accent); color: var(--win); padding: 1px 8px; border-radius: var(--r-pill); }
-/* a row reads time, then the task, then its date chip at the right; the note's category leads only when rows come from
-   several notes (.one-cat otherwise, agenda.js) */
-.ag-row, .ag-grid { display: grid; grid-template-columns: 10ch 11ch minmax(0, 1fr) auto; grid-template-areas: "cat time main lab"; align-items: baseline; column-gap: 8px; padding: 7px 14px; font-variant-numeric: tabular-nums; }
-.ag-body.one-cat :is(.ag-row, .ag-grid) { grid-template-columns: 11ch minmax(0, 1fr) auto; grid-template-areas: "time main lab"; }
+/* a row reads time, then the task with the note it is in, quietly after it (spec UI-18), then its date chip at the right;
+   the note's name is left out when every row comes from one note (.one-cat, agenda.js) */
+.ag-row, .ag-grid { display: grid; grid-template-columns: 11ch minmax(0, 1fr) auto; grid-template-areas: "time main lab"; align-items: baseline; column-gap: 8px; padding: 7px 14px; font-variant-numeric: tabular-nums; }
 .ag-body.one-cat .ag-cat { display: none; }
-.ag-cat { grid-area: cat; } .ag-time { grid-area: time; } .ag-main { grid-area: main; } .ag-lab { grid-area: lab; }
+.ag-body.no-time .ag-row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "main lab"; }
+.ag-body.no-time .ag-row .ag-time { display: none; }
+.ag-time { grid-area: time; } .ag-main { grid-area: main; } .ag-lab { grid-area: lab; }
 .ag-meta { display: contents; }
 .ag-row { cursor: pointer; position: relative; border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
 .ag-card > .ag-row:first-child { border-top: 0; }
 .ag-row:hover { background: var(--hover-bg, var(--panel)); }
 .ag-row.sel { background: var(--accent-soft); }
-.ag-cat { color: var(--muted); font-size: var(--fs-ui); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ag-main .ag-cat { margin-left: 6px; color: var(--faint); font-size: var(--fs-ui); white-space: nowrap; }
+.ag-main .ag-cat::before { content: "· "; }
 .ag-time { color: var(--fg); font-size: var(--fs-ui); white-space: nowrap; }
 .ag-lab { max-width: 20ch; color: var(--muted); font-size: var(--fs-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* the label is a chip: a calendar for a scheduled date (grey), a flag for a deadline (red when due, amber in its warning days) */
@@ -122,7 +127,6 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: 8px; paddin
   .ag-act { visibility: visible; display: none; }
   .ag-row.sel .ag-act { display: flex; position: static; transform: none; justify-self: start; margin-top: 3px; }
   .ag-grid, .ag-body.one-cat .ag-grid { grid-template-columns: 7ch minmax(0, 1fr); grid-template-areas: none; }
-  .ag-grid .ag-cat { display: none; }
   .ag-grid .ag-time { grid-area: auto; }
   .ag-grid .dots { grid-column: 2; }
 }
@@ -149,7 +153,8 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: 8px; paddin
 .cap-tpl { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 4px 0 14px; }
 button.cap-tpl-btn, button.cap-tpl-btn:not(.clickable-icon) { flex-direction: column; align-items: flex-start; gap: 4px; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--r-s); background: var(--bg); font-weight: 400; cursor: pointer; text-align: left; }
 button.cap-tpl-btn svg { width: 15px; height: 15px; color: var(--muted); }
-button.cap-tpl-btn .k { color: var(--muted); font-weight: 400; }
+button.cap-tpl-btn .cap-tpl-name { display: flex; align-items: center; justify-content: space-between; gap: 6px; width: 100%; }
+button.cap-tpl-btn kbd { min-width: 18px; padding: 0 5px; border: 1px solid var(--line); border-radius: var(--r-xs); background: var(--win); color: var(--muted); font-family: var(--font-code); font-size: var(--fs-xs); font-weight: 400; text-align: center; }
 button.cap-tpl-btn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
 button.cap-tpl-btn[aria-pressed="true"] svg { color: var(--accent); }
 .cap-field { display: grid; grid-template-columns: 9ch minmax(0, 1fr); align-items: baseline; gap: 4px 10px; margin-bottom: 10px; font-size: var(--fs-sm); color: var(--muted); }

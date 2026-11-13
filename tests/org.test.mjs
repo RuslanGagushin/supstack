@@ -159,7 +159,7 @@ describe("agenda", () => {
   const today = () => ev(() => { const T = onow().dn; return orgDayEntries(T, orgAll(), T).map((x) => `${x.label} ${x.e.title}`.trim()); });
 
   test("today: overdue deadline first, scheduled carry-over, events, warnings; nothing done", async () => {
-    assert.deepEqual(await today(), ["Meeting", "2 d. ago: Write report", "In 7 d.: Parts", "Scheduled: Run", "Sched.5x: Call Bob"]);
+    assert.deepEqual(await today(), ["Meeting", "2 days ago: Write report", "In 7 days: Parts", "Scheduled: Run", "Scheduled 4 days ago: Call Bob"]);
   });
 
   test("with the log on, a task closed today is listed once, as closed", async () => {
