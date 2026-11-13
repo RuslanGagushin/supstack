@@ -310,3 +310,21 @@ audio.fv-media { width: min(520px, 100%); }
   .ag-strip-day.is-today .dn { color: var(--accent); }
   .ag-strip-day.is-on { background: var(--win); box-shadow: 0 1px 2px color-mix(in srgb, var(--shade) 10%, transparent); }
 }
+
+/* the month (TASK-4): a grid of days, each with how many entries it has; a day of another month is quiet */
+.ag-month { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+.ag-month-row { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.ag-month-head span { padding: 0 6px; color: var(--muted); font-size: var(--fs-sm); text-transform: capitalize; }
+button.ag-mday { display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 4px; min-width: 0; height: auto; min-height: 64px; padding: 6px 8px; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--win); box-shadow: none; color: var(--fg); font-family: var(--font-ui); font-weight: 400; text-align: left; }
+button.ag-mday:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+button.ag-mday.weekend .dn { color: var(--muted); }
+button.ag-mday.is-out { background: none; border-color: transparent; }
+button.ag-mday.is-out .dn { color: var(--faint); }
+button.ag-mday.is-today { border-color: var(--accent); }
+button.ag-mday.is-today .dn { color: var(--accent); font-weight: 600; }
+button.ag-mday .cnt { align-self: flex-end; min-width: 20px; padding: 0 6px; border-radius: var(--r-pill); background: var(--accent-soft); color: var(--accent); font-size: var(--fs-sm); font-weight: 600; line-height: 18px; text-align: center; }
+@media (max-width: 820px) {
+  .ag-month, .ag-month-row { gap: 2px; }
+  button.ag-mday { min-height: 48px; padding: 4px; }
+  button.ag-mday .cnt { align-self: center; min-width: 0; padding: 0 5px; }
+}

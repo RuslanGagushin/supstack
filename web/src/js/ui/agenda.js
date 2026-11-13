@@ -3,7 +3,7 @@
    ========================================================= */
 import { LANG, t, tt } from "../core/i18n.js";
 import { baseName, debounce, norm } from "../core/util.js";
-import { oFmt, ohm, oisoWeek, onow, opad, orgCache, orgRelDay, orgDayEntries, orgNowTs, orgPriRank, orgReadDate, orgShift, orgSkip, orgStats, orgTsStr, orgWithGrid, oymd, TASK_STATES } from "../core/org.js";
+import { oaddMonths, oFmt, ohm, oisoWeek, onow, opad, orgCache, orgRelDay, orgDayEntries, orgNowTs, orgPriRank, orgReadDate, orgShift, orgSkip, orgStats, orgTsStr, orgWithGrid, oymd, TASK_STATES } from "../core/org.js";
 import { lsGet, lsSet } from "../services/storage.js";
 import { board, vault } from "../services/state.js";
 import { persistBoard } from "../services/vault.js";
@@ -99,6 +99,34 @@ export function orgMatcher(q) {
 }
 
 /* ---------- the agenda view */
+/**
+ * The month (spec TASK-4): its weeks as a grid from Monday, each day with how many entries it has (tasks scheduled or
+ * due, events, and with the log on, what was closed); a click opens that day. Overdue tasks count on their own day.
+ */
+function renderMonth(body, all, T, pass) {
+  const first = AG.anchor - (oymd(AG.anchor).d - 1), next = oaddMonths(first, 1);
+  const start = first - ((oymd(first).w + 6) % 7), weeks = Math.ceil((next - start) / 7);
+  body.append(h("div", { cls: "ag-title" }, ic("sn-list-badge", "calendar-days"), h("b", { text: tt("monthAgenda") }), " " + oFmt(first, "MMMM YYYY"), AG.log ? h("span", { cls: "ag-flag", text: " · " + tt("log") }) : null));
+  const grid = h("div", { cls: "ag-month", role: "grid", "aria-label": oFmt(first, "MMMM YYYY") });
+  const head = h("div", { cls: "ag-month-row ag-month-head", role: "row" });
+  for (let i = 0; i < 7; i++) head.append(h("span", { role: "columnheader", text: oFmt(start + i, "ddd") }));
+  grid.append(head);
+  for (let w = 0; w < weeks; w++) {
+    const row = h("div", { cls: "ag-month-row", role: "row" });
+    for (let i = 0; i < 7; i++) {
+      const dn = start + w * 7 + i, o = oymd(dn);
+      const n = orgDayEntries(dn, all, T, { log: AG.log }).filter((x) => !x.overdue && pass(x.e)).length;
+      const b = h("button", {
+        type: "button", role: "gridcell", cls: "ag-mday" + (dn === T ? " is-today" : "") + (dn < first || dn >= next ? " is-out" : "") + (o.w === 0 || o.w === 6 ? " weekend" : "") + (n ? " has" : ""),
+        "aria-label": oFmt(dn, "dddd D MMMM") + (n ? " · " + tt("sumEntries", { n }) : ""), dataset: { dn: String(dn) },
+      }, h("span", { cls: "dn", text: String(o.d) }), n ? h("span", { cls: "cnt", text: String(n) }) : null);
+      b.addEventListener("click", () => { AG.span = "day"; AG.anchor = dn; saveAG(); renderBoard(); });
+      row.append(b);
+    }
+    grid.append(row);
+  }
+  body.append(grid);
+}
 export function renderTasksView(root) {
   const body0 = root.querySelector(".ag-body");
   const oldScroll = body0?.scrollTop || 0;
@@ -132,7 +160,7 @@ export function renderTasksView(root) {
   const btn = (text, title, fn, pressed, cls = "") => { const b = h("button", { cls: "wb-btn ag-btn " + cls, type: "button", text, title, "aria-pressed": pressed == null ? null : String(!!pressed) }); b.addEventListener("click", fn); return b; };
   if (AG.view === "agenda") {
     const sp = h("div", { cls: "sn-seg" });
-    for (const [v, k] of [["day", "day"], ["week", "week"]]) { const b = h("button", { cls: "clickable-icon" + (AG.span === v ? " is-active" : ""), type: "button", text: tt(k), title: `${tt(k)} (${v[0]})` }); b.addEventListener("click", () => { AG.span = v; saveAG(); renderBoard(); }); sp.append(b); }
+    for (const [v, k, key] of [["day", "day", "d"], ["week", "week", "w"], ["month", "month", "M"]]) { const b = h("button", { cls: "clickable-icon" + (AG.span === v ? " is-active" : ""), type: "button", text: tt(k), title: `${tt(k)} (${key})` }); b.addEventListener("click", () => { AG.span = v; saveAG(); renderBoard(); }); sp.append(b); }
     agbar.append(sp, btn("‹", tt("earlier"), () => orgNav(-1)), btn(tt("today"), tt("today") + " (.)", () => orgNav(0)), btn("›", tt("later"), () => orgNav(1)),
       btn(tt("goTo"), tt("goTo") + " (j)", () => orgNav("jump"), null, "ag-wide-only"), btn(tt("log"), tt("log") + " (l)", () => { AG.log = !AG.log; saveAG(); renderBoard(); }, AG.log, "ag-wide-only"));
   } else if (AG.view === "todo") {
@@ -195,7 +223,8 @@ export function renderTasksView(root) {
   root.append(scroll);
   AGROWS = [];
   const pass = (e) => orgTagPass(e);
-  if (AG.view === "agenda") {
+  if (AG.view === "agenda" && AG.span === "month") renderMonth(body, all, T, pass);
+  else if (AG.view === "agenda") {
     const days = AG.span === "day" ? [AG.anchor] : Array.from({ length: 7 }, (_, i) => AG.anchor - ((oymd(AG.anchor).w + 6) % 7) + i);
     body.append(h("div", { cls: "ag-title" }, ic("sn-list-badge", "calendar-check"), h("b", { text: tt(AG.span === "week" ? "weekAgenda" : "dayAgenda") }), ` (W${opad(oisoWeek(days[0]))})`, AG.log ? h("span", { cls: "ag-flag", text: " · " + tt("log") }) : null));
     // on a phone: the week as a strip of days (a dot where something is on), a tap opens that day; the month is one more tap
@@ -208,7 +237,7 @@ export function renderTasksView(root) {
       b.addEventListener("click", () => { AG.span = "day"; AG.anchor = dn; saveAG(); renderBoard(); });
       strip.append(b);
     }
-    strip.append(h("button", { type: "button", cls: "ag-strip-month", title: tt("month"), "aria-label": tt("month"), onClick: () => orgNav("jump") }, ic("", "calendar-days")));
+    strip.append(h("button", { type: "button", cls: "ag-strip-month", title: tt("month"), "aria-label": tt("month"), onClick: () => { AG.span = "month"; saveAG(); renderBoard(); } }, ic("", "calendar-days")));
     body.append(strip);
     // what is overdue is carried into today (as Org does) and gathered in a section of its own, above the days
     // (in a week, above Monday rather than between two days)
@@ -381,6 +410,7 @@ async function orgNav(d) {
   const T = onow().dn;
   if (d === "jump") { const r = await orgAskDate(tt("jumpTo"), { dn: AG.anchor ?? T }, { dateOnly: true }); if (!r) return; AG.anchor = r.dn; }
   else if (d === 0) AG.anchor = T;
+  else if (AG.span === "month") AG.anchor = oaddMonths(AG.anchor ?? T, d);
   else AG.anchor = (AG.anchor ?? T) + d * (AG.span === "week" ? 7 : 1);
   if (AG.view !== "agenda") AG.view = "agenda";
   AG.sel = null;
@@ -428,7 +458,7 @@ function orgAgendaKey(ev) {
   if (k === "s") { stop(); if (row) orgPlanEntry(row.e, "SCHEDULED"); return; }
   if (k === "e") { stop(); if (row) orgPlanEntry(row.e, "DEADLINE"); return; }
   if (k === ":") { stop(); if (row) orgTagsEntry(row.e); return; }
-  if (k === "d" || k === "w") { stop(); AG.span = k === "d" ? "day" : "week"; AG.view = "agenda"; saveAG(); renderBoard(); return; }
+  if (k === "d" || k === "w" || k === "M") { stop(); AG.span = k === "d" ? "day" : k === "w" ? "week" : "month"; AG.view = "agenda"; saveAG(); renderBoard(); return; }
   if (k === "f" || k === "ArrowRight") { stop(); orgNav(1); return; }
   if (k === "b" || k === "ArrowLeft") { stop(); orgNav(-1); return; }
   if (k === ".") { stop(); orgNav(0); return; }
