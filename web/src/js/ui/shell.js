@@ -154,7 +154,7 @@ function renderAll() {
   app.classList.toggle("focus-mode", !!UI.focus);
   document.documentElement.style.setProperty("--side-w", UI.sideW + "px");
   document.documentElement.style.setProperty("--editor-w", UI.editorW + "px");
-  document.documentElement.style.setProperty("--list-w", (UI.listW || 380) + "px");
+  document.documentElement.style.setProperty("--list-w", (UI.listW || 360) + "px");
   const vaultMenu = (e) => {
     const m = new Menu();
     if (vault.fs.kind === "disk") m.add(t("reload"), "refresh-cw", async () => { await loadVault(vault.fs); notice(t("vaultReloaded")); });
@@ -197,7 +197,7 @@ function renderAll() {
   makeResizer(edRes, (dx, start) => {
     if (listing()) { UI.listW = Math.max(260, Math.min(innerWidth - 420 - sideNow(), 640, start + dx)); document.documentElement.style.setProperty("--list-w", UI.listW + "px"); return; }
     UI.editorW = Math.max(340, Math.min(innerWidth - 440 - sideNow(), start - dx)); document.documentElement.style.setProperty("--editor-w", UI.editorW + "px");
-  }, () => (listing() ? UI.listW || 380 : UI.editorW));
+  }, () => (listing() ? UI.listW || 360 : UI.editorW));
   const ed = h("div", { cls: "sn-editor win", id: "editor" });
   const scrim = h("div", { cls: "sn-side-scrim", onClick: () => setSide(false) });
   const frame = h("div", { cls: "wb-frame" }, side, scrim, sideRes, main, edRes, ed);

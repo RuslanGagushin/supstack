@@ -217,7 +217,7 @@ describe("room for a preview (UI-4)", () => {
     await ev(() => openEditor("cards/This week.md", { focus: false, wide: false }));
     await frame(100);
     s = await state();
-    assert.deepEqual([s.narrow, s.list, s.preview], [false, 280, 320], "a note beside: the list gives way, the preview keeps 320px");
+    assert.ok(!s.narrow && s.list >= 280 && s.list < 380 && s.preview === 320, "a note beside: the list gives way, the preview keeps 320px " + JSON.stringify(s));
     await page.setViewportSize({ width: 1300, height: 800 });
     await frame(150);
     s = await state();

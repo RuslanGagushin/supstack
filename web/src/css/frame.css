@@ -1,7 +1,7 @@
 /* ==========================================================
    Frame: the window and its buttons (app.css lays them out)
    ========================================================== */
-#app { height: 100dvh; width: 100vw; overflow: hidden; flex-direction: column; background: var(--bg); display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto auto; grid-template-rows: auto minmax(0, 1fr); gap: 0; }
+#app { height: 100dvh; width: 100vw; overflow: hidden; flex-direction: column; background: var(--win); display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto auto; grid-template-rows: auto minmax(0, 1fr); gap: 0; }
 .wb-brand { font-weight: var(--fw-medium); display: flex; align-items: baseline; gap: 0; white-space: nowrap; min-width: 0; }
 .wb-brand i { color: var(--l1); }
 .wb-brand small { font-family: var(--font-ui); font-size: var(--fs-sm); color: var(--faint); font-weight: var(--fw-regular); letter-spacing: 0; margin-left: var(--sp-10); overflow: hidden; text-overflow: ellipsis; }
@@ -25,7 +25,7 @@ button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--f
 
 
 /* ---------- Sidebar: an outline beside the frame */
-.sn-side { flex: 0 0 var(--side-w, 280px); min-width: 0; display: flex; flex-direction: column; border-right: 0; grid-column: 1; grid-row: 1 / 3; background: var(--bg); }
+.sn-side { flex: 0 0 var(--side-w, 240px); min-width: 0; display: flex; flex-direction: column; border-right: 1px solid var(--line); grid-column: 1; grid-row: 1 / 3; background: var(--bg); }
 .sn-outline { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; }
 .sn-outline .tree-item-self.sn-tree-row:hover { background: var(--hover-bg); }
 .tree-item-children { margin-inline-start: 11px; padding-inline-start: var(--sp-4); border-color: transparent; }

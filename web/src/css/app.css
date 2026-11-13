@@ -10,12 +10,8 @@
 .sn-main { grid-column: 3; grid-row: 2; }
 #app.focus-mode .sn-editor { grid-column: 3 / 6; }
 
-/* the board sits on the grey; the note opens on a white sheet */
-.sn-editor.win {
-  margin-top: var(--sp-8); background: var(--win); border: 1px solid var(--line); border-right: 0; border-bottom: 0; border-radius: var(--r-m) 0 0 0;
-  box-shadow: var(--shadow-2);
-}
-#app.editor-wide .sn-editor.win { border-radius: var(--r-m) 0 0 0; }
+/* one white page in three columns: the sidebar on the grey, the list and the note on white, a hairline between them */
+.sn-editor.win { background: var(--win); border-left: 1px solid var(--line); }
 .sn-resizer.is-editor { grid-column: 4; grid-row: 2; flex-basis: 8px; }
 
 /* ---------- Sidebar */
@@ -192,8 +188,8 @@ button.sn-mode-btn.is-editing:hover { background: var(--cta-hover); }
 @media (min-width: 821px) {
   /* the list gives way, down to 260px, before the note beside it goes under 500px (spec UI-1); a sidebar that lies
      over the page as a drawer (is-mid, ui/layout.js) takes no room */
-  #app.notes-layout.editor-open:not(.editor-wide):not(.focus-mode) { grid-template-columns: auto auto clamp(260px, var(--list-w, 380px), calc(100vw - 500px)) auto minmax(0, 1fr); }
-  #app.notes-layout.editor-open:not(.editor-wide):not(.focus-mode):not(.side-closed):not(.is-mid) { grid-template-columns: auto auto clamp(260px, var(--list-w, 380px), calc(100vw - var(--side-w, 280px) - 500px)) auto minmax(0, 1fr); }
+  #app.notes-layout.editor-open:not(.editor-wide):not(.focus-mode) { grid-template-columns: auto auto clamp(260px, var(--list-w, 360px), calc(100vw - 500px)) auto minmax(0, 1fr); }
+  #app.notes-layout.editor-open:not(.editor-wide):not(.focus-mode):not(.side-closed):not(.is-mid) { grid-template-columns: auto auto clamp(260px, var(--list-w, 360px), calc(100vw - var(--side-w, 240px) - 500px)) auto minmax(0, 1fr); }
   #app.notes-layout.editor-open:not(.editor-wide) .sn-editor { width: auto; max-width: none; }
 
   /* under 1180px with a note open the sidebar is folded away; opened by hand, it lies over the page as a drawer (UI-2) */

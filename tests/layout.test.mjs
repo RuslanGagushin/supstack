@@ -38,7 +38,7 @@ describe("the note beside the list (UI-1)", () => {
     await openNote();
     const m = await measure();
     assert.ok(m.note >= 480, JSON.stringify(m));
-    assert.equal(await ev(() => Math.round(document.querySelector("#board").getBoundingClientRect().width)), 1300 - 280 - 500);
+    assert.equal(await ev(() => Math.round(document.querySelector("#board").getBoundingClientRect().width)), 1300 - 240 - 500);
   });
 });
 

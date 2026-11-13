@@ -9,7 +9,7 @@ export const DEFAULTS = {
   pinned: [], savedViews: [], language: "auto", defaultSort: "manual",
   outlineSort: "manual", maxCards: 1000,
 };
-export const UI = Object.assign({ theme: "auto", sideW: 280, editorW: 560, listW: 380, sideOpen: true, lang: "auto", openNotes: "read" }, lsGet("sn-ui", {}));
+export const UI = Object.assign({ theme: "auto", sideW: 240, editorW: 560, listW: 360, sideOpen: true, lang: "auto", openNotes: "read" }, lsGet("sn-ui", {}));
 delete UI.style; delete UI.font; delete UI.writeFont; // retired settings
 export const saveUI = () => lsSet("sn-ui", UI);
 

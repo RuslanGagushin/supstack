@@ -158,7 +158,7 @@ describe("list of notes", () => {
     assert.equal(r.path, "cards/Pics.md");
     assert.equal(r.wide, false);
     assert.match(r.app, /notes-layout/);
-    assert.equal(Math.round(r.list), 380);
+    assert.equal(Math.round(r.list), 360);
     assert.ok(r.note > 500, "the note takes the rest of the width");
     assert.match(r.own, /^Everything about the past/);
     assert.equal(r.count, "1 notebook · 1 note");
@@ -214,7 +214,7 @@ describe("list of notes", () => {
     await ev(() => document.querySelector(".sn-editor-head .clickable-icon:nth-child(2)").click());
     assert.deepEqual(await ev(() => [editor.wide, getComputedStyle(document.querySelector(".sn-main")).display]), [true, "none"]);
     await ev(() => document.querySelector(".sn-editor-head .clickable-icon:nth-child(2)").click());
-    assert.equal(await ev(() => Math.round(document.querySelector(".sn-main").getBoundingClientRect().width)), 380);
+    assert.equal(await ev(() => Math.round(document.querySelector(".sn-main").getBoundingClientRect().width)), 360);
     await ev(() => closeEditor());
     await page().waitForTimeout(50); // the closed note's row takes the focus back, which must not open it again
     assert.deepEqual(await ev(() => [editor.path, document.querySelector(".sn-main").getBoundingClientRect().width > 900]), [null, true]);

@@ -1,7 +1,7 @@
 /* ==========================================================
    Standalone chrome
    ========================================================== */
-.sn-side { width: var(--side-w, 280px);
+.sn-side { width: var(--side-w, 240px);
 }
 #app.side-closed .sn-side, #app.side-closed .sn-resizer.is-side { display: none; }
 @media (min-width: 821px) { #app.side-closed .sn-editor { max-width: calc(100vw - 440px); } }
@@ -159,7 +159,7 @@ button.sn-toast-btn:hover, button.sn-toast-x:hover { background: var(--hover-bg)
 }
 @media (min-width: 821px) {
   .sn-side-scrim { display: none; }
-  .sn-editor { max-width: calc(100vw - var(--side-w, 280px) - 440px); } /* always leave the board ~440px */
+  .sn-editor { max-width: calc(100vw - var(--side-w, 240px) - 440px); } /* always leave the board ~440px */
   #app.editor-wide .sn-editor { max-width: none; }
 }
 
