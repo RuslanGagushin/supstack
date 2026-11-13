@@ -305,6 +305,8 @@ audio.fv-media { width: min(520px, 100%); }
 .fv-big svg { width: 56px; height: 56px; color: var(--faint); }
 /* too narrow for the list and a preview side by side (files.js fvFit): one at a time, as on a phone */
 .fv.is-narrow { grid-template-columns: minmax(0, 1fr); }
+.fv.is-empty { grid-template-columns: minmax(0, 1fr); }
+.fv.is-empty :is(.fv-search-row, .fv-filters, .fv-total, .fv-count, .fv-preview) { display: none; }
 .fv.is-narrow .fv-preview { display: none; }
 .fv.is-narrow.has-sel .fv-pane { display: none; }
 .fv.is-narrow.has-sel .fv-preview { display: flex; }

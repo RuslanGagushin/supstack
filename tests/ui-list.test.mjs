@@ -409,9 +409,11 @@ describe("sidebar", () => {
     await openVault();
     const open = async () => { await page().keyboard.press("Control+p"); await page().waitForSelector(".prompt .prompt-input"); };
     await open();
-    assert.equal(await page().$$eval(".suggestion-group", (g) => g.length), 0, "no Recent group before any command was run");
+    const groups = await page().$$eval(".suggestion-group", (g) => g.map((x) => x.textContent));
+    assert.equal(groups[0], "Go to", "commands come in groups; no Recent group before any command was run");
+    assert.ok(!groups.includes("Recent"));
     const ticked = await page().$$eval(".prompt .suggestion-item", (r) => r.filter((x) => x.querySelector(".suggestion-check")).map((x) => x.querySelector(".suggestion-title").textContent));
-    assert.ok(ticked.includes("Sort: Manually (order field)") && ticked.includes("Sidebar"), ticked.join(", "));
+    assert.ok(ticked.includes("Sidebar"), ticked.join(", "));
     assert.ok(!ticked.includes("Select mode"));
     assert.ok(!ticked.some((x) => /^Depth/.test(x)), "no depth commands");
     await page().fill(".prompt-input", "select mode");

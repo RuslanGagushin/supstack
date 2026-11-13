@@ -116,7 +116,7 @@ Supstack shows a folder of Markdown notes (a *vault*) as notebooks with a list o
 
 ### Search and filters
 - `Ctrl+F` searches the notebook you are in, through every level, or the whole vault; filter by tag with `+tag` / `-tag` in the query, or with the Tags button. Notes with the words in their title come first, then those with them in a heading, then the rest. Results show which notebook each note sits in, with the line where the words are.
-- `Ctrl+O` opens any note by name; `Ctrl+P` opens the command list.
+- *Go to note…* at the top of the sidebar (`Ctrl+O`) opens any note by name; `Ctrl+P`, or *Commands…* in the vault's menu, opens the command list, its commands in groups.
 
 ### Sync
 - **Git sync:** the vault folder is a git repository. **Sync now** (or the automatic sync, after edits and every few minutes) commits your changes, merges the remote branch and pushes. Set the remote URL (HTTPS) and a personal access token in **Settings › Git**; once sync is set up, the *Git* row in the sidebar shows its state and opens it.
@@ -125,7 +125,7 @@ Supstack shows a folder of Markdown notes (a *vault*) as notebooks with a list o
 - On Android the repository lives in the app's private storage and is copied to and from the folder you picked on every sync, so the vault takes up space twice there.
 
 ### Look and keyboard
-- No top bar: a full-height sidebar holds search, a blue *New note* button, the agenda, Files and Git sync, the notebooks, and the vault and settings at the bottom; it folds away and each view's own bar brings it back. Inter type, the open note on a white sheet on warm grey.
+- No top bar: a full-height sidebar holds *Go to note…*, a blue *New note* button and *Today*, the agenda, Files and Git sync, the notebooks, and the vault and settings at the bottom; it folds away and each view's own bar brings it back. Inter type, the open note on a white sheet on warm grey.
 - Light and dark themes; English and Russian interface.
 - Emacs-flavoured details: a minibuffer with key hints, and most actions have shortcuts. Org-style `C-c` chords work in the editor, for example `C-c C-t` to step a task's state and `C-c C-s` / `C-c C-d` to schedule or set a deadline.
 - On phones the list fills the screen and a note opens over it with *‹ its notebook* to go back, the sidebar becomes a drawer, and the Android **Back** button closes the editor, menus and dialogs before leaving the app.
