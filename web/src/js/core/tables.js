@@ -56,7 +56,7 @@ export function formatTable(t) {
     cells.forEach((c, i) => { text += " "; pos[r][i] = [text.length, text.length + c.length]; text += c + " ".repeat(w[i] - strWidth(c)) + " |"; });
     if (!r) text += "\n|" + t.align.map((a, i) => {
       const l = a === "left" || a === "center", rt = a === "right" || a === "center";
-      return " " + (l ? ":" : "") + "-".repeat(w[i] - l - rt) + (rt ? ":" : "") + " |";
+      return " " + (l ? ":" : "") + "-".repeat(w[i] - Number(l) - Number(rt)) + (rt ? ":" : "") + " |";
     }).join("");
   });
   return { text, cell: (r, c) => pos[Math.max(0, Math.min(r, pos.length - 1))][Math.max(0, Math.min(c, t.align.length - 1))] };
@@ -87,8 +87,8 @@ export const TABLE_OPS = {
   alignCenter: (t, r, c) => { t.align[c] = "center"; return [r, c]; },
   alignRight: (t, r, c) => { t.align[c] = "right"; return [r, c]; },
   // sorting keeps the header and puts empty cells last; numbers sort as numbers
-  sortAsc: (t, r, c) => { t.rows = [t.rows[0], ...t.rows.slice(1).sort((a, b) => !a[c] - !b[c] || a[c].localeCompare(b[c], undefined, { numeric: true, sensitivity: "base" }))]; return [r, c]; },
-  sortDesc: (t, r, c) => { t.rows = [t.rows[0], ...t.rows.slice(1).sort((a, b) => !a[c] - !b[c] || b[c].localeCompare(a[c], undefined, { numeric: true, sensitivity: "base" }))]; return [r, c]; },
+  sortAsc: (t, r, c) => { t.rows = [t.rows[0], ...t.rows.slice(1).sort((a, b) => Number(!a[c]) - Number(!b[c]) || a[c].localeCompare(b[c], undefined, { numeric: true, sensitivity: "base" }))]; return [r, c]; },
+  sortDesc: (t, r, c) => { t.rows = [t.rows[0], ...t.rows.slice(1).sort((a, b) => Number(!a[c]) - Number(!b[c]) || b[c].localeCompare(a[c], undefined, { numeric: true, sensitivity: "base" }))]; return [r, c]; },
   format: (t, r, c) => [r, c],
 };
 /** TABLE_OPS[op] on table `tb` of `text`: replace [from, to) with `insert`; `sel` is the caret cell's text in the new text. */

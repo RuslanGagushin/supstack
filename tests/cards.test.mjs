@@ -1,7 +1,7 @@
 // Card actions: create, parents, drag and drop, icon, rename, delete, undo, tasks, daily notes, settings.
 import { beforeEach, describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { openVault, ev, raw, fsText, settle } from "./harness.mjs";
+import { openVault, ev, raw, fsText } from "./harness.mjs";
 
 const fmOf = (p) => ev((p) => vault.notes.get(p)?.fm ?? null, p);
 const parentsOf = (p) => ev((p) => { setGraph(buildGraph()); return graph.parentsOf(p).sort(); }, p);

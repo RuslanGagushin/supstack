@@ -241,7 +241,9 @@ All platforms need **Rust** (<https://rustup.rs>) and **Node.js 20+** (<https://
 | `npm run android:build` | builds a release APK for 64-bit ARM |
 | `npm run icons` | regenerates every icon from `icon.png` (then `git checkout src-tauri/icons/android/*/ic_launcher_foreground.png`: those are made by hand for the Android mask) |
 | `npm test` | runs the page tests in `tests/` with headless Chrome (set `CHROME_PATH` to use another Chromium) |
-| `npm run test:rust` | runs the vault plugin's Rust tests (file access, git sync) |
+| `npm run test:rust` | runs the vault plugin's Rust tests (file access, git sync, watching the folder) |
+| `npm run lint` | runs ESLint over the page's code, the scripts and the tests |
+| `npm run typecheck` | type-checks `web/src/js/core/` (TypeScript over the JavaScript, no DOM in its lib) |
 
 ### Windows
 1. Install **Microsoft C++ Build Tools** (<https://visualstudio.microsoft.com/visual-cpp-build-tools/>) with **Desktop development with C++**. WebView2 is already part of Windows 10 and 11.

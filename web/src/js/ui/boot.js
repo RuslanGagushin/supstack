@@ -23,7 +23,7 @@ async function autoReopen() {
       const last = await idb.get("lastVault");
       if (last && (await last.queryPermission({ mode: "readwrite" })) === "granted") await loadVault(new HandleFS(last));
     }
-  } catch (e) { /* keep the welcome screen */ }
+  } catch { /* keep the welcome screen */ }
 }
 export function boot() {
   applyTheme();
