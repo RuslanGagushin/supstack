@@ -6,6 +6,7 @@ import { HandleFS, idb, MemoryFS } from "../services/fs.js";
 import { IS_NATIVE, lastNative, NativeFS, vinvoke } from "../services/native.js";
 import { board, editor, graph, vault } from "../services/state.js";
 import { pollChanges } from "../services/vault.js";
+import { flushIndexCache } from "../services/index-cache.js";
 import { startUpdateChecks } from "../services/updates.js";
 import { h } from "./dom.js";
 import { saveEditor } from "./editor.js";
@@ -32,6 +33,9 @@ export function boot() {
   document.body.append(folderInput);
   setInterval(() => { if (document.visibilityState === "visible") pollChanges(); }, 4000);
   window.addEventListener("focus", () => pollChanges());
+  // the index cache is written a little after changes; leaving the page writes what is left
+  window.addEventListener("pagehide", () => flushIndexCache(vault.notes, vault.sizes));
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushIndexCache(vault.notes, vault.sizes); });
   window.addEventListener("beforeunload", (e) => { if (editor.dirty) { saveEditor(); e.preventDefault(); } });
   window.SupstackApp = { loadVault, HandleFS, MemoryFS, demoVault, vault, board, get graph() { return graph; } };
   startUpdateChecks();

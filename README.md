@@ -158,6 +158,7 @@ Want to look around first? **Try the demo vault** loads sample notebooks in memo
 | Which notebooks a note sits in | the `parents` frontmatter property in each note |
 | Vault settings: pins, saved views, list options | `.supstack/settings.json` in the vault (versions up to 0.15 kept them under `.obsidian/plugins/`; they move on first open) |
 | App settings, fold state, agenda view | stored per installation, not in the vault |
+| Index cache: each note's text, frontmatter, tags and links, so reopening a vault reads only the notes that changed | stored per installation (IndexedDB), not in the vault; dropped and rebuilt when it doesn't match |
 
 **The three folders are the same in every vault**, so there is nothing to set up: Supstack creates them as needed, and a folder that already exists with other letter case (`Cards/`) is used as it is. Each time a vault is opened, notes outside them are moved into `cards/`, keeping their subfolders, so links to them keep working; files that are not notes stay where they are.
 

@@ -11,7 +11,9 @@ import { emit } from "./events.js";
 import { undoStack, vault } from "./state.js";
 import { indexNames, parseNote } from "./vault.js";
 import { syncHook } from "./sync.js";
+import { scheduleIndexFlush } from "./index-cache.js";
 
+const utf8 = new TextEncoder();
 let currentTxn = null; // the open txn(): notes it changes keep their text from before, for undo
 export async function writeRaw(path, raw, { silentEditor = false, fromSync = false } = {}) {
   if (!fromSync && currentTxn && !currentTxn.before.has(path)) currentTxn.before.set(path, vault.notes.get(path)?.raw ?? null);
@@ -21,8 +23,9 @@ export async function writeRaw(path, raw, { silentEditor = false, fromSync = fal
   const isNew = !vault.notes.has(path);
   vault.notes.set(path, parseNote(path, raw, mtime || Date.now()));
   vault.allPaths.add(path);
-  vault.sizes.set(path, raw.length);
+  vault.sizes.set(path, utf8.encode(raw).length); // bytes, as the disk counts them
   if (isNew) indexNames();
+  scheduleIndexFlush(vault.notes, vault.sizes);
   if (!fromSync) syncHook(isNew ? "create" : "modify", path);
   emit("written", path, { silentEditor });
 }
@@ -53,6 +56,7 @@ export async function removeNote(path, { fromSync = false } = {}) {
   vault.allPaths.delete(path);
   vault.sizes.delete(path);
   indexNames();
+  scheduleIndexFlush(vault.notes, vault.sizes);
   if (!fromSync) syncHook("delete", path);
 }
 export async function txn(label, fn) {
