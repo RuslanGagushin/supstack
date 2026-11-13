@@ -219,6 +219,10 @@ describe("plain text previews", () => {
     const md = "## Rates\n\n| Format | Hours |\n| --- | :-: |\n| Call | 0.5–1 h |\n\n- [ ] **buy** [[Milk|milk]] at [the shop](http://x)\n> [!info]+ Tip\n> text `code`\n```js\nlet x = 1\n```\n![[a.png]] ![alt](b.jpg) end";
     assert.equal(plainText(md), "Rates Format Hours Call 0.5–1 h buy milk at the shop Tip text code end");
   });
+  test("plainText drops the markup of tasks: every box, priorities, planning lines and :tags: (SRCH-4)", () => {
+    const md = "- [/] [#A] Book the tour :travel:\n  DEADLINE: <2026-11-13 Fri> SCHEDULED: <2026-11-11 Wed>\n  Call first.\n- [<] [#C] Order the book\n- [>] Plan the trip\n- [-] Renew the pass\n- [x] Set up\n  CLOSED: [2026-11-10 Tue 18:20]\n1. [ ] Numbered\n- Time 10:30: not a tag";
+    assert.equal(plainText(md, 1000), "Book the tour Call first. Order the book Plan the trip Renew the pass Set up Numbered Time 10:30: not a tag");
+  });
   test("plainText links show their target or alias, and the text is cut to a length", () => {
     assert.equal(plainText("See [[Notes/Rome#Forum]] and [[Rome|the city]]"), "See Notes/Rome and the city");
     assert.equal(plainText("word ".repeat(100), 20), "word word word word ");
