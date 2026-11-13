@@ -15,64 +15,70 @@
 .sn-resizer.is-editor { grid-column: 4; grid-row: 2; flex-basis: 8px; }
 
 /* ---------- Sidebar */
-.sb-head { display: flex; flex-direction: column; gap: var(--sp-12); padding: var(--sp-14) var(--sp-12) var(--sp-10) var(--sp-14); }
-.sb-foot { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-8) var(--sp-10) var(--sp-12) var(--sp-12); }
-.sb-foot button.sb-account { flex: 1 1 auto; min-width: 0; width: auto; }
-button.clickable-icon.sb-foot-btn { flex: none; width: 32px; height: var(--ctl-l); padding: 0; border-radius: var(--r-s); color: var(--muted); }
+/* the sidebar, top to bottom: the vault, Go to note, New note and Today; the app's places; the notebooks and tags;
+   the vault's state, settings and folding at the foot (restyle RS-8 to RS-19) */
+.sb-head { display: flex; flex-direction: column; gap: var(--sp-10); padding: var(--sp-14) var(--sp-12) var(--sp-16); }
+.sb-foot { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-8) var(--sp-12) var(--sp-12); }
+.sb-status { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: var(--sp-8); padding-inline-start: var(--sp-8); color: var(--faint); font-size: var(--fs-sm); }
+.sb-status-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sb-dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--faint); }
+.sb-status.is-unsaved .sb-dot { background: var(--ink); }
+button.clickable-icon.sb-foot-btn { flex: none; width: var(--ctl-m); height: var(--ctl-m); padding: 0; border-radius: var(--r-s); color: var(--muted); }
 button.clickable-icon.sb-foot-btn:hover { background: var(--hover-bg); color: var(--fg); }
 .sb-foot-btn svg.svg-icon { width: var(--icon-m); height: var(--icon-m); }
 @media (max-width: 820px) { .sb-collapse { display: none; } } /* the drawer closes on the grey around it */
 /* The sidebar's places: the agenda, Files and sync, as rows like the tree's, each with its count or state at the right */
-.sb-nav { display: flex; flex-direction: column; gap: 1px; padding: 0 var(--sp-12) var(--sp-6) var(--sp-14); }
-.sb-nav button.sn-btn { justify-content: flex-start; gap: var(--sp-8); width: 100%; height: var(--ctl-l); padding: 0 var(--sp-8); border: 0; border-radius: var(--r-s);
-  background: transparent; color: var(--fg); font-size: var(--fs-md); font-weight: var(--fw-regular); }
+.sb-nav { display: flex; flex-direction: column; gap: var(--sp-2); padding: 0 var(--sp-12) var(--sp-12); }
+.sb-nav button.sn-btn { justify-content: flex-start; gap: var(--sp-10); width: 100%; height: var(--ctl-l); padding: 0 var(--sp-8); border: 0; border-radius: var(--r-s);
+  background: transparent; color: var(--fg); font-size: var(--fs-md); font-weight: var(--fw-medium); }
 .sb-nav button.sn-btn:hover { background: var(--hover-bg); }
-.sb-nav button.sn-btn.is-active { background: var(--sel); color: var(--ink); }
-.sb-nav button.sn-btn svg { width: var(--icon-m); height: var(--icon-m); color: var(--muted); }
+.sb-nav button.sn-btn.is-active { background: var(--sel); color: var(--ink); font-weight: var(--fw-semibold); }
+.sb-nav button.sn-btn svg { width: var(--icon-m); height: var(--icon-m); color: var(--faint); }
+.sb-nav button.sn-btn.is-active svg { color: var(--ink); }
 /* the sidebar's buttons keep their labels at every width (outweighing .sn-btn .wb-label in frame.css) */
 .sb-nav button.sn-btn .wb-label { display: inline; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .sb-nav .wb-count { margin-left: auto; }
 .sb-nav button.sn-btn.wb-sync { max-width: none; }
 .sb-nav .wb-sync[hidden] { display: none; }
-/* Search fields share one look: 34px, white on the grey with a hairline border, a 14px icon, the accent ring on focus
+/* Search fields share one look: white with a hairline border, a 14px icon, the accent ring on focus
    (the sidebar's launcher, the board's filter, Files and Settings) */
 :is(button.sb-search, .sn-search, input.sn-set-search, input.fv-search) {
   height: var(--ctl-field); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); color: var(--fg); font-size: var(--fs-ui);
 }
 :is(.sn-search:focus-within, input.sn-set-search:focus, input.fv-search:focus) { border-color: var(--accent); box-shadow: var(--ring); outline: none; }
-button.sb-search { justify-content: flex-start; gap: var(--sp-8); width: 100%; padding: 0 var(--sp-12) 0 var(--sp-10); font-weight: var(--fw-regular); cursor: text; }
-button.sb-search { color: var(--muted); }
-button.sb-search:hover { border-color: color-mix(in srgb, var(--faint) 55%, var(--line)); background: var(--win); }
+button.sb-search { justify-content: flex-start; gap: var(--sp-8); width: 100%; padding: 0 var(--sp-8) 0 var(--sp-10); color: var(--faint); font-size: var(--fs-md); font-weight: var(--fw-regular); cursor: text; }
+button.sb-search .wb-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+button.sb-search:hover { border-color: var(--line-hover); background: var(--win); }
+/* the key that opens it, on a quiet plate; not on screens without a pointer to hover (UI-11) */
+.sb-key { flex: none; padding: 1px var(--sp-6); border-radius: var(--r-xs); background: var(--panel); color: var(--muted); font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: var(--fw-medium); line-height: var(--lh-ui); }
+@media (hover: none) { .sb-key { display: none; } }
 button.sb-search svg, .sn-search-icon svg, .fv-search-icon svg { width: var(--icon-s); height: var(--icon-s); }
 .fv-search-wrap { position: relative; flex: 1 1 auto; min-width: 0; display: flex; }
 .fv-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); display: inline-flex; color: var(--muted); pointer-events: none; }
 input.fv-search { width: 100%; padding: 0 var(--sp-10) 0 30px; }
 .sb-actions { display: flex; align-items: center; gap: var(--sp-8); }
+/* New note fills the row, Today beside it: one height, the controls' corner */
 button.sn-btn.sb-new, :where(.sn-welcome-actions) button.sn-btn.is-primary {
-  height: 38px; padding: 0 var(--sp-16) 0 var(--sp-14); border-radius: var(--r-pill); background: var(--cta); color: var(--on-accent);
+  height: var(--ctl-field); padding: 0 var(--sp-12); border-radius: var(--r-s); background: var(--cta); color: var(--on-accent);
   font-size: var(--fs-md); font-weight: var(--fw-semibold); gap: var(--sp-6);
 }
+button.sn-btn.sb-new { flex: 1 1 auto; min-width: 0; justify-content: center; }
 button.sn-btn.sb-new:hover, :where(.sn-welcome-actions) button.sn-btn.is-primary:hover { background: var(--cta-hover); opacity: 1; }
 button.sn-btn.sb-new svg { width: var(--icon-m); height: var(--icon-m); }
-button.clickable-icon.sb-round { width: 38px; height: 38px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: var(--win); }
-/* Today, beside New note: a labelled button, quieter than New note */
-button.sn-btn.sb-today { height: 38px; padding: 0 var(--sp-14); border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--win); color: var(--fg); font-weight: var(--fw-medium); }
+button.sn-btn.sb-today { flex: none; height: var(--ctl-field); padding: 0 var(--sp-12); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); color: var(--ink); font-size: var(--fs-md); font-weight: var(--fw-medium); }
 button.sn-btn.sb-today:hover { background: var(--hover-bg); }
 button.sn-btn.sb-today svg { width: var(--icon-m); height: var(--icon-m); color: var(--muted); }
 .sb-today .wb-label { display: inline; }
 .sn-keys-or { display: inline-flex; align-items: center; gap: var(--sp-6); }
 .sn-keys-or .sn-or { color: var(--faint); font-size: var(--fs-sm); }
-button.clickable-icon.sb-round:hover { background: var(--hover-bg); color: var(--fg); }
-button.clickable-icon.sb-round svg { width: var(--icon-m); height: var(--icon-m); }
-button.sb-account { justify-content: flex-start; gap: var(--sp-8); width: 100%; height: 36px; padding: 0 var(--sp-8);
-  border: 0; border-radius: var(--r-s); background: transparent; font-weight: var(--fw-regular);
+/* the vault: a square of the accent with its first letter, its name, a chevron to its menu */
+button.sb-account { justify-content: flex-start; gap: var(--sp-10); width: 100%; height: 36px; padding: 0 var(--sp-8);
+  border: 0; border-radius: var(--r-s); background: transparent; color: var(--ink); font-size: var(--fs-md); font-weight: var(--fw-semibold);
 }
 button.sb-account:hover { background: var(--hover-bg); }
-.sb-avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--muted); color: var(--win); font-size: var(--fs-sm); font-weight: var(--fw-semibold); }
-.sb-account-name { flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: left; line-height: var(--lh-tight); }
-.sb-account-name > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sb-account-note { color: var(--muted); font-size: var(--fs-sm); font-weight: var(--fw-regular); }
-button.sb-account.has-note { height: 42px; }
+.sb-avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: var(--r-xs); background: var(--cta); color: var(--on-accent); font-size: var(--fs-sm); font-weight: var(--fw-bold); }
+.sb-account-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+button.sb-account .wb-caret svg { width: var(--icon-s); height: var(--icon-s); color: var(--faint); }
 
 /* the tree's tools on its "Cards" heading: they show with the pointer over the sidebar or the focus in them; touch shows them always */
 .sn-tree-section.has-tools { display: flex; align-items: center; gap: var(--sp-4); min-height: 24px; }
@@ -83,18 +89,18 @@ button.sb-account.has-note { height: 42px; }
 .sn-sec-tools .clickable-icon:hover { background: var(--hover-bg); color: var(--fg); }
 .sn-sec-tools .clickable-icon svg { width: var(--icon-s); height: var(--icon-s); }
 .sn-tree-section, .sn-tree-section:first-child {
-  margin: var(--sp-16) 0 var(--sp-4); padding-left: var(--sp-8); font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--muted);
+  margin: var(--sp-16) 0 var(--sp-6); padding-left: var(--sp-8); font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--faint);
 }
 .sn-tree-section:first-child { margin-top: var(--sp-4); }
 .sn-outline .tree-item-self.sn-tree-row.is-active { background: var(--sel); }
 /* the keyboard's place in the tree: a ring on the item's row, not around its whole branch (spec A11Y-2) */
 .sn-aria-tree [role=treeitem] { outline: none; }
 .sn-aria-tree [role=treeitem]:focus-visible > .sn-tree-row { box-shadow: var(--ring-inset); }
-.sn-outline .tree-item-self.sn-tree-row.is-active .sn-tree-label { color: var(--ink); }
+.sn-outline .tree-item-self.sn-tree-row.is-active :is(.sn-tree-label, .sn-tree-icon) { color: var(--ink); }
+.sn-outline .tree-item-self.sn-tree-row.is-active .sn-tree-label { font-weight: var(--fw-semibold); }
 /* the notebook the open note sits in, when the list beside it shows another place (and the open note's Recent row): a quiet mark, not a second selection */
 .sn-outline .sn-tree-row:is(.is-holding, .is-editing):not(.is-active) :is(.sn-tree-label, .sn-tree-icon) { color: var(--ink); }
-.sn-outline .sn-tree-row:is(.is-holding, .is-editing):not(.is-active) .sn-tree-label { font-weight: var(--fw-medium); }
-.sn-tree-row .sn-tree-label { font-weight: var(--fw-regular); }
+.sn-tree-row .sn-tree-label { font-weight: var(--fw-medium); }
 .sn-tree-icon svg { width: var(--icon-m); height: var(--icon-m); }
 .tree-item-flair { font-size: var(--fs-sm); color: var(--faint); }
 /* on a hovered or current row's grey, the counts and times step up to --muted to stay readable */

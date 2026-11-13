@@ -81,7 +81,7 @@
 /* Branch blocks when grouped */
 
 /* ---------- Sidebar tree */
-.sn-tree { flex: 1 1 auto; overflow-y: auto; padding: 0 var(--sp-12) var(--sp-16) var(--sp-14); }
+.sn-tree { flex: 1 1 auto; overflow-y: auto; padding: 0 var(--sp-12) var(--sp-16); }
 .sn-tree-empty { padding: var(--sp-12); font-size: var(--fs-ui); color: var(--muted); }
 .sn-outline .tree-item-self.sn-tree-row { align-items: center; user-select: none; min-height: 32px; padding: var(--sp-4) var(--sp-8) var(--sp-4) var(--sp-2); border-radius: var(--r-s); font-size: var(--fs-md); gap: var(--sp-8); }
 .sn-outline .sn-tree-toggle {
@@ -92,7 +92,7 @@
 .sn-outline .sn-tree-toggle:hover { color: var(--muted); }
 .sn-outline .sn-tree-toggle svg { width: 10px; height: 10px; stroke-width: 4px; transition: transform var(--dur-1) var(--ease); }
 .sn-outline .sn-tree-row:not(.is-open) .sn-tree-toggle svg { transform: rotate(-90deg); }
-.sn-tree-icon { flex: 0 0 auto; display: inline-flex; color: var(--muted); }
+.sn-tree-icon { flex: 0 0 auto; display: inline-flex; color: var(--faint); }
 .sn-outline .sn-tree-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sn-outline .tree-item-flair-outer { flex: 0 0 auto; }
 .sn-tree-count { font-variant-numeric: tabular-nums; }

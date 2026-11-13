@@ -9,11 +9,12 @@ const noErrors = () => assert.equal(H.errors.length, 0, H.errors.map((e) => e.st
 const visible = (sel) => ev((sel) => [...document.querySelectorAll(sel)].some((e) => getComputedStyle(e).display !== "none" && !e.hidden && e.getBoundingClientRect().height > 0), sel);
 
 describe("the sidebar's head (UI-25, UI-27)", () => {
-  test("three controls, each with its name: Go to note…, New note, Today; the palette is in the vault's menu", async () => {
+  test("the vault heads it, then three controls, each with its name: Go to note…, New note, Today; the palette is in the vault's menu", async () => {
     for (const [lang, names] of [["ru", ["Перейти к заметке…", "Новая заметка", "Сегодня"]], ["en", ["Go to note…", "New note", "Today"]]]) {
       await openVault({ lang });
-      const r = await ev(() => [...document.querySelectorAll(".sb-head button")].filter((b) => b.getBoundingClientRect().width).map((b) => b.textContent.trim()));
-      assert.deepEqual(r, names, lang);
+      const r = await ev(() => [...document.querySelectorAll(".sb-head button")].filter((b) => b.getBoundingClientRect().width)
+        .map((b) => (b.classList.contains("sb-account") ? "vault" : (b.querySelector(".wb-label") || b).textContent.trim())));
+      assert.deepEqual(r, ["vault", ...names], lang);
     }
     await page().click(".sb-head .sb-search");
     assert.equal(await visible(".prompt"), true, "Go to note… opens the note finder");

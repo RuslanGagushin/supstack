@@ -168,22 +168,25 @@ function renderAll() {
   // there is no top bar: search, the new-card button, the agenda, Files, sync, settings and the vault live in the sidebar,
   // and each view's own bar opens the sidebar when it is closed (sideToggle)
   // finding a note by its name; searching the text is the list's own (its magnifier, Ctrl+F)
-  const search = h("button", { cls: "sb-search", type: "button", title: t("goToNote") + " · Ctrl+O" }, ic("", "search"), h("span", { text: t("goToNote") }));
+  const search = h("button", { cls: "sb-search", type: "button", title: t("goToNote") + " · " + keyText("Ctrl+O") }, ic("", "search"), h("span", { cls: "wb-label", text: t("goToNote") }),
+    h("kbd", { cls: "sb-key", "aria-hidden": "true", text: keyText("Ctrl+O") }));
   search.addEventListener("click", () => quickOpen());
-  const sideHead = h("div", { cls: "sb-head" }, search,
-    h("div", { cls: "sb-actions" },
-      wbBtn("plus", t("newShort"), newCard, "sb-new"),
-      // today's note, by name; the command palette is Ctrl+P and the vault's menu below
-      wbBtn("calendar-days", t("todayShort"), () => openToday(), "sb-today")));
   // a demo or a copy says so under its name for as long as it is open (the toast shows it only once)
   const standing = defaultEcho();
   const note = vault.fs.kind === "demo" ? t("demoShort") : vault.fs.kind === "copy" ? t("copyShort") : "";
-  const account = h("button", { cls: "sb-account" + (note ? " has-note" : ""), type: "button", title: standing ? vault.fs.name + " — " + standing : vault.fs.name },
+  // the vault heads the sidebar (restyle RS-8); its state ("Not saved") sits at the foot (RS-18)
+  const account = h("button", { cls: "sb-account", type: "button", title: standing ? vault.fs.name + " — " + standing : vault.fs.name },
     h("span", { cls: "sb-avatar", text: (vault.fs.name || "S").trim().charAt(0).toUpperCase() }),
-    h("span", { cls: "sb-account-name" }, h("span", { text: vault.fs.name }), note ? h("small", { cls: "sb-account-note", text: note }) : null), ic("wb-caret", "chevron-down"));
+    h("span", { cls: "sb-account-name", text: vault.fs.name }), ic("wb-caret", "chevron-down"));
   account.addEventListener("click", vaultMenu);
+  const sideHead = h("div", { cls: "sb-head" }, account, search,
+    h("div", { cls: "sb-actions" },
+      wbBtn("plus", t("newShort"), newCard, "sb-new"),
+      // today's note, by name; the command palette is Ctrl+P and the vault's menu above
+      wbBtn("calendar-days", t("todayShort"), () => openToday(), "sb-today")));
   const sideNav = h("nav", { cls: "sb-nav", "aria-label": t("tabbar") }, tasksButton(), filesButton(), syncButton());
-  const foot = h("div", { cls: "sb-foot" }, account,
+  const status = h("div", { cls: "sb-status" + (note ? " is-unsaved" : "") }, note ? h("span", { cls: "sb-dot", "aria-hidden": "true" }) : null, note ? h("span", { cls: "sb-status-text", text: note }) : null);
+  const foot = h("div", { cls: "sb-foot" }, status,
     iconBtn("settings", t("settings"), () => settingsModal(), "sb-foot-btn"),
     iconBtn("panel-left-close", t("toggleSidebar"), () => setSide(false), "sb-foot-btn sb-collapse"));
   const side = h("div", { cls: "sn-side" }, sideHead, sideNav, h("div", { cls: "sn-outline", id: "tree" }), foot);

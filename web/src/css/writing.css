@@ -88,8 +88,9 @@ button.sn-table-add-row:hover, button.sn-table-add-col:hover { background: color
 .sn-sec-caret svg { width: var(--icon-xs); height: var(--icon-xs); transition: transform var(--dur-1) var(--ease); }
 .sn-tree-section.is-toggle:not(.is-open) .sn-sec-caret svg { transform: rotate(-90deg); }
 .sn-sec-count { margin-left: auto; font-weight: var(--fw-regular); }
-.sn-tag-cloud { display: flex; flex-wrap: wrap; gap: var(--sp-4); padding: 0 var(--sp-2) var(--sp-4); }
-.sn-tag-cloud .sn-chip .n { color: var(--muted); font-size: var(--fs-sm); } /* on the pill's --panel, where --faint is too light */
+/* the sidebar's tags: "travel · 2" on a plain chip (restyle RS-17) */
+.sn-tag-cloud { display: flex; flex-wrap: wrap; gap: var(--sp-6); padding: 0 var(--sp-2) var(--sp-4); }
+.sn-tag-cloud .sn-chip .n { color: var(--muted); font-size: var(--fs-sm); } /* on the chip's --panel, where --faint is too light */
 
 /* Unlinked mentions */
 .sn-unlinked { display: flex; flex-direction: column; gap: var(--sp-4); margin-bottom: var(--sp-12); }
