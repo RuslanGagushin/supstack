@@ -140,6 +140,24 @@ test("padding, margin and gap use the spacing scale; the measured offsets are li
   assert.deepEqual(bad, []);
 });
 
+test("one layer of styles: no body.sn-app prefix; !important only on the hide utilities and for reduced motion", () => {
+  const CSS = fileURLToPath(new URL("../web/src/css/", import.meta.url));
+  const hide = [".markdown-rendered .org-hidden", ".sn-board .sn-tools > .sn-wide-only", ".sn-hide-narrow"];
+  const bad = [];
+  for (const f of readdirSync(CSS).filter((f) => f.endsWith(".css"))) {
+    const bare = readFileSync(join(CSS, f), "utf8").replace(/\/\*[\s\S]*?\*\//g, " ");
+    if (/body\.sn-app/.test(bare)) bad.push(`${f}: body.sn-app`);
+    for (const rule of bare.matchAll(/([^{}]*)\{([^{}]*)\}/g)) {
+      if (!rule[2].includes("!important")) continue;
+      const selector = rule[1].trim().replace(/\s+/g, " ");
+      const motion = selector === "*, *::before, *::after";
+      const utility = hide.includes(selector) && /^\s*display:\s*none\s*!important;?\s*$/.test(rule[2]);
+      if (!motion && !utility) bad.push(`${f}: ${selector} { ${rule[2].trim().slice(0, 60)} }`);
+    }
+  }
+  assert.deepEqual(bad, []);
+});
+
 test("every CSS variable the stylesheets define is used, by a stylesheet or by the scripts", () => {
   const CSS = fileURLToPath(new URL("../web/src/css/", import.meta.url));
   const bare = readdirSync(CSS).filter((f) => f.endsWith(".css")).map((f) => readFileSync(join(CSS, f), "utf8")).join("\n").replace(/\/\*[\s\S]*?\*\//g, " ");
