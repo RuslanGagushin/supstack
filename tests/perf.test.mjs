@@ -67,3 +67,18 @@ describe("timings on 10 000 notes (PERF-2)", () => {
     for (const k of Object.keys(LIMITS)) assert.ok(ms[k] < LIMITS[k], `${k}: ${ms[k]} ms, limit ${LIMITS[k]} ms`);
   });
 });
+
+describe("polling for outside changes (PERF-4)", () => {
+  test("an idle poll reads no file; a changed file is the only one read", async () => {
+    const notes = bigVault(1000);
+    await openNativeApp({ notes, expose: true });
+    await ev(() => new Promise((r) => { const t = setInterval(() => { if (vault.notes.size >= 1000) { clearInterval(t); r(); } }, 20); }));
+    const reads = () => ev(async () => { window.__invokes.length = 0; await pollChanges(); return window.__invokes.filter(([c]) => c === "plugin:vault|read").map(([, a]) => a.path); });
+    assert.deepEqual(await reads(), [], "nothing changed, nothing read");
+    const path = Object.keys(notes).find((p) => p.startsWith("cards/"));
+    await ev((p) => { const f = window.__vaultFiles[p]; window.__vaultFiles[p] = { text: f.text + "\nAdded elsewhere.\n", mtime: f.mtime + 5000 }; }, path);
+    assert.deepEqual(await reads(), [path]);
+    assert.match(await ev((p) => vault.notes.get(p).raw, path), /Added elsewhere\.\n$/);
+    assert.deepEqual(await reads(), [], "read once, not again");
+  });
+});
