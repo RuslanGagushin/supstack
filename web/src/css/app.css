@@ -16,7 +16,7 @@ body.sn-app #app {
 body.sn-app .wb-frame { display: contents; }
 body.sn-app .sn-side { grid-column: 1; grid-row: 1 / 3; background: var(--bg); }
 body.sn-app .sn-resizer.is-side { grid-column: 2; grid-row: 1 / 3; }
-body.sn-app .sn-main { padding-top: 6px; }
+body.sn-app .sn-main { padding-top: var(--sp-6); }
 body.sn-app .sn-main { grid-column: 3; grid-row: 2; }
 body.sn-app .sn-editor { grid-column: 5; grid-row: 2; }
 body.sn-app #app.editor-wide .sn-editor { grid-column: 3 / 6; }
@@ -25,23 +25,23 @@ body.sn-app #app.focus-mode .sn-editor { grid-column: 3 / 6; }
 /* the board sits on the grey; the note opens on a white sheet */
 body.sn-app .win { border: 0; }
 body.sn-app .sn-editor.win {
-  margin-top: 8px; background: var(--win); border: 1px solid var(--line); border-right: 0; border-bottom: 0; border-radius: var(--r-m) 0 0 0;
+  margin-top: var(--sp-8); background: var(--win); border: 1px solid var(--line); border-right: 0; border-bottom: 0; border-radius: var(--r-m) 0 0 0;
   box-shadow: var(--shadow-2);
 }
 body.sn-app #app.editor-wide .sn-editor.win { border-radius: var(--r-m) 0 0 0; }
 body.sn-app .sn-resizer.is-editor { grid-column: 4; grid-row: 2; flex-basis: 8px; }
 
 /* ---------- Sidebar */
-body.sn-app .sb-head { display: flex; flex-direction: column; gap: 12px; padding: 14px 12px 10px 14px; }
-body.sn-app .sb-foot { display: flex; align-items: center; gap: 2px; padding: 8px 10px 12px 12px; }
+body.sn-app .sb-head { display: flex; flex-direction: column; gap: var(--sp-12); padding: var(--sp-14) var(--sp-12) var(--sp-10) var(--sp-14); }
+body.sn-app .sb-foot { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-8) var(--sp-10) var(--sp-12) var(--sp-12); }
 body.sn-app .sb-foot button.sb-account { flex: 1 1 auto; min-width: 0; width: auto; }
 body.sn-app button.clickable-icon.sb-foot-btn { flex: none; width: 32px; height: var(--ctl-l); padding: 0; border-radius: var(--r-s); color: var(--muted); }
 body.sn-app button.clickable-icon.sb-foot-btn:hover { background: var(--hover-bg); color: var(--fg); }
 body.sn-app .sb-foot-btn svg { width: var(--icon-m); height: var(--icon-m); }
 @media (max-width: 820px) { body.sn-app .sb-collapse { display: none; } } /* the drawer closes on the grey around it */
 /* The sidebar's places: the agenda, Files and sync, as rows like the tree's, each with its count or state at the right */
-body.sn-app .sb-nav { display: flex; flex-direction: column; gap: 1px; padding: 0 12px 6px 14px; }
-body.sn-app .sb-nav button.wb-btn { justify-content: flex-start; gap: 8px; width: 100%; height: var(--ctl-l); padding: 0 8px; border: 0; border-radius: var(--r-s);
+body.sn-app .sb-nav { display: flex; flex-direction: column; gap: 1px; padding: 0 var(--sp-12) var(--sp-6) var(--sp-14); }
+body.sn-app .sb-nav button.wb-btn { justify-content: flex-start; gap: var(--sp-8); width: 100%; height: var(--ctl-l); padding: 0 var(--sp-8); border: 0; border-radius: var(--r-s);
   background: transparent; color: var(--fg); font-size: var(--fs-md); font-weight: var(--fw-regular); }
 body.sn-app .sb-nav button.wb-btn:hover { background: var(--hover-bg); }
 body.sn-app .sb-nav button.wb-btn.is-active { background: var(--sel); color: var(--ink); }
@@ -56,31 +56,31 @@ body.sn-app :is(button.sb-search, .sn-search, input.sn-set-search, input.fv-sear
   height: 34px; border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); color: var(--fg); font-size: var(--fs-ui);
 }
 body.sn-app :is(.sn-search:focus-within, input.sn-set-search:focus, input.fv-search:focus) { border-color: var(--accent); box-shadow: var(--ring); outline: none; }
-button.sb-search { justify-content: flex-start; gap: 8px; width: 100%; padding: 0 12px 0 10px; font-weight: var(--fw-regular); cursor: text; }
+button.sb-search { justify-content: flex-start; gap: var(--sp-8); width: 100%; padding: 0 var(--sp-12) 0 var(--sp-10); font-weight: var(--fw-regular); cursor: text; }
 body.sn-app button.sb-search { color: var(--muted); }
 body.sn-app button.sb-search:hover { border-color: color-mix(in srgb, var(--faint) 55%, var(--line)); background: var(--win); }
 button.sb-search svg, .sn-search-icon svg, .fv-search-icon svg { width: var(--icon-s); height: var(--icon-s); }
 .fv-search-wrap { position: relative; flex: 1 1 auto; min-width: 0; display: flex; }
 .fv-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); display: inline-flex; color: var(--muted); pointer-events: none; }
-body.sn-app input.fv-search { width: 100%; padding: 0 10px 0 30px; }
-.sb-actions { display: flex; align-items: center; gap: 8px; }
+body.sn-app input.fv-search { width: 100%; padding: 0 var(--sp-10) 0 30px; }
+.sb-actions { display: flex; align-items: center; gap: var(--sp-8); }
 body.sn-app button.wb-btn.sb-new, body.sn-app button.wb-btn.primary {
-  height: 38px; padding: 0 18px 0 14px; border-radius: var(--r-pill); background: var(--cta); color: var(--on-accent);
-  font-size: var(--fs-md); font-weight: var(--fw-semibold); gap: 7px;
+  height: 38px; padding: 0 var(--sp-16) 0 var(--sp-14); border-radius: var(--r-pill); background: var(--cta); color: var(--on-accent);
+  font-size: var(--fs-md); font-weight: var(--fw-semibold); gap: var(--sp-6);
 }
 body.sn-app button.wb-btn.sb-new:hover, body.sn-app button.wb-btn.primary:hover { background: var(--cta-hover); opacity: 1; }
 body.sn-app button.wb-btn.sb-new svg { width: var(--icon-m); height: var(--icon-m); }
 button.clickable-icon.sb-round { width: 38px; height: 38px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: var(--win); }
 /* Today, beside New note: a labelled button, quieter than New note */
-body.sn-app button.wb-btn.sb-today { height: 38px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--win); color: var(--fg); font-weight: var(--fw-medium); }
+body.sn-app button.wb-btn.sb-today { height: 38px; padding: 0 var(--sp-14); border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--win); color: var(--fg); font-weight: var(--fw-medium); }
 body.sn-app button.wb-btn.sb-today:hover { background: var(--hover-bg); }
 body.sn-app button.wb-btn.sb-today svg { width: var(--icon-m); height: var(--icon-m); color: var(--muted); }
 body.sn-app .sb-today .wb-label { display: inline; }
-.sn-keys-or { display: inline-flex; align-items: center; gap: 6px; }
+.sn-keys-or { display: inline-flex; align-items: center; gap: var(--sp-6); }
 .sn-keys-or .sn-or { color: var(--faint); font-size: var(--fs-sm); }
 button.clickable-icon.sb-round:hover { background: var(--hover-bg); color: var(--fg); }
 button.clickable-icon.sb-round svg { width: var(--icon-m); height: var(--icon-m); }
-button.sb-account { justify-content: flex-start; gap: 9px; width: 100%; height: 36px; padding: 0 8px;
+button.sb-account { justify-content: flex-start; gap: var(--sp-8); width: 100%; height: 36px; padding: 0 var(--sp-8);
   border: 0; border-radius: var(--r-s); background: transparent; font-weight: var(--fw-regular);
 }
 button.sb-account:hover { background: var(--hover-bg); }
@@ -91,19 +91,19 @@ button.sb-account:hover { background: var(--hover-bg); }
 button.sb-account.has-note { height: 42px; }
 
 /* the tree's tools on its "Cards" heading: they show with the pointer over the sidebar or the focus in them; touch shows them always */
-body.sn-app .sn-tree-section.has-tools { display: flex; align-items: center; gap: 4px; min-height: 24px; }
-.sn-sec-tools { display: flex; gap: 2px; margin-left: auto; opacity: 0; transition: opacity var(--dur-1) var(--ease); }
+body.sn-app .sn-tree-section.has-tools { display: flex; align-items: center; gap: var(--sp-4); min-height: 24px; }
+.sn-sec-tools { display: flex; gap: var(--sp-2); margin-left: auto; opacity: 0; transition: opacity var(--dur-1) var(--ease); }
 .sn-side:hover .sn-sec-tools, .sn-sec-tools:focus-within { opacity: 1; }
 @media (hover: none) { .sn-sec-tools { opacity: 1; } }
 body.sn-app .sn-sec-tools .clickable-icon { width: 26px; height: var(--ctl-s); padding: 0; border-radius: var(--r-s); color: var(--muted); }
 body.sn-app .sn-sec-tools .clickable-icon:hover { background: var(--hover-bg); color: var(--fg); }
 body.sn-app .sn-sec-tools .clickable-icon svg { width: var(--icon-s); height: var(--icon-s); }
-body.sn-app .sn-tree { padding: 0 12px 16px 14px; }
+body.sn-app .sn-tree { padding: 0 var(--sp-12) var(--sp-16) var(--sp-14); }
 body.sn-app .sn-tree-section, body.sn-app .sn-tree-section:first-child {
-  margin: 18px 0 4px; padding-left: 8px; font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--muted);
+  margin: var(--sp-16) 0 var(--sp-4); padding-left: var(--sp-8); font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--muted);
 }
-body.sn-app .sn-tree-section:first-child { margin-top: 4px; }
-body.sn-app .sn-outline .tree-item-self.sn-tree-row { min-height: 32px; padding: 4px 8px 4px 2px; border-radius: var(--r-s); font-size: var(--fs-md); gap: 8px; }
+body.sn-app .sn-tree-section:first-child { margin-top: var(--sp-4); }
+body.sn-app .sn-outline .tree-item-self.sn-tree-row { min-height: 32px; padding: var(--sp-4) var(--sp-8) var(--sp-4) var(--sp-2); border-radius: var(--r-s); font-size: var(--fs-md); gap: var(--sp-8); }
 body.sn-app .sn-outline .tree-item-self.sn-tree-row:hover { background: var(--hover-bg); }
 body.sn-app .sn-outline .tree-item-self.sn-tree-row.is-active { background: var(--sel); }
 /* the keyboard's place in the tree: a ring on the item's row, not around its whole branch (spec A11Y-2) */
@@ -120,12 +120,12 @@ body.sn-app .tree-item-flair { font-size: var(--fs-sm); color: var(--faint); }
 /* on a hovered or current row's grey, the counts and times step up to --muted to stay readable */
 body.sn-app .sn-tree-row:is(:hover, .is-active) .tree-item-flair { color: var(--muted); }
 body.sn-app .tree-item-children { margin-inline-start: 11px; border-color: transparent; }
-body.sn-app .sn-tag-pill { padding: 1px 9px; border: 0; border-radius: var(--r-pill); background: var(--panel); color: var(--tag); font-size: var(--fs-sm); }
+body.sn-app .sn-tag-pill { padding: 1px var(--sp-10); border: 0; border-radius: var(--r-pill); background: var(--panel); color: var(--tag); font-size: var(--fs-sm); }
 body.sn-app .sn-tag-pill:hover { background: color-mix(in srgb, var(--panel) 80%, var(--fg) 10%); }
 body.sn-app .sb-new .wb-label { display: inline; } /* the sidebar's button keeps its label on phones */
 
 /* ---------- Top bar: quiet ghost buttons; search, new card, brand and vault are in the sidebar */
-body.sn-app button.wb-btn { height: var(--ctl-l); padding: 0 10px; border: 0; border-radius: var(--r-s); background: transparent; color: var(--muted); }
+body.sn-app button.wb-btn { height: var(--ctl-l); padding: 0 var(--sp-10); border: 0; border-radius: var(--r-s); background: transparent; color: var(--muted); }
 body.sn-app button.wb-btn:hover { background: var(--hover-bg); color: var(--fg); }
 body.sn-app button.wb-btn.is-active { background: var(--panel); color: var(--ink); }
 body.sn-app button.clickable-icon.wb-icon { width: 34px; height: var(--ctl-l); border-radius: var(--r-s); }
@@ -133,7 +133,7 @@ body.sn-app button.clickable-icon.wb-icon:hover { background: var(--hover-bg); c
 body.sn-app .wb-icon svg, body.sn-app .wb-btn svg { width: var(--icon-m); height: var(--icon-m); }
 
 /* ---------- Board */
-body.sn-app .sn-topbar { min-height: 44px; padding: 4px 14px 4px 10px; }
+body.sn-app .sn-topbar { min-height: 44px; padding: var(--sp-4) var(--sp-14) var(--sp-4) var(--sp-10); }
 body.sn-app .sn-crumb { color: var(--muted); font-weight: var(--fw-medium); }
 body.sn-app .sn-crumb.is-current { color: var(--ink); font-weight: var(--fw-semibold); }
 body.sn-app .sn-crumb-sep { color: var(--faint); }
@@ -145,11 +145,11 @@ body.sn-app .sn-board .sn-topbar .clickable-icon.is-active, body.sn-app .sn-edit
 body.sn-app .sn-seg { background: var(--panel); border-radius: var(--r-s); }
 body.sn-app .sn-board .sn-topbar .sn-seg .clickable-icon { height: var(--ctl-m); font-size: var(--fs-ui); border-radius: var(--r-s); }
 body.sn-app .sn-board .sn-topbar .sn-seg .clickable-icon.is-active { background: var(--win); box-shadow: var(--shadow-1); }
-body.sn-app .sn-page { padding: 14px 24px 60px; }
+body.sn-app .sn-page { padding: var(--sp-14) var(--sp-24) var(--sp-48); }
 
 /* Cards: white notes on the grey, parent above the title, muted preview, pill tags */
 body.sn-app .sn-card {
-  display: flex; flex-direction: column; padding: 14px 16px 8px; border-radius: var(--r-m);
+  display: flex; flex-direction: column; padding: var(--sp-14) var(--sp-16) var(--sp-8); border-radius: var(--r-m);
   background: var(--win); box-shadow: 0 0 0 1px var(--sn-card-border, var(--line));
 }
 body.sn-app .sn-card:hover { box-shadow: 0 0 0 1px var(--sn-card-border-hover, color-mix(in srgb, var(--faint) 50%, var(--line))), var(--shadow-2); }
@@ -162,15 +162,15 @@ body.sn-app .sn-card-icon { color: var(--muted); }
 /* A task's dates on a card's face: one short line, an icon for each kind (a flag for the deadline, a calendar for the
    plan, a tick for closed) and the date as "11 Nov"; the note keeps the full words and timestamps (org-editing.js data-short) */
 /* the date is an inline-block centred on the line like the icon beside it (its own text is hidden, so it has no baseline to share) */
-body.sn-app .sn-tags { gap: 6px; margin-top: 8px; }
-body.sn-app .sn-tag, body.sn-app .markdown-rendered a.tag { padding: 1px 8px; border-radius: var(--r-pill); background: var(--panel); color: var(--tag); font-size: var(--fs-sm); line-height: 16px; }
+body.sn-app .sn-tags { gap: var(--sp-6); margin-top: var(--sp-8); }
+body.sn-app .sn-tag, body.sn-app .markdown-rendered a.tag { padding: 1px var(--sp-8); border-radius: var(--r-pill); background: var(--panel); color: var(--tag); font-size: var(--fs-sm); line-height: 16px; }
 body.sn-app .sn-tag:hover { background: color-mix(in srgb, var(--panel) 80%, var(--fg) 10%); }
 body.sn-app .sn-chip { font-size: var(--fs-sm); border-radius: var(--r-pill); }
 body.sn-app .sn-composer { border-radius: var(--r-m); background: var(--win); box-shadow: 0 0 0 1px var(--line); }
 body.sn-app .sn-composer:focus-within { box-shadow: var(--ring); }
-body.sn-app .sn-board .sn-composer textarea { font-size: var(--fs-md); height: 44px; min-height: 44px; padding: 12px 16px; }
-body.sn-app .sn-composer-hint { font-size: var(--fs-sm); padding: 0 16px 10px; }
-body.sn-app .sn-filterbar { padding: 8px 24px; border-bottom: 0; }
+body.sn-app .sn-board .sn-composer textarea { font-size: var(--fs-md); height: 44px; min-height: 44px; padding: var(--sp-12) var(--sp-16); }
+body.sn-app .sn-composer-hint { font-size: var(--fs-sm); padding: 0 var(--sp-16) var(--sp-10); }
+body.sn-app .sn-filterbar { padding: var(--sp-8) var(--sp-24); border-bottom: 0; }
 body.sn-app .sn-board .sn-filter-btn, body.sn-app .sn-board .sn-filterbar > .clickable-icon { height: var(--ctl-l); border-radius: var(--r-pill); font-size: var(--fs-ui); }
 body.sn-app .sn-board .sn-filter-btn.is-active { border-color: var(--line); background: var(--panel); color: var(--ink); }
 body.sn-app .sn-board .sn-filter-chip { height: var(--ctl-s); border: 0; border-radius: var(--r-pill); background: var(--panel); color: var(--tag); font-family: var(--font-ui); font-size: var(--fs-sm); }
@@ -179,19 +179,19 @@ body.sn-app .sn-selbar { border-radius: var(--r-m); }
 /* ---------- Minibuffer: light, a quiet footer */
 
 /* ---------- Note editor: a white sheet with a big bold title */
-body.sn-app .sn-editor-head { height: 52px; padding: 0 12px 0 14px; border-bottom: 0; }
+body.sn-app .sn-editor-head { height: 52px; padding: 0 var(--sp-12) 0 var(--sp-14); border-bottom: 0; }
 body.sn-app .sn-editor-path { font-weight: var(--fw-medium); color: var(--muted); }
 /* the notebooks a note sits in (editor.js notebookPath): links to their lists, "+N" for its other places, the move button */
-.sn-editor-where { flex: 1; min-width: 0; display: flex; align-items: center; gap: 2px; }
+.sn-editor-where { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--sp-2); }
 body.sn-app .sn-editor-where .sn-editor-path { flex: 0 1 auto; display: flex; align-items: baseline; min-width: 0; }
 .sn-editor-path > a { min-width: 1.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 a.sn-editor-crumb { color: var(--muted); text-decoration: none; }
 a.sn-editor-crumb:hover { color: var(--ink); text-decoration: underline; }
-.sn-editor-crumb-sep { flex: none; padding: 0 5px; color: var(--faint); }
-button.sn-editor-places { flex: none; height: 20px; margin-left: 4px; padding: 0 7px; border: 0; border-radius: var(--r-pill); background: var(--panel); color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; cursor: pointer; }
+.sn-editor-crumb-sep { flex: none; padding: 0 var(--sp-4); color: var(--faint); }
+button.sn-editor-places { flex: none; height: 20px; margin-left: var(--sp-4); padding: 0 var(--sp-8); border: 0; border-radius: var(--r-pill); background: var(--panel); color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; cursor: pointer; }
 button.sn-editor-places:hover { background: var(--accent-soft); color: var(--accent); }
 /* a phone: "‹ Its notebook" instead of the path, the ×, and "+N" (which moves into ⋮) */
-a.sn-editor-back { display: none; min-width: 0; align-items: center; gap: 2px; margin-left: -6px; padding: 4px 8px 4px 2px; border-radius: var(--r-s); color: var(--fg); font-weight: var(--fw-medium); text-decoration: none; }
+a.sn-editor-back { display: none; min-width: 0; align-items: center; gap: var(--sp-2); margin-left: calc(var(--sp-6) * -1); padding: var(--sp-4) var(--sp-8) var(--sp-4) var(--sp-2); border-radius: var(--r-s); color: var(--fg); font-weight: var(--fw-medium); text-decoration: none; }
 a.sn-editor-back > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 a.sn-editor-back svg { flex: none; width: 22px; height: 22px; }
 a.sn-editor-back:active { background: var(--hover-bg); }
@@ -200,11 +200,11 @@ a.sn-editor-back:active { background: var(--hover-bg); }
   body.sn-app .sn-editor-head :is(.sn-editor-path, .sn-editor-places, .sn-editor-close) { display: none; }
 }
 /* the note reads at 16px in a column of about 75 characters (600px of text inside the padding) */
-body.sn-app .sn-editor-page { max-width: 680px; padding: 18px 40px 40vh; }
+body.sn-app .sn-editor-page { max-width: 680px; padding: var(--sp-16) var(--sp-40) 40vh; }
 body.sn-app .sn-editor-badge { color: var(--muted); }
-body.sn-app .sn-inline-title { font-weight: var(--fw-bold); font-size: 32px; line-height: var(--lh-tight); letter-spacing: -.02em; color: var(--ink); margin: 6px 0 12px; }
+body.sn-app .sn-inline-title { font-weight: var(--fw-bold); font-size: 32px; line-height: var(--lh-tight); letter-spacing: -.02em; color: var(--ink); margin: var(--sp-6) 0 var(--sp-12); }
 /* the note's one labelled action: Edit while reading, Done (blue) while editing (editor.js) */
-button.sn-mode-btn { flex: none; display: inline-flex; align-items: center; gap: 6px; height: var(--ctl-l); margin: 0 2px 0 6px; padding: 0 12px 0 10px;
+button.sn-mode-btn { flex: none; display: inline-flex; align-items: center; gap: var(--sp-6); height: var(--ctl-l); margin: 0 var(--sp-2) 0 var(--sp-6); padding: 0 var(--sp-12) 0 var(--sp-10);
   border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--win); color: var(--fg); font-size: var(--fs-ui); font-weight: var(--fw-medium); cursor: pointer; }
 button.sn-mode-btn:hover { background: var(--hover-bg); }
 button.sn-mode-btn svg { display: block; width: var(--icon-s); height: var(--icon-s); } /* a block, so the icon sits in the middle, not on the text's baseline */
@@ -212,10 +212,10 @@ button.sn-mode-btn.is-editing { border-color: transparent; background: var(--cta
 button.sn-mode-btn.is-editing:hover { background: var(--cta-hover); }
 @container (max-width: 640px) { button.sn-mode-btn { width: 30px; padding: 0; justify-content: center; } .sn-mode-label { display: none; } }
 /* reading keeps the room of the editing toolbar above the note, so its title stays put when editing starts */
-.sn-editor.is-read .sn-editor-scroll { padding-top: var(--ed-toolbar-h, 40px); } /* until a toolbar is measured, its min-height (writing.css) */
+.sn-editor.is-read .sn-editor-scroll { padding-top: var(--ed-toolbar-h, var(--ctl-touch)); } /* until a toolbar is measured, its min-height (writing.css) */
 /* reading: one quiet line under the title in place of Properties, and no rule between it and the text (editor-toolbar.js infoLine) */
-.sn-info { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 22px; margin: -4px 0 18px; font-size: var(--fs-sm); color: var(--muted); }
-.sn-info-date { margin-right: 4px; }
+.sn-info { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-6); min-height: 22px; margin: calc(var(--sp-4) * -1) 0 var(--sp-16); font-size: var(--fs-sm); color: var(--muted); }
+.sn-info-date { margin-right: var(--sp-4); }
 body.sn-app button.sn-tag.sn-info-tag { height: auto; border: 0; font-weight: var(--fw-regular); cursor: pointer; }
 body.sn-app .sn-props-head, body.sn-app .sn-editor-foot h4 { font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--muted); }
 body.sn-app .sn-prop:hover { background: var(--hover-bg); }
@@ -242,14 +242,14 @@ body.sn-app .markdown-rendered blockquote { border-inline-start: 3px solid var(-
 body.sn-app .markdown-rendered .sn-pdf-head { font-family: var(--font-ui); }
 
 /* ---------- Menus, dialogs, pickers */
-body.sn-app .menu { border-radius: var(--r-m); padding: 6px; box-shadow: var(--shadow-3); }
-body.sn-app .menu-item { padding: 6px 10px; border-radius: var(--r-s); }
+body.sn-app .menu { border-radius: var(--r-m); padding: var(--sp-6); box-shadow: var(--shadow-3); }
+body.sn-app .menu-item { padding: var(--sp-6) var(--sp-10); border-radius: var(--r-s); }
 body.sn-app .menu-item:hover, body.sn-app .menu-item.is-selected { background: var(--hover-bg); }
 body.sn-app .menu-label { font-size: var(--fs-sm); letter-spacing: 0; text-transform: none; font-weight: var(--fw-medium); color: var(--muted); }
 body.sn-app .modal { border-radius: var(--r-l); }
 body.sn-app .modal-title { font-weight: var(--fw-semibold); font-size: var(--fs-lg); border-bottom: 0; }
 body.sn-app .modal input[type="text"] { height: 36px; border-radius: var(--r-s); font-size: var(--fs-md); }
-body.sn-app .modal-buttons button, body.sn-app .modal-buttons button:not(.clickable-icon) { height: 34px; padding: 0 16px; border-radius: var(--r-pill); font-weight: var(--fw-semibold); }
+body.sn-app .modal-buttons button, body.sn-app .modal-buttons button:not(.clickable-icon) { height: 34px; padding: 0 var(--sp-16); border-radius: var(--r-pill); font-weight: var(--fw-semibold); }
 body.sn-app .modal-buttons button.mod-cta, body.sn-app .setting-item-control .wb-btn.is-cta, body.sn-app button.mod-cta { background: var(--cta); color: var(--on-accent); border-color: var(--cta); }
 body.sn-app .setting-heading { letter-spacing: 0; text-transform: none; font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--muted); }
 body.sn-app .setting-item-name { font-size: var(--fs-md); }
@@ -280,27 +280,27 @@ body.sn-app :is(.wb-btn kbd, button.sn-tb-insert kbd) { font-family: var(--font-
   body.sn-app #app.is-stacked a.sn-editor-back { display: inline-flex; }
   body.sn-app #app.is-stacked .sn-editor-head :is(.sn-editor-path, .sn-editor-places, .sn-editor-close) { display: none; }
 }
-body.sn-app .sn-board.is-notes .sn-page { max-width: 760px; margin: 0 auto; padding: 14px 12px 48px; }
+body.sn-app .sn-board.is-notes .sn-page { max-width: 760px; margin: 0 auto; padding: var(--sp-14) var(--sp-12) var(--sp-48); }
 body.sn-app #app.notes-layout.editor-open .sn-board.is-notes .sn-page { max-width: none; }
-.sn-list-head { display: flex; align-items: baseline; gap: 10px; padding: 4px 8px 12px; min-width: 0; }
+.sn-list-head { display: flex; align-items: baseline; gap: var(--sp-10); padding: var(--sp-4) var(--sp-8) var(--sp-12); min-width: 0; }
 /* The screen title: icon, name at 20px, a faint count. The list of notes, Files and the agenda share it (agenda.css) */
-.sn-list-head .sn-list-title { display: flex; align-items: center; gap: 8px; min-width: 0; margin: 0; font-size: var(--fs-lg); font-weight: var(--fw-semibold); line-height: var(--lh-tight); letter-spacing: -.01em; color: var(--ink); }
+.sn-list-head .sn-list-title { display: flex; align-items: center; gap: var(--sp-8); min-width: 0; margin: 0; font-size: var(--fs-lg); font-weight: var(--fw-semibold); line-height: var(--lh-tight); letter-spacing: -.01em; color: var(--ink); }
 /* a long notebook name gets two lines rather than an ellipsis: with no breadcrumbs, the title is where the list says what it is */
 .sn-list-title > span { overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .sn-list-badge { display: inline-flex; color: var(--muted); }
 .sn-list-badge svg { width: var(--icon-l); height: var(--icon-l); }
 .sn-list-count { flex: none; color: var(--faint); }
 /* the notebook's own text, under its title: three lines that open it beside the list (board.js renderListDesc) */
-.sn-list-desc { margin: -6px 0 12px; padding: 6px 8px; border-radius: var(--r-s); color: var(--muted); line-height: var(--lh-ui); cursor: pointer; }
+.sn-list-desc { margin: calc(var(--sp-6) * -1) 0 var(--sp-12); padding: var(--sp-6) var(--sp-8); border-radius: var(--r-s); color: var(--muted); line-height: var(--lh-ui); cursor: pointer; }
 .sn-list-desc-text { overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 .sn-list-desc:hover { background: var(--hover-bg); color: var(--fg); }
 .sn-list-desc.is-editing { background: var(--sel); color: var(--fg); }
 .sn-list-desc:focus { outline: none; }
 .sn-list-desc:focus-visible { box-shadow: var(--ring); }
-body.sn-app .sn-board.is-notes .sn-composer { margin: 0 0 10px; }
-.sn-rows { display: flex; flex-direction: column; gap: 6px; }
+body.sn-app .sn-board.is-notes .sn-composer { margin: 0 0 var(--sp-10); }
+.sn-rows { display: flex; flex-direction: column; gap: var(--sp-6); }
 body.sn-app .sn-board .sn-card.sn-row {
-  flex-direction: row; align-items: flex-start; gap: 12px; padding: 12px 14px;
+  flex-direction: row; align-items: flex-start; gap: var(--sp-12); padding: var(--sp-12) var(--sp-14);
   background: transparent; box-shadow: none; cursor: default;
 }
 body.sn-app .sn-board .sn-card.sn-row:hover { background: var(--hover-bg); box-shadow: none; }
@@ -315,18 +315,18 @@ body.sn-app .sn-board .sn-card.sn-row.is-picked { background: color-mix(in srgb,
 .sn-rows > .sn-row:not(.is-editing):not(:hover) + .sn-row:not(.is-editing):not(:hover):not(.is-folder)::before {
   content: ""; position: absolute; top: -3.5px; left: 14px; right: 14px; border-top: 1px solid var(--line);
 }
-.sn-row-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-.sn-row-meta { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: var(--fs-sm); line-height: 16px; color: var(--faint); white-space: nowrap; }
-.sn-row-meta > * + *::before { content: "·"; margin-right: 6px; color: var(--faint); }
+.sn-row-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: var(--sp-4); }
+.sn-row-meta { display: flex; align-items: center; gap: var(--sp-6); min-width: 0; font-size: var(--fs-sm); line-height: 16px; color: var(--faint); white-space: nowrap; }
+.sn-row-meta > * + *::before { content: "·"; margin-right: var(--sp-6); color: var(--faint); }
 .sn-row-meta > .sn-row-meta-icon + *::before { content: none; }
 .sn-row-meta-icon { display: inline-flex; color: var(--muted); }
 .sn-row-meta-icon svg { width: var(--icon-xs); height: var(--icon-xs); }
 a.sn-row-parent { min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--muted); font-weight: var(--fw-medium); text-decoration: none; }
 a.sn-row-parent:hover { color: var(--ink); text-decoration: underline; }
 .sn-row-date { flex: none; }
-.sn-row-meta .sn-task-prog { display: inline-flex; align-items: center; gap: 3px; }
+.sn-row-meta .sn-task-prog { display: inline-flex; align-items: center; gap: var(--sp-4); }
 .sn-row-meta .sn-task-prog svg { width: var(--icon-xs); height: var(--icon-xs); }
-.sn-row-head { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.sn-row-head { display: flex; align-items: center; gap: var(--sp-6); min-width: 0; }
 .sn-row-title {
   min-width: 0; font-size: var(--fs-md); font-weight: var(--fw-semibold); line-height: var(--lh-tight); color: var(--ink);
   overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
@@ -336,27 +336,27 @@ a.sn-row-parent:hover { color: var(--ink); text-decoration: underline; }
 }
 /* the tags end the row's last line, after the date: one line, cut at the row's edge */
 body.sn-app .sn-row-meta { overflow: hidden; height: 18px; } /* as high with tags as without: rows of the same text are the same height */
-body.sn-app .sn-row-meta .sn-tags.sn-row-tags { display: inline-flex; flex-wrap: nowrap; gap: 4px; min-width: 0; margin: 0 0 0 2px; overflow: hidden; }
+body.sn-app .sn-row-meta .sn-tags.sn-row-tags { display: inline-flex; flex-wrap: nowrap; gap: var(--sp-4); min-width: 0; margin: 0 0 0 var(--sp-2); overflow: hidden; }
 body.sn-app .sn-row-meta > .sn-row-tags::before { content: none; }
 button.sn-row-enter {
-  flex: none; align-self: center; gap: 2px; height: var(--ctl-l); padding: 0 6px 0 11px;
+  flex: none; align-self: center; gap: var(--sp-2); height: var(--ctl-l); padding: 0 var(--sp-6) 0 var(--sp-12);
   border: 0; border-radius: var(--r-pill); background: var(--panel); color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; cursor: pointer;
 }
 button.sn-row-enter svg { width: var(--icon-m); height: var(--icon-m); }
 button.sn-row-enter:hover, .sn-row:focus-visible button.sn-row-enter { background: var(--accent-soft); color: var(--accent); }
 /* a notebook: one compact line at the top of the list (cards.js renderFolderRow) */
-body.sn-app .sn-board .sn-card.sn-row.is-folder { align-items: center; gap: 10px; padding: 8px 10px 8px 14px; cursor: pointer; }
+body.sn-app .sn-board .sn-card.sn-row.is-folder { align-items: center; gap: var(--sp-10); padding: var(--sp-8) var(--sp-10) var(--sp-8) var(--sp-14); cursor: pointer; }
 .sn-row.is-folder .sn-row-title { flex: 1 1 auto; font-size: var(--fs-md); font-weight: var(--fw-medium); -webkit-line-clamp: 1; }
 .sn-row-folder-icon { flex: none; display: inline-flex; color: var(--muted); }
 .sn-row-folder-icon svg { width: var(--icon-m); height: var(--icon-m); }
-.sn-row-count { flex: none; display: inline-flex; align-items: center; gap: 2px; color: var(--faint); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
+.sn-row-count { flex: none; display: inline-flex; align-items: center; gap: var(--sp-2); color: var(--faint); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
 .sn-row-count svg { width: var(--icon-m); height: var(--icon-m); }
 .sn-row.is-folder:hover .sn-row-count, .sn-row.is-folder:focus-visible .sn-row-count { color: var(--accent); }
-.sn-rows > .sn-row.is-folder + .sn-row:not(.is-folder) { margin-top: 10px; }
-.sn-rows > .sn-row.is-folder + .sn-row.is-folder { margin-top: -4px; }
+.sn-rows > .sn-row.is-folder + .sn-row:not(.is-folder) { margin-top: var(--sp-10); }
+.sn-rows > .sn-row.is-folder + .sn-row.is-folder { margin-top: calc(var(--sp-4) * -1); }
 .sn-row-thumb { flex: none; width: 60px; height: 60px; margin-top: 19px; object-fit: cover; border-radius: var(--r-s); background: var(--panel); box-shadow: 0 0 0 1px var(--line); }
 @media (max-width: 820px) {
-  body.sn-app .sn-board.is-notes .sn-page { padding: 10px 6px 60px; }
+  body.sn-app .sn-board.is-notes .sn-page { padding: var(--sp-10) var(--sp-6) var(--sp-48); }
   .sn-row-thumb { width: 52px; height: 52px; }
 }
 
@@ -365,8 +365,8 @@ body.sn-app .sn-board .sn-card.sn-row.is-folder { align-items: center; gap: 10px
   body.sn-app .sn-main { grid-column: 1; }
   body.sn-app .sn-side { box-shadow: var(--shadow-4); }
   body.sn-app .sn-editor.win { margin-top: 0; border-radius: 0; border: 0; } /* the note over the board fills the screen */
-  body.sn-app .sn-page { padding: 12px 14px 60px; }
-  body.sn-app .sn-editor-page { padding: 12px 14px 40vh; }
+  body.sn-app .sn-page { padding: var(--sp-12) var(--sp-14) var(--sp-48); }
+  body.sn-app .sn-editor-page { padding: var(--sp-12) var(--sp-14) 40vh; }
 }
 
 /* ---------- Touch screens: a bottom bar on phones, and targets a finger can hit */
@@ -375,13 +375,13 @@ body.sn-app .sn-board .sn-card.sn-row.is-folder { align-items: center; gap: 10px
   /* under the sidebar (30), the note (35) and popups: it shows over the board, the agenda and Files */
   .sn-tabbar {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-tabbar); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-    padding: 2px 8px var(--safe-bottom); border-top: 1px solid var(--line);
+    padding: var(--sp-2) var(--sp-8) var(--safe-bottom); border-top: 1px solid var(--line);
     background: color-mix(in srgb, var(--win) 94%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
     transition: transform var(--dur-2) var(--ease);
   }
   .sn-tabbar.is-hidden { transform: translateY(100%); }
   button.sn-tab, button.sn-tab:not(.clickable-icon) {
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; height: 54px; padding: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-2); height: 54px; padding: 0;
     border: 0; background: none; box-shadow: none; color: var(--muted); font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: var(--fw-medium);
   }
   button.sn-tab svg { width: 22px; height: 22px; }
@@ -412,7 +412,7 @@ html.is-native :is(.sn-side, .sn-tabbar, .sn-topbar, .agbar, .ag-strip, .sn-seg,
 html.is-android { -webkit-tap-highlight-color: transparent; }
 /* edge-to-edge screens: the board's own bar keeps clear of the status bar and rounded corners. On Android the vault
    plugin already moves #app below the status bar (VaultPlugin.kt, --sn-inset-*), so nothing more is added here */
-html.is-native body.sn-app .sn-main { padding-top: max(6px, env(safe-area-inset-top)); padding-right: env(safe-area-inset-right); }
+html.is-native body.sn-app .sn-main { padding-top: max(var(--sp-6), env(safe-area-inset-top)); padding-right: env(safe-area-inset-right); }
 @media (max-width: 820px) {
   /* the drawer and the note over the board start below the status bar and end above the gesture bar */
   html.is-android body.sn-app .sn-side { padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
@@ -422,18 +422,18 @@ html.is-native body.sn-app .sn-main { padding-top: max(6px, env(safe-area-inset-
 }
 
 /* ---------- The welcome screen: the app's icon and name on a card, the ways in below */
-.sn-welcome { position: fixed; inset: 0; z-index: var(--z-welcome); display: flex; align-items: center; justify-content: center; padding: calc(16px + var(--safe-top)) 16px calc(16px + var(--safe-bottom)); overflow-y: auto; background: var(--bg); }
-.sn-welcome-card { width: min(440px, 100%); padding: 40px 32px 28px; border: 1px solid var(--line); border-radius: var(--r-l); background: var(--win); box-shadow: var(--shadow-2); text-align: center; }
-.sn-welcome-logo { display: block; width: 72px; height: 72px; margin: 0 auto 14px; }
+.sn-welcome { position: fixed; inset: 0; z-index: var(--z-welcome); display: flex; align-items: center; justify-content: center; padding: calc(var(--sp-16) + var(--safe-top)) var(--sp-16) calc(var(--sp-16) + var(--safe-bottom)); overflow-y: auto; background: var(--bg); }
+.sn-welcome-card { width: min(440px, 100%); padding: var(--sp-40) var(--sp-32) var(--sp-24); border: 1px solid var(--line); border-radius: var(--r-l); background: var(--win); box-shadow: var(--shadow-2); text-align: center; }
+.sn-welcome-logo { display: block; width: 72px; height: 72px; margin: 0 auto var(--sp-14); }
 body.theme-dark .sn-welcome-logo { filter: brightness(.82); } /* the icon's white tile, toned down so it does not glare on the dark card */
-.sn-welcome-title { margin: 0 0 6px; color: var(--ink); font-family: var(--font-ui); font-size: var(--fs-xl); font-weight: var(--fw-bold); letter-spacing: -0.02em; line-height: var(--lh-tight); }
-.sn-welcome-sub { max-width: 340px; margin: 0 auto 26px; color: var(--muted); font-size: var(--fs-md); line-height: var(--lh-ui); }
-.sn-welcome-actions { display: flex; flex-direction: column; align-items: stretch; gap: 8px; max-width: 300px; margin: 0 auto; }
-body.sn-app .sn-welcome-actions button.wb-btn { justify-content: center; gap: 8px; height: var(--ctl-touch); border-radius: var(--r-m); font-size: var(--fs-ui); font-weight: var(--fw-medium); }
+.sn-welcome-title { margin: 0 0 var(--sp-6); color: var(--ink); font-family: var(--font-ui); font-size: var(--fs-xl); font-weight: var(--fw-bold); letter-spacing: -0.02em; line-height: var(--lh-tight); }
+.sn-welcome-sub { max-width: 340px; margin: 0 auto var(--sp-24); color: var(--muted); font-size: var(--fs-md); line-height: var(--lh-ui); }
+.sn-welcome-actions { display: flex; flex-direction: column; align-items: stretch; gap: var(--sp-8); max-width: 300px; margin: 0 auto; }
+body.sn-app .sn-welcome-actions button.wb-btn { justify-content: center; gap: var(--sp-8); height: var(--ctl-touch); border-radius: var(--r-m); font-size: var(--fs-ui); font-weight: var(--fw-medium); }
 body.sn-app .sn-welcome-actions button.wb-btn:not(.primary) { border: 1px solid var(--line); background: var(--win); color: var(--fg); }
 body.sn-app .sn-welcome-actions button.wb-btn:not(.primary):hover { background: var(--hover-bg); }
-.sn-welcome-note { max-width: 340px; margin: 22px auto 0; color: var(--faint); font-size: var(--fs-sm); line-height: var(--lh-ui); }
-.sn-welcome-corner { position: absolute; top: calc(12px + var(--safe-top)); right: 12px; display: flex; gap: 6px; }
+.sn-welcome-note { max-width: 340px; margin: var(--sp-24) auto 0; color: var(--faint); font-size: var(--fs-sm); line-height: var(--lh-ui); }
+.sn-welcome-corner { position: absolute; top: calc(12px + var(--safe-top)); right: 12px; display: flex; gap: var(--sp-6); }
 .sn-welcome-corner .clickable-icon { width: 32px; height: var(--ctl-l); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); }
 
 /* ---------- Settings: sections on the left, groups of rows on cards on the right */
@@ -441,20 +441,20 @@ body.sn-app .modal.mod-settings {
   display: flex; flex-direction: column; width: min(960px, calc(100vw - 48px)); height: min(700px, calc(100vh - 48px));
   padding: 0; overflow: hidden; background: var(--bg);
 }
-body.sn-app .modal.mod-settings > .modal-title { flex: none; margin: 0; padding: 14px 52px 12px 20px; border-bottom: 1px solid var(--line); background: var(--win); font-size: var(--fs-text); }
+body.sn-app .modal.mod-settings > .modal-title { flex: none; margin: 0; padding: var(--sp-14) 52px var(--sp-12) var(--sp-20); border-bottom: 1px solid var(--line); background: var(--win); font-size: var(--fs-text); }
 body.sn-app .modal.mod-settings > .modal-close { top: 9px; right: 10px; }
 .modal.mod-settings > :not(.modal-title):not(.modal-close) { margin-inline: 0; }
 .sn-set-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 230px minmax(0, 1fr); }
-.sn-set-side { display: flex; flex-direction: column; gap: 6px; min-height: 0; padding: 12px 10px; border-right: 1px solid var(--line); overflow-y: auto; }
-.sn-set-search-row { position: relative; flex: none; margin-bottom: 6px; }
+.sn-set-side { display: flex; flex-direction: column; gap: var(--sp-6); min-height: 0; padding: var(--sp-12) var(--sp-10); border-right: 1px solid var(--line); overflow-y: auto; }
+.sn-set-search-row { position: relative; flex: none; margin-bottom: var(--sp-6); }
 .sn-set-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); display: inline-flex; color: var(--muted); pointer-events: none; }
 .sn-set-search-icon svg { width: var(--icon-s); height: var(--icon-s); }
-body.sn-app input.sn-set-search { width: 100%; padding: 0 10px 0 30px; }
+body.sn-app input.sn-set-search { width: 100%; padding: 0 var(--sp-10) 0 30px; }
 .sn-set-tabs { display: flex; flex-direction: column; gap: 1px; }
-.sn-set-nav-group { padding: 12px 10px 4px; color: var(--muted); font-size: var(--fs-sm); font-weight: var(--fw-medium); }
-.sn-set-nav-group:first-child { padding-top: 2px; }
+.sn-set-nav-group { padding: var(--sp-12) var(--sp-10) var(--sp-4); color: var(--muted); font-size: var(--fs-sm); font-weight: var(--fw-medium); }
+.sn-set-nav-group:first-child { padding-top: var(--sp-2); }
 body.sn-app button.sn-set-tab, body.sn-app button.sn-set-tab:not(.clickable-icon) {
-  display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%; height: var(--ctl-l); padding: 0 10px; border: 0; border-radius: var(--r-s);
+  display: flex; align-items: center; justify-content: flex-start; gap: var(--sp-10); width: 100%; height: var(--ctl-l); padding: 0 var(--sp-10); border: 0; border-radius: var(--r-s);
   background: none; box-shadow: none; color: var(--fg); font-size: var(--fs-ui); font-weight: var(--fw-regular); text-align: left; cursor: pointer;
 }
 body.sn-app button.sn-set-tab:hover { background: var(--hover-bg); }
@@ -463,30 +463,30 @@ button.sn-set-tab:focus-visible { outline: 2px solid var(--accent); outline-offs
 .sn-set-tab-icon { display: inline-flex; color: var(--muted); }
 .sn-set-tab-icon svg { width: var(--icon-m); height: var(--icon-m); }
 button.sn-set-tab.is-active .sn-set-tab-icon { color: var(--ink); }
-.sn-set-body { min-height: 0; overflow-y: auto; padding: 20px 28px 32px; }
-.sn-set-heading { margin: 26px 2px 10px; color: var(--ink); font-size: var(--fs-text); font-weight: var(--fw-semibold); }
+.sn-set-body { min-height: 0; overflow-y: auto; padding: var(--sp-20) var(--sp-24) var(--sp-32); }
+.sn-set-heading { margin: var(--sp-24) var(--sp-2) var(--sp-10); color: var(--ink); font-size: var(--fs-text); font-weight: var(--fw-semibold); }
 .sn-set-body > .sn-set-heading:first-child { margin-top: 0; }
 .sn-set-group { border: 1px solid var(--line); border-radius: var(--r-m); background: var(--win); overflow: hidden; }
-.sn-set-group + .sn-set-group { margin-top: 16px; }
-body.sn-app .sn-set-group .setting-item { gap: 24px; padding: 14px 18px; border-top: 1px solid var(--line); }
+.sn-set-group + .sn-set-group { margin-top: var(--sp-16); }
+body.sn-app .sn-set-group .setting-item { gap: var(--sp-24); padding: var(--sp-14) var(--sp-16); border-top: 1px solid var(--line); }
 body.sn-app .sn-set-group .setting-item:first-child { border-top: 0; }
 body.sn-app .sn-set-group .setting-item-name { color: var(--ink); font-size: var(--fs-md); font-weight: var(--fw-medium); }
-body.sn-app .sn-set-group .setting-item-description { margin-top: 3px; color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh-ui); }
+body.sn-app .sn-set-group .setting-item-description { margin-top: var(--sp-4); color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh-ui); }
 body.sn-app .sn-set-group .setting-item-control select { max-width: 240px; }
-.sn-set-note { margin: 12px 4px 0; color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh-ui); }
-.sn-set-body .sn-sync-status { margin: 0 2px 4px; }
-.sn-set-body .sn-sync-note { margin: 12px 4px 0; color: var(--muted); }
-.sn-set-body .modal-buttons { margin-top: 16px; }
-.sn-set-body .sn-about { margin: 0 0 16px; padding: 18px; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--win); }
-.sn-set-group .suggestion-keys { display: inline-flex; gap: 4px; }
+.sn-set-note { margin: var(--sp-12) var(--sp-4) 0; color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh-ui); }
+.sn-set-body .sn-sync-status { margin: 0 var(--sp-2) var(--sp-4); }
+.sn-set-body .sn-sync-note { margin: var(--sp-12) var(--sp-4) 0; color: var(--muted); }
+.sn-set-body .modal-buttons { margin-top: var(--sp-16); }
+.sn-set-body .sn-about { margin: 0 0 var(--sp-16); padding: var(--sp-16); border: 1px solid var(--line); border-radius: var(--r-m); background: var(--win); }
+.sn-set-group .suggestion-keys { display: inline-flex; gap: var(--sp-4); }
 @media (max-width: 720px) {
   body.sn-app .modal.mod-settings { width: 100vw; height: 100dvh; max-height: none; border-radius: 0; padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
   .sn-set-layout { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
-  .sn-set-side { flex-direction: column; padding: 10px 12px 0; border-right: 0; border-bottom: 1px solid var(--line); overflow: visible; }
-  .sn-set-tabs { flex-direction: row; gap: 4px; overflow-x: auto; scrollbar-width: none; padding-bottom: 8px; }
+  .sn-set-side { flex-direction: column; padding: var(--sp-10) var(--sp-12) 0; border-right: 0; border-bottom: 1px solid var(--line); overflow: visible; }
+  .sn-set-tabs { flex-direction: row; gap: var(--sp-4); overflow-x: auto; scrollbar-width: none; padding-bottom: var(--sp-8); }
   .sn-set-tabs::-webkit-scrollbar { display: none; }
   .sn-set-nav-group { display: none; }
   body.sn-app button.sn-set-tab, body.sn-app button.sn-set-tab:not(.clickable-icon) { flex: none; width: auto; }
-  .sn-set-body { padding: 16px 12px 28px; }
-  body.sn-app .sn-set-group .setting-item { flex-wrap: wrap; gap: 10px; padding: 12px 14px; }
+  .sn-set-body { padding: var(--sp-16) var(--sp-12) var(--sp-24); }
+  body.sn-app .sn-set-group .setting-item { flex-wrap: wrap; gap: var(--sp-10); padding: var(--sp-12) var(--sp-14); }
 }

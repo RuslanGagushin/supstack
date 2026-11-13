@@ -106,6 +106,40 @@ test("shadows, layers, weights and motion come from base.css's variables", () =>
   assert.deepEqual(bad, []);
 });
 
+test("padding, margin and gap use the spacing scale; the measured offsets are listed here", () => {
+  const CSS = fileURLToPath(new URL("../web/src/css/", import.meta.url));
+  // [a selector the rule starts with, the pixel value it keeps, why]
+  const allowed = [
+    [".markdown-rendered .org-entry .org-body", "18px", "a task's body starts under its text: box, gap and state letter"],
+    ["body.sn-app input.fv-search", "30px", "room for the search icon"],
+    ["body.sn-app input.sn-set-search", "30px", "room for the search icon"],
+    ["body.sn-app .tree-item-children", "11px", "the indent guide runs under the toggle's centre"],
+    [".sn-reading:not(.sn-live) .sn-table-wrap", "17px", "room for the add-column button"],
+    [".sn-table-host", "17px", "room for the add-column button"],
+    [".sn-table-host", "15px", "room for the add-row button"],
+    [".sn-row-thumb", "19px", "the thumbnail's top meets the row's title"],
+    ["body.sn-app .sn-page", "80px", "clears the phone's tab bar"],
+    ["body.sn-app .modal.mod-settings > .modal-title", "52px", "room for the close button"],
+    [".modal-title", "44px", "room for the close button"],
+    ["select", "28px", "room for the chevron"],
+  ];
+  const bad = [];
+  for (const f of readdirSync(CSS).filter((f) => f.endsWith(".css"))) {
+    const bare = readFileSync(join(CSS, f), "utf8").replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, " "));
+    for (const rule of bare.matchAll(/([^{}]*)\{([^{}]*)\}/g)) {
+      const selector = rule[1].trim().replace(/\s+/g, " ");
+      for (const d of rule[2].matchAll(/(?<![\w-])(?:padding|margin|gap|row-gap|column-gap)(?:-[a-z-]+)?\s*:\s*([^;]+)/g)) {
+        for (const px of d[1].match(/(?<![\w.-])\d+(?:\.\d+)?px\b/g) ?? []) {
+          if (px === "1px" || parseFloat(px) === 0) continue;
+          if (allowed.some(([s, v]) => selector.startsWith(s) && v === px)) continue;
+          bad.push(`${f}: ${selector.slice(0, 60)} { ${d[0].trim()} }`);
+        }
+      }
+    }
+  }
+  assert.deepEqual(bad, []);
+});
+
 test("every CSS variable the stylesheets define is used, by a stylesheet or by the scripts", () => {
   const CSS = fileURLToPath(new URL("../web/src/css/", import.meta.url));
   const bare = readdirSync(CSS).filter((f) => f.endsWith(".css")).map((f) => readFileSync(join(CSS, f), "utf8")).join("\n").replace(/\/\*[\s\S]*?\*\//g, " ");

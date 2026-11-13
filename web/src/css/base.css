@@ -34,8 +34,10 @@ body {
   --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700;
   /* line heights: headings and titles, the interface, a note's text */
   --lh-tight: 1.25; --lh-ui: 1.5; --lh-text: 1.65;
-  --size-2-1: 2px; --size-2-2: 4px; --size-2-3: 6px;
-  --size-4-1: 4px; --size-4-2: 8px; --size-4-3: 12px; --size-4-4: 16px; --size-4-5: 20px; --size-4-12: 48px;
+  /* the spacing scale, named by its size in pixels: every padding, margin and gap uses it (besides 0, 1px hairlines
+     and the few measured offsets listed in tests/architecture.test.mjs) */
+  --sp-2: 2px; --sp-4: 4px; --sp-6: 6px; --sp-8: 8px; --sp-10: 10px; --sp-12: 12px; --sp-14: 14px; --sp-16: 16px;
+  --sp-20: 20px; --sp-24: 24px; --sp-32: 32px; --sp-40: 40px; --sp-48: 48px;
   /* The corner scale, the only radii in the styles (besides circles, 50%, and 1–2px hairlines):
      xs for tiny inline things (kbd, inline code), s for controls (buttons, fields, rows, menu items),
      m for surfaces (cards, menus, popups, the note's sheet), l for dialogs, pill for tags, badges and pill buttons. */
@@ -113,7 +115,7 @@ body {
 
 /* ---------- Base elements */
 button:not(.clickable-icon) {
-  display: inline-flex; align-items: center; justify-content: center; gap: var(--size-2-3); border-radius: var(--r-s);
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-6); border-radius: var(--r-s);
   color: var(--text-normal); font-family: inherit; font-size: var(--fs-ui); font-weight: var(--fw-medium); white-space: nowrap;
 }
 button:not(.clickable-icon):hover { background: var(--interactive-hover); }
@@ -121,7 +123,7 @@ button.mod-cta:hover { background: var(--interactive-accent-hover); }
 input[type="text"], input[type="search"], input[type="number"], input:not([type]), textarea, select {
   background: var(--background-modifier-form-field); border: var(--border-width) solid var(--background-modifier-border);
   border-radius: var(--r-s); color: var(--text-normal); font-family: inherit; font-size: var(--fs-ui);
-  padding: var(--size-4-1) var(--size-4-2); outline: none; height: var(--ctl-m);
+  padding: var(--sp-4) var(--sp-8); outline: none; height: var(--ctl-m);
 }
 textarea { height: auto; }
 /* drop-downs drawn by the app rather than the system: the field's own look and a chevron in the muted colour */
@@ -136,7 +138,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--background-modif
 input[type="checkbox"] { accent-color: var(--interactive-accent); }
 .clickable-icon {
   display: flex; align-items: center; justify-content: center;
-  padding: var(--size-2-2) var(--size-2-3); border: 0; border-radius: var(--r-s);
+  padding: var(--sp-4) var(--sp-6); border: 0; border-radius: var(--r-s);
   background: transparent; color: var(--icon-color);
   font-family: inherit;
 }
@@ -155,7 +157,7 @@ input[type="checkbox"] { accent-color: var(--interactive-accent); }
   border-inline-start: var(--nav-indentation-guide-width) solid var(--nav-indentation-guide-color);
 }
 .tree-item-inner { flex: 1 1 auto; min-width: 0; }
-.tree-item-flair-outer { margin-inline-start: auto; padding-inline-start: var(--size-4-1); }
+.tree-item-flair-outer { margin-inline-start: auto; padding-inline-start: var(--sp-4); }
 
 /* ---------- Rendered markdown (reading view) */
 .markdown-rendered p { margin-block: 0 1em; }
