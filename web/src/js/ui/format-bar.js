@@ -48,8 +48,11 @@ export function edSetHeading(ta, n) {
 }
 export function downloadNote(path) {
   const n = vault.notes.get(path);
-  if (!n) return;
-  const a = h("a", { href: URL.createObjectURL(new Blob([n.raw], { type: "text/markdown" })), download: path.split("/").pop() });
+  if (n) downloadText(path.split("/").pop(), n.raw, "text/markdown");
+}
+/** Hand the viewer a file to save. */
+export function downloadText(name, text, type) {
+  const a = h("a", { href: URL.createObjectURL(new Blob([text], { type })), download: name });
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }

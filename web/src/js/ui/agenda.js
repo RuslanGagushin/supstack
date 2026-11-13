@@ -19,6 +19,8 @@ import { setSide, sideToggle } from "./shell.js";
 import { orgCycle, orgEdit, orgPickPriority, orgPickState, orgPlanEntry, orgPri, orgRefocus, orgTagsEntry } from "./org-commands.js";
 import { openEditorAtLine, orgAskDate, orgCalendar, orgDateText } from "./org-editing.js";
 import { dateChip, taskBox, taskIcon } from "./task-icons.js";
+import { tasksToIcs } from "../core/ics.js";
+import { downloadText } from "./format-bar.js";
 
 /* ---------- agenda state */
 // log is on by default: a task closed on a day stays on that day, struck through
@@ -127,6 +129,13 @@ function renderMonth(body, all, T, pass) {
   }
   body.append(grid);
 }
+/** Save the dated tasks and events as a calendar file (TASK-7) for a calendar app to import. */
+export function exportCalendar() {
+  const { text, events } = tasksToIcs(orgAll(), { labels: { deadline: tt("lDeadline").replace(/:$/, "") } });
+  if (!events) { echo(tt("icsNone")); return; }
+  downloadText("Supstack tasks.ics", text, "text/calendar");
+  echo(tt("icsDone", { n: events }));
+}
 export function renderTasksView(root) {
   const body0 = root.querySelector(".ag-body");
   const oldScroll = body0?.scrollTop || 0;
@@ -162,7 +171,8 @@ export function renderTasksView(root) {
     const sp = h("div", { cls: "sn-seg" });
     for (const [v, k, key] of [["day", "day", "d"], ["week", "week", "w"], ["month", "month", "M"]]) { const b = h("button", { cls: "clickable-icon" + (AG.span === v ? " is-active" : ""), type: "button", text: tt(k), title: `${tt(k)} (${key})` }); b.addEventListener("click", () => { AG.span = v; saveAG(); renderBoard(); }); sp.append(b); }
     agbar.append(sp, btn("‹", tt("earlier"), () => orgNav(-1)), btn(tt("today"), tt("today") + " (.)", () => orgNav(0)), btn("›", tt("later"), () => orgNav(1)),
-      btn(tt("goTo"), tt("goTo") + " (j)", () => orgNav("jump"), null, "ag-wide-only"), btn(tt("log"), tt("log") + " (l)", () => { AG.log = !AG.log; saveAG(); renderBoard(); }, AG.log, "ag-wide-only"));
+      btn(tt("goTo"), tt("goTo") + " (j)", () => orgNav("jump"), null, "ag-wide-only"), btn(tt("log"), tt("log") + " (l)", () => { AG.log = !AG.log; saveAG(); renderBoard(); }, AG.log, "ag-wide-only"),
+      iconBtn("calendar-arrow-down", tt("icsExport"), exportCalendar, "ag-wide-only ag-ics"));
   } else if (AG.view === "todo") {
     const sp = h("div", { cls: "sn-seg" });
     for (const k of TODO_FILTERS) {
@@ -203,6 +213,7 @@ export function renderTasksView(root) {
     const fb = iconBtn("sliders-horizontal", tt("filters"), (e) => {
       const m = new Menu();
       if (AG.view === "agenda") m.add(tt("log"), "history", () => { AG.log = !AG.log; saveAG(); renderBoard(); }, { checked: !!AG.log });
+      if (AG.view === "agenda") m.add(tt("icsExport"), "calendar-arrow-down", exportCalendar);
       if (tags.length) {
         m.sep(); m.label(tt("filterTags"));
         for (const tg of tags) {
