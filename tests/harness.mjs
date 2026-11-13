@@ -53,14 +53,15 @@ export const SVG = { data: '<svg xmlns="http://www.w3.org/2000/svg" width="40" h
  * reopens the last folder on its own, the way the app starts. Native-only parts (the Files button, git sync) render.
  * The modules' exports are not globals here unless `expose` (it would hide a missing import); window.SupstackApp gives the vault.
  * Every call to Tauri is recorded in window.__invokes as [command, args].
+ * - watch: the plugin watches the folder, as on desktop; a test reports changes with window.__vaultChanged(changes)
  */
-export async function openNativeApp({ notes = { "Home.md": "# Home\n\n- TODO Write" }, viewport = { width: 1280, height: 800 }, expose = false, storage = {} } = {}) {
+export async function openNativeApp({ notes = { "Home.md": "# Home\n\n- TODO Write" }, viewport = { width: 1280, height: 800 }, expose = false, storage = {}, watch = false } = {}) {
   await page?.close();
   page = await (await launch()).newPage({ viewport, locale: "en-US" });
   errors = [];
   page.setDefaultTimeout(15000);
   page.on("pageerror", (e) => errors.push(e));
-  await page.addInitScript(({ notes, expose, storage }) => {
+  await page.addInitScript(({ notes, expose, storage, watch }) => {
     // no __SN_EXPOSE__ by default: it makes every export a global, which hides a missing import
     if (expose) window.__SN_EXPOSE__ = true;
     window.__invokes = [];
@@ -77,7 +78,14 @@ export async function openNativeApp({ notes = { "Home.md": "# Home\n\n- TODO Wri
       remove: (a) => { delete files[a.path]; return null; },
       list_dir: () => [], remove_dir: () => null, git_info: () => ({ repo: false }), git_save_settings: () => null,
     };
-    window.__TAURI__ = { core: { invoke: async (cmd, a) => {
+    if (watch) {
+      // the watcher's events: "vault://changed" with { root, changes: [{ path, mtime, size }] }, mtime null for a file that is gone
+      const listeners = new Set();
+      Object.assign(vault, { watch: () => true, unwatch: () => null });
+      window.__vaultChanged = (changes) => { for (const fn of listeners) fn({ event: "vault://changed", payload: { root: "/vault", changes } }); };
+      window.__TAURI__ = { event: { listen: async (name, fn) => { if (name === "vault://changed") listeners.add(fn); return () => listeners.delete(fn); } } };
+    }
+    window.__TAURI__ = { ...window.__TAURI__, core: { invoke: async (cmd, a) => {
       window.__invokes.push([cmd, a]);
       const [plugin, c] = cmd.split("|");
       if (plugin !== "plugin:vault") return null;
@@ -85,7 +93,7 @@ export async function openNativeApp({ notes = { "Home.md": "# Home\n\n- TODO Wri
       return vault[c](a);
     } } };
     try { localStorage.clear(); localStorage.setItem("sn-ui", JSON.stringify({ lang: "en" })); localStorage.setItem("sn-native-last", JSON.stringify({ root: "/vault", name: "Vault" })); for (const [k, v] of Object.entries(storage)) localStorage.setItem(k, JSON.stringify(v)); } catch { /* file:// storage */ }
-  }, { notes, expose, storage });
+  }, { notes, expose, storage, watch });
   await page.goto(PAGE);
   await page.waitForSelector("#board", { state: "attached" });
   return page;

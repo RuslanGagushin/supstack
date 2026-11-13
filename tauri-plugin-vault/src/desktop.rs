@@ -8,20 +8,22 @@ use std::{
 
 use base64::{engine::general_purpose::STANDARD, Engine};
 use serde::de::DeserializeOwned;
-use tauri::{plugin::PluginApi, AppHandle, Manager, Runtime};
+use tauri::{plugin::PluginApi, AppHandle, Emitter, Manager, Runtime};
 use tauri_plugin_dialog::DialogExt;
 
 use crate::{models::*, Error, Result};
 
 pub fn init<R: Runtime, C: DeserializeOwned>(app: &AppHandle<R>, _api: PluginApi<R, C>) -> Result<Vault<R>> {
     let file = app.path().app_config_dir().ok().map(|d| d.join("vaults.json"));
-    Ok(Vault { app: app.clone(), roots: Roots::load(file) })
+    Ok(Vault { app: app.clone(), roots: Roots::load(file), watch: Mutex::new(None) })
 }
 
 /// Desktop implementation: plain files under the picked folder.
 pub struct Vault<R: Runtime> {
     app: AppHandle<R>,
     roots: Roots,
+    /// the folder being watched for outside changes (one at a time: the open vault)
+    watch: Mutex<Option<crate::watch::Watch>>,
 }
 
 /// The folders the user picked in the app's own folder dialog. The page names the vault by its path, and only those
@@ -176,6 +178,28 @@ impl<R: Runtime> Vault<R> {
     pub fn exists(&self, root: String, path: String) -> Result<bool> {
         self.check_root(&root)?;
         exists(&root, &path)
+    }
+
+    /// Watch `root` instead of the folder watched so far; each batch of changes is sent to the page as a
+    /// "vault://changed" event with { root, changes: [{ path, mtime, size }] } (mtime and size null: the file is gone).
+    pub fn watch(&self, root: String) -> Result<bool> {
+        self.check_root(&root)?;
+        let mut g = self.watch.lock().unwrap_or_else(|e| e.into_inner());
+        if g.as_ref().is_some_and(|w| w.root == root) {
+            return Ok(true);
+        }
+        *g = None;
+        let app = self.app.clone();
+        let r = root.clone();
+        *g = Some(crate::watch::start(&root, move |changes| {
+            let _ = app.emit("vault://changed", serde_json::json!({ "root": r, "changes": changes }));
+        })?);
+        Ok(true)
+    }
+
+    pub fn unwatch(&self) -> Result<()> {
+        *self.watch.lock().unwrap_or_else(|e| e.into_inner()) = None;
+        Ok(())
     }
 }
 

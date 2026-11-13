@@ -65,4 +65,13 @@ impl<R: Runtime> Vault<R> {
         let r: BoolResponse = self.0.run_mobile_plugin("exists", PathArgs { root, path })?;
         Ok(r.value)
     }
+
+    /// The Storage Access Framework has no way to watch a folder: the page keeps polling.
+    pub fn watch(&self, _root: String) -> Result<bool> {
+        Ok(false)
+    }
+
+    pub fn unwatch(&self) -> Result<()> {
+        Ok(())
+    }
 }

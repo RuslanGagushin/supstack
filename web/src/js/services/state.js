@@ -21,6 +21,7 @@ export const vault = {
   allPaths: new Set(),
   sizes: new Map(), // path -> bytes (for the sync size limit)
   mtimes: new Map(), // attachment path -> last modified (for the Files view)
+  watching: false, // the app watches the folder and reports changes (desktop); pollChanges then rarely lists it
   stats: { parsed: 0, cached: 0 }, // the last time the vault was read: notes parsed, notes taken from the index cache
 };
 /** The frontmatter property that lists a card's parents. */

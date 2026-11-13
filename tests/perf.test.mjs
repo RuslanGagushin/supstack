@@ -160,3 +160,61 @@ describe("the index cache (PERF-5, PERF-6)", () => {
     assert.deepEqual(await reopen(), { parsed: 0, cached: N, reads: 0 }, "and built again");
   });
 });
+
+describe("watching the folder on desktop (PERF-3)", () => {
+  const N = 1000;
+  const open = async () => {
+    await openNativeApp({ notes: bigVault(N), expose: true, watch: true });
+    await ev((n) => new Promise((r) => { const t = setInterval(() => { if (vault.notes.size >= n && vault.watching) { clearInterval(t); r(); } }, 20); }), N);
+  };
+  const calls = () => ev(() => window.__invokes.map(([c, a]) => [c.split("|")[1], a?.path ?? null]));
+
+  test("a file changed elsewhere is the only one read, and shows within two seconds, with no listing of the vault", async () => {
+    await open();
+    const path = await ev(() => [...vault.notes.keys()].find((p) => p.startsWith("cards/")));
+    const ms = await ev(async (p) => {
+      window.__invokes.length = 0;
+      const f = window.__vaultFiles[p];
+      const t0 = performance.now();
+      window.__vaultFiles[p] = { text: f.text + "\nFrom another editor.\n", mtime: f.mtime + 1000 };
+      window.__vaultChanged([{ path: p, mtime: f.mtime + 1000, size: new TextEncoder().encode(window.__vaultFiles[p].text).length }]);
+      await new Promise((r) => { const t = setInterval(() => { if (/From another editor/.test(vault.notes.get(p).raw)) { clearInterval(t); r(); } }, 10); });
+      return performance.now() - t0;
+    }, path);
+    assert.ok(ms < 2000, `${ms} ms`);
+    assert.deepEqual(await calls(), [["read", path]]);
+    // the interval's poll does not list the vault while it is watched; a forced one (after a sync) does
+    await ev(() => { window.__invokes.length = 0; return pollChanges(); });
+    assert.deepEqual(await calls(), []);
+    await ev(() => pollChanges({ force: true }));
+    assert.deepEqual(await calls(), [["list", null]]);
+  });
+
+  test("new files, deleted files and a deleted folder are picked up; the app's own saves are not read back", async () => {
+    await open();
+    await ev(async () => {
+      window.__vaultFiles["cards/Trip/Day 1.md"] = { text: "Day one #trip\n", mtime: 7 };
+      window.__vaultFiles["cards/Trip/Day 2.md"] = { text: "Day two\n", mtime: 7 };
+      window.__vaultChanged([{ path: "cards/Trip/Day 1.md", mtime: 7, size: 14 }, { path: "cards/Trip/Day 2.md", mtime: 7, size: 8 }]);
+      await new Promise((r) => { const t = setInterval(() => { if (vault.notes.has("cards/Trip/Day 2.md")) { clearInterval(t); r(); } }, 10); });
+    });
+    assert.deepEqual(await ev(() => vault.notes.get("cards/Trip/Day 1.md").tags), ["#trip"]);
+    // the watcher names a deleted folder, not its files
+    await ev(async () => {
+      delete window.__vaultFiles["cards/Trip/Day 1.md"]; delete window.__vaultFiles["cards/Trip/Day 2.md"];
+      window.__vaultChanged([{ path: "cards/Trip", mtime: null, size: null }]);
+      await new Promise((r) => { const t = setInterval(() => { if (!vault.notes.has("cards/Trip/Day 1.md")) { clearInterval(t); r(); } }, 10); });
+    });
+    assert.equal(await ev(() => [...vault.allPaths].some((p) => p.startsWith("cards/Trip/"))), false);
+    // a save in the app comes back from the watcher with the time it was written at: nothing to read
+    const p = await ev(() => [...vault.notes.keys()].find((x) => x.startsWith("cards/")));
+    await ev(async (p) => {
+      await writeRaw(p, vault.notes.get(p).raw + "Saved here.\n");
+      window.__invokes.length = 0;
+      const f = window.__vaultFiles[p];
+      window.__vaultChanged([{ path: p, mtime: f.mtime, size: new TextEncoder().encode(f.text).length }]);
+      await new Promise((r) => setTimeout(r, 100));
+    }, p);
+    assert.deepEqual(await calls(), []);
+  });
+});

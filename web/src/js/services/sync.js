@@ -92,7 +92,7 @@ export async function runSync({ quiet = false } = {}) {
       remote: SS.remote.trim(), branch: SS.branch.trim() || "main", username: SS.username.trim(), token: SS.token,
       authorName: SS.authorName.trim(), authorEmail: SS.authorEmail.trim() } });
     sync.report = r; sync.last = Date.now();
-    if (r.pulled || r.conflicts.length) await pollChanges();
+    if (r.pulled || r.conflicts.length) await pollChanges({ force: true });
     if (r.conflicts.length) emit("notice", st("conflictsNotice", { n: r.conflicts.length }));
     else if (!quiet) emit("notice", st("synced", { time: new Date(sync.last).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) }));
   } catch (e) {

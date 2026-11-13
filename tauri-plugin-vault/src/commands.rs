@@ -48,6 +48,17 @@ pub(crate) async fn exists<R: Runtime>(app: AppHandle<R>, root: String, path: St
     app.vault().exists(root, path)
 }
 
+/// Start watching the vault folder; changes arrive as "vault://changed" events. False where the system can't watch (Android).
+#[command]
+pub(crate) async fn watch<R: Runtime>(app: AppHandle<R>, root: String) -> Result<bool> {
+    app.vault().watch(root)
+}
+
+#[command]
+pub(crate) async fn unwatch<R: Runtime>(app: AppHandle<R>) -> Result<()> {
+    app.vault().unwatch()
+}
+
 #[command]
 pub(crate) async fn git_sync<R: Runtime>(app: AppHandle<R>, root: String, config: crate::git::GitConfig) -> Result<crate::git::GitReport> {
     tauri::async_runtime::spawn_blocking(move || crate::git::sync(&app, root, config))

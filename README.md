@@ -162,7 +162,7 @@ Want to look around first? **Try the demo vault** loads sample notebooks in memo
 
 **The three folders are the same in every vault**, so there is nothing to set up: Supstack creates them as needed, and a folder that already exists with other letter case (`Cards/`) is used as it is. Each time a vault is opened, notes outside them are moved into `cards/`, keeping their subfolders, so links to them keep working; files that are not notes stay where they are.
 
-**Changes made outside the app**, in another editor or by a sync tool such as Syncthing, are picked up every few seconds while the app is in front, and whenever you switch back to it. Desktop writes go through a temporary file and a rename, so other apps never see a half-written note.
+**Changes made outside the app**, in another editor or by a sync tool such as Syncthing, are picked up as they happen on Windows and macOS: the app watches the vault folder and reads only the files that changed, and looks over the whole vault once a minute in case something was missed. On Android, and in a browser, the vault is looked over every few seconds while the app is in front, and whenever you switch back to it. Desktop writes go through a temporary file and a rename, so other apps never see a half-written note.
 
 ---
 
@@ -177,7 +177,7 @@ web/src/                    the Supstack page's sources: page.html, css/, js/ (E
 scripts/page.mjs            builds them into one file, web/supstack.html (not committed)
 scripts/web.mjs             builds the page and copies it to dist/index.html before every app build
 src-tauri/                  the Tauri app: window, permissions (capabilities/default.json), icons
-tauri-plugin-vault/         vault file access: pick the folder, list, read, write, delete
+tauri-plugin-vault/         vault file access: pick the folder, list, read, write, delete, watch for changes (desktop)
   src/desktop.rs            Windows/macOS: plain file access with atomic writes
   android/…/VaultPlugin.kt  Android: Storage Access Framework, plus system-bar insets for the page
 .github/workflows/apps.yml  builds all three apps on GitHub
