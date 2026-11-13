@@ -123,6 +123,13 @@ button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--f
 .markdown-rendered .callout.is-collapsed > .callout-title .callout-fold { transform: rotate(-90deg); }
 .markdown-rendered .callout.is-collapsed > .callout-content { display: none; }
 .markdown-rendered .internal-embed { display: block; padding: var(--size-2-3) var(--size-4-3); border-radius: 0 var(--radius-s) var(--radius-s) 0; margin-block: 0 1em; border-inline-start: 2px solid var(--accent); background: var(--code-bg); }
+/* an embedded note (![[Note]]): its name as a quiet link, then its text, set off by a line rather than a fill */
+.markdown-rendered .sn-note-embed { padding: var(--size-2-2) 0 var(--size-2-2) var(--size-4-3); background: none; border-inline-start-color: var(--line); }
+.markdown-rendered .sn-embed-head { margin-bottom: var(--size-2-2); font-size: var(--fs-sm); }
+.markdown-rendered .sn-embed-head .internal-link { color: var(--muted); text-decoration: none; }
+.markdown-rendered .sn-embed-head .internal-link:hover { color: var(--accent); }
+.markdown-rendered .sn-embed-body > :first-child { margin-top: 0; }
+.markdown-rendered .sn-embed-body > :last-child { margin-bottom: 0; }
 .markdown-rendered .sn-pdf { display: block; margin-block: 0 1em; border: 1px solid var(--line); border-radius: var(--r-s); overflow: hidden; background: var(--panel); }
 .markdown-rendered .sn-pdf-head { display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-bottom: 1px solid var(--line); font-family: var(--font-mono); font-size: var(--fs-ui); }
 .markdown-rendered .sn-pdf-head .internal-link { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

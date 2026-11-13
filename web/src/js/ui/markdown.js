@@ -9,6 +9,7 @@ import { editor, graph, vault } from "../services/state.js";
 import { resolveAttachment, resolveFileLink, resolveLink } from "../services/vault.js";
 import { attachmentUrl, IMG_EXT, PDF_EXT } from "../services/attachments.js";
 import { orgLine, orgSetState, TASK_LINE_RE, taskState, taskStateName } from "../core/org.js";
+import { EMBED_DEPTH, embedAllowed, embedSection } from "../core/embed.js";
 import { txn, writeRaw } from "../services/save.js";
 import { h, ic, isMod } from "./dom.js";
 import { createCard } from "./actions.js";
@@ -201,7 +202,8 @@ export function renderMarkdown(md, sourcePath, opts = {}) {
       return `<img class="sn-embed-img" data-embed="${esc(tpath)}" alt="${esc(alias && !w ? alias : tpath)}"${w}>`;
     }
     if (PDF_EXT.test(tpath)) return `<span class="sn-embed-pdf" data-embed="${esc(target.trim())}"></span>`;
-    return `<span class="internal-embed"><a class="internal-link" data-href="${esc(target)}">${esc(alias || target)}</a></span>`;
+    // a note: drawn after the rest (embedNotes); until then, and when it can't be drawn, a link to it
+    return `<span class="internal-embed" data-embed-note="${esc(target.trim())}"><a class="internal-link" data-href="${esc(target)}">${esc(alias || target)}</a></span>`;
   });
   s = s.replace(/\[\[([^\]]+)\]\]/g, (m, inner) => {
     const [target, alias] = inner.split("|");
@@ -214,7 +216,7 @@ export function renderMarkdown(md, sourcePath, opts = {}) {
   s = s.replace(/(^|[\s,;])#([\p{L}\p{N}_/-]*[\p{L}_/-][\p{L}\p{N}_/-]*)/gu, (m, pre, tag) => `${pre}<a class="tag" data-tag="${esc(tag)}">#${esc(tag)}</a>`);
   s = s.replace(/(\d+)/g, (m, i) => codes[+i]);
   let html = marked.parse(s, { gfm: true, breaks: true });
-  html = DOMPurify.sanitize(html, { ADD_ATTR: ["target", "data-href", "data-embed", "data-tag"] });
+  html = DOMPurify.sanitize(html, { ADD_ATTR: ["target", "data-href", "data-embed", "data-embed-note", "data-tag"] });
   const el = opts.into || document.createElement("div");
   el.innerHTML = html;
   // Callouts
@@ -290,7 +292,47 @@ export function renderMarkdown(md, sourcePath, opts = {}) {
   }
   try { orgDecorate(el, sourcePath, { short: !!opts.shortDates }); } catch (err) { console.warn(err); }
   decorateCodeBlocks(el);
+  embedNotes(el, sourcePath, opts);
   return el;
+}
+/**
+ * ![[Note]] and ![[Note#Heading]] show that note, or its section, in place (spec LINK-1), drawn by renderMarkdown in
+ * turn. Embeds inside embeds go EMBED_DEPTH levels deep; a deeper one, or one that would go round a cycle, stays a
+ * link (LINK-2). Tasks in an embed are shown, not ticked: a click there would count boxes in the wrong note.
+ */
+function embedNotes(el, sourcePath, opts) {
+  const depth = opts.embedDepth || 0, chain = opts.embedChain || [sourcePath];
+  for (const span of el.querySelectorAll("span.internal-embed[data-embed-note]")) {
+    if (span.closest(".sn-note-embed")) continue; // drawn by the embed it is in
+    const target = span.dataset.embedNote, link = span.querySelector("a.internal-link");
+    const [name, heading = ""] = target.split("#");
+    const path = resolveLink(extractLinkpath(`[[${name}]]`), sourcePath);
+    const n = path && vault.notes.get(path);
+    if (!n) { link?.classList.add("is-unresolved"); continue; }
+    const stop = embedAllowed(path, depth, chain);
+    const section = stop || heading.startsWith("^") ? null : embedSection(n.body, heading);
+    if (section == null) {
+      span.classList.add("is-embed-stopped");
+      span.title = stop === "depth" ? t("embedDeep", { n: EMBED_DEPTH }) : stop === "cycle" ? t("embedCycle") : t("embedNoHeading", { h: heading });
+      continue;
+    }
+    const box = h("div", { cls: "internal-embed sn-note-embed", dataset: { embedPath: path } });
+    const head = h("div", { cls: "sn-embed-head" }, h("a", { cls: "internal-link", dataset: { href: target }, text: name.trim() + (heading ? " › " + heading.trim() : "") }));
+    const body = h("div", { cls: "sn-embed-body" });
+    renderMarkdown(section, path, { into: body, embedDepth: depth + 1, embedChain: [...chain, path], shortDates: opts.shortDates });
+    for (const tb of body.querySelectorAll(".task-box[data-task]")) delete tb.dataset.task;
+    box.append(head, body);
+    // a block can't sit in a paragraph: one that holds only the embed gives way to it, a longer one is split around it
+    const p = span.parentElement?.tagName === "P" ? span.parentElement : null;
+    if (!p) { span.replaceWith(box); continue; }
+    const rest = h("p");
+    while (span.nextSibling) rest.append(span.nextSibling);
+    span.remove();
+    p.after(box, rest);
+    const trim = (x, end) => { while (x[end] && (x[end].nodeName === "BR" || x[end].nodeType === 3 && !x[end].textContent.trim())) x[end].remove(); };
+    trim(p, "lastChild"); trim(rest, "firstChild");
+    for (const x of [p, rest]) if (!x.childNodes.length) x.remove();
+  }
 }
 export function wireRendered(el, sourcePath) {
   el.addEventListener("click", (e) => {

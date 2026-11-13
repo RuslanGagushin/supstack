@@ -15,7 +15,7 @@ import { renderMarkdown, wireRendered } from "./markdown.js";
 import { promptIcon, renameCard } from "./actions.js";
 import { cardMenu } from "./cards.js";
 import { cardSig, setTarget } from "./board.js";
-import { livePreviewExtensions, liveTa, liveText, renderLive, wireLive } from "./live-preview.js";
+import { livePreviewExtensions, liveTa, liveText, refreshLiveEmbeds, renderLive, wireLive } from "./live-preview.js";
 import { editorTable, editorTableOp, tableMenu } from "./table-editor.js";
 import { editorKeys, renderEditorProps, renderEdToolbar, toggleReading, updateEdToolbar } from "./editor-toolbar.js";
 import { downloadNote, updateFmtBar } from "./format-bar.js";
@@ -390,3 +390,14 @@ export function editorTextarea(value, live = false) {
 on("flush", async (path) => { if (editor.dirty && (path === undefined || editor.path === path)) await saveEditor(); });
 on("written", (path, { silentEditor }) => { if (!silentEditor && editor.path === path && !editor.dirty) syncEditorFromDisk(); });
 on("changed", (o) => { if (o?.disk && editor.path && !editor.dirty) syncEditorFromDisk(); });
+/** Another note changed while the open one shows notes inside it (![[Note]]): draw those again. */
+function refreshEmbeds(path) {
+  if (!editor.path || path === editor.path || !document.querySelector("#editor .internal-embed[data-embed-note], #editor .sn-note-embed")) return;
+  const n = vault.notes.get(editor.path);
+  if (!n) return;
+  const rd = editor.mode === "read" && $("#editor .sn-reading:not(.sn-live)");
+  if (rd) renderMarkdown(n.body, editor.path, { into: rd, pdf: true, shortDates: true });
+  else if (editor.mode === "edit") refreshLiveEmbeds();
+}
+on("written", (path) => refreshEmbeds(path));
+on("changed", () => refreshEmbeds(null));

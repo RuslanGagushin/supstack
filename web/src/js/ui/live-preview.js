@@ -79,6 +79,15 @@ export function wireLive(box, path) {
 
 /* the decorations: the caret "touches" a piece of text when the editor has focus and a selection range meets it */
 const lpFocus = CM.StateEffect.define();
+/** Embedded notes changed: their widgets are drawn again (refreshLiveEmbeds). */
+const lpEmbeds = CM.StateEffect.define();
+let embedVersion = 0;
+export function refreshLiveEmbeds() {
+  const view = liveTa()?.cmView;
+  if (!view) return;
+  embedVersion++;
+  view.dispatch({ effects: lpEmbeds.of(embedVersion) });
+}
 const lpFocused = CM.StateField.define({ create: () => false, update: (v, tr) => { for (const e of tr.effects) if (e.is(lpFocus)) v = e.value; return v; } });
 const lpNear = (state, from, to) => state.field(lpFocused) && state.selection.ranges.some((r) => r.from <= to && r.to >= from);
 const lpNearLine = (state, pos) => { const l = state.doc.lineAt(pos); return lpNear(state, l.from, l.to); };
@@ -128,8 +137,9 @@ class LpBox extends CM.WidgetType {
 }
 /** Rendered Markdown in the document: an embed inline, or a whole block (a callout, a code block); a click opens its source at that spot. */
 class LpRendered extends CM.WidgetType {
-  constructor(text, block) { super(); this.text = text; this.block = block; }
-  eq(o) { return o.text === this.text && o.block === this.block; }
+  // an embed's widget is also drawn again when the notes it shows change (embedVersion)
+  constructor(text, block) { super(); this.text = text; this.block = block; this.version = text.startsWith("![[") ? embedVersion : 0; }
+  eq(o) { return o.text === this.text && o.block === this.block && o.version === this.version; }
   toDOM(view) {
     const el = h(this.block ? "div" : "span", { cls: this.block ? "lp-block" : "lp-inline" });
     renderMarkdown(this.text, editor.path, { into: el, pdf: true });
@@ -296,7 +306,7 @@ function lpInline(view) {
 }
 const lpInlinePlugin = CM.ViewPlugin.fromClass(class {
   constructor(view) { this.decorations = lpInline(view); }
-  update(u) { if (u.docChanged || u.viewportChanged || u.selectionSet || u.transactions.some((tr) => tr.effects.some((e) => e.is(lpFocus)))) this.decorations = lpInline(u.view); }
+  update(u) { if (u.docChanged || u.viewportChanged || u.selectionSet || u.transactions.some((tr) => tr.effects.some((e) => e.is(lpFocus) || e.is(lpEmbeds)))) this.decorations = lpInline(u.view); }
 }, { decorations: (v) => v.decorations });
 /** Block decorations (a StateField: they replace whole lines): tables always, callouts and code blocks away from the caret. */
 function lpBlocks(state) {
