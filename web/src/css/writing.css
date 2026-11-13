@@ -120,7 +120,7 @@ button.sn-tag-pill .n { color: var(--muted); font-size: var(--fs-xs); } /* on th
 }
 /* Toolbar fits its pane: tighter spacing, then fewer labels, then fewer buttons — never sideways scrolling on desktop */
 .sn-editor { flex: 0 0 var(--editor-w, 540px); container-type: inline-size; container-name: editor; }
-.sn-ed-toolbar { flex: 0 0 auto; display: flex; align-items: center; min-height: 40px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; gap: 1px; padding: 0 6px; }
+.sn-ed-toolbar { flex: 0 0 auto; display: flex; align-items: center; min-height: 40px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; gap: 1px; padding: 0 12px 0 14px; } /* the note header's edges (app.css), spec UI-7 */
 .sn-tb-group { display: flex; align-items: center; flex: none; gap: 1px; }
 button.sn-tb-btn, button.sn-tb-btn:not(.clickable-icon) { flex: none; height: 28px; padding: 0; border: 1px solid transparent; background: transparent; color: var(--muted); cursor: pointer; width: 29px; }
 .sn-tb-sep { flex: none; width: 1px; height: 18px; background: var(--line); margin: 0 5px; }
