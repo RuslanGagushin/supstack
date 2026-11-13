@@ -28,7 +28,7 @@ One palette, defined twice: on `body` for the light theme and on `body.theme-dar
 | `--cta`, `--cta-hover` | `#4d64ff`, `#3245bb` | `#4d64ff`, `#7c8eff` | the primary button and its hover |
 | `--panel-strong` | `#e4e4e1` | `#36383d` | the stronger plate: counts, priority A, an overdue date |
 | `--todo` | `#c42f27` | `#ff7c70` | the only colour besides the accent: actions that destroy, errors, an invalid field |
-| `--l2`, `--l3`, `--l7`, `--l8` | | | syntax colours in code blocks (and the capture form's priority dot); content, not interface |
+| `--l2`, `--l3`, `--l7`, `--l8` | | | syntax colours in code blocks; content, not interface |
 | `--flash`, `--code-bg`, `--tbl-head`, `--tbl-head-line` | | | search highlight, code blocks, table heads |
 | `--on-accent` | `#fff` | `#fff` | text and marks on an `--accent`, `--cta` or `--todo` fill |
 | `--paper` | `#fff` | `#fff` | the white of a page: a PDF, the switch's knob |
