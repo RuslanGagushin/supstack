@@ -4,7 +4,9 @@ pub fn run() {
         // the folder picker on desktop (Android uses the system picker inside the vault plugin)
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_vault::init());
+        .plugin(tauri_plugin_vault::init())
+        // reminders for tasks with a time: scheduled ahead on Android, shown when due on desktop (web/src/js/services/reminders.js)
+        .plugin(tauri_plugin_notification::init());
     // updates from GitHub Releases, then a restart into the new version
     #[cfg(desktop)]
     let builder = builder
