@@ -217,6 +217,7 @@ export async function readVault(fs) {
   lastFullPoll = Date.now(); // reading it was a full look
   watchVault(fs);
   warmSearchIndex(fs);
+  emit("opened");
 }
 /** On desktop the app tells the page which files changed (PERF-3); the full look in pollChanges is then only a fallback. */
 async function watchVault(fs) {

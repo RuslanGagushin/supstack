@@ -10,6 +10,7 @@
     "vault:default",
     "dialog:default",
     "opener:default",
+    "notification:default",
     {
       "identifier": "opener:allow-open-path",
       "allow": [

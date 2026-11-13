@@ -18,6 +18,8 @@ tauri = { version = "2.12", features = [] }
 tauri-plugin-opener = "2.7"
 tauri-plugin-dialog = "2.8"
 tauri-plugin-vault = { path = "../tauri-plugin-vault" }
+# reminders for tasks with a time (spec TASK-1): scheduled ahead on Android, sent by the page on desktop
+tauri-plugin-notification = "2.8"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
@@ -25,6 +27,8 @@ serde_json = "1"
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
+# the shortcut that brings up quick capture from anywhere (spec TASK-5)
+tauri-plugin-global-shortcut = "2.4"
 
 [profile.release]
 codegen-units = 1

@@ -5,4 +5,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- Reminders for tasks with a time (web/src/js/services/reminders.js) come at their minute: Android 13+ grants
+         USE_EXACT_ALARM to a reminder app as it is installed; 12 and 12L ask for SCHEDULE_EXACT_ALARM instead. Without
+         them the notification plugin falls back to an inexact alarm, which may come a few minutes late. -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />
 </manifest>

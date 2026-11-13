@@ -7,6 +7,7 @@
      flush    (path?)        save the editor first, if it has unsaved text (for this note, or any)
      written  (path, opts)   a note was written; opts.silentEditor: the editor already shows this text
      changed  (opts)         notes changed: redraw; opts.disk: they changed on disk, outside the page
+     opened                  a vault was read (services/vault.js readVault)
      sync                    Git sync's state changed
      sync-setup              a sync was asked for, but there is no remote yet
      update                  a newer version of the app is available
