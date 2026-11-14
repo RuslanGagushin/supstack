@@ -29,18 +29,12 @@ describe("opening a note", () => {
     noErrors();
   });
 
-  test("over the title, what the note is: a notebook or a daily note; a plain note shows only its icon (restyle RS-39); its tasks done as a bar and words (RS-43)", async () => {
+  test("nothing over the title: a notebook, a daily note and a note all open with the title first (restyle RS-39); its tasks done as a bar and words (RS-43)", async () => {
     const notes = { "cards/Book.md": "", "cards/Child.md": "---\nparents: [\"[[Book]]\"]\n---\n- [x] a\n- [ ] b\n- [ ] c\n- [ ] d\n", "daily notes/2026-11-13.md": "Today\n" };
-    for (const [lang, words] of [["en", ["Notebook", "", "Daily note"]], ["ru", ["Блокнот", "", "Заметка дня"]]]) {
-      await openVault({ lang, openNotes: "read", demo: false, notes });
-      const kinds = [];
-      for (const p of ["cards/Book.md", "cards/Child.md", "daily notes/2026-11-13.md"]) {
-        await ev((p) => openEditor(p, { focus: false, wide: false }), p);
-        kinds.push(await ev(() => document.querySelector("#editor .sn-kind").textContent));
-        if (p === "cards/Child.md") assert.deepEqual(await ev(() => [document.querySelector("#editor .sn-kind").classList.contains("is-bare"), !!document.querySelector("#editor .sn-kind svg"), document.querySelector("#editor .sn-kind").getAttribute("aria-label")]),
-          [true, true, lang === "en" ? "Note · Icon…" : "Заметка · Иконка…"], "the plain note keeps a faint icon that still picks one");
-      }
-      assert.deepEqual(kinds, words, lang);
+    await openVault({ lang: "ru", openNotes: "read", demo: false, notes });
+    for (const p of ["cards/Book.md", "cards/Child.md", "daily notes/2026-11-13.md"]) {
+      await ev((p) => openEditor(p, { focus: false, wide: false }), p);
+      assert.equal(await ev(() => document.querySelector("#editor .sn-editor-page").firstElementChild.classList.contains("sn-inline-title")), true, p);
     }
     await ev(() => openEditor("cards/Child.md", { focus: false, wide: false }));
     const r = await ev(() => {

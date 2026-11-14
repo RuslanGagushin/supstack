@@ -183,7 +183,7 @@ The list's head, `.sn-list-head`: a faint kind (`.sn-list-kind`: Notebook, Tag o
 
 ### A page's head
 
-A notebook, a daily note and the agenda's days and month open with what they are, in the accent with an icon (`.sn-kind`, `.ag-kind`: Notebook, Daily note; Agenda · Week 46), over a title at `--fs-title`. A plain note keeps only its icon there (`.sn-kind.is-plain`), `--faint` while it has none of its own (`.is-bare`); it still opens the icon picker. While reading, a note's facts follow its title in one quiet `--muted` line (`.sn-facts`, each `.sn-fact` parted by a dot and named by its tooltip): its notebooks, tags, tasks done (a 96px bar and words) and when it changed. The editing view's Properties (`.sn-prop`) keep a column of keys.
+A note opens with its title at `--fs-title` and nothing over it: whether it is a notebook or a daily note shows in the tree. The agenda's days and month still open with what they are, in the accent with an icon (`.ag-kind`: Agenda · Week 46). While reading, a note's facts follow its title in one quiet `--muted` line (`.sn-facts`, each `.sn-fact` parted by a dot and named by its tooltip): its notebooks, tags, tasks done (a 96px bar and words) and when it changed. The editing view's Properties (`.sn-prop`) keep a column of keys.
 
 ### Tree — `.sn-outline`
 

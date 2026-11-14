@@ -345,8 +345,6 @@ button.sn-row-enter:hover, .sn-row:focus-visible button.sn-row-enter { backgroun
   /* (the table + buttons are already absolute, under and beside the table: making them relative piled them up in a corner) */
   :is(button.task-box, .sn-chip) { position: relative; }
   :is(button.task-box)::after { content: ""; position: absolute; inset: -10px; }
-  button.sn-kind { position: relative; }
-  button.sn-kind::after { content: ""; position: absolute; inset: -10px -4px; }
   :is(.sn-table-add-row, .sn-table-add-col)::after { content: ""; position: absolute; inset: -14px; }
   .sn-chip::after { content: ""; position: absolute; inset: -8px -2px; }
   /* buttons a finger can hit: 40px at least, the drawing inside them as it was (spec UI-9) */

@@ -6,13 +6,13 @@ import { baseName, debounce } from "../core/util.js";
 import { splitNote } from "../core/frontmatter.js";
 import { on } from "../services/events.js";
 import { board, editor, graph, UI, vault } from "../services/state.js";
-import { cardIcon, makeComparator, cardHue } from "../services/vault.js";
+import { cardIcon, makeComparator } from "../services/vault.js";
 import { conflictPath, writeRaw } from "../services/save.js";
 import { syncHook } from "../services/sync.js";
 import { $, $$, h, ic, iconBtn } from "./dom.js";
 import { Menu, notice } from "./ui.js";
 import { renderMarkdown, wireRendered } from "./markdown.js";
-import { promptIcon, renameCard } from "./actions.js";
+import { renameCard } from "./actions.js";
 import { cardMenu, syncRowStates } from "./cards.js";
 import { cardSig, setTarget } from "./board.js";
 import { livePreviewExtensions, liveTa, liveText, refreshLiveEmbeds, renderLive, wireLive } from "./live-preview.js";
@@ -261,13 +261,7 @@ export function renderEditor() {
   if (!n) { page.append(h("div", { cls: "sn-editor-empty", text: t("noteGone") })); return; }
 
   if (editor.mode !== "source") {
-    // what the note is, in the accent over its title: a notebook (it holds notes), a daily note, or a note. Its icon
-    // leads, and a click picks another (restyle RS-39)
-    // a plain note says nothing new with "Note": only its icon stays (faint until it has one of its own), still a button to pick it
-    const kind = graph.childrenOf(path).length ? t("kindNotebook") : path.startsWith("daily notes/") ? t("kindDaily") : null;
-    const plain = kind ? "" : cardIcon(path) ? " is-plain" : " is-plain is-bare";
-    page.append(h("button", { cls: "sn-kind" + plain + (cardHue(path) ? " ic-" + cardHue(path) : ""), type: "button", title: t("menuIcon"), "aria-label": kind ? null : t("kindNote") + " · " + t("menuIcon"), onClick: () => promptIcon([path]) },
-      ic("", cardIcon(path) || "file-text", "file-text"), kind ? h("span", { text: kind }) : null));
+    // the note opens straight with its title: what it is shows in the tree, its icon is picked from its menu or Properties
     const title = h("textarea", { cls: "sn-inline-title", rows: "1", spellcheck: "false" });
     title.value = baseName(path);
     const growT = () => { title.style.height = "auto"; title.style.height = title.scrollHeight + "px"; };

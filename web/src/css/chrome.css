@@ -27,23 +27,8 @@
 .sn-editor-head { flex: 0 0 auto; display: flex; align-items: center; gap: var(--sp-2); height: 52px; padding: 0 var(--sp-12) 0 var(--sp-14); border-bottom: 0; }
 .sn-save-state.is-dirty { color: var(--muted); }
 .sn-editor-scroll { flex: 1 1 auto; overflow-y: auto; }
-.sn-editor-page { margin: 0 auto; max-width: 720px; padding: var(--sp-40) var(--sp-32) 40vh; }
-#app.editor-wide .sn-editor-page { padding-top: var(--sp-48); }
-/* what the note is, over its title: its icon and a word in the accent; a click picks another icon (restyle RS-39) */
-button.sn-kind, button.sn-kind:not(.clickable-icon) { display: inline-flex; align-items: center; gap: var(--sp-6); height: auto; padding: var(--sp-2) var(--sp-4); margin-inline-start: calc(var(--sp-4) * -1); border: 0; border-radius: var(--r-xs); background: transparent; color: var(--accent); font-size: var(--fs-ui); font-weight: var(--fw-semibold); cursor: pointer; }
-button.sn-kind:hover { background: var(--accent-soft); }
-button.sn-kind[class*=" ic-"]:hover { background: var(--hover-bg); }
-/* the note's hue outweighs the label's accent */
-button.sn-kind.ic-green, button.sn-kind.ic-green:not(.clickable-icon) { color: var(--hue-green-fg); }
-button.sn-kind.ic-blue, button.sn-kind.ic-blue:not(.clickable-icon) { color: var(--hue-blue-fg); }
-button.sn-kind.ic-orange, button.sn-kind.ic-orange:not(.clickable-icon) { color: var(--hue-orange-fg); }
-button.sn-kind.ic-pink, button.sn-kind.ic-pink:not(.clickable-icon) { color: var(--hue-pink-fg); }
-button.sn-kind.ic-yellow, button.sn-kind.ic-yellow:not(.clickable-icon) { color: var(--hue-yellow-fg); }
-button.sn-kind.ic-purple, button.sn-kind.ic-purple:not(.clickable-icon) { color: var(--hue-purple-fg); }
-button.sn-kind svg { width: var(--icon-m); height: var(--icon-m); }
-/* a plain note: no word, only its icon; with none of its own the default one stays faint until pointed at */
-button.sn-kind.is-bare, button.sn-kind.is-bare:not(.clickable-icon) { color: var(--faint); }
-button.sn-kind.is-bare:hover { background: var(--hover-bg); color: var(--muted); }
+.sn-editor-page { margin: 0 auto; max-width: 720px; padding: var(--sp-24) var(--sp-32) 40vh; }
+#app.editor-wide .sn-editor-page { padding-top: var(--sp-32); }
 .sn-inline-title { display: block; width: 100%; padding: 0; border: 0; background: transparent; resize: none; overflow: hidden; font-weight: var(--fw-bold); font-size: var(--fs-title); line-height: var(--lh-title); letter-spacing: var(--ls-title); color: var(--ink); margin: var(--sp-6) 0 var(--sp-20); }
 /* Properties: the note's frontmatter */
 .sn-props-head { display: flex; align-items: center; gap: var(--sp-6); margin-bottom: var(--sp-6); cursor: default; width: max-content; }
