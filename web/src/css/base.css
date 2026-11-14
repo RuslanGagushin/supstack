@@ -1,7 +1,8 @@
 html, body { margin: 0; height: 100%; }
 /* the edges the system draws over: the notch and the gesture bar; on Android at least its bars, measured or not */
 :root { --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px); }
-html.is-android { --safe-top: max(env(safe-area-inset-top, 0px), 44px); --safe-bottom: max(env(safe-area-inset-bottom, 0px), 24px); -webkit-tap-highlight-color: transparent; }
+/* Android: the bar sizes the vault plugin measured (VaultPlugin.kt, --sn-inset-*); until it has, room for both bars anyway */
+html.is-android { --safe-top: var(--sn-inset-top, max(env(safe-area-inset-top, 0px), 44px)); --safe-bottom: var(--sn-inset-bottom, max(env(safe-area-inset-bottom, 0px), 24px)); -webkit-tap-highlight-color: transparent; }
 * { box-sizing: border-box; }
 body.theme-dark {
   --shade: #000;

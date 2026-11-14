@@ -156,9 +156,8 @@ class VaultPlugin(private val activity: Activity) : Plugin(activity) {
             .sn-welcome { padding-top: calc(var(--size-4-4) + var(--sn-inset-top)) !important; padding-bottom: calc(var(--size-4-4) + var(--sn-inset-bottom)) !important; }
             .sn-welcome-corner { top: calc(var(--size-4-3) + var(--sn-inset-top)) !important; right: calc(var(--size-4-3) + var(--sn-inset-right)) !important; }
             @media (max-width: 820px) {
-              #app { padding: calc(8px + var(--sn-inset-top)) calc(8px + var(--sn-inset-right)) var(--sn-inset-bottom) calc(8px + var(--sn-inset-left)) !important; }
+              #app { padding: var(--sn-inset-top) calc(8px + var(--sn-inset-right)) var(--sn-inset-bottom) calc(8px + var(--sn-inset-left)) !important; }
               .sn-side { padding-top: calc(14px + var(--sn-inset-top)) !important; padding-bottom: calc(16px + var(--sn-inset-bottom)) !important; padding-left: calc(12px + var(--sn-inset-left)) !important; }
-              .sn-editor.win { inset: calc(8px + var(--sn-inset-top)) calc(8px + var(--sn-inset-right)) var(--sn-inset-bottom) calc(8px + var(--sn-inset-left)) !important; }
             }
         """.trimIndent().replace("\n", " ").replace("'", "\\'")
         return """
