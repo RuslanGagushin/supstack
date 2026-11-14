@@ -2,7 +2,7 @@
    Markdown rendering (with wikilinks, embeds, tags, ==marks==, callouts, tasks)
    ========================================================= */
 import { t, tt } from "../core/i18n.js";
-import { esc } from "../core/util.js";
+import { esc, hueOf } from "../core/util.js";
 import { CODE_RE, extractLinkpath, splitNote } from "../core/frontmatter.js";
 import { IS_NATIVE } from "../services/native.js";
 import { editor, graph, vault } from "../services/state.js";
@@ -213,7 +213,7 @@ export function renderMarkdown(md, sourcePath, opts = {}) {
     return `<a class="internal-link${res ? "" : " is-unresolved"}" data-href="${esc(target)}">${esc(shown)}</a>`;
   });
   s = s.replace(/==([^=\n]+)==/g, "<mark>$1</mark>");
-  s = s.replace(/(^|[\s,;])#([\p{L}\p{N}_/-]*[\p{L}_/-][\p{L}\p{N}_/-]*)/gu, (m, pre, tag) => `${pre}<a class="tag" data-tag="${esc(tag)}">#${esc(tag)}</a>`);
+  s = s.replace(/(^|[\s,;])#([\p{L}\p{N}_/-]*[\p{L}_/-][\p{L}\p{N}_/-]*)/gu, (m, pre, tag) => `${pre}<a class="tag hue-${hueOf(tag)}" data-tag="${esc(tag)}">#${esc(tag)}</a>`);
   s = s.replace(/(\d+)/g, (m, i) => codes[+i]);
   let html = marked.parse(s, { gfm: true, breaks: true });
   html = DOMPurify.sanitize(html, { ADD_ATTR: ["target", "data-href", "data-embed", "data-embed-note", "data-tag"] });

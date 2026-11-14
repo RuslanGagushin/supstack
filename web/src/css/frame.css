@@ -63,8 +63,23 @@ button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--f
 /* modifiers repeat the base's :is(), which outweighs the generic button rule, so that they outweigh the base */
 :is(button.sn-chip, a.sn-chip, .sn-chip.is-link, .markdown-rendered a.tag):hover { background: color-mix(in srgb, var(--panel) 80%, var(--fg) 10%); color: var(--fg); }
 :is(.sn-chip, .markdown-rendered a.tag).is-accent, :is(.sn-chip, .markdown-rendered a.tag).is-accent:hover { background: var(--accent-soft); color: var(--accent); }
-:is(.sn-chip, .markdown-rendered a.tag).is-danger, :is(.sn-chip, .markdown-rendered a.tag).is-danger:hover { background: var(--panel-strong); color: var(--ink); font-weight: var(--fw-semibold); }
-:is(.sn-chip, .markdown-rendered a.tag).is-warn, :is(.sn-chip, .markdown-rendered a.tag).is-warn:hover { background: var(--panel); color: var(--ink); }
+:is(.sn-chip, .markdown-rendered a.tag).is-danger, :is(.sn-chip, .markdown-rendered a.tag).is-danger:hover { background: var(--due-bg); color: var(--due-fg); font-weight: var(--fw-semibold); }
+:is(.sn-chip, .markdown-rendered a.tag).is-warn, :is(.sn-chip, .markdown-rendered a.tag).is-warn:hover { background: var(--hue-orange-bg); color: var(--hue-orange-fg); }
+/* a tag's hue, the same wherever it shows (util.js hueOf); a chip that is a control dims under the pointer */
+:is(.sn-chip, .markdown-rendered a.tag).hue-green { background: var(--hue-green-bg); color: var(--hue-green-fg); }
+:is(.sn-chip, .markdown-rendered a.tag).hue-blue { background: var(--hue-blue-bg); color: var(--hue-blue-fg); }
+:is(.sn-chip, .markdown-rendered a.tag).hue-orange { background: var(--hue-orange-bg); color: var(--hue-orange-fg); }
+:is(.sn-chip, .markdown-rendered a.tag).hue-pink { background: var(--hue-pink-bg); color: var(--hue-pink-fg); }
+:is(.sn-chip, .markdown-rendered a.tag).hue-yellow { background: var(--hue-yellow-bg); color: var(--hue-yellow-fg); }
+:is(.sn-chip, .markdown-rendered a.tag).hue-purple { background: var(--hue-purple-bg); color: var(--hue-purple-fg); }
+:is(button.sn-chip, a.sn-chip, .sn-chip.is-link, .markdown-rendered a.tag)[class*="hue-"]:hover { opacity: .8; }
+/* a note's hue on its icon and its type label (vault.js cardHue) */
+.ic-green { color: var(--hue-green-fg); }
+.ic-blue { color: var(--hue-blue-fg); }
+.ic-orange { color: var(--hue-orange-fg); }
+.ic-pink { color: var(--hue-pink-fg); }
+.ic-yellow { color: var(--hue-yellow-fg); }
+.ic-purple { color: var(--hue-purple-fg); }
 :is(.sn-chip, .markdown-rendered a.tag).is-outline { background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
 :is(.sn-chip, .markdown-rendered a.tag).is-struck { text-decoration: line-through; }
 /* a parent that is not in the vault: drawn dashed, and not a link */

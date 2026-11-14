@@ -6,7 +6,7 @@ import { baseName, debounce } from "../core/util.js";
 import { splitNote } from "../core/frontmatter.js";
 import { on } from "../services/events.js";
 import { board, editor, graph, UI, vault } from "../services/state.js";
-import { cardIcon, makeComparator } from "../services/vault.js";
+import { cardIcon, makeComparator, cardHue } from "../services/vault.js";
 import { conflictPath, writeRaw } from "../services/save.js";
 import { syncHook } from "../services/sync.js";
 import { $, $$, h, ic, iconBtn } from "./dom.js";
@@ -264,7 +264,7 @@ export function renderEditor() {
     // what the note is, in the accent over its title: a notebook (it holds notes), a daily note, or a note. Its icon
     // leads, and a click picks another (restyle RS-39)
     const kind = graph.childrenOf(path).length ? t("kindNotebook") : path.startsWith("daily notes/") ? t("kindDaily") : t("kindNote");
-    page.append(h("button", { cls: "sn-kind", type: "button", title: t("menuIcon"), onClick: () => promptIcon([path]) }, ic("", cardIcon(path) || "file-text", "file-text"), h("span", { text: kind })));
+    page.append(h("button", { cls: "sn-kind" + (cardHue(path) ? " ic-" + cardHue(path) : ""), type: "button", title: t("menuIcon"), onClick: () => promptIcon([path]) }, ic("", cardIcon(path) || "file-text", "file-text"), h("span", { text: kind })));
     const title = h("textarea", { cls: "sn-inline-title", rows: "1", spellcheck: "false" });
     title.value = baseName(path);
     const growT = () => { title.style.height = "auto"; title.style.height = title.scrollHeight + "px"; };

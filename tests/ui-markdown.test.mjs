@@ -15,7 +15,7 @@ describe("rendering", () => {
     const html = await render("[[Target|go]] [[Missing]] #tag ==hi==\n\n> [!warning] Careful\n> body\n\n- [ ] task\n\n![[p.svg]]");
     assert.match(html, /<a (data-href="Target" class="internal-link"|class="internal-link" data-href="Target")>go<\/a>/);
     assert.match(html, /internal-link is-unresolved/);
-    assert.match(html, /class="tag"[^>]*>#tag</);
+    assert.match(html, /class="tag hue-\w+"[^>]*>#tag</); // a tag carries its hue
     assert.match(html, /<mark>hi<\/mark>/);
     assert.match(html, /callout/);
     assert.match(html, /<li class="task-list-item is-state-todo[^"]*" data-task=" "><button type="button" class="task-box s-todo"/);
@@ -295,11 +295,11 @@ describe("planning lines", () => {
     assert.equal(r.words, 0, "no Markdown words or timestamps left");
     assert.equal(r.tip, "DEADLINE: <2026-11-07 Sat>", "the Markdown in the tooltip");
     assert.equal(r.pri, "A");
-    // the tones are drawn, not only named, without colour (restyle RS-53): closed is plain with its tick, the warning days in the ink, plain otherwise
+    // the tones are drawn, not only named: closed green with its tick, the warning days orange, plain otherwise
     const tones = await ev(() => {
       const probe = (v) => { const s = document.createElement("span"); s.style.color = `var(${v})`; document.body.append(s); const c = getComputedStyle(s).color; s.remove(); return c; };
       const color = (sel) => getComputedStyle(document.querySelector(`#editor .sn-reading .org-date${sel}`)).color;
-      return { closed: color(".k-closed") === probe("--tag") && !!document.querySelector("#editor .sn-reading .org-date.k-closed svg"), soon: color(".is-warn") === probe("--ink") && color(".is-warn") !== color(".k-sched"), plain: color(".k-sched") === probe("--tag") };
+      return { closed: color(".k-closed") === probe("--hue-green-fg") && !!document.querySelector("#editor .sn-reading .org-date.k-closed svg"), soon: color(".is-warn") === probe("--hue-orange-fg") && color(".is-warn") !== color(".k-sched"), plain: color(".k-sched") === probe("--tag") };
     });
     assert.deepEqual(tones, { closed: true, soon: true, plain: true });
     await ev(() => openEditor("cards/R.md", { focus: false, edit: true }));

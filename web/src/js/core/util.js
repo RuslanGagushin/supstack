@@ -6,6 +6,9 @@ export const debounce = (fn, ms) => { let tm; const d = (...a) => { clearTimeout
 export const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 export const baseName = (p) => (p.split("/").pop() || p).replace(/\.md$/i, "");
 export const dirName = (p) => (p.includes("/") ? p.slice(0, p.lastIndexOf("/")) : "");
+/** The six hues that tell tags and notes apart (base.css --hue-*). A name always gets the same one. */
+export const HUES = ["green", "blue", "orange", "pink", "yellow", "purple"];
+export const hueOf = (name) => { let x = 0; for (const c of String(name).toLowerCase()) x = (x * 31 + c.codePointAt(0)) >>> 0; return HUES[x % HUES.length]; };
 export const norm = (s) => String(s).toLowerCase().replace(/ё/g, "е");
 /** A note's Markdown as one line of plain text, for a preview: no code, embeds, link syntax, list and heading marks, tables or emphasis. */
 export function plainText(md, max = 300) {

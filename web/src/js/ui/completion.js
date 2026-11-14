@@ -4,7 +4,7 @@
    Links, embeds and attachment names follow the usual Markdown-vault conventions.
    ========================================================= */
 import { t, wt } from "../core/i18n.js";
-import { baseName, dirName, norm } from "../core/util.js";
+import { baseName, dirName, norm, hueOf } from "../core/util.js";
 import { formatMoment } from "../core/dates.js";
 import { CODE_RE, extractLinkpath, fillTemplate, splitNote, stripCode } from "../core/frontmatter.js";
 import { board, editor, graph, saveUI, UI, vault } from "../services/state.js";
@@ -412,7 +412,7 @@ export function tagsSection(box) {
   const wrap = h("div", { cls: "sn-tag-cloud" });
   for (const [tg, n] of [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 40)) {
     const on = board.tagView === tg;
-    const b = h("button", { cls: "sn-chip" + (on ? " is-accent" : ""), type: "button", title: `#${tg} · ${n}` }, h("span", { text: tg }), h("span", { cls: "n", text: "· " + n }));
+    const b = h("button", { cls: "sn-chip" + (on ? " is-accent" : " hue-" + hueOf(tg)), type: "button", title: `#${tg} · ${n}` }, h("span", { text: tg }), h("span", { cls: "n", text: "· " + n }));
     b.addEventListener("click", () => { if (on) goBack(); else openTagView(tg); });
     wrap.append(b);
   }

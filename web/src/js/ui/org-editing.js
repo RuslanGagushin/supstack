@@ -1,5 +1,5 @@
 import { ct, ft, LANG, t, tt } from "../core/i18n.js";
-import { debounce } from "../core/util.js";
+import { debounce, hueOf } from "../core/util.js";
 import { splitNote } from "../core/frontmatter.js";
 import { oaddMonths, odn, oFmt, ohm, oIndentW, oisoWeek, onow, opad, OPLAN_RE, orgHead, orgLine, orgNextState, orgPlanMap, orgReadDate, orgRelDay, orgWarnDays, orgSetPlanning, orgSetPriority, orgSetState, orgSetTags, orgSkip, orgTsParse, orgTsStr, oymd, taskStateName } from "../core/org.js";
 import { lsGet, lsSet } from "../services/storage.js";
@@ -429,7 +429,7 @@ export function orgDecorate(el, path, { short = false } = {}) {
       if (nx && !(nx.nodeType === 1 && /^(BR|UL|OL)$/.test(nx.tagName))) continue;
       const m = /(\s):((?:[\p{L}\p{N}_@#%-]+:)+)(\s*)$/u.exec(n.data);
       if (!m) continue;
-      const tags = h("span", { cls: "tags org-tags" }, m[2].split(":").filter(Boolean).map((x) => h("span", { cls: "sn-chip is-s", text: x })));
+      const tags = h("span", { cls: "tags org-tags" }, m[2].split(":").filter(Boolean).map((x) => h("span", { cls: "sn-chip is-s hue-" + hueOf(x), text: x })));
       n.replaceWith(n.data.slice(0, m.index) + m[1], tags);
     }
   }

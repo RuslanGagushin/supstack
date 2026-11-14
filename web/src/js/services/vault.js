@@ -3,7 +3,7 @@
    reading a vault and picking up changes made outside the page.
    ========================================================= */
 import { t } from "../core/i18n.js";
-import { baseName, dirName } from "../core/util.js";
+import { baseName, dirName, hueOf, HUES } from "../core/util.js";
 import { fmInner, noteLinks, noteTags, parentLinkpaths, parseYaml, splitNote } from "../core/frontmatter.js";
 import { HierarchyGraph } from "../core/graph.js";
 import { computeModel } from "../core/board-model.js";
@@ -98,6 +98,12 @@ export function buildGraph() {
   return g;
 }
 export function cardIcon(path) { const v = vault.notes.get(path)?.fm?.icon; return typeof v === "string" && v.trim() ? v.trim() : null; }
+/** A note's hue: its `color` when that is one of the six, else one picked by its name; a notebook (a note with notes in it) has none. */
+export function cardHue(path) {
+  if (graph.childrenOf(path).length) return null;
+  const v = vault.notes.get(path)?.fm?.color;
+  return typeof v === "string" && HUES.includes(v.trim().toLowerCase()) ? v.trim().toLowerCase() : hueOf(baseName(path));
+}
 export function cardTags(path) { return (vault.notes.get(path)?.tags || []).map((x) => x.replace(/^#/, "").toLowerCase()); }
 function sortInfo(path) {
   const n = vault.notes.get(path);

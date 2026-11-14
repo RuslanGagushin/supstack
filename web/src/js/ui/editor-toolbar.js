@@ -3,7 +3,7 @@
    (insert, wrap, prefix lines, headings).
    ========================================================= */
 import { LANG, t, wt } from "../core/i18n.js";
-import { baseName } from "../core/util.js";
+import { baseName, hueOf } from "../core/util.js";
 import { dumpYaml } from "../core/frontmatter.js";
 import { formatTable } from "../core/tables.js";
 import { editor, graph, PARENTS_FIELD, UI, vault } from "../services/state.js";
@@ -57,7 +57,7 @@ export function renderEditorProps() {
     // tags (frontmatter)
     const fmTags = fmTagList(n.fm);
     const tagVals = fmTags.map((tg) => {
-      const c = h("span", { cls: "sn-chip is-s" }, "#" + tg);
+      const c = h("span", { cls: "sn-chip is-s hue-" + hueOf(tg) }, "#" + tg);
       const x = ic("sn-chip-x", "x");
       x.addEventListener("click", () => removeTag(path, tg));
       c.append(x);
@@ -120,7 +120,7 @@ function infoLine(path, n) {
   row(t("factNotebook"), ...(parents.length || missing.length ? parents.map(place) : [place(null)]),
     ...missing.map((u) => h("span", { cls: "sn-chip is-s is-missing", title: t("parentMissing") }, ic("sn-chip-icon", "alert-triangle"), h("span", { text: u }))));
   const tags = n.fmError ? [] : fmTagList(n.fm);
-  if (tags.length) row(t("factTags"), ...tags.map((tg) => h("button", { cls: "sn-chip is-s sn-facts-tag", type: "button", text: tg, onClick: () => openTagView(tg) })));
+  if (tags.length) row(t("factTags"), ...tags.map((tg) => h("button", { cls: "sn-chip is-s sn-facts-tag hue-" + hueOf(tg), type: "button", text: tg, onClick: () => openTagView(tg) })));
   const prog = cardTaskProgress(path);
   if (prog) {
     const bar = h("span", { cls: "sn-facts-bar", "aria-hidden": "true" }, h("span", {}));

@@ -2,7 +2,7 @@
 
 How the app's interface is put together: the variables every style draws from, the components built on them, and the rules the tests hold the styles to. The variables live in [`web/src/css/base.css`](../web/src/css/base.css); the components in the other six stylesheets, loaded in this order: `base`, `board`, `chrome`, `frame`, `writing`, `agenda`, `app`.
 
-**The look** (since 0.33, [`restyle-specification.md`](restyle-specification.md)): one white page in three columns, the sidebar on a light grey, hairlines between them and around cards rather than shadows; bold titles over a small label in the accent that says what the page is; rectangular plates rather than pills; the accent as the one colour of the interface. Shadows are kept for what floats over the page: menus, popups, the toast, dialogs, the sidebar as a drawer, a raised segment. Red (`--todo`) is kept for what destroys, errors and an invalid field.
+**The look** (since 0.33, [`restyle-specification.md`](restyle-specification.md)): one white page in three columns, the sidebar on a light grey, hairlines between them and around cards rather than shadows; bold titles over a small label in the accent that says what the page is; rectangular plates rather than pills; the accent for the interface's own state; colour for content — each tag and note in its hue, deadlines orange, what is overdue red, what is closed green (0.34). Shadows are kept for what floats over the page: menus, popups, the toast, dialogs, the sidebar as a drawer, a raised segment. Red (`--todo`) is kept for what destroys, errors and an invalid field.
 
 **The one rule:** a new value is a variable in `base.css` first. Colours, sizes, spacing, radii, shadows, layers, durations and weights are never written as numbers in a component's rule. `npm test` fails when one is (see [What the tests check](#what-the-tests-check)).
 
@@ -30,7 +30,9 @@ One palette, defined twice: on `body` for the light theme and on `body.theme-dar
 | `--accent-soft` | `#ebeeff` | `#1f2547` | an accent plate: an included filter, the selected agenda row |
 | `--cta`, `--cta-hover` | `#4d64ff`, `#3245bb` | `#4d64ff`, `#7c8eff` | the primary button and its hover |
 | `--panel-strong` | `#e4e4e1` | `#36383d` | the stronger plate: counts, priority A, an overdue date |
-| `--todo` | `#c42f27` | `#ff7c70` | the only colour besides the accent: actions that destroy, errors, an invalid field |
+| `--todo` | `#c42f27` | `#ff7c70` | actions that destroy, errors, an invalid field |
+| `--hue-green-bg`/`-fg` … `--hue-purple-bg`/`-fg` | six plates and their text | | a tag's hue (`.hue-*`, picked by its name: `util.js hueOf`), a note's icon and type label (`.ic-*`: its `color` field, else by its name; `vault.js cardHue`; notebooks stay grey), an event's bar; orange is also "soon" and today's count |
+| `--due-bg`, `--due-fg`, `--due-soft` | `#fde8e6`, `#a8251e`, `#fef5f4` | `#3f1f1e`, `#ff9d94`, `#261b1b` | what is due or overdue: the overdue chip, block, head and count, priority A, the now line |
 | `--l2`, `--l3`, `--l7`, `--l8` | | | syntax colours in code blocks; content, not interface |
 | `--flash`, `--code-bg`, `--tbl-head`, `--tbl-head-line` | | | search highlight, code blocks, table heads |
 | `--on-accent` | `#fff` | `#fff` | text and marks on an `--accent`, `--cta` or `--todo` fill |

@@ -2,6 +2,11 @@
    Agenda and tasks
    ========================================================= */
 /* a count: one quiet plate whatever it counts; today's and overdue tasks differ in its title, not its colour */
+/* a closed date: green, with its tick */
+.k-closed :is(.sn-chip, .markdown-rendered a.tag), :is(.sn-chip, .markdown-rendered a.tag).k-closed { background: var(--hue-green-bg); color: var(--hue-green-fg); }
+/* overdue is red, today's tasks orange */
+.wb-tasks .wb-count.is-overdue, .ag-over-n { background: var(--due-bg); color: var(--due-fg); }
+.wb-tasks .wb-count.is-today { background: var(--hue-orange-bg); color: var(--hue-orange-fg); }
 .wb-tasks .wb-count, .ag-over-n { min-width: 18px; height: 18px; padding: 0 var(--sp-6); border-radius: var(--r-pill); background: var(--panel-strong); color: var(--ink); font-size: var(--fs-sm); font-weight: var(--fw-semibold); line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; }
 button.sn-btn.wb-tasks.is-active { border-color: var(--accent); }
 .sn-task-prog { display: inline-flex; align-items: center; gap: var(--sp-4); padding-left: var(--sp-8); color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -11,7 +16,7 @@ button.sn-btn.wb-tasks.is-active { border-color: var(--accent); }
 /* agenda (after Emacs's *Org Agenda* buffer) */
 /* a priority: its letter on a small square, A on the stronger plate; no colour */
 .pri { display: inline-flex; align-items: center; justify-content: center; width: var(--ctl-xs); height: var(--ctl-xs); vertical-align: middle; border-radius: var(--r-xs); background: var(--panel); color: var(--tag); font-size: var(--fs-sm); font-weight: var(--fw-bold); line-height: 1; white-space: nowrap; }
-.pri.A { background: var(--panel-strong); color: var(--ink); }
+.pri.A { background: var(--due-bg); color: var(--due-fg); }
 .tags { display: inline-flex; gap: var(--sp-4); flex-wrap: wrap; }
 /* a tag the task takes from its note: outlined rather than faded, so its text keeps 4.5:1 (spec A11Y-3) */
 
@@ -72,6 +77,12 @@ button.sn-btn.wb-tasks.is-active { border-color: var(--accent); }
 .ag-main { color: var(--ink); font-size: var(--fs-md); font-weight: var(--fw-medium); }
 /* an event has no box: a short bar stands in its place (RS-67) */
 .ag-ev-bar { display: inline-block; width: 3px; height: 20px; margin-right: var(--sp-10); vertical-align: middle; border-radius: 2px; background: var(--muted); }
+.ag-ev-bar.hue-green { background: var(--hue-green-fg); }
+.ag-ev-bar.hue-blue { background: var(--hue-blue-fg); }
+.ag-ev-bar.hue-orange { background: var(--hue-orange-fg); }
+.ag-ev-bar.hue-pink { background: var(--hue-pink-fg); }
+.ag-ev-bar.hue-yellow { background: var(--hue-yellow-fg); }
+.ag-ev-bar.hue-purple { background: var(--hue-purple-fg); }
 .ag-row:hover { background: var(--hover-bg); }
 .ag-row.is-selected { background: var(--accent-soft); }
 /* the keyboard's place in the agenda: a ring on the chosen row, or on the list while none is chosen (spec A11Y-2) */
@@ -84,12 +95,12 @@ body.sn-kb .ag-body:focus-visible:not(:has(.ag-row.is-selected)) { box-shadow: v
 .ag-lab { max-width: 20ch; color: var(--muted); font-size: var(--fs-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* the label is a chip: a calendar for a scheduled date (grey), a flag for a deadline (red when due, amber in its warning days) */
 /* overdue entries, gathered above today: a quiet block on the grey, its head inside it (RS-61) */
-.ag-card.ag-overdue { border: 0; background: var(--bg); }
+.ag-card.ag-overdue { border: 0; background: var(--due-soft); }
 .ag-overdue > .ag-day { padding: var(--sp-14) var(--sp-16) var(--sp-6); font-size: var(--fs-ui); font-weight: var(--fw-semibold); letter-spacing: 0; }
 .ag-overdue.is-closed > .ag-day { padding-bottom: var(--sp-14); }
 .ag-overdue > .ag-row { border-top-color: var(--line); }
 .ag-overdue > .ag-row:last-child { padding-bottom: var(--sp-14); }
-button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: var(--sp-8); padding: 0; border: 0; background: none; font: inherit; color: var(--ink); cursor: pointer; }
+button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: var(--sp-8); padding: 0; border: 0; background: none; font: inherit; color: var(--due-fg); cursor: pointer; }
 .ag-over-chev { display: inline-flex; }
 .ag-over-chev svg { width: var(--icon-s); height: var(--icon-s); transition: transform var(--dur-1) var(--ease); }
 .ag-overdue.is-closed .ag-over-chev svg { transform: rotate(-90deg); }
@@ -114,8 +125,8 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: var(--sp-8)
 /* the hours of today's grid: quiet markers, each on a line of its own height */
 .ag-grid { align-items: center; min-height: 26px; color: var(--faint); padding-block: 0; font-size: var(--fs-sm); }
 .ag-grid .dots { grid-column: main-start / lab-end; align-self: center; overflow: hidden; white-space: nowrap; border-bottom: 1px solid var(--line); height: .75em; }
-.ag-grid.now { color: var(--ink); font-weight: var(--fw-semibold); }
-.ag-grid.now .dots { border-bottom: 2px solid var(--accent); font-size: 0; }
+.ag-grid.now { color: var(--due-fg); font-weight: var(--fw-semibold); }
+.ag-grid.now .dots { border-bottom: 2px solid var(--due-fg); font-size: 0; }
 .ag-help { padding: 0 var(--sp-2); color: var(--faint); font-size: var(--fs-sm); line-height: var(--lh-ui); max-width: 76ch; }
 .ag-keys { margin-top: var(--sp-6); }
 .ag-flag { color: var(--muted); }
@@ -144,7 +155,7 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: var(--sp-8)
 .markdown-rendered .org-pair { white-space: nowrap; }
 .markdown-rendered .org-plan.k-deadline { color: var(--ink); }
 .markdown-rendered .org-plan.k-scheduled { color: var(--muted); }
-.markdown-rendered .org-plan.k-closed { color: var(--muted); }
+.markdown-rendered .org-plan.k-closed { color: var(--hue-green-fg); }
 .markdown-rendered .org-ts { font-size: var(--fs-sm); font-weight: var(--fw-medium); line-height: var(--lh-ui); font-variant-numeric: tabular-nums; padding: 1px var(--sp-8); border-radius: var(--r-xs); background: var(--panel); color: var(--tag); white-space: nowrap; }
 .markdown-rendered .org-ts .cm-sn-fmt { color: var(--faint); }
 .markdown-rendered .org-ts.is-inactive { background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }

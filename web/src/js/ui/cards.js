@@ -2,9 +2,9 @@
    Card rendering: a note as a row of the list, its parent chip and menu
    ========================================================= */
 import { LANG, t, tt } from "../core/i18n.js";
-import { baseName, norm, plainText } from "../core/util.js";
+import { baseName, norm, plainText, hueOf } from "../core/util.js";
 import { board, editor, graph, S, vault } from "../services/state.js";
-import { cardIcon, linkText } from "../services/vault.js";
+import { cardIcon, linkText, cardHue } from "../services/vault.js";
 import { filterActive } from "../core/board-model.js";
 import { cardTaskProgress } from "../services/tasks.js";
 import { attachmentUrl, firstImage } from "../services/attachments.js";
@@ -135,7 +135,7 @@ export function renderRow(path, via, folder = false) {
 
   const head = h("div", { cls: "sn-row-head" });
   const iconName = cardIcon(path);
-  if (iconName) head.append(ic("sn-card-icon", iconName, "file-text"));
+  if (iconName) head.append(ic("sn-card-icon" + (cardHue(path) ? " ic-" + cardHue(path) : ""), iconName, "file-text"));
   head.append(h("span", { cls: "sn-row-title", text: baseName(path) }));
   text.append(head);
 
@@ -153,7 +153,7 @@ export function renderRow(path, via, folder = false) {
   const tags = n?.tags || [];
   if (tags.length) {
     const tr = h("span", { cls: "sn-tags sn-row-tags" });
-    for (const tg of tags) tr.append(h("span", { cls: "sn-chip is-s is-link", text: tg.replace(/^#/, ""), onClick: (e) => { e.stopPropagation(); openTagView(tg); } }));
+    for (const tg of tags) tr.append(h("span", { cls: "sn-chip is-s is-link hue-" + hueOf(tg.replace(/^#/, "")), text: tg.replace(/^#/, ""), onClick: (e) => { e.stopPropagation(); openTagView(tg); } }));
     meta.append(tr);
   }
   text.append(meta);
