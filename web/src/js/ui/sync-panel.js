@@ -12,20 +12,22 @@ function renderSyncButton() {
   const b = $("#sync-btn");
   if (!b) return;
   const s = syncStatus();
-  // nothing to show where sync can't run or isn't set up (Settings › Git sets it up). A row in the sidebar: what is
-  // happening when it is busy or needs attention, else "Git" and when it last synced
+  // nothing to show where sync can't run or isn't set up (Settings › Git sets it up). An icon at the sidebar's foot,
+  // next to the settings: it spins while syncing, turns orange when sync needs attention; the tooltip says the rest
   b.hidden = !syncAvailable() || (!syncConfigured() && !sync.busy && !sync.crash && !sync.error);
-  b.className = `sn-btn wb-sync is-${s.state}` + (s.spin ? " is-spin" : "");
-  b.title = s.text;
-  b.replaceChildren(ic("wb-sync-icon", s.icon, "refresh-cw"), h("span", { cls: "wb-label", text: s.state === "busy" || s.state === "warn" ? s.short : `Git · ${s.short}` }));
+  b.className = `clickable-icon sb-foot-btn wb-sync is-${s.state}` + (s.spin ? " is-spin" : "");
+  b.title = `${s.text} — ${st("syncNow")}`;
+  b.setAttribute("aria-label", b.title);
+  b.disabled = sync.busy;
+  b.replaceChildren(ic("wb-sync-icon", s.state === "warn" ? "alert-triangle" : "refresh-cw"));
 }
+/** The sync icon at the sidebar's foot: a click syncs now (with no remote yet it opens Settings › Git). */
 export function syncButton() {
-  const b = h("button", { id: "sync-btn", type: "button", cls: "sn-btn wb-sync" });
-  b.addEventListener("click", () => openSyncPanel());
+  const b = h("button", { id: "sync-btn", type: "button", cls: "clickable-icon sb-foot-btn wb-sync" });
+  b.addEventListener("click", () => { if (!syncAvailable()) { notice(st("unavailable")); return; } runSync(); });
   setTimeout(renderSyncButton, 0);
   return b;
 }
-function openSyncPanel() { if (!syncAvailable()) { notice(st("unavailable")); return; } syncSettingsModal(); }
 function renderSyncPanel() { sync.panel?.render(); }
 export function syncSettingsModal() {
   if (!syncAvailable()) { notice(st("unavailable")); return; }

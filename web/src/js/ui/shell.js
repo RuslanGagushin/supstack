@@ -184,9 +184,9 @@ function renderAll() {
       wbBtn("plus", t("newShort"), newCard, "sb-new"),
       // today's note, by name; the command palette is Ctrl+P and the vault's menu above
       wbBtn("calendar-days", t("todayShort"), () => openToday(), "sb-today")));
-  const sideNav = h("nav", { cls: "sb-nav", "aria-label": t("tabbar") }, tasksButton(), filesButton(), syncButton());
+  const sideNav = h("nav", { cls: "sb-nav", "aria-label": t("tabbar") }, tasksButton(), filesButton());
   const status = h("div", { cls: "sb-status" + (note ? " is-unsaved" : "") }, note ? h("span", { cls: "sb-dot", "aria-hidden": "true" }) : null, note ? h("span", { cls: "sb-status-text", text: note }) : null);
-  const foot = h("div", { cls: "sb-foot" }, status,
+  const foot = h("div", { cls: "sb-foot" }, status, syncButton(),
     iconBtn("settings", t("settings"), () => settingsModal(), "sb-foot-btn"),
     iconBtn("panel-left-close", t("toggleSidebar"), () => setSide(false), "sb-foot-btn sb-collapse"));
   const side = h("div", { cls: "sn-side" }, sideHead, sideNav, h("div", { cls: "sn-outline", id: "tree" }), foot);

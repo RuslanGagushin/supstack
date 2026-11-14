@@ -38,8 +38,8 @@ button.clickable-icon.sb-foot-btn:hover { background: var(--hover-bg); color: va
 /* the sidebar's buttons keep their labels at every width (outweighing .sn-btn .wb-label in frame.css) */
 .sb-nav button.sn-btn .wb-label { display: inline; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .sb-nav .wb-count { margin-left: auto; }
-.sb-nav button.sn-btn.wb-sync { max-width: none; }
-.sb-nav .wb-sync[hidden] { display: none; }
+.sb-foot .wb-sync[hidden] { display: none; }
+button.clickable-icon.sb-foot-btn.wb-sync:disabled { opacity: 1; cursor: default; }
 /* Search fields share one look: white with a hairline border, a 14px icon, the accent ring on focus
    (the sidebar's launcher, the board's filter, Files and Settings) */
 :is(button.sb-search, .sn-search, input.sn-set-search, input.fv-search) {

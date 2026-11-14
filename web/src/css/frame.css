@@ -263,10 +263,7 @@ button.sn-tb-insert kbd { font-size: var(--fs-sm); color: var(--faint); padding:
 .sn-reading:focus { outline: none; }
 
 /* ---------- Git sync */
-button.sn-btn.wb-sync { max-width: 240px; }
-.wb-sync .wb-label { overflow: hidden; text-overflow: ellipsis; }
 .wb-sync.is-ok .wb-sync-icon { color: var(--muted); }
-.wb-sync.is-warn { border-color: color-mix(in srgb, var(--todo) 45%, var(--line)); }
 .wb-sync.is-warn .wb-sync-icon { color: var(--todo); }
 .wb-sync.is-busy .wb-sync-icon { color: var(--accent); }
 .wb-sync.is-spin .wb-sync-icon svg, .sn-sync-status.is-spin svg { animation: sn-spin 1.2s linear infinite; }
@@ -286,5 +283,4 @@ button.sn-btn.wb-sync { max-width: 240px; }
 .sn-sync-warn svg { width: var(--icon-s); height: var(--icon-s); color: var(--ink); flex: 0 0 auto; margin-top: var(--sp-2); }
 .setting-item-control .clickable-icon { width: 28px; height: var(--ctl-m); padding: 0; border: 1px solid var(--line); border-radius: var(--r-xs); background: var(--win); }
 .setting-item-control .clickable-icon svg { width: var(--icon-s); height: var(--icon-s); }
-@media (max-width: 820px) { button.sn-btn.wb-sync .wb-label { display: inline-flex; max-width: 90px; } }
 
