@@ -263,8 +263,11 @@ export function renderEditor() {
   if (editor.mode !== "source") {
     // what the note is, in the accent over its title: a notebook (it holds notes), a daily note, or a note. Its icon
     // leads, and a click picks another (restyle RS-39)
-    const kind = graph.childrenOf(path).length ? t("kindNotebook") : path.startsWith("daily notes/") ? t("kindDaily") : t("kindNote");
-    page.append(h("button", { cls: "sn-kind" + (cardHue(path) ? " ic-" + cardHue(path) : ""), type: "button", title: t("menuIcon"), onClick: () => promptIcon([path]) }, ic("", cardIcon(path) || "file-text", "file-text"), h("span", { text: kind })));
+    // a plain note says nothing new with "Note": only its icon stays (faint until it has one of its own), still a button to pick it
+    const kind = graph.childrenOf(path).length ? t("kindNotebook") : path.startsWith("daily notes/") ? t("kindDaily") : null;
+    const plain = kind ? "" : cardIcon(path) ? " is-plain" : " is-plain is-bare";
+    page.append(h("button", { cls: "sn-kind" + plain + (cardHue(path) ? " ic-" + cardHue(path) : ""), type: "button", title: t("menuIcon"), "aria-label": kind ? null : t("kindNote") + " · " + t("menuIcon"), onClick: () => promptIcon([path]) },
+      ic("", cardIcon(path) || "file-text", "file-text"), kind ? h("span", { text: kind }) : null));
     const title = h("textarea", { cls: "sn-inline-title", rows: "1", spellcheck: "false" });
     title.value = baseName(path);
     const growT = () => { title.style.height = "auto"; title.style.height = title.scrollHeight + "px"; };
@@ -274,6 +277,10 @@ export function renderEditor() {
     title.addEventListener("blur", commit);
     page.append(title);
     requestAnimationFrame(growT);
+    // the pane can still be settling when the title is measured: a title that wrapped then kept a second, empty line,
+    // so it measures again whenever its width changes
+    let titleW = 0;
+    new ResizeObserver(([e]) => { const w = Math.round(e.contentRect.width); if (w && w !== titleW) { titleW = w; growT(); } }).observe(title);
     if (n.fmError) page.append(h("div", { cls: "sn-fm-error", text: t("fmError", { msg: n.fmError }) }));
     page.append(h("div", { id: "editor-props" }));
   }

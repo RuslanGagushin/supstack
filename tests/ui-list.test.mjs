@@ -333,7 +333,7 @@ describe("sidebar", () => {
     noErrors();
   });
 
-  test("the tree lists only notebooks, under the Notebooks heading, with how many cards each holds", async () => {
+  test("the tree lists only notebooks, under the Notebooks heading, with how many cards each holds on all levels", async () => {
     await openVault({ demo: false, notes: {
       "cards/Work.md": "", "cards/Proton.md": "---\nparents: [\"[[Work]]\"]\n---\n", "cards/Radar.md": "---\nparents: [\"[[Proton]]\"]\n---\nradar",
       "cards/Invoice.md": "---\nparents: [\"[[Work]]\"]\n---\nan invoice", "cards/Loose.md": "a note with no notebook",
@@ -341,9 +341,9 @@ describe("sidebar", () => {
     const rows = () => ev(() => [...document.querySelectorAll("#tree .sn-aria-tree > .tree-item .sn-tree-row[data-path], #tree .sn-tree-children .sn-tree-row[data-path]")]
       .map((r) => [r.dataset.path.replace(/^cards\/|\.md$/g, ""), r.querySelector(".sn-tree-count")?.textContent ?? ""]));
     assert.match(await page().textContent("#tree .sn-tree-section.has-tools"), /^Notebooks/);
-    assert.deepEqual(await rows(), [["Work", "2"]], "Loose and the notes inside Work are not in the tree");
+    assert.deepEqual(await rows(), [["Work", "3"]], "Loose and the notes inside Work are not in the tree; Work counts Radar inside Proton too");
     await ev(() => revealInTree("cards/Radar.md"));
-    assert.deepEqual(await rows(), [["Work", "2"], ["Proton", "1"]], "revealing a note opens the notebooks it sits in; the note itself stays in the list");
+    assert.deepEqual(await rows(), [["Work", "3"], ["Proton", "1"]], "revealing a note opens the notebooks it sits in; the note itself stays in the list");
     noErrors();
   });
 

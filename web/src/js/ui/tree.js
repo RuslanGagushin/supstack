@@ -180,7 +180,7 @@ function shortAgo(ms) {
   return new Date(ms).toLocaleDateString(LANG, { day: "numeric", month: "short" });
 }
 const isNotebook = (path) => graph.childrenOf(path).length > 0;
-/** A notebook in the tree: it opens as the list; only the notebooks inside it are its branches, the count is every card inside. */
+/** A notebook in the tree: it opens as the list; only the notebooks inside it are its branches, the count is every card on all levels inside. */
 function treeNode(path, chain, cmp, o) {
   const key = (o.keyPrefix ? o.keyPrefix + SEP : "") + chain.join(SEP);
   const isCycle = chain.indexOf(path) !== chain.length - 1;
@@ -194,7 +194,9 @@ function treeNode(path, chain, cmp, o) {
   setIcon(toggle, "chevron-down");
   toggle.addEventListener("click", (e) => { e.stopPropagation(); if (tree.expanded.has(key)) tree.expanded.delete(key); else tree.expanded.add(key); persistBoard(); renderTree(); });
   row.append(toggle, ic("sn-tree-icon", cardIcon(path) || (all.length ? "folder" : "file-text"), "file-text"), h("div", { cls: "tree-item-inner sn-tree-label", text: baseName(path), title: isCycle ? "↻" : path }));
-  if (all.length) row.append(h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair sn-tree-count", text: String(all.length), title: t("treeCountIn", { n: all.length }) })));
+  // every card on all levels below, as All notes counts them: a notebook of notebooks does not read as nearly empty
+  const total = all.length ? graph.collect(path, 0, cmp).cards.length : 0;
+  if (total) row.append(h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair sn-tree-count", text: String(total), title: t("treeCountAll", { n: total }) })));
   row.addEventListener("click", (e) => { if (isMod(e)) openEditor(path); else setTarget(path); });
   row.addEventListener("dblclick", () => openEditor(path));
   row.addEventListener("contextmenu", (e) => {

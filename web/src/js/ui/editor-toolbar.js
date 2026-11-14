@@ -112,9 +112,11 @@ export function renderEditorProps() {
 /** The reading view's facts under the title, in place of Properties (restyle RS-41 to RS-43): where the note sits (its
    notebooks, each opening its list, and a notebook it names that doesn't exist), its tags (each opens its list), its tasks
    done and when it changed. A row with nothing to say is left out; the rest of the properties are in the editing view. */
+/** While reading, the note's facts sit in one quiet line under its title: notebooks · tags · tasks · when it changed.
+ *  Each fact names itself in a tooltip, so the line needs no column of keys. */
 function infoLine(path, n) {
-  const dl = h("dl", { cls: "sn-facts" });
-  const row = (key, ...val) => dl.append(h("dt", { text: key }), h("dd", {}, ...val));
+  const dl = h("div", { cls: "sn-facts", role: "list" });
+  const row = (key, ...val) => dl.append(h("span", { cls: "sn-fact", role: "listitem", title: key }, ...val));
   const parents = graph.parentsOf(path).filter((p) => graph.has(p)), missing = graph.unresolvedParentsOf(path);
   const place = (p) => h("a", { cls: "sn-facts-place", href: "#", onClick: (e) => { e.preventDefault(); setTarget(p); } }, ic("", p ? cardIcon(p) || "folder" : "home", "folder"), h("span", { text: p ? baseName(p) : t("allCards") }));
   row(t("factNotebook"), ...(parents.length || missing.length ? parents.map(place) : [place(null)]),
@@ -127,7 +129,7 @@ function infoLine(path, n) {
     bar.firstChild.style.width = Math.round((prog.done / prog.n) * 100) + "%";
     row(t("factTasks"), bar, h("span", { text: t("factDone", prog) }));
   }
-  row(t("factModified"), h("span", { text: formatDate(n.mtime || 0), title: new Date(n.mtime || 0).toLocaleString(LANG) }));
+  row(t("factModified"), h("span", { text: t("factModified") + " " + formatDate(n.mtime || 0), title: new Date(n.mtime || 0).toLocaleString(LANG) }));
   return dl;
 }
 export function editorKeys(e) {

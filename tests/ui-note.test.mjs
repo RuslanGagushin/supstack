@@ -29,14 +29,16 @@ describe("opening a note", () => {
     noErrors();
   });
 
-  test("over the title, what the note is: a notebook, a daily note or a note (restyle RS-39); its tasks done as a bar and words (RS-43)", async () => {
+  test("over the title, what the note is: a notebook or a daily note; a plain note shows only its icon (restyle RS-39); its tasks done as a bar and words (RS-43)", async () => {
     const notes = { "cards/Book.md": "", "cards/Child.md": "---\nparents: [\"[[Book]]\"]\n---\n- [x] a\n- [ ] b\n- [ ] c\n- [ ] d\n", "daily notes/2026-11-13.md": "Today\n" };
-    for (const [lang, words] of [["en", ["Notebook", "Note", "Daily note"]], ["ru", ["Блокнот", "Заметка", "Заметка дня"]]]) {
+    for (const [lang, words] of [["en", ["Notebook", "", "Daily note"]], ["ru", ["Блокнот", "", "Заметка дня"]]]) {
       await openVault({ lang, openNotes: "read", demo: false, notes });
       const kinds = [];
       for (const p of ["cards/Book.md", "cards/Child.md", "daily notes/2026-11-13.md"]) {
         await ev((p) => openEditor(p, { focus: false, wide: false }), p);
         kinds.push(await ev(() => document.querySelector("#editor .sn-kind").textContent));
+        if (p === "cards/Child.md") assert.deepEqual(await ev(() => [document.querySelector("#editor .sn-kind").classList.contains("is-bare"), !!document.querySelector("#editor .sn-kind svg"), document.querySelector("#editor .sn-kind").getAttribute("aria-label")]),
+          [true, true, lang === "en" ? "Note · Icon…" : "Заметка · Иконка…"], "the plain note keeps a faint icon that still picks one");
       }
       assert.deepEqual(kinds, words, lang);
     }
@@ -50,11 +52,11 @@ describe("opening a note", () => {
     noErrors();
   });
 
-  test("reading shows the note's facts under the title in place of Properties: its notebook, its tags, when it changed", async () => {
+  test("reading shows the note's facts in one line under the title in place of Properties: its notebook, its tags, when it changed", async () => {
     await openVault({ openNotes: "read", demo: false, notes: { "cards/Doc.md": "---\nparents: [\"[[Gone]]\"]\ntags: [alpha, beta]\nicon: book\n---\nText\n", "cards/Other.md": "---\ntags: [alpha]\n---\n" } });
     await ev(() => openEditor("cards/Doc.md", { focus: false, wide: false }));
     const r = await ev(() => ({
-      props: document.querySelectorAll("#editor-props .sn-props").length, keys: [...document.querySelectorAll("#editor-props .sn-facts dt")].map((x) => x.textContent),
+      props: document.querySelectorAll("#editor-props .sn-props").length, keys: [...document.querySelectorAll("#editor-props .sn-facts .sn-fact")].map((x) => x.title),
       tags: [...document.querySelectorAll(".sn-facts .sn-facts-tag")].map((x) => x.textContent), missing: document.querySelector(".sn-facts .sn-chip.is-missing")?.textContent,
     }));
     assert.equal(r.props, 0, "no Properties while reading");

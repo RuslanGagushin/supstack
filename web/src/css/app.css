@@ -170,16 +170,16 @@ button.sn-mode-btn.is-editing:hover { background: var(--cta-hover); }
 /* reading keeps the room of the editing toolbar above the note, so its title stays put when editing starts */
 .sn-editor.is-read .sn-editor-scroll { padding-top: var(--ed-toolbar-h, var(--ctl-touch)); } /* until a toolbar is measured, its min-height (writing.css) */
 /* reading: the note's facts under the title, a key and its value on each line between two hairlines (editor-toolbar.js infoLine, restyle RS-41) */
-.sn-facts { display: grid; grid-template-columns: 120px minmax(0, 1fr); row-gap: var(--sp-10); align-items: center; margin: 0 0 var(--sp-24); padding: var(--sp-12) 0; border-block: 1px solid var(--line); font-size: var(--fs-md); }
-.sn-facts dt { color: var(--faint); }
-.sn-facts dd { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-6) var(--sp-10); min-width: 0; color: var(--ink); }
-a.sn-facts-place { display: inline-flex; align-items: center; gap: var(--sp-6); min-width: 0; color: var(--ink); font-weight: var(--fw-medium); text-decoration: none; }
-a.sn-facts-place:hover { text-decoration: underline; }
+/* one quiet line under the title, facts parted by dots */
+.sn-facts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-6) 0; margin: 0 0 var(--sp-24); color: var(--muted); font-size: var(--fs-md); }
+.sn-fact { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--sp-6) var(--sp-8); min-width: 0; }
+.sn-fact + .sn-fact::before { content: "·"; margin: 0 var(--sp-8); color: var(--faint); }
+a.sn-facts-place { display: inline-flex; align-items: center; gap: var(--sp-6); min-width: 0; color: var(--muted); font-weight: var(--fw-medium); text-decoration: none; }
+a.sn-facts-place:hover { color: var(--ink); text-decoration: underline; }
 a.sn-facts-place svg { flex: none; width: var(--icon-s); height: var(--icon-s); color: var(--muted); }
 /* the tasks done: a bar of 96px, the accent for the part done, beside the words */
 .sn-facts-bar { display: flex; width: 96px; height: 6px; border-radius: var(--r-pill); background: var(--sel); overflow: hidden; }
 .sn-facts-bar > span { border-radius: var(--r-pill); background: var(--cta); }
-@media (max-width: 820px) { .sn-facts { grid-template-columns: 96px minmax(0, 1fr); } }
 .sn-props-head, .sn-editor-foot h4 { font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--muted); }
 /* a table being read keeps the room editing leaves on its right for "+ column" (writing.css .sn-table-host), so it doesn't widen and re-split its columns */
 .sn-reading:not(.sn-live) .sn-table-wrap { margin-right: 17px; }
@@ -253,8 +253,8 @@ a.sn-facts-place svg { flex: none; width: var(--icon-s); height: var(--icon-s); 
 .sn-board .sn-card.sn-row:hover { background: var(--hover-bg); box-shadow: inset 0 0 0 1px var(--line); }
 .sn-board .sn-card.sn-row:focus { box-shadow: inset 0 0 0 1px var(--line); }
 .sn-board .sn-card.sn-row:focus-visible:not(.is-editing) { box-shadow: var(--ring); }
-/* the open note: the sidebar's grey and a stronger hairline (RS-33) */
-.sn-board .sn-card.sn-row.is-editing { background: var(--bg); box-shadow: inset 0 0 0 1px var(--line-strong); }
+/* the open note: the grey of the sidebar's chosen row and a stronger hairline (RS-33) */
+.sn-board .sn-card.sn-row.is-editing { background: var(--sel); box-shadow: inset 0 0 0 1px var(--line-strong); }
 /* --faint is for --bg and --win only: on a row's grey the date, the dots and the counts step up to --muted, as in the sidebar */
 .sn-row:is(:hover, .is-editing) :is(.sn-row-meta, .sn-row-meta > *::before, .sn-row-count) { color: var(--muted); }
 .sn-board .sn-card.sn-row.is-picked { background: color-mix(in srgb, var(--accent-soft) 70%, var(--win)); box-shadow: 0 0 0 1px var(--accent); }

@@ -83,8 +83,8 @@ describe("a row of the list (UI-22, UI-23)", () => {
 });
 
 describe("the tree's counts (UI-24)", () => {
-  test("All notes says its number is every note on all levels; a notebook's, what is right inside it", async () => {
-    for (const [lang, all, inside] of [["en", "16 notes on all levels", "1 note or notebook right inside"], ["ru", "16 заметок на всех уровнях", "1 заметка или блокнот прямо внутри"]]) {
+  test("All notes and every notebook count the notes on all levels below them", async () => {
+    for (const [lang, all, inside] of [["en", "16 notes on all levels", "4 notes on all levels"], ["ru", "16 заметок на всех уровнях", "4 заметки на всех уровнях"]]) {
       await openVault({ lang });
       const r = await ev(() => { const rows = [...document.querySelectorAll("#tree .sn-tree-row")]; return [rows[0].querySelector(".sn-tree-count").title, rows.find((x) => x.dataset.path === "cards/History.md").querySelector(".sn-tree-count").title]; });
       assert.deepEqual(r, [all, inside], lang);
