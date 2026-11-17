@@ -122,6 +122,8 @@ test("padding, margin and gap use the spacing scale; the measured offsets are li
     [".modal.mod-settings > .modal-title", "52px", "room for the close button"],
     [".modal-title", "44px", "room for the close button"],
     [":where(select)", "28px", "room for the chevron"],
+    [".ag-main:has(> .task-box) .ag-sub", "15px", "an agenda row's tags and note start under its title: the task box's width"],
+    [".ag-main:has(> .ag-ev-bar) .ag-sub", "3px", "an agenda event's tags and note start under its title: the colour bar's width"],
   ];
   const bad = [];
   for (const f of readdirSync(CSS).filter((f) => f.endsWith(".css"))) {
