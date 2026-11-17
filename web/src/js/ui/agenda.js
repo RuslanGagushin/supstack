@@ -376,6 +376,8 @@ function orgRow(x) {
     if (e.dead?.active && !e.done) { label = relDay(e.dead.dn); kindCls = "dead" + (e.dead.dn < onow().dn ? " overdue" : ""); tone = e.dead.dn <= onow().dn ? "due" : ""; }
     else if (e.sched?.active && !e.done) { label = relDay(e.sched.dn); kindCls = "sched"; }
   }
+  // a row under its own day needs no "Scheduled" chip: the day already says so (late and deadline chips stay)
+  if (x.kind === "sched" && !x.overdue && label === tt("lScheduled")) label = "";
   const time = x.time != null ? ohm(x.time) + (x.end != null ? "–" + ohm(x.end) : "") : "";
   const row = h("div", { cls: `ag-row k-${kindCls}` + (x.overdue ? " overdue" : "") + (e.done ? " is-done" : ""), role: "option", dataset: { i: String(i), path: e.path, line: String(e.line) } });
   const main = h("span", { cls: "ag-main" });
@@ -383,12 +385,19 @@ function orgRow(x) {
   if (e.isTodo) { const b = taskBox(e.state, { dataset: { act: "tick" } }); if (e.pri) { b.title +=` · ${tt("priority")} ${e.pri}`; } main.append(b); }
   else if (e.kind === "event") main.append(h("span", { cls: "ag-ev-bar hue-" + hueOf(e.category), "aria-hidden": "true" }));
   if (e.pri && (!e.isTodo || e.pri === "A")) main.append(h("span", { cls: `pri ${e.pri}`, text: e.isTodo ? e.pri : `[#${e.pri}]`, title: `${tt("priority")} ${e.pri}` }));
-  main.append(renderInline(e.title, e.path));
+  // #tags at the end of the title move to the line under it, with the other tags; a #tag mid-sentence stays in place
+  const known = new Set(e.alltags.map((x) => x.toLowerCase()));
+  let title = e.title || "";
+  for (let m; (m = /\s+#([\p{L}\p{N}_\-/]+)\s*$/u.exec(title)) && known.has(m[1].toLowerCase());) title = title.slice(0, m.index);
+  const inTitle = title.toLowerCase();
+  main.append(renderInline(title, e.path));
   if (e.cbTotal) main.append(h("span", { cls: "ag-cookie", text: `[${e.cbDone}/${e.cbTotal}]` }));
-  // the note it is in, quietly after its title (spec UI-18); left out when every row comes from one note (.one-cat)
-  main.append(h("span", { cls: "ag-cat", title: e.path, text: e.category }));
-  const shown = e.alltags.filter((x) => !(e.title || "").toLowerCase().includes("#" + x.toLowerCase()));
-  if (shown.length) main.append(h("span", { cls: "tags" }, shown.map((tg) => h("span", { cls: "sn-chip is-s" + (e.inherited.includes(tg) ? " is-outline" : " hue-" + hueOf(tg)), text: tg }))));
+  // its tags and the note it is in, quietly under its title (spec UI-18); the note is left out when every row comes from one note (.one-cat)
+  const shown = e.alltags.filter((x) => !inTitle.includes("#" + x.toLowerCase()));
+  const sub = h("span", { cls: "ag-sub" });
+  if (shown.length) sub.append(h("span", { cls: "tags" }, shown.map((tg) => h("span", { cls: "sn-chip is-s" + (e.inherited.includes(tg) ? " is-outline" : " hue-" + hueOf(tg)), text: tg }))));
+  sub.append(h("span", { cls: "ag-cat", title: e.path, text: e.category }));
+  main.append(sub);
   const act = h("span", { cls: "ag-act" });
   if (e.kind !== "event") act.append(h("button", { type: "button", dataset: { act: "state" }, text: tt("actState"), title: "T" }));
   if (x.kind === "sched" || x.kind === "dead" || x.kind === "ts") act.append(h("button", { type: "button", dataset: { act: "later" }, text: tt("actLater"), title: "Shift+→" }));

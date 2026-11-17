@@ -109,7 +109,7 @@ describe("the agenda's week (UI-13 to UI-17)", () => {
   /** Each day as [its name, its rows' titles], the overdue section first as "Overdue". */
   const week = () => ev(() => [...document.querySelectorAll(".ag-body > .ag-card")].map((c) => [
     c.classList.contains("ag-overdue") ? "Overdue" : c.querySelector(".ag-day > span").textContent,
-    [...c.querySelectorAll(".ag-row .ag-main")].map((m) => m.firstChild && m.querySelector(".ag-cat") ? [...m.childNodes].filter((n) => !n.classList?.contains("task-box") && !n.classList?.contains("ag-cat") && !n.classList?.contains("pri")).map((n) => n.textContent).join("").trim() : m.textContent.trim()),
+    [...c.querySelectorAll(".ag-row .ag-main")].map((m) => m.firstChild && m.querySelector(".ag-sub") ? [...m.childNodes].filter((n) => !n.classList?.contains("task-box") && !n.classList?.contains("ag-sub") && !n.classList?.contains("pri")).map((n) => n.textContent).join("").trim() : m.textContent.trim()),
   ]));
 
   test("a task is listed on its plan's day and its deadline's day; an overdue one under Overdue only, not again in the past", async () => {
