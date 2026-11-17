@@ -89,8 +89,12 @@ button.sn-btn.wb-tasks.is-active { border-color: var(--accent); }
 .ag-body:focus { outline: none; }
 body.sn-kb .ag-body:focus-visible .ag-row.is-selected { box-shadow: var(--ring-inset); }
 body.sn-kb .ag-body:focus-visible:not(:has(.ag-row.is-selected)) { box-shadow: var(--ring-inset); }
-.ag-main .ag-cat { margin-left: var(--sp-6); color: var(--faint); font-size: var(--fs-ui); white-space: nowrap; }
-.ag-main .ag-cat::before { content: "· "; }
+/* the line under a title: its tags, then the note it is in; lined up with the title's text, past the task box */
+.ag-main .ag-sub { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4) var(--sp-8); margin: var(--sp-4) 0 0; color: var(--faint); font-size: var(--fs-sm); line-height: var(--lh-ui); }
+.ag-main:has(> .task-box) .ag-sub { padding-left: calc(15px + var(--sp-8)); }
+.ag-main:has(> .ag-ev-bar) .ag-sub { padding-left: calc(3px + var(--sp-10)); }
+.ag-body.one-cat .ag-sub:not(:has(.tags)) { display: none; }
+.ag-main .ag-cat { white-space: nowrap; }
 .ag-time { color: var(--faint); font-size: var(--fs-ui); white-space: nowrap; }
 .ag-lab { max-width: 20ch; color: var(--muted); font-size: var(--fs-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* the label is a chip: a calendar for a scheduled date (grey), a flag for a deadline (red when due, amber in its warning days) */
