@@ -154,10 +154,12 @@ button.sn-toast-btn:hover, button.sn-toast-x:hover { background: var(--hover-bg)
 .sn-insp-scrim { display: none; }
 @container editor-pane (min-width: 760px) {
   .sn-editor.insp-on .sn-insp { display: flex; }
-  /* the panel says what the line under the title and the mentions under the text say: they give way to it */
-  .sn-editor.insp-on :is(#editor-props, #editor-foot) { display: none; }
+  /* the panel says what the mentions under the text say: they give way to it */
+  .sn-editor.insp-on #editor-foot { display: none; }
 }
-.sn-editor.insp-peek .sn-insp { display: flex; position: absolute; z-index: var(--z-float); top: 0; right: 0; bottom: 0; box-shadow: var(--shadow-4); }
+/* the note's properties live in the panel only: no line of them under the title */
+#editor-props { display: none; }
+.sn-editor.insp-peek .sn-insp { display: flex; position: absolute; z-index: var(--z-float); top: 0; right: 0; bottom: 0; }
 .sn-insp-head { flex: 0 0 auto; position: relative; display: flex; align-items: center; gap: var(--sp-8); height: 52px; padding: 0 var(--sp-8) 0 var(--sp-16); border-bottom: 1px solid var(--line); color: var(--ink); font-weight: var(--fw-semibold); }
 .sn-insp-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sn-insp-icon { display: inline-flex; color: var(--muted); }
