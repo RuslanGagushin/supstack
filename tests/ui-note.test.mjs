@@ -29,38 +29,30 @@ describe("opening a note", () => {
     noErrors();
   });
 
-  test("nothing over the title: a notebook, a daily note and a note all open with the title first (restyle RS-39); its tasks done as a bar and words (RS-43)", async () => {
+  test("nothing over the title: a notebook, a daily note and a note all open with the title first (restyle RS-39); the panel counts its tasks as a bar and words (RS-43)", async () => {
     const notes = { "cards/Book.md": "", "cards/Child.md": "---\nparents: [\"[[Book]]\"]\n---\n- [x] a\n- [ ] b\n- [ ] c\n- [ ] d\n", "daily notes/2026-11-13.md": "Today\n" };
-    await openVault({ lang: "ru", openNotes: "read", demo: false, notes });
+    await openVault({ lang: "ru", openNotes: "read", demo: false, notes, viewport: { width: 1440, height: 900 } });
     for (const p of ["cards/Book.md", "cards/Child.md", "daily notes/2026-11-13.md"]) {
       await ev((p) => openEditor(p, { focus: false, wide: false }), p);
       assert.equal(await ev(() => document.querySelector("#editor .sn-editor-page").firstElementChild.classList.contains("sn-inline-title")), true, p);
     }
     await ev(() => openEditor("cards/Child.md", { focus: false, wide: false }));
+    await settle();
     const r = await ev(() => {
-      const bar = document.querySelector(".sn-facts .sn-facts-bar"), fill = bar.firstChild;
-      return { share: Math.round((fill.getBoundingClientRect().width / bar.getBoundingClientRect().width) * 100), words: bar.nextElementSibling.textContent,
-        place: document.querySelector(".sn-facts .sn-facts-place").textContent };
+      const line = document.querySelector("#editor .sn-insp [data-sec=tasks] .sn-insp-line"), bar = line.firstElementChild, fill = bar.firstElementChild;
+      return { share: Math.round((fill.getBoundingClientRect().width / bar.getBoundingClientRect().width) * 100), words: line.lastElementChild.textContent };
     });
-    assert.deepEqual(r, { share: 25, words: "1 из 4 выполнено", place: "Book" });
+    assert.deepEqual(r, { share: 25, words: "1 из 4 выполнено" });
     noErrors();
   });
 
-  test("reading shows the note's facts in one line under the title in place of Properties: its notebook, its tags, when it changed", async () => {
-    await openVault({ openNotes: "read", demo: false, notes: { "cards/Doc.md": "---\nparents: [\"[[Gone]]\"]\ntags: [alpha, beta]\nicon: book\n---\nText\n", "cards/Other.md": "---\ntags: [alpha]\n---\n" } });
+  test("no line of properties under the title, reading or editing: they live in the note's panel", async () => {
+    await openVault({ openNotes: "read", demo: false, notes: { "cards/Doc.md": "---\ntags: [alpha, beta]\n---\nText\n" } });
+    const shown = () => ev(() => getComputedStyle($("#editor-props")).display !== "none");
     await ev(() => openEditor("cards/Doc.md", { focus: false, wide: false }));
-    const r = await ev(() => ({
-      props: document.querySelectorAll("#editor-props .sn-props").length, keys: [...document.querySelectorAll("#editor-props .sn-facts .sn-fact")].map((x) => x.title),
-      tags: [...document.querySelectorAll(".sn-facts .sn-facts-tag")].map((x) => x.textContent), missing: document.querySelector(".sn-facts .sn-chip.is-missing")?.textContent,
-    }));
-    assert.equal(r.props, 0, "no Properties while reading");
-    assert.deepEqual(r.keys, ["Notebook", "Tags", "Modified"], "no Tasks row: the note has none");
-    assert.deepEqual(r.tags, ["alpha", "beta"]);
-    assert.equal(r.missing, "Gone");
-    await page().click(".sn-facts .sn-facts-tag");
-    assert.deepEqual(await ev(() => [board.tagView, boardModel().shown.map((c) => c.path).sort()]), ["alpha", ["cards/Doc.md", "cards/Other.md"]], "a tag opens its list");
+    assert.equal(await shown(), false, "reading");
     await ev(() => openEditor("cards/Doc.md", { focus: false, edit: true }));
-    assert.deepEqual(await ev(() => [document.querySelectorAll("#editor-props .sn-props").length, document.querySelectorAll("#editor-props .sn-facts").length]), [1, 0], "editing shows Properties again");
+    assert.equal(await shown(), false, "editing");
     noErrors();
   });
 
@@ -414,12 +406,12 @@ describe("the note's panel", () => {
       active: ed.querySelector(".sn-insp-btn").classList.contains("is-active"),
     };
   });
-  test("on a wide window it is a column beside the note, in place of the line under the title; the button hides it and it stays hidden", async () => {
+  test("on a wide window it is a column beside the note; the button hides it and it stays hidden", async () => {
     await openVault({ openNotes: "read", viewport: { width: 1440, height: 900 } });
     await ev(() => openEditor("cards/This week.md", { focus: false, wide: false }));
     await settle();
     let p = await panel();
-    assert.deepEqual([p.shown, p.position, p.facts, p.active], [true, "static", false, true], "a column, and the facts line gives way");
+    assert.deepEqual([p.shown, p.position, p.facts, p.active], [true, "static", false, true], "a column; no line of properties under the title");
     assert.deepEqual(p.secs, ["props", "tasks", "outline", "links", "info"]);
     assert.deepEqual(await ev(() => [$("#editor .sn-insp [data-sec=tasks] .sn-insp-count").textContent, $$("#editor .sn-insp .sn-insp-toc-item").map((b) => b.textContent)]),
       ["2/8", ["Trip", "Routines", "Calendar"]], "tasks done of all, and the note's headings");
@@ -430,7 +422,7 @@ describe("the note's panel", () => {
     assert.match(await ev(() => $("#editor .sn-insp [data-sec=links]").textContent), /This week/, "the notes that link here");
     await page().click("#editor .sn-insp-btn");
     p = await panel();
-    assert.deepEqual([p.shown, p.facts, p.active], [false, true, false], "hidden: the facts line is back");
+    assert.deepEqual([p.shown, p.facts, p.active], [false, false, false], "hidden, and still no line under the title");
     assert.equal(await ev(() => UI.inspector), false, "kept for the next time");
     await ev(() => openEditor("cards/This week.md", { focus: false }));
     assert.equal((await panel()).shown, false, "another note opens without it");
@@ -472,7 +464,7 @@ describe("the note's panel", () => {
     await ev(() => openEditor("cards/This week.md", { focus: false, wide: false }));
     await settle();
     let p = await panel();
-    assert.deepEqual([p.shown, p.facts], [false, true], "no room for a column: it doesn't cover the text by itself");
+    assert.deepEqual([p.shown, p.facts], [false, false], "no room for a column: it doesn't cover the text by itself");
     await page().click("#editor .sn-insp-btn");
     p = await panel();
     assert.deepEqual([p.shown, p.position, p.active], [true, "absolute", true], "over the text");

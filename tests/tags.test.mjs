@@ -1,4 +1,4 @@
-// Tags: suggestions under the Properties panel's tag input, and the "Add tag…" command (Ctrl+Shift+T, card menu).
+// Tags: suggestions under the tag input in the note panel's Properties, and the "Add tag…" command (Ctrl+Shift+T, card menu).
 import { beforeEach, describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { openVault, ev, raw, settle } from "./harness.mjs";
@@ -12,10 +12,11 @@ const NOTES = {
 };
 
 describe("tags", () => {
-  beforeEach(async () => { await openVault({ demo: false, notes: NOTES }); await ev(() => openEditor("cards/Note.md")); await settle(); await page().click("#editor-props .sn-props-head"); });
+  // a wide window, so the note's panel (and its Properties) sits beside the note
+  beforeEach(async () => { await openVault({ demo: false, notes: NOTES, viewport: { width: 1440, height: 900 } }); await ev(() => openEditor("cards/Note.md", { wide: true })); await settle(); });
 
   test("the tag input in Properties suggests the vault's tags, most used first, and leaves out the note's own", async () => {
-    await page().click("#editor-props .sn-prop-input");
+    await page().click("#editor .sn-insp .sn-prop-input");
     const rows = await page().$$eval(".ac-pop .ac-title", (els) => els.map((e) => e.textContent));
     assert.deepEqual(rows, ["#project", "#home", "#reading"]);
     await page().keyboard.type("rea");
@@ -30,7 +31,7 @@ describe("tags", () => {
   });
 
   test("Backspace in the empty tag input removes the last tag", async () => {
-    await page().click("#editor-props .sn-prop-input");
+    await page().click("#editor .sn-insp .sn-prop-input");
     await page().keyboard.press("Backspace");
     await settle();
     assert.doesNotMatch(await raw("cards/Note.md"), /tags/);
