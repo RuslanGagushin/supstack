@@ -20,6 +20,7 @@ import { editorTable, editorTableKey, editorTableOp, tableMenu } from "./table-e
 import { edSetHeading } from "./format-bar.js";
 import { acKey, acUpdate, linkMention, setFocusMode, tagInputSuggest, unlinkedMentions } from "./completion.js";
 import { orgEditorKey, orgLineIsEntry, orgToolbar } from "./org-editing.js";
+import { renderInspector } from "./inspector.js";
 
 let tagFocus = false;
 const focusLost = () => !document.activeElement || document.activeElement === document.body;
@@ -29,85 +30,101 @@ export function renderEditorProps() {
   const host = $("#editor-props");
   const foot = $("#editor-foot");
   if (!n) return;
-  const field = PARENTS_FIELD;
   if (host && editor.mode === "read") {
     host.dataset.path = path;
     host.replaceChildren(infoLine(path, n));
   } else if (host && !n.fmError) {
-    const oldIn = host.dataset.path === path ? host.querySelector(".sn-prop-input") : null;
-    host.dataset.path = path;
-    const draft = oldIn?.value || "", hadFocus = !!oldIn && oldIn === document.activeElement;
-    host.replaceChildren();
-    const props = h("div", { cls: "sn-props" + (editor.propsCollapsed ? " is-collapsed" : "") });
-    const ph = h("div", { cls: "sn-props-head" }, ic("", "chevron-down"), h("span", { text: t("properties") }));
-    ph.addEventListener("click", () => { editor.propsCollapsed = !editor.propsCollapsed; props.classList.toggle("is-collapsed", editor.propsCollapsed); });
-    props.append(ph);
-    const row = (iconName, key, ...val) => h("div", { cls: "sn-prop" }, h("div", { cls: "sn-prop-key" }, ic("", iconName), h("span", { text: key })), h("div", { cls: "sn-prop-val" }, ...val));
-    // parents
-    const pv = [];
-    for (const p of graph.parentsOf(path).filter((x) => graph.has(x))) pv.push(parentChip(p, () => removeParent(path, p)));
-    for (const u of graph.unresolvedParentsOf(path)) { const c = h("span", { cls: "sn-chip is-s is-missing", title: t("parentMissing") }, ic("sn-chip-icon", "alert-triangle"), h("span", { text: u })); const x = ic("sn-chip-x", "x"); x.addEventListener("click", () => removeParent(path, u)); c.append(x); pv.push(c); }
-    const addP = ic("sn-prop-add", "plus"); addP.title = t("menuAddParent"); addP.addEventListener("click", () => promptAddParent([path]));
-    props.append(row("git-fork", field, ...pv, addP));
-    // icon
-    const icn = cardIcon(path);
-    const ip = h("span", { cls: "sn-icon-pick" + (icn ? "" : " is-empty") }, ic("", icn || "circle-dashed", "circle-dashed"), h("span", { text: icn || t("noIcon") }));
-    ip.addEventListener("click", () => promptIcon([path]));
-    props.append(row("smile", "icon", ip));
-    // tags (frontmatter)
-    const fmTags = fmTagList(n.fm);
-    const tagVals = fmTags.map((tg) => {
-      const c = h("span", { cls: "sn-chip is-s hue-" + hueOf(tg) }, "#" + tg);
-      const x = ic("sn-chip-x", "x");
-      x.addEventListener("click", () => removeTag(path, tg));
-      c.append(x);
-      return c;
-    });
-    const tagIn = h("input", { cls: "sn-prop-input", type: "text", placeholder: t("addTag") });
-    // the panel redraws after the write: the new input takes the focus back, so tags can be typed one after another
-    // only while the focus is nowhere (the redraw dropped it): a click elsewhere in the meantime wins
-    const keepFocus = (p) => { tagFocus = true; p.finally(() => requestAnimationFrame(() => requestAnimationFrame(() => { if (tagFocus && focusLost()) $("#editor-props .sn-prop-input")?.focus(); tagFocus = false; }))); };
-    tagInputSuggest(tagIn, {
-      exclude: () => new Set(fmTags.map((x) => x.toLowerCase())),
-      onPick: (tag) => keepFocus(addTags([path], [tag])),
-      onBackspace: () => { if (fmTags.length) keepFocus(removeTag(path, fmTags[fmTags.length - 1])); },
-    });
-    tagIn.value = draft;
-    props.append(row("tags", "tags", ...tagVals, tagIn));
-    // template
-    const tpl = templateFor(path);
-    if (tpl) props.append(row("layout-template", "child_template", h("a", { cls: "sn-chip is-s", href: "#", onClick: (e) => { e.preventDefault(); openEditor(tpl); } }, ic("sn-chip-icon", "layout-template"), h("span", { text: baseName(tpl) }))));
-    // others
-    const known = new Set([field, "icon", "tags", "tag", "child_template"]);
-    const others = Object.entries(n.fm).filter(([k]) => !known.has(k));
-    for (const [k, v] of others) {
-      const txt = typeof v === "object" && v !== null ? dumpYaml(v).trim() : String(v);
-      props.append(row(k === "child_order" ? "list-ordered" : k === "order" ? "hash" : "text", k, h("span", { cls: "sn-prop-other", text: txt, title: t("otherProps") })));
-    }
-    host.append(props);
-    if (hadFocus || (tagFocus && focusLost())) $("#editor-props .sn-prop-input")?.focus();
+    fillProps(host, path, n, { collapsible: true });
   }
   if (foot) {
     foot.replaceChildren();
     // what the notebook holds is its list (the board), not a block under its text
-    const back = graph.backlinksOf(path);
-    const unlinked = unlinkedMentions(path);
+    const box = mentionsBox(path, "h4");
     // with mentions under it, the text keeps no empty room to click into: they follow it (spec UI-8)
-    foot.closest(".sn-editor-page")?.classList.toggle("has-foot", !!(back.length || unlinked.length));
-    if (!back.length && !unlinked.length) return;
-    const box = h("div", { cls: "sn-editor-foot" });
-    if (back.length) box.append(h("h4", { text: `${t("linkedMentions")} · ${back.length}` }), h("div", { cls: "sn-chips" }, back.map((k) => { const c = parentChip(k); c.onclick = (e) => { e.preventDefault(); openEditor(k); }; return c; })));
-    if (unlinked.length) {
-      box.append(h("h4", { text: `${wt("unlinked")} · ${unlinked.length}` }));
-      const list = h("div", { cls: "sn-unlinked" });
-      for (const u of unlinked) {
-        const c = parentChip(u); c.onclick = (e) => { e.preventDefault(); openEditor(u); };
-        list.append(h("div", { cls: "sn-unlinked-row" }, c, h("button", { cls: "sn-btn is-s", type: "button", onClick: () => linkMention(u, path) }, ic("", "link"), wt("linkIt"))));
-      }
-      box.append(list);
-    }
-    foot.append(box);
+    foot.closest(".sn-editor-page")?.classList.toggle("has-foot", !!box);
+    if (box) foot.append(box);
   }
+  renderInspector();
+}
+/** The note's properties as rows a person edits: its notebooks, icon, tags, child template and the rest of its
+ *  frontmatter. Drawn into `host` (the editing view's Properties block, or the inspector's), keeping a tag being typed
+ *  and the focus across the redraw that follows each change. */
+export function fillProps(host, path, n, o = {}) {
+  const field = PARENTS_FIELD;
+  const inputOf = () => (host.isConnected ? host : document.querySelector(o.selector || "#editor-props"))?.querySelector(".sn-prop-input");
+  const oldIn = host.dataset.path === path ? host.querySelector(".sn-prop-input") : null;
+  host.dataset.path = path;
+  const draft = oldIn?.value || "", hadFocus = !!oldIn && oldIn === document.activeElement;
+  host.replaceChildren();
+  const props = h("div", { cls: "sn-props" + (o.collapsible && editor.propsCollapsed ? " is-collapsed" : "") });
+  if (o.collapsible) {
+    const ph = h("div", { cls: "sn-props-head" }, ic("", "chevron-down"), h("span", { text: t("properties") }));
+    ph.addEventListener("click", () => { editor.propsCollapsed = !editor.propsCollapsed; props.classList.toggle("is-collapsed", editor.propsCollapsed); });
+    props.append(ph);
+  }
+  const row = (iconName, key, ...val) => h("div", { cls: "sn-prop" }, h("div", { cls: "sn-prop-key" }, ic("", iconName), h("span", { text: key })), h("div", { cls: "sn-prop-val" }, ...val));
+  // parents
+  const pv = [];
+  for (const p of graph.parentsOf(path).filter((x) => graph.has(x))) pv.push(parentChip(p, () => removeParent(path, p)));
+  for (const u of graph.unresolvedParentsOf(path)) { const c = h("span", { cls: "sn-chip is-s is-missing", title: t("parentMissing") }, ic("sn-chip-icon", "alert-triangle"), h("span", { text: u })); const x = ic("sn-chip-x", "x"); x.addEventListener("click", () => removeParent(path, u)); c.append(x); pv.push(c); }
+  const addP = ic("sn-prop-add", "plus"); addP.title = t("menuAddParent"); addP.addEventListener("click", () => promptAddParent([path]));
+  props.append(row("git-fork", field, ...pv, addP));
+  // icon
+  const icn = cardIcon(path);
+  const ip = h("span", { cls: "sn-icon-pick" + (icn ? "" : " is-empty") }, ic("", icn || "circle-dashed", "circle-dashed"), h("span", { text: icn || t("noIcon") }));
+  ip.addEventListener("click", () => promptIcon([path]));
+  props.append(row("smile", "icon", ip));
+  // tags (frontmatter)
+  const fmTags = fmTagList(n.fm);
+  const tagVals = fmTags.map((tg) => {
+    const c = h("span", { cls: "sn-chip is-s hue-" + hueOf(tg) }, "#" + tg);
+    const x = ic("sn-chip-x", "x");
+    x.addEventListener("click", () => removeTag(path, tg));
+    c.append(x);
+    return c;
+  });
+  const tagIn = h("input", { cls: "sn-prop-input", type: "text", placeholder: t("addTag") });
+  // the panel redraws after the write: the new input takes the focus back, so tags can be typed one after another
+  // only while the focus is nowhere (the redraw dropped it): a click elsewhere in the meantime wins
+  const keepFocus = (p) => { tagFocus = true; p.finally(() => requestAnimationFrame(() => requestAnimationFrame(() => { if (tagFocus && focusLost()) inputOf()?.focus(); tagFocus = false; }))); };
+  tagInputSuggest(tagIn, {
+    exclude: () => new Set(fmTags.map((x) => x.toLowerCase())),
+    onPick: (tag) => keepFocus(addTags([path], [tag])),
+    onBackspace: () => { if (fmTags.length) keepFocus(removeTag(path, fmTags[fmTags.length - 1])); },
+  });
+  tagIn.value = draft;
+  props.append(row("tags", "tags", ...tagVals, tagIn));
+  // template
+  const tpl = templateFor(path);
+  if (tpl) props.append(row("layout-template", "child_template", h("a", { cls: "sn-chip is-s", href: "#", onClick: (e) => { e.preventDefault(); openEditor(tpl); } }, ic("sn-chip-icon", "layout-template"), h("span", { text: baseName(tpl) }))));
+  // others
+  const known = new Set([field, "icon", "tags", "tag", "child_template"]);
+  const others = Object.entries(n.fm).filter(([k]) => !known.has(k));
+  for (const [k, v] of others) {
+    const txt = typeof v === "object" && v !== null ? dumpYaml(v).trim() : String(v);
+    props.append(row(k === "child_order" ? "list-ordered" : k === "order" ? "hash" : "text", k, h("span", { cls: "sn-prop-other", text: txt, title: t("otherProps") })));
+  }
+  host.append(props);
+  if (hadFocus || (tagFocus && focusLost())) inputOf()?.focus();
+}
+/** The notes that link here and the ones that name this note without a link (each with "Link it"), under headings of
+ *  the given tag; null when there are none. */
+export function mentionsBox(path, headTag) {
+  const back = graph.backlinksOf(path);
+  const unlinked = unlinkedMentions(path);
+  if (!back.length && !unlinked.length) return null;
+  const box = h("div", { cls: "sn-editor-foot" });
+  if (back.length) box.append(h(headTag, { text: `${t("linkedMentions")} · ${back.length}` }), h("div", { cls: "sn-chips" }, back.map((k) => { const c = parentChip(k); c.onclick = (e) => { e.preventDefault(); openEditor(k); }; return c; })));
+  if (unlinked.length) {
+    box.append(h(headTag, { text: `${wt("unlinked")} · ${unlinked.length}` }));
+    const list = h("div", { cls: "sn-unlinked" });
+    for (const u of unlinked) {
+      const c = parentChip(u); c.onclick = (e) => { e.preventDefault(); openEditor(u); };
+      list.append(h("div", { cls: "sn-unlinked-row" }, c, h("button", { cls: "sn-btn is-s", type: "button", onClick: () => linkMention(u, path) }, ic("", "link"), wt("linkIt"))));
+    }
+    box.append(list);
+  }
+  return box;
 }
 /** The reading view's facts under the title, in place of Properties (restyle RS-41 to RS-43): where the note sits (its
    notebooks, each opening its list, and a notebook it names that doesn't exist), its tags (each opens its list), its tasks

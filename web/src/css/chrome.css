@@ -147,6 +147,74 @@ button.sn-toast-btn:hover, button.sn-toast-x:hover { background: var(--hover-bg)
 .sn-spin svg { animation: sn-spin 1s linear infinite; width: var(--icon-l); height: var(--icon-l); }
 @keyframes sn-spin { to { transform: rotate(360deg); } }
 
+/* ---------- The note's panel (ui/inspector.js): a column beside the note where the pane is 760px or wider (INSP_DOCK),
+   over the text where it is narrower, a sheet from the bottom on a phone; the last two only while asked for */
+.sn-editor.win { flex-direction: row; position: relative; }
+.sn-insp { display: none; flex: 0 0 var(--insp-w); width: var(--insp-w); min-width: 0; min-height: 0; flex-direction: column; border-left: 1px solid var(--line); background: var(--bg); color: var(--fg); font-size: var(--fs-ui); }
+.sn-insp-scrim { display: none; }
+@container editor-pane (min-width: 760px) {
+  .sn-editor.insp-on .sn-insp { display: flex; }
+  /* the panel says what the line under the title and the mentions under the text say: they give way to it */
+  .sn-editor.insp-on :is(#editor-props, #editor-foot) { display: none; }
+}
+.sn-editor.insp-peek .sn-insp { display: flex; position: absolute; z-index: var(--z-float); top: 0; right: 0; bottom: 0; box-shadow: var(--shadow-4); }
+.sn-insp-head { flex: 0 0 auto; position: relative; display: flex; align-items: center; gap: var(--sp-8); height: 52px; padding: 0 var(--sp-8) 0 var(--sp-16); border-bottom: 1px solid var(--line); color: var(--ink); font-weight: var(--fw-semibold); }
+.sn-insp-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sn-insp-icon { display: inline-flex; color: var(--muted); }
+.sn-insp-icon svg { width: var(--icon-s); height: var(--icon-s); }
+.sn-insp .sn-insp-close { width: var(--ctl-l); height: var(--ctl-l); padding: 0; border-radius: var(--r-s); color: var(--muted); }
+.sn-insp .sn-insp-close:hover { background: var(--hover-bg); color: var(--fg); }
+.sn-insp .sn-insp-close svg { width: var(--icon-m); height: var(--icon-m); }
+.sn-insp-grab { display: none; }
+.sn-insp-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.sn-insp-sec { padding: var(--sp-8) var(--sp-12) var(--sp-12); border-bottom: 1px solid var(--line); }
+button.sn-insp-sec-head { display: flex; align-items: center; gap: var(--sp-6); width: 100%; height: var(--ctl-m); padding: 0 var(--sp-4); border: 0; border-radius: var(--r-s); background: transparent; color: var(--muted); font-size: var(--fs-sm); font-weight: var(--fw-semibold); cursor: pointer; }
+button.sn-insp-sec-head:hover { background: var(--hover-bg); color: var(--fg); }
+button.sn-insp-sec-head svg { flex: none; width: var(--icon-s); height: var(--icon-s); }
+.sn-insp-sec-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+.sn-insp-count { color: var(--faint); font-weight: var(--fw-medium); font-variant-numeric: tabular-nums; }
+button.sn-insp-sec-head:hover .sn-insp-count { color: var(--muted); }
+.sn-insp-chev { display: inline-flex; color: var(--faint); transition: transform var(--dur-1) var(--ease); }
+.sn-insp-sec.is-collapsed .sn-insp-chev { transform: rotate(-90deg); }
+.sn-insp-sec.is-collapsed .sn-insp-sec-body { display: none; }
+.sn-insp-sec-body { display: flex; flex-direction: column; gap: var(--sp-8); padding: var(--sp-6) var(--sp-4) 0; min-width: 0; }
+.sn-insp .sn-prop { grid-template-columns: 84px minmax(0, 1fr); padding: var(--sp-2) 0; }
+.sn-insp .sn-prop:hover { background: transparent; }
+.sn-insp .sn-prop-input { min-width: 0; width: 100%; }
+.sn-insp-line { display: flex; align-items: center; gap: var(--sp-8); color: var(--muted); font-size: var(--fs-sm); }
+.sn-insp-bar { flex: 1 1 auto; width: auto; }
+.sn-insp-states { display: flex; flex-wrap: wrap; gap: var(--sp-4); }
+.sn-insp-states svg { color: var(--muted); }
+button.sn-insp-link { display: flex; align-items: center; gap: var(--sp-8); width: 100%; min-height: var(--ctl-m); padding: var(--sp-4) var(--sp-6); border: 0; border-radius: var(--r-s); background: transparent; color: var(--fg); font-size: var(--fs-ui); text-align: left; cursor: pointer; }
+button.sn-insp-link:hover { background: var(--hover-bg); }
+button.sn-insp-link svg { flex: none; width: var(--icon-s); height: var(--icon-s); color: var(--muted); }
+.sn-insp-link-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sn-insp-sub { flex: none; color: var(--muted); font-size: var(--fs-sm); }
+.sn-insp-toc { display: flex; flex-direction: column; gap: 0; }
+button.sn-insp-toc-item { display: block; width: 100%; min-height: var(--ctl-s); padding: var(--sp-2) var(--sp-6); padding-inline-start: calc(var(--sp-6) + var(--sp-12) * var(--toc-depth, 0)); border: 0; border-radius: var(--r-s); background: transparent; color: var(--muted); font-size: var(--fs-ui); text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+button.sn-insp-toc-item:hover { background: var(--hover-bg); color: var(--ink); }
+.sn-insp .sn-editor-foot { margin: 0; }
+.sn-insp .sn-editor-foot .sn-chips { margin: 0 0 var(--sp-12); }
+.sn-insp-empty { color: var(--faint); font-size: var(--fs-sm); }
+.sn-insp-info { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--sp-4) var(--sp-12); margin: 0; font-size: var(--fs-sm); }
+.sn-insp-info dt { color: var(--muted); }
+.sn-insp-info dd { margin: 0; color: var(--fg); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* the header's button: the panel's icon on a desktop, "i" on a phone, where the panel is a sheet */
+.sn-insp-btn-phone { display: none; }
+@media (max-width: 820px) {
+  .sn-insp-btn > svg { display: none; }
+  .sn-insp-btn-phone { display: inline-flex; }
+  .sn-editor.insp-peek .sn-insp { position: fixed; top: auto; left: 0; height: min(80dvh, 640px); border: 0; border-radius: var(--r-l) var(--r-l) 0 0; background: var(--win); padding-bottom: var(--safe-bottom); font-size: var(--fs-md); width: auto; }
+  .sn-editor.insp-peek .sn-insp-scrim { display: block; position: fixed; inset: 0; z-index: var(--z-float); background: var(--scrim); }
+  .sn-editor.insp-peek .sn-insp { z-index: calc(var(--z-float) + 1); }
+  .sn-insp-head { height: 56px; padding-top: var(--sp-10); touch-action: none; }
+  .sn-insp-grab { display: block; position: absolute; top: var(--sp-8); left: 50%; width: 36px; height: 4px; margin-left: -18px; border-radius: var(--r-pill); background: var(--line-strong); }
+  .sn-insp .sn-prop { min-height: var(--ctl-touch); align-items: center; grid-template-columns: 104px minmax(0, 1fr); }
+  button.sn-insp-link, button.sn-insp-toc-item { min-height: var(--ctl-touch); font-size: var(--fs-md); }
+  /* on a phone the note's facts, Properties and mentions are all in the sheet: the text starts under the title */
+  :is(#editor-props, #editor-foot) { display: none; }
+}
+
 /* ---------- Narrow screens */
 @media (max-width: 820px) {
   .sn-filterbar { padding: var(--sp-12) var(--sp-16) 0; }

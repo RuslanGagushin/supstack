@@ -60,6 +60,8 @@ body {
   --icon-stroke: 1.75px;
 
   --header-height: 40px;
+  /* the note's panel (ui/inspector.js): its width beside the note */
+  --insp-w: 280px;
   /* control heights: small (chips, icons in a row), medium (fields, buttons in bars), large (sidebar buttons, menu rows), touch */
   --ctl-xs: 20px; --ctl-s: 24px; --ctl-m: 28px; --ctl-l: 32px; --ctl-field: 34px; --ctl-touch: 40px;
   /* a note's own headings, in whole pixels of its 16px text: 28, 24, 20, then the text's size (the title is 32, app.css) */

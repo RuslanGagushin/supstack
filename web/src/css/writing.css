@@ -121,7 +121,8 @@ body.sn-kb :is(.sn-board, .sn-reading):focus-visible { box-shadow: var(--ring-in
   *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; scroll-behavior: auto !important; }
 }
 /* Toolbar fits its pane: tighter spacing, then fewer labels, then fewer buttons — never sideways scrolling on desktop */
-.sn-editor { flex: 0 0 var(--editor-w, 540px); container-type: inline-size; container-name: editor; grid-column: 5; grid-row: 2; }
+.sn-editor { flex: 0 0 var(--editor-w, 540px); container-type: inline-size; container-name: editor-pane; grid-column: 5; grid-row: 2; }
+.sn-editor-col { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; container-type: inline-size; container-name: editor; }
 /* the edges fade where buttons are past them (editor-toolbar.js scrollFades) */
 .sn-ed-toolbar.fade-end { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); }
 .sn-ed-toolbar.fade-start { -webkit-mask-image: linear-gradient(to right, transparent, #000 40px); mask-image: linear-gradient(to right, transparent, #000 40px); }
