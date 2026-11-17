@@ -70,6 +70,7 @@ Six sizes and no more (spec UI-20); `tests/typography.test.mjs` measures them on
 | Control heights | `--ctl-xs` 20, `--ctl-s` 24, `--ctl-m` 28, `--ctl-l` 32, `--ctl-field` 34, `--ctl-touch` 40 | xs: small chips; s: chips, icons in a row; m: fields, buttons in bars; l: sidebar buttons, menu rows; field: the search fields; touch: the least a finger gets (spec UI-9) |
 | Icons | `--icon-xs` 12, `--icon-s` 14, `--icon-m` 16, `--icon-l` 18; `--icon-stroke` 1.75px | Lucide icons; one stroke |
 | Bars | `--header-height` 40 | the sidebar's head |
+| Panels | `--insp-w` 280 | the note's panel beside the note |
 
 ### Depth, focus, motion, layers
 
@@ -184,6 +185,12 @@ The list's head, `.sn-list-head`: a faint kind (`.sn-list-kind`: Notebook, Tag o
 ### A page's head
 
 A note opens with its title at `--fs-title` and nothing over it: whether it is a notebook or a daily note shows in the tree. The agenda's days and month still open with what they are, in the accent with an icon (`.ag-kind`: Agenda · Week 46). While reading, a note's facts follow its title in one quiet `--muted` line (`.sn-facts`, each `.sn-fact` parted by a dot and named by its tooltip): its notebooks, tags, tasks done (a 96px bar and words) and when it changed. The editing view's Properties (`.sn-prop`) keep a column of keys.
+
+### The note's panel — `.sn-insp`
+
+Everything about the open note beside its text ([`ui/inspector.js`](../web/src/js/ui/inspector.js)), on `--bg` with a hairline at its left, `--insp-w` wide. Its sections (`.sn-insp-sec`, a head that folds it with `.is-collapsed`, kept per device in `UI.inspFold`): **Properties** (the editing view's `.sn-prop` rows, editable while reading too), **Tasks** (done of all, a chip per state, the nearest date still open; only with tasks), **Outline** (the headings; only with headings), **Links** (the notes that link here and the unlinked mentions) and **Info** (words, characters, created, modified, the file). The note's pane is a row: `.sn-editor-col` (header, toolbar, text: the container the toolbar's queries measure) and the panel.
+
+Where it goes: a column from a pane of 760px (`INSP_DOCK`, a container query on `editor-pane`), shown or hidden by the header's `.sn-insp-btn` (kept in `UI.inspector`); the facts line under the title and the mentions under the text give way to it. A narrower pane gets it over the text (`.insp-peek`, `--shadow-4`), a phone as a sheet from the bottom (`--r-l` corners, a grab handle, the `--scrim` behind), both only while asked for. On a phone the facts line, the editing view's Properties and the mentions under the text are left out: the sheet has them all. Esc, the scrim, ✕ or pulling the sheet down close it.
 
 ### Tree — `.sn-outline`
 

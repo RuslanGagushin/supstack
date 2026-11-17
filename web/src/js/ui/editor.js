@@ -23,6 +23,7 @@ import { refresh } from "./shell.js";
 import { applyLayout } from "./layout.js";
 import { markOpenInTree } from "./tree.js";
 import { ac, acClose, acUpdate, caretRect, outlineMenu, setFocusMode, wireEditorFiles } from "./completion.js";
+import { applyInspector, inspectorPanel, toggleInspector } from "./inspector.js";
 
 export const scheduleSave = debounce(() => saveEditor(), 600);
 export function openEditor(path, o = {}) {
@@ -232,6 +233,10 @@ export function renderEditor() {
   if (!path) return;
   const n = vault.notes.get(path);
   if (n && (!editor.dirty || editor.base?.path !== path)) editor.base = { path, raw: n.raw };
+  // the note's column (header, toolbar, text) and the note's panel beside it (ui/inspector.js)
+  const col = h("div", { cls: "sn-editor-col" });
+  host.append(col);
+  if (n) host.append(...inspectorPanel());
   const head = h("div", { cls: "sn-editor-head" });
   head.append(iconBtn("x", t("closeEditor"), () => closeEditor(), "sn-editor-close")); // on a phone "‹ notebook" does its work
   head.append(iconBtn(editor.wide ? "minimize-2" : "maximize-2", editor.wide ? t("collapseEditor") : t("expandEditor"), () => { editor.wide = !editor.wide; $("#app").classList.toggle("editor-wide", editor.wide); renderEditor(); }, "sn-hide-narrow"));
@@ -242,14 +247,17 @@ export function renderEditor() {
     const reading = editor.mode === "read";
     head.append(h("button", { cls: "sn-mode-btn" + (reading ? "" : " is-editing"), type: "button", title: (reading ? t("editingView") : t("readingView")) + " · Ctrl+E", onClick: () => toggleReading() },
       ic("", reading ? "pencil" : "check"), h("span", { cls: "sn-mode-label", text: reading ? t("modeEdit") : t("modeDone") })));
+    const panel = iconBtn("panel-right", t("inspector"), () => toggleInspector(), "sn-insp-btn");
+    panel.append(ic("sn-insp-btn-phone", "info"));
+    head.append(panel);
     head.append(iconBtn("more-vertical", t("more"), (e) => editorMenu(path, e.currentTarget), "sn-editor-more"));
   }
-  host.append(head);
+  col.append(head);
   host.classList.toggle("is-read", !!n && editor.mode === "read");
   if (n && editor.mode !== "read") {
     // the reading view keeps the toolbar's room above the note, so the title doesn't move when editing starts (app.css)
     const bar = renderEdToolbar();
-    host.append(bar);
+    col.append(bar);
     const hgt = bar.getBoundingClientRect().height; // not offsetHeight, which rounds to a whole pixel
     if (hgt) document.documentElement.style.setProperty("--ed-toolbar-h", hgt + "px");
   }
@@ -257,7 +265,8 @@ export function renderEditor() {
   scroll.addEventListener("scroll", () => { if ($(".sn-fmtbar")) updateFmtBar($(".sn-editor-text")); }, { passive: true });
   const page = h("div", { cls: "sn-editor-page" });
   scroll.append(page);
-  host.append(scroll);
+  col.append(scroll);
+  applyInspector();
   if (!n) { page.append(h("div", { cls: "sn-editor-empty", text: t("noteGone") })); return; }
 
   if (editor.mode !== "source") {

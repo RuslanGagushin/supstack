@@ -335,17 +335,17 @@ function noteHeadings(text) {
   }
   return out;
 }
-export function outlineMenu(anchor) {
+/** The open note's headings, and how to go to one: in live preview the caret moves there, in source mode too, while
+ *  reading the page scrolls to it. The outline menu and the inspector's outline both use it. */
+export function noteOutline() {
   const n = vault.notes.get(editor.path);
-  if (!n) return;
-  let ta = $(".sn-editor-text");
+  if (!n) return null;
+  const ta = $(".sn-editor-text");
   const live = editor.mode === "edit" && editor.live;
   const text = live ? liveText() : ta ? ta.value : n.body;
   const hs = noteHeadings(text);
-  const m = new Menu();
-  if (!hs.length) m.add(wt("noHeadings"), null, null, { disabled: true });
-  const min = Math.min(...hs.map((x) => x.level));
-  hs.forEach((hd, i) => m.add(" ".repeat(hd.level - min) + hd.text, `heading-${Math.min(hd.level, 6)}`, () => {
+  const go = (i) => {
+    const hd = hs[i];
     if (live) {
       liveActivate(hd.offset);
       const sc = $(".sn-editor-scroll"), lt = liveTa();
@@ -359,7 +359,17 @@ export function outlineMenu(anchor) {
     } else {
       $$("#editor .sn-reading :is(h1,h2,h3,h4,h5,h6)")[i]?.scrollIntoView({ block: "start", behavior: "smooth" });
     }
-  }));
+  };
+  return { hs, go };
+}
+export function outlineMenu(anchor) {
+  const o = noteOutline();
+  if (!o) return;
+  const { hs, go } = o;
+  const m = new Menu();
+  if (!hs.length) m.add(wt("noHeadings"), null, null, { disabled: true });
+  const min = Math.min(...hs.map((x) => x.level));
+  hs.forEach((hd, i) => m.add(" ".repeat(hd.level - min) + hd.text, `heading-${Math.min(hd.level, 6)}`, () => go(i)));
   m.showBelow(anchor);
 }
 

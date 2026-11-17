@@ -26,6 +26,7 @@ import { applyLayout, foldDrawer, sideIsDrawer, sideSetByHand } from "./layout.j
 import { onow } from "../core/org.js";
 import { filesButton, openFilesView } from "./files.js";
 import { aboutBody } from "./about.js";
+import { inspectorShown, toggleInspector } from "./inspector.js";
 
 export function applyTheme() {
   const dark = UI.theme === "dark" || (UI.theme === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
@@ -114,6 +115,7 @@ function commandList() {
   add(t("collapseAll"), "chevrons-down-up", () => { tree.expanded.clear(); persistBoard(); renderTree(); });
   section(t("cmdGroupView"));
   add(wt("focus"), "focus", () => setFocusMode(!UI.focus), "Ctrl+Shift+F", UI.focus);
+  if (editor.path) add(t("inspector"), "panel-right", () => toggleInspector(), null, inspectorShown());
   add(t("cmdSidebar"), "panel-left", () => setSide($("#app").classList.contains("side-closed")), "Ctrl+\\", !$("#app").classList.contains("side-closed"));
   add(t("cmdDark"), "moon", () => { const dark = document.body.classList.contains("theme-dark"); UI.theme = dark ? "light" : "dark"; saveUI(); applyTheme(); }, null, document.body.classList.contains("theme-dark"));
   section(t("cmdGroupApp"));

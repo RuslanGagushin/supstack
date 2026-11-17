@@ -1,7 +1,7 @@
 // A note open beside the list: opening it, reading and editing, the live preview, and a note that changes on disk while it is edited.
 import { beforeEach, describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { openVault, ev, raw } from "./harness.mjs";
+import { openVault, ev, raw, settle } from "./harness.mjs";
 import * as H from "./harness.mjs";
 
 const page = () => H.page;
@@ -72,7 +72,7 @@ describe("opening a note", () => {
       top: Math.round($("#editor .sn-inline-title").getBoundingClientRect().top),
     }));
     const read = await head();
-    assert.deepEqual([read.mode, read.btn, read.icons], ["read", "Edit", 3], "close, expand and ⋮ besides Edit");
+    assert.deepEqual([read.mode, read.btn, read.icons], ["read", "Edit", 4], "close, expand, the note's panel and ⋮ besides Edit");
     await page().click("#editor .sn-mode-btn");
     const edit = await head();
     assert.deepEqual([edit.mode, edit.btn], ["edit", "Done"]);
@@ -399,6 +399,106 @@ describe("editing a note that changes on disk", () => {
     assert.equal(await ev(() => [...vault.notes.keys()].length), 1);
     const names = await ev(() => { const d = new Date(2026, 10, 10, 10, 0, 0); const a = conflictPath("cards/A.md", d); vault.allPaths.add(a); const b = conflictPath("cards/A.md", d); vault.allPaths.add(b); return [a, b, conflictPath("cards/A.md", d)]; });
     assert.deepEqual(names, ["cards/A (conflict 2026-11-10 10.00.00).md", "cards/A (conflict 2026-11-10 10.00.00 2).md", "cards/A (conflict 2026-11-10 10.00.00 3).md"]);
+    noErrors();
+  });
+});
+
+describe("the note's panel", () => {
+  const panel = () => ev(() => {
+    const ed = $("#editor"), a = ed.querySelector(".sn-insp");
+    const shown = !!a && getComputedStyle(a).display !== "none";
+    return {
+      shown, position: shown ? getComputedStyle(a).position : null,
+      secs: shown ? [...a.querySelectorAll(".sn-insp-sec")].map((s) => s.dataset.sec) : [],
+      facts: getComputedStyle($("#editor-props")).display !== "none",
+      active: ed.querySelector(".sn-insp-btn").classList.contains("is-active"),
+    };
+  });
+  test("on a wide window it is a column beside the note, in place of the line under the title; the button hides it and it stays hidden", async () => {
+    await openVault({ openNotes: "read", viewport: { width: 1440, height: 900 } });
+    await ev(() => openEditor("cards/This week.md", { focus: false, wide: false }));
+    await settle();
+    let p = await panel();
+    assert.deepEqual([p.shown, p.position, p.facts, p.active], [true, "static", false, true], "a column, and the facts line gives way");
+    assert.deepEqual(p.secs, ["props", "tasks", "outline", "links", "info"]);
+    assert.deepEqual(await ev(() => [$("#editor .sn-insp [data-sec=tasks] .sn-insp-count").textContent, $$("#editor .sn-insp .sn-insp-toc-item").map((b) => b.textContent)]),
+      ["2/8", ["Trip", "Routines", "Calendar"]], "tasks done of all, and the note's headings");
+    await ev(() => openEditor("cards/Aqueducts.md", { focus: false }));
+    await settle();
+    p = await panel();
+    assert.deepEqual(p.secs, ["props", "links", "info"], "no tasks and no headings: those sections are left out");
+    assert.match(await ev(() => $("#editor .sn-insp [data-sec=links]").textContent), /This week/, "the notes that link here");
+    await page().click("#editor .sn-insp-btn");
+    p = await panel();
+    assert.deepEqual([p.shown, p.facts, p.active], [false, true, false], "hidden: the facts line is back");
+    assert.equal(await ev(() => UI.inspector), false, "kept for the next time");
+    await ev(() => openEditor("cards/This week.md", { focus: false }));
+    assert.equal((await panel()).shown, false, "another note opens without it");
+    await page().click("#editor .sn-insp-btn");
+    assert.equal((await panel()).shown, true);
+    noErrors();
+  });
+
+  test("a section folds and stays folded; a heading in the outline and the next date go to the note", async () => {
+    await openVault({ openNotes: "read", viewport: { width: 1440, height: 900 } });
+    await ev(() => openEditor("cards/This week.md", { focus: false, wide: false }));
+    await settle();
+    await page().click("#editor .sn-insp [data-sec=info] .sn-insp-sec-head");
+    assert.deepEqual(await ev(() => [$("#editor .sn-insp [data-sec=info]").classList.contains("is-collapsed"), UI.inspFold]), [true, { info: true }]);
+    await ev(() => renderEditor());
+    assert.equal(await ev(() => $("#editor .sn-insp [data-sec=info]").classList.contains("is-collapsed")), true, "still folded after a redraw");
+    await page().click("#editor .sn-insp .sn-insp-toc-item >> nth=1");
+    await page().click("#editor .sn-insp [data-sec=tasks] .sn-insp-link");
+    await settle();
+    assert.equal(await ev(() => editor.mode), "edit", "the task's date opens the note for editing at the task");
+    noErrors();
+  });
+
+  test("a tag typed in the panel's Properties goes into the note's frontmatter", async () => {
+    await openVault({ demo: false, notes: { "cards/Note.md": "---\ntags: [garden]\n---\nText\n" }, viewport: { width: 1440, height: 900 } });
+    await ev(() => openEditor("cards/Note.md", { focus: false, wide: true }));
+    await settle();
+    await page().click("#editor .sn-insp .sn-prop-input");
+    await page().keyboard.type("seeds");
+    await page().keyboard.press("Enter");
+    await settle();
+    assert.match(await raw("cards/Note.md"), /tags:\n  - garden\n  - seeds\n/);
+    assert.equal(await ev(() => document.activeElement === $("#editor .sn-insp .sn-prop-input")), true, "the input keeps the focus for the next tag");
+    noErrors();
+  });
+
+  test("where the note's pane is narrow it lies over the text only while asked for; Esc closes it", async () => {
+    await openVault({ openNotes: "read" });
+    await ev(() => openEditor("cards/This week.md", { focus: false, wide: false }));
+    await settle();
+    let p = await panel();
+    assert.deepEqual([p.shown, p.facts], [false, true], "no room for a column: it doesn't cover the text by itself");
+    await page().click("#editor .sn-insp-btn");
+    p = await panel();
+    assert.deepEqual([p.shown, p.position, p.active], [true, "absolute", true], "over the text");
+    await page().keyboard.press("Escape");
+    assert.equal((await panel()).shown, false);
+    assert.equal(await ev(() => editor.path), "cards/This week.md", "Esc closed the panel, not the note");
+    noErrors();
+  });
+
+  test("on a phone it is a sheet from the bottom that the ⓘ button opens and the dim behind closes; nothing about the note sits under its title", async () => {
+    await openVault({ openNotes: "read", viewport: { width: 390, height: 800 }, touch: true });
+    await ev(() => openEditor("cards/Aqueducts.md", { focus: false }));
+    await settle();
+    let p = await panel();
+    assert.deepEqual([p.shown, p.facts], [false, false], "no facts line under the title");
+    assert.equal(await ev(() => getComputedStyle($("#editor-foot")).display), "none", "no mentions under the text");
+    await page().tap("#editor .sn-insp-btn");
+    p = await panel();
+    assert.deepEqual([p.shown, p.position], [true, "fixed"]);
+    const box = await page().locator("#editor .sn-insp").boundingBox();
+    assert.ok(Math.abs(box.y + box.height - 800) < 2 && box.width === 390, "along the bottom edge, the screen's width");
+    await page().mouse.click(195, 40); // the dim above the sheet
+    assert.equal((await panel()).shown, false);
+    await ev(() => openEditor("cards/Aqueducts.md", { focus: false, edit: true }));
+    await settle();
+    assert.equal((await panel()).facts, false, "editing has no Properties block under the title either");
     noErrors();
   });
 });
