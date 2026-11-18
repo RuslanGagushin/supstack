@@ -14,6 +14,7 @@ GitHub release with generated notes. Nothing is built or uploaded by hand.
 - On `main`, working tree clean apart from what the user wants in the release (`git status -sb`).
   Uncommitted work the user asked for gets its own commit first, never mixed into the release commit.
 - `npm test` passes (needs the installed Chrome). Don't release on red tests.
+- The three steps of `RELEASING.md` are done (checks incl. `npm run visual`, the two-minute look on phone and desktop, a `CHANGELOG.md` line).
 - Last version: `git tag --sort=-creatordate | head -1`. What's new: `git log --oneline <last tag>..HEAD`.
 
 ## 2. Pick the version

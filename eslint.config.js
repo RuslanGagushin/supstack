@@ -27,7 +27,7 @@ export default [
   {
     // most of a test is code that page.evaluate runs in the page, against the app's exports made global
     // (js/expose.js): to ESLint those names look undefined
-    files: ["tests/**/*.mjs", "scripts/screenshots.mjs"],
+    files: ["tests/**/*.mjs", "scripts/screenshots.mjs", "scripts/visual.mjs"],
     rules: { "no-undef": "off" },
   },
   {
