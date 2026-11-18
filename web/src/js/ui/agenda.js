@@ -10,7 +10,7 @@ import { persistBoard } from "../services/vault.js";
 import { txn, writeRaw } from "../services/save.js";
 import { dailyNotePath } from "../services/daily-notes.js";
 import { orgAll } from "../services/tasks.js";
-import { $, $$, h, ic, iconBtn, isMod, keyText } from "./dom.js";
+import { $, $$, edgeFades, h, ic, iconBtn, isMod, keyText } from "./dom.js";
 import { echo, Menu, openLayer, promptModal } from "./ui.js";
 import { renderMarkdown, wireRendered } from "./markdown.js";
 import { goBack, leaveTagView, navEntry, renderBoard } from "./board.js";
@@ -238,6 +238,7 @@ export function renderTasksView(root) {
     agbar.append(fb);
   }
   root.append(agbar);
+  for (const s of agbar.querySelectorAll(":scope > .sn-seg")) edgeFades(s);
 
   // body
   const scroll = h("div", { cls: "sn-scroll ag-scroll" });
@@ -531,7 +532,7 @@ export function orgCapture(pre = {}) {
   const tplRow = h("div", { cls: "cap-tpl" });
   const head = h("input", { type: "text", cls: "cap-head", placeholder: LANG === "ru" ? "Что это?" : "What is it?", autocomplete: "off" });
   head.value = pre.head || "";
-  const when = h("input", { type: "text", cls: "cap-when", placeholder: tt("dateHelp"), autocomplete: "off" });
+  const when = h("input", { type: "text", cls: "cap-when", placeholder: tt("dateEg"), autocomplete: "off" }); // the whole syntax is in the hint under it, which a narrow field would cut
   const hint = h("span", { cls: "cap-hint" });
   const notes = h("textarea", { cls: "cap-notes", rows: "3", placeholder: tt("capNotes") });
   const targets = [["daily", tt("capDaily")], ["inbox", `${tt("capInbox")}.md`]];
@@ -558,7 +559,7 @@ export function orgCapture(pre = {}) {
     toWrap.hidden = tpl === "j";
     const v = when.value.trim();
     const r = v ? orgReadDate(v) : null;
-    hint.textContent = v ? (r ? (tpl === "m" ? "" : "SCHEDULED: ") + orgTsStr({ active: true, dn: r.dn, time: r.time, end: r.end, rep: r.rep, warn: r.warn }) : tt("cantRead")) : tpl === "m" ? tt("capNeedDate") : "";
+    hint.textContent = v ? (r ? (tpl === "m" ? "" : "SCHEDULED: ") + orgTsStr({ active: true, dn: r.dn, time: r.time, end: r.end, rep: r.rep, warn: r.warn }) : tt("cantRead")) : tpl === "m" ? tt("capNeedDate") : tt("dateHelp");
     hint.classList.toggle("is-bad", !!v && !r);
   };
   for (const [k, label, icon] of tpls) {

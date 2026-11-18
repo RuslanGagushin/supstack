@@ -422,7 +422,8 @@ export function tagsSection(box) {
   const wrap = h("div", { cls: "sn-tag-cloud" });
   for (const [tg, n] of [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 40)) {
     const on = board.tagView === tg;
-    const b = h("button", { cls: "sn-chip" + (on ? " is-accent" : " hue-" + hueOf(tg)), type: "button", title: `#${tg} · ${n}` }, h("span", { text: tg }), h("span", { cls: "n", text: "· " + n }));
+    // the open tag shows by a check as well as the accent plate, so the state is never colour alone
+    const b = h("button", { cls: "sn-chip" + (on ? " is-accent" : " hue-" + hueOf(tg)), type: "button", "aria-pressed": String(on), title: `#${tg} · ${n}` }, on && ic("", "check"), h("span", { text: tg }), h("span", { cls: "n", text: "· " + n }));
     b.addEventListener("click", () => { if (on) goBack(); else openTagView(tg); });
     wrap.append(b);
   }

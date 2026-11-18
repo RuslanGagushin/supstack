@@ -8,43 +8,44 @@
 .wb-spacer { flex: 1; }
 button.sn-btn, .sn-btn { cursor: pointer;
 }
-button.sn-btn:hover { border-color: var(--faint); background: var(--win); }
-button.sn-btn.is-primary:hover { background: var(--fg); opacity: .9; }
+@media (hover: hover) { button.sn-btn:hover { border-color: var(--faint); background: var(--win); } }
+@media (hover: hover) { button.sn-btn.is-primary:hover { background: var(--fg); opacity: .9; } }
 .sn-btn kbd { font-family: var(--font-ui); font-size: var(--fs-sm); color: var(--faint); }
 .sn-btn.is-primary kbd { color: inherit; opacity: .7; }
 .wb-caret svg { width: var(--icon-xs); height: var(--icon-xs); color: var(--faint); }
 button.clickable-icon.wb-icon { padding: 0; }
-button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--fg); background: var(--win); }
+@media (hover: hover) { button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--fg); background: var(--win); } }
 
 .wb-frame { flex: 1 1 auto; min-height: 0; display: contents; }
 .win { min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; border: 0; }
 .sn-main.win { flex: 1 1 auto; }
 .sn-resizer { z-index: var(--z-resizer); cursor: col-resize; position: relative; flex: 0 0 10px; }
-.sn-resizer:hover::after, .sn-resizer.is-dragging::after { inset: 0 4px; border-radius: 2px; }
+.sn-resizer.is-dragging::after { inset: 0 4px; border-radius: 2px; }
+@media (hover: hover) { .sn-resizer:hover::after { inset: 0 4px; border-radius: 2px; } }
 #app.editor-wide .sn-editor { flex: 1 1 auto; width: auto; border-left: 1px solid var(--line); grid-column: 3 / 6; }
 
 
 /* ---------- Sidebar: an outline beside the frame */
 .sn-side { flex: 0 0 var(--side-w, 240px); min-width: 0; display: flex; flex-direction: column; border-right: 1px solid var(--line); grid-column: 1; grid-row: 1 / 3; background: var(--bg); }
 .sn-outline { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; }
-.sn-outline .tree-item-self.sn-tree-row:hover { background: var(--hover-bg); }
+@media (hover: hover) { .sn-outline .tree-item-self.sn-tree-row:hover { background: var(--hover-bg); } }
 .tree-item-children { margin-inline-start: 11px; padding-inline-start: var(--sp-4); border-color: transparent; }
 
 /* ---------- Board window */
 .sn-crumb { min-width: 0; display: inline-flex; align-items: center; gap: var(--sp-6); border-radius: var(--r-xs); text-decoration: none; overflow: hidden; text-overflow: ellipsis; cursor: default; padding: var(--sp-2) var(--sp-4); color: var(--muted); font-weight: var(--fw-medium); }
 .sn-board .sn-topbar .clickable-icon:where(:not(.sn-seg > *)), .sn-editor .sn-editor-head .clickable-icon { padding: 0 var(--sp-6); }
-.sn-board .sn-topbar .clickable-icon:where(:not(.sn-seg > *)):hover, .sn-editor .sn-editor-head .clickable-icon:hover { border-color: var(--line); color: var(--fg); background: var(--bg); }
+@media (hover: hover) { .sn-board .sn-topbar .clickable-icon:where(:not(.sn-seg > *)):hover, .sn-editor .sn-editor-head .clickable-icon:hover { border-color: var(--line); color: var(--fg); background: var(--bg); } }
 /* ---------- Segmented control, the one definition: a --panel track; segments 28px (24 in .is-s); the chosen one a raised --win plate.
    The topbar's own icon buttons leave the segments in it alone (:where(:not(.sn-seg > *)), which adds no weight). */
 .sn-seg { display: inline-flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2); border: 0; border-radius: var(--r-s); background: var(--panel); }
 .sn-board .sn-seg > .clickable-icon { height: var(--ctl-m); min-width: var(--ctl-s); padding: 0 var(--sp-8); border-radius: var(--r-s); color: var(--muted); font-size: var(--fs-ui); font-variant-numeric: tabular-nums; }
 .sn-board .sn-seg.is-s > .clickable-icon { height: var(--ctl-s); }
-.sn-board .sn-seg > .clickable-icon:hover { background: transparent; color: var(--fg); }
+@media (hover: hover) { .sn-board .sn-seg > .clickable-icon:hover { background: transparent; color: var(--fg); } }
 .sn-board .sn-seg > .clickable-icon.is-active { background: var(--win); color: var(--ink); box-shadow: var(--shadow-1); }
 .sn-tools { flex: 0 0 auto; display: flex; align-items: center; gap: var(--sp-4); }
 
 /* Cards: quiet bordered blocks, titles coloured by outline level */
-.sn-card:hover { box-shadow: 0 0 0 1px var(--faint), var(--shadow-2); }
+@media (hover: hover) { .sn-card:hover { box-shadow: 0 0 0 1px var(--faint), var(--shadow-2); } }
 .sn-card-icon { flex: 0 0 auto; display: inline-flex; align-self: center; color: var(--muted); }
 .sn-card-icon svg { stroke-width: var(--icon-stroke); width: var(--icon-s); height: var(--icon-s); }
 .sn-chips { display: flex; flex-wrap: wrap; gap: var(--sp-6); }
@@ -61,10 +62,13 @@ button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--f
 .sn-chip-icon { display: inline-flex; }
 :is(button.sn-chip, a.sn-chip, .sn-chip.is-link, .markdown-rendered a.tag) { cursor: pointer; }
 /* modifiers repeat the base's :is(), which outweighs the generic button rule, so that they outweigh the base */
-:is(button.sn-chip, a.sn-chip, .sn-chip.is-link, .markdown-rendered a.tag):hover { background: color-mix(in srgb, var(--panel) 80%, var(--fg) 10%); color: var(--fg); }
-:is(.sn-chip, .markdown-rendered a.tag).is-accent, :is(.sn-chip, .markdown-rendered a.tag).is-accent:hover { background: var(--accent-soft); color: var(--accent); }
-:is(.sn-chip, .markdown-rendered a.tag).is-danger, :is(.sn-chip, .markdown-rendered a.tag).is-danger:hover { background: var(--due-bg); color: var(--due-fg); font-weight: var(--fw-semibold); }
-:is(.sn-chip, .markdown-rendered a.tag).is-warn, :is(.sn-chip, .markdown-rendered a.tag).is-warn:hover { background: var(--hue-orange-bg); color: var(--hue-orange-fg); }
+@media (hover: hover) { :is(button.sn-chip, a.sn-chip, .sn-chip.is-link, .markdown-rendered a.tag):hover { background: color-mix(in srgb, var(--panel) 80%, var(--fg) 10%); color: var(--fg); } }
+:is(.sn-chip, .markdown-rendered a.tag).is-accent { background: var(--accent-soft); color: var(--accent-ink); }
+@media (hover: hover) { :is(.sn-chip, .markdown-rendered a.tag).is-accent:hover { background: var(--accent-soft); color: var(--accent-ink); } }
+:is(.sn-chip, .markdown-rendered a.tag).is-danger { background: var(--due-bg); color: var(--due-fg); font-weight: var(--fw-semibold); }
+@media (hover: hover) { :is(.sn-chip, .markdown-rendered a.tag).is-danger:hover { background: var(--due-bg); color: var(--due-fg); font-weight: var(--fw-semibold); } }
+:is(.sn-chip, .markdown-rendered a.tag).is-warn { background: var(--hue-orange-bg); color: var(--hue-orange-fg); }
+@media (hover: hover) { :is(.sn-chip, .markdown-rendered a.tag).is-warn:hover { background: var(--hue-orange-bg); color: var(--hue-orange-fg); } }
 /* a tag's hue, the same wherever it shows (util.js hueOf); a chip that is a control dims under the pointer */
 :is(.sn-chip, .markdown-rendered a.tag).hue-green { background: var(--hue-green-bg); color: var(--hue-green-fg); }
 :is(.sn-chip, .markdown-rendered a.tag).hue-blue { background: var(--hue-blue-bg); color: var(--hue-blue-fg); }
@@ -72,7 +76,7 @@ button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--f
 :is(.sn-chip, .markdown-rendered a.tag).hue-pink { background: var(--hue-pink-bg); color: var(--hue-pink-fg); }
 :is(.sn-chip, .markdown-rendered a.tag).hue-yellow { background: var(--hue-yellow-bg); color: var(--hue-yellow-fg); }
 :is(.sn-chip, .markdown-rendered a.tag).hue-purple { background: var(--hue-purple-bg); color: var(--hue-purple-fg); }
-:is(button.sn-chip, a.sn-chip, .sn-chip.is-link, .markdown-rendered a.tag)[class*="hue-"]:hover { opacity: .8; }
+@media (hover: hover) { :is(button.sn-chip, a.sn-chip, .sn-chip.is-link, .markdown-rendered a.tag)[class*="hue-"]:hover { opacity: .8; } }
 /* a note's hue on its icon and its type label (vault.js cardHue) */
 .ic-green { color: var(--hue-green-fg); }
 .ic-blue { color: var(--hue-blue-fg); }
@@ -83,9 +87,10 @@ button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--f
 :is(.sn-chip, .markdown-rendered a.tag).is-outline { background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
 :is(.sn-chip, .markdown-rendered a.tag).is-struck { text-decoration: line-through; }
 /* a parent that is not in the vault: drawn dashed, and not a link */
-:is(.sn-chip, .markdown-rendered a.tag).is-missing, :is(.sn-chip, .markdown-rendered a.tag).is-missing:hover { background: transparent; outline: 1px dashed var(--faint); outline-offset: -1px; color: var(--muted); cursor: default; }
+:is(.sn-chip, .markdown-rendered a.tag).is-missing { background: transparent; outline: 1px dashed var(--faint); outline-offset: -1px; color: var(--muted); cursor: default; }
+@media (hover: hover) { :is(.sn-chip, .markdown-rendered a.tag).is-missing:hover { background: transparent; outline: 1px dashed var(--faint); outline-offset: -1px; color: var(--muted); cursor: default; } }
 .sn-chip-x { display: inline-flex; margin-inline-start: var(--sp-2); margin-inline-end: calc(var(--sp-4) * -1); opacity: .55; border-radius: 50%; }
-.sn-chip-x:hover { opacity: 1; background: var(--panel); }
+@media (hover: hover) { .sn-chip-x:hover { opacity: 1; background: var(--panel); } }
 .sn-composer:focus-within { box-shadow: var(--ring); }
 .sn-empty, .sn-footnote { color: var(--faint); }
 
@@ -95,7 +100,7 @@ button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--f
 .sn-search:focus-within { border-color: var(--accent); box-shadow: var(--ring); }
 .sn-board .sn-filter-btn, .sn-board .sn-filterbar > .clickable-icon { padding: 0 var(--sp-8); border: 1px solid var(--line); font-size: var(--fs-ui); }
 .sn-board .sn-filter-btn.is-active { border-color: var(--line); background: var(--panel); color: var(--ink); }
-.sn-selbar { position: absolute; left: 50%; transform: translateX(-50%); z-index: var(--z-float); display: flex; align-items: center; gap: var(--sp-2); max-width: calc(100% - 32px); padding: var(--sp-6) var(--sp-6) var(--sp-6) var(--sp-12); overflow-x: auto; border: 1px solid var(--line-hover); white-space: nowrap; bottom: 36px; border-color: var(--line); background: var(--win); box-shadow: var(--shadow-3); border-radius: var(--r-m); }
+.sn-selbar { position: absolute; left: 50%; transform: translateX(-50%); z-index: var(--z-float); display: flex; align-items: center; gap: var(--sp-2); max-width: calc(100% - 32px); padding: var(--sp-4) var(--sp-4) var(--sp-4) var(--sp-12); overflow-x: auto; border: 1px solid var(--line-hover); white-space: nowrap; bottom: 36px; border-color: var(--line); background: var(--win); box-shadow: var(--shadow-3); border-radius: var(--r-m); }
 .sn-selbar-count { margin-right: var(--sp-8); font-weight: var(--fw-semibold); font-size: var(--fs-sm); color: var(--accent); }
 .sn-card:focus-visible { box-shadow: var(--ring); }
 
@@ -157,7 +162,7 @@ button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--f
 .markdown-rendered .sn-note-embed { padding: var(--sp-4) 0 var(--sp-4) var(--sp-12); background: none; border-inline-start-color: var(--line); }
 .markdown-rendered .sn-embed-head { margin-bottom: var(--sp-4); font-size: var(--fs-sm); }
 .markdown-rendered .sn-embed-head .internal-link { color: var(--muted); text-decoration: none; }
-.markdown-rendered .sn-embed-head .internal-link:hover { color: var(--accent); }
+@media (hover: hover) { .markdown-rendered .sn-embed-head .internal-link:hover { color: var(--accent); } }
 .markdown-rendered .sn-embed-body > :first-child { margin-top: 0; }
 .markdown-rendered .sn-embed-body > :last-child { margin-bottom: 0; }
 .markdown-rendered .sn-pdf { display: block; margin-block: 0 1em; border: 1px solid var(--line); border-radius: var(--r-s); overflow: hidden; background: var(--panel); }
@@ -181,7 +186,7 @@ button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--f
 /* a property in the editing view: its key in a column of 120px, as the facts are drawn while reading (restyle RS-44) */
 .sn-prop { display: grid; grid-template-columns: 120px minmax(0, 1fr); align-items: start; gap: var(--sp-8); padding: var(--sp-2) var(--sp-4); min-height: 28px; border-radius: var(--r-xs); }
 .sn-prop .sn-prop-key { color: var(--faint); }
-.sn-prop:hover { background: var(--hover-bg); }
+@media (hover: hover) { .sn-prop:hover { background: var(--hover-bg); } }
 .sn-prop-key svg { width: var(--icon-xs); height: var(--icon-xs); flex: 0 0 auto; color: var(--faint); }
 .sn-prop-other { color: var(--muted); font-family: var(--font-code); white-space: pre-wrap; font-size: var(--fs-sm); }
 .sn-icon-pick { display: inline-flex; align-items: center; gap: var(--sp-6); padding: var(--sp-2) var(--sp-6); border-radius: var(--r-xs); cursor: default; font-size: var(--fs-sm); }
@@ -189,21 +194,22 @@ button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--f
 .sn-fm-error { font-family: var(--font-code); background: color-mix(in srgb, var(--todo) 10%, transparent); color: var(--todo); }
 
 /* ---------- Menus, panels, pickers */
-.menu { position: fixed; z-index: var(--z-menu); min-width: 210px; max-width: 320px; max-height: calc(100vh - 16px); overflow-y: auto; user-select: none; background: var(--win); border: 1px solid var(--line); border-radius: var(--r-m); padding: var(--sp-6); box-shadow: var(--shadow-3); }
-.menu-item { display: flex; align-items: center; cursor: default; white-space: nowrap; gap: var(--sp-8); padding: var(--sp-6) var(--sp-10); border-radius: var(--r-s); }
-.menu-item:hover, .menu-item.is-selected { background: var(--sel); }
+.menu { position: fixed; z-index: var(--z-menu); min-width: 210px; max-width: 320px; max-height: calc(100vh - 16px); overflow-y: auto; overscroll-behavior: contain; user-select: none; background: var(--win); border: 1px solid var(--line); border-radius: var(--r-m); padding: var(--sp-4); box-shadow: var(--shadow-3); }
+.menu-item { display: flex; align-items: center; cursor: default; white-space: nowrap; gap: var(--sp-8); padding: var(--sp-6) var(--sp-10); border-radius: var(--r-xs); }
+.menu-item.is-selected { background: var(--sel); }
+@media (hover: hover) { .menu-item:hover { background: var(--sel); } }
 .menu-item-icon svg, .menu-item-check svg { width: var(--icon-s); height: var(--icon-s); }
 .menu-label { font-size: var(--fs-sm); letter-spacing: 0; text-transform: none; color: var(--muted); padding: var(--sp-6) var(--sp-8) var(--sp-2); font-weight: var(--fw-medium); }
 .menu-separator { height: 1px; margin: var(--sp-4) calc(var(--sp-4) * -1); background: var(--line); }
 .modal-bg { position: fixed; inset: 0; z-index: var(--z-modal); background: var(--scrim); }
-.modal { position: fixed; z-index: calc(var(--z-modal) + 1); top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 64px); overflow-y: auto; padding: 0 0 var(--sp-14); border: 1px solid var(--line); background: var(--win); box-shadow: var(--shadow-4); border-radius: var(--r-l); }
+.modal { position: fixed; z-index: calc(var(--z-modal) + 1); top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 64px); overflow-y: auto; overscroll-behavior: contain; padding: 0 0 var(--sp-14); border: 1px solid var(--line); background: var(--win); box-shadow: var(--shadow-4); border-radius: var(--r-l); }
 .modal > :not(.modal-title):not(.modal-close) { margin-inline: var(--sp-14); }
 .modal-title { margin: 0 0 var(--sp-12); padding: var(--sp-12) 44px var(--sp-12) var(--sp-14); font-weight: var(--fw-semibold); font-size: var(--fs-lg); border-bottom: 0; }
 .modal-close { position: absolute; top: 8px; right: 8px; }
 .modal-text { line-height: var(--lh-text); margin: 0 0 var(--sp-16); color: var(--muted); }
 .modal-buttons button, .modal-buttons button:not(.clickable-icon) { border: 1px solid var(--line); background: var(--win); height: 34px; padding: 0 var(--sp-16); border-radius: var(--r-s); font-weight: var(--fw-semibold); }
-.modal-buttons button:hover { border-color: var(--faint); }
-.modal-buttons button.is-danger { background: var(--todo); color: var(--on-accent); border-color: var(--todo); }
+@media (hover: hover) { .modal-buttons button:hover { border-color: var(--faint); } }
+.modal-buttons button.is-danger { background: var(--danger-fill); color: var(--on-accent); border-color: var(--danger-fill); }
 .setting-heading { font-size: var(--fs-sm); letter-spacing: 0; color: var(--muted); margin-top: var(--sp-14); text-transform: none; font-weight: var(--fw-semibold); }
 .setting-item { display: flex; align-items: center; gap: var(--sp-16); border-top: 1px solid var(--line); padding: var(--sp-8) 0; }
 .setting-item-description { margin-top: var(--sp-2); line-height: var(--lh-ui); color: var(--faint); font-size: var(--fs-sm); }
@@ -248,14 +254,14 @@ button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--f
 .sn-ed-toolbar::-webkit-scrollbar { display: none; }
 .sn-ed-toolbar .grow { flex: 1 0 8px; }
 button.sn-tb-btn svg { width: var(--icon-m); height: var(--icon-m); stroke-width: var(--icon-stroke); }
-button.sn-tb-btn:hover { background: var(--bg); border-color: var(--line); color: var(--fg); }
+@media (hover: hover) { button.sn-tb-btn:hover { background: var(--bg); border-color: var(--line); color: var(--fg); } }
 button.sn-tb-btn.is-active { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 40%, transparent); color: var(--accent); }
 button.sn-tb-insert, button.sn-tb-insert:not(.clickable-icon) {
   flex: none; height: var(--ctl-m); padding: 0 var(--sp-8) 0 var(--sp-8);
   border: 1px solid var(--line); background: var(--win);
   color: var(--muted); font-size: var(--fs-sm); font-weight: var(--fw-regular); cursor: pointer;
 }
-button.sn-tb-insert:hover { border-color: var(--faint); color: var(--fg); background: var(--win); }
+@media (hover: hover) { button.sn-tb-insert:hover { border-color: var(--faint); color: var(--fg); background: var(--win); } }
 button.sn-tb-insert svg { width: var(--icon-m); height: var(--icon-m); }
 button.sn-tb-insert kbd { font-size: var(--fs-sm); color: var(--faint); padding: 0 var(--sp-4); border: 1px solid var(--line); border-radius: var(--r-xs); line-height: 15px; }
 .sn-reading:focus { outline: none; }

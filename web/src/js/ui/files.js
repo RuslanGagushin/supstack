@@ -234,8 +234,11 @@ export function renderFilesView(root) {
     b.addEventListener("click", () => { FV.kind = k; saveFV(); $$(".fv-kinds .clickable-icon").forEach((x) => x.classList.toggle("is-active", x === b)); fvRenderList(); });
     seg.append(b);
   }
-  const unused = h("button", { cls: "sn-chip fv-unused" + (FV.unused ? " is-accent" : ""), type: "button", text: fvt("unused"), title: fvt("unusedHint"), "aria-pressed": String(FV.unused) });
-  unused.addEventListener("click", () => { FV.unused = !FV.unused; saveFV(); unused.classList.toggle("inc", FV.unused); unused.setAttribute("aria-pressed", String(FV.unused)); fvRenderList(); });
+  // on shows by a check as well as the accent plate, so the state is never colour alone
+  const unused = h("button", { cls: "sn-chip fv-unused", type: "button", title: fvt("unusedHint") });
+  const drawUnused = () => { unused.classList.toggle("is-accent", FV.unused); unused.setAttribute("aria-pressed", String(FV.unused)); unused.replaceChildren(...[FV.unused && ic("", "check"), h("span", { text: fvt("unused") })].filter(Boolean)); };
+  drawUnused();
+  unused.addEventListener("click", () => { FV.unused = !FV.unused; saveFV(); drawUnused(); fvRenderList(); });
   const sortBtn = iconBtn("arrow-up-down", fvt("sort"), (e) => {
     const m = new Menu();
     for (const [v, k] of [["name", "sName"], ["modified", "sModified"], ["size", "sSize"], ["type", "sType"], ["folder", "sFolder"]]) m.add(fvt(k), null, () => { FV.sort = v; saveFV(); fvRenderList(); }, { checked: FV.sort === v });

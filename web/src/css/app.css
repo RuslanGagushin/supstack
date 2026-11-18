@@ -24,14 +24,14 @@
 .sb-dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--faint); }
 .sb-status.is-unsaved .sb-dot { background: var(--hue-orange-fg); }
 button.clickable-icon.sb-foot-btn { flex: none; width: var(--ctl-m); height: var(--ctl-m); padding: 0; border-radius: var(--r-s); color: var(--muted); }
-button.clickable-icon.sb-foot-btn:hover { background: var(--hover-bg); color: var(--fg); }
+@media (hover: hover) { button.clickable-icon.sb-foot-btn:hover { background: var(--hover-bg); color: var(--fg); } }
 .sb-foot-btn svg.svg-icon { width: var(--icon-m); height: var(--icon-m); }
 @media (max-width: 820px) { .sb-collapse { display: none; } } /* the drawer closes on the grey around it */
 /* The sidebar's places: the agenda, Files and sync, as rows like the tree's, each with its count or state at the right */
 .sb-nav { display: flex; flex-direction: column; gap: var(--sp-2); padding: 0 var(--sp-12) var(--sp-12); }
 .sb-nav button.sn-btn { justify-content: flex-start; gap: var(--sp-10); width: 100%; height: var(--ctl-l); padding: 0 var(--sp-8); border: 0; border-radius: var(--r-s);
   background: transparent; color: var(--fg); font-size: var(--fs-md); font-weight: var(--fw-medium); }
-.sb-nav button.sn-btn:hover { background: var(--hover-bg); }
+@media (hover: hover) { .sb-nav button.sn-btn:hover { background: var(--hover-bg); } }
 .sb-nav button.sn-btn.is-active { background: var(--sel); color: var(--ink); font-weight: var(--fw-semibold); }
 .sb-nav button.sn-btn svg { width: var(--icon-m); height: var(--icon-m); color: var(--faint); }
 .sb-nav button.sn-btn.is-active svg { color: var(--ink); }
@@ -48,7 +48,7 @@ button.clickable-icon.sb-foot-btn.wb-sync:disabled { opacity: 1; cursor: default
 :is(.sn-search:focus-within, input.sn-set-search:focus, input.fv-search:focus) { border-color: var(--accent); box-shadow: var(--ring); outline: none; }
 button.sb-search { justify-content: flex-start; gap: var(--sp-8); width: 100%; padding: 0 var(--sp-8) 0 var(--sp-10); color: var(--faint); font-size: var(--fs-md); font-weight: var(--fw-regular); cursor: text; }
 button.sb-search .wb-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; text-align: left; }
-button.sb-search:hover { border-color: var(--line-hover); background: var(--win); }
+@media (hover: hover) { button.sb-search:hover { border-color: var(--line-hover); background: var(--win); } }
 /* the key that opens it, on a quiet plate; not on screens without a pointer to hover (UI-11) */
 .sb-key { flex: none; padding: 1px var(--sp-6); border-radius: var(--r-xs); background: var(--panel); color: var(--muted); font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: var(--fw-medium); line-height: var(--lh-ui); }
 @media (hover: none) { .sb-key { display: none; } }
@@ -63,10 +63,10 @@ button.sn-btn.sb-new, :where(.sn-welcome-actions) button.sn-btn.is-primary {
   font-size: var(--fs-md); font-weight: var(--fw-semibold); gap: var(--sp-6);
 }
 button.sn-btn.sb-new { flex: 1 1 auto; min-width: 0; justify-content: center; }
-button.sn-btn.sb-new:hover, :where(.sn-welcome-actions) button.sn-btn.is-primary:hover { background: var(--cta-hover); opacity: 1; }
+@media (hover: hover) { button.sn-btn.sb-new:hover, :where(.sn-welcome-actions) button.sn-btn.is-primary:hover { background: var(--cta-hover); opacity: 1; } }
 button.sn-btn.sb-new svg { width: var(--icon-m); height: var(--icon-m); }
 button.sn-btn.sb-today { flex: none; height: var(--ctl-field); padding: 0 var(--sp-12); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); color: var(--ink); font-size: var(--fs-md); font-weight: var(--fw-medium); }
-button.sn-btn.sb-today:hover { background: var(--hover-bg); }
+@media (hover: hover) { button.sn-btn.sb-today:hover { background: var(--hover-bg); } }
 button.sn-btn.sb-today svg { width: var(--icon-m); height: var(--icon-m); color: var(--muted); }
 .sb-today .wb-label { display: inline; }
 .sn-keys-or { display: inline-flex; align-items: center; gap: var(--sp-6); }
@@ -75,7 +75,7 @@ button.sn-btn.sb-today svg { width: var(--icon-m); height: var(--icon-m); color:
 button.sb-account { justify-content: flex-start; gap: var(--sp-10); width: 100%; height: 36px; padding: 0 var(--sp-8);
   border: 0; border-radius: var(--r-s); background: transparent; color: var(--ink); font-size: var(--fs-md); font-weight: var(--fw-semibold);
 }
-button.sb-account:hover { background: var(--hover-bg); }
+@media (hover: hover) { button.sb-account:hover { background: var(--hover-bg); } }
 .sb-avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: var(--r-xs); background: var(--cta); color: var(--on-accent); font-size: var(--fs-sm); font-weight: var(--fw-bold); }
 .sb-account-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
 button.sb-account .wb-caret svg { width: var(--icon-s); height: var(--icon-s); color: var(--faint); }
@@ -83,10 +83,11 @@ button.sb-account .wb-caret svg { width: var(--icon-s); height: var(--icon-s); c
 /* the tree's tools on its "Cards" heading: they show with the pointer over the sidebar or the focus in them; touch shows them always */
 .sn-tree-section.has-tools { display: flex; align-items: center; gap: var(--sp-4); min-height: 24px; }
 .sn-sec-tools { display: flex; gap: var(--sp-2); margin-left: auto; opacity: 0; transition: opacity var(--dur-1) var(--ease); }
-.sn-side:hover .sn-sec-tools, .sn-sec-tools:focus-within { opacity: 1; }
+.sn-sec-tools:focus-within { opacity: 1; }
+@media (hover: hover) { .sn-side:hover .sn-sec-tools { opacity: 1; } }
 @media (hover: none) { .sn-sec-tools { opacity: 1; } }
 .sn-sec-tools .clickable-icon { width: 26px; height: var(--ctl-s); padding: 0; border-radius: var(--r-s); color: var(--muted); }
-.sn-sec-tools .clickable-icon:hover { background: var(--hover-bg); color: var(--fg); }
+@media (hover: hover) { .sn-sec-tools .clickable-icon:hover { background: var(--hover-bg); color: var(--fg); } }
 .sn-sec-tools .clickable-icon svg { width: var(--icon-s); height: var(--icon-s); }
 .sn-tree-section, .sn-tree-section:first-child {
   margin: var(--sp-16) 0 var(--sp-6); padding-left: var(--sp-8); font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--faint);
@@ -104,25 +105,25 @@ button.sb-account .wb-caret svg { width: var(--icon-s); height: var(--icon-s); c
 .sn-tree-icon svg { width: var(--icon-m); height: var(--icon-m); }
 .tree-item-flair { font-size: var(--fs-sm); color: var(--faint); }
 /* on a hovered or current row's grey, the counts and times step up to --muted to stay readable */
-.sn-tree-row:is(:hover, .is-active) .tree-item-flair { color: var(--muted); }
+@media (hover: hover) { .sn-tree-row:is(:hover, .is-active) .tree-item-flair { color: var(--muted); } }
 .sb-new .wb-label { display: inline; } /* the sidebar's button keeps its label on phones */
 
 /* ---------- Top bar: quiet ghost buttons; search, new card, brand and vault are in the sidebar */
 button.sn-btn { height: var(--ctl-l); padding: 0 var(--sp-10); border: 0; border-radius: var(--r-s); background: transparent; color: var(--muted); }
-button.sn-btn:hover { background: var(--hover-bg); color: var(--fg); }
+@media (hover: hover) { button.sn-btn:hover { background: var(--hover-bg); color: var(--fg); } }
 button.sn-btn.is-active { background: var(--panel); color: var(--ink); }
 button.clickable-icon.wb-icon { width: 34px; height: var(--ctl-l); border-radius: var(--r-s); }
-button.clickable-icon.wb-icon:hover { background: var(--hover-bg); color: var(--fg); }
+@media (hover: hover) { button.clickable-icon.wb-icon:hover { background: var(--hover-bg); color: var(--fg); } }
 .wb-icon svg, .sn-btn svg { width: var(--icon-m); height: var(--icon-m); }
 
 /* ---------- Board */
 .sn-board .sn-topbar .clickable-icon:where(:not(.sn-seg > *)), .sn-editor .sn-editor-head .clickable-icon { height: var(--ctl-l); min-width: var(--ctl-l); border-radius: var(--r-s); }
-.sn-board .sn-topbar .clickable-icon:where(:not(.sn-seg > *)):hover, .sn-editor .sn-editor-head .clickable-icon:hover { background: var(--hover-bg); color: var(--fg); border: 0; }
+@media (hover: hover) { .sn-board .sn-topbar .clickable-icon:where(:not(.sn-seg > *)):hover, .sn-editor .sn-editor-head .clickable-icon:hover { background: var(--hover-bg); color: var(--fg); border: 0; } }
 .sn-board .sn-topbar .clickable-icon:where(:not(.sn-seg > *)).is-active, .sn-editor .sn-editor-head .clickable-icon.is-active { background: var(--panel); color: var(--ink); }
 .sn-page { padding: var(--sp-14) var(--sp-24) var(--sp-48); }
 
 /* Cards: white notes on the grey, parent above the title, muted preview, pill tags */
-.sn-card:hover { box-shadow: 0 0 0 1px color-mix(in srgb, var(--faint) 50%, var(--line)), var(--shadow-2); }
+@media (hover: hover) { .sn-card:hover { box-shadow: 0 0 0 1px color-mix(in srgb, var(--faint) 50%, var(--line)), var(--shadow-2); } }
 .sn-card.is-editing { box-shadow: var(--ring); }
 .sn-card:focus:not(.is-picked), .sn-card:focus-visible { box-shadow: var(--ring); }
 .sn-card.is-picked { box-shadow: var(--ring); background: color-mix(in srgb, var(--accent-soft) 60%, var(--win)); }
@@ -142,13 +143,13 @@ button.clickable-icon.wb-icon:hover { background: var(--hover-bg); color: var(--
 .sn-editor-where .sn-editor-path { flex: 0 1 auto; display: flex; align-items: baseline; min-width: 0; }
 .sn-editor-path > a { min-width: 1.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 a.sn-editor-crumb { color: var(--muted); text-decoration: none; }
-a.sn-editor-crumb:hover { color: var(--ink); text-decoration: underline; }
+@media (hover: hover) { a.sn-editor-crumb:hover { color: var(--ink); text-decoration: underline; } }
 .sn-editor-crumb-sep { flex: none; display: inline-flex; align-self: center; padding: 0 var(--sp-4); color: var(--faint); }
 .sn-editor-crumb-sep svg { width: var(--icon-xs); height: var(--icon-xs); }
 /* the note itself, last in the path: plain, in the ink, the first to give way (restyle RS-36) */
 .sn-editor-self { flex: 0 8 auto; min-width: 1.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); font-weight: var(--fw-medium); }
 button.sn-editor-places { flex: none; height: 20px; margin-left: var(--sp-4); padding: 0 var(--sp-8); border: 0; border-radius: var(--r-xs); background: var(--panel); color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; cursor: pointer; }
-button.sn-editor-places:hover { background: var(--accent-soft); color: var(--accent); }
+@media (hover: hover) { button.sn-editor-places:hover { background: var(--accent-soft); color: var(--accent-ink); } }
 /* a phone: "‹ Its notebook" instead of the path, the ×, and "+N" (which moves into ⋮) */
 a.sn-editor-back { display: none; min-width: 0; align-items: center; gap: var(--sp-2); margin-left: calc(var(--sp-6) * -1); padding: var(--sp-4) var(--sp-8) var(--sp-4) var(--sp-2); border-radius: var(--r-s); color: var(--fg); font-weight: var(--fw-medium); text-decoration: none; }
 a.sn-editor-back > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -165,15 +166,15 @@ a.sn-editor-back:active { background: var(--hover-bg); }
 /* the note's one labelled action: Edit while reading, Done (blue) while editing (editor.js) */
 button.sn-mode-btn { flex: none; display: inline-flex; align-items: center; gap: var(--sp-6); height: var(--ctl-l); margin: 0 var(--sp-2) 0 var(--sp-6); padding: 0 var(--sp-12) 0 var(--sp-10);
   border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); color: var(--ink); font-size: var(--fs-ui); font-weight: var(--fw-medium); cursor: pointer; }
-button.sn-mode-btn:hover { background: var(--hover-bg); }
+@media (hover: hover) { button.sn-mode-btn:hover { background: var(--hover-bg); } }
 button.sn-mode-btn svg { display: block; width: var(--icon-m); height: var(--icon-m); } /* a block, so the icon sits in the middle, not on the text's baseline */
 button.sn-mode-btn.is-editing { border-color: transparent; background: var(--cta); color: var(--on-accent); }
-button.sn-mode-btn.is-editing:hover { background: var(--cta-hover); }
+@media (hover: hover) { button.sn-mode-btn.is-editing:hover { background: var(--cta-hover); } }
 @container (max-width: 640px) { button.sn-mode-btn { width: var(--ctl-l); margin: 0; padding: 0; justify-content: center; } .sn-mode-label { display: none; }
   /* icon only: no frame of its own, like the icon buttons beside it; Done is the check in the accent colour, not a filled square */
   button.sn-mode-btn, button.sn-mode-btn.is-editing { border-color: transparent; background: transparent; color: var(--muted); }
   button.sn-mode-btn.is-editing { color: var(--accent); }
-  button.sn-mode-btn.is-editing:hover { background: var(--hover-bg); } }
+  @media (hover: hover) { button.sn-mode-btn.is-editing:hover { background: var(--hover-bg); } } }
 /* one size for the icons of the bars: the notebook's, the note's header and its toolbar draw 16px in a 32px button (20px in 40px on a phone, below) */
 .sn-board .sn-topbar .clickable-icon:where(:not(.sn-seg > *)) svg, .sn-editor .sn-editor-head .clickable-icon svg { width: var(--icon-m); height: var(--icon-m); }
 /* reading keeps the room of the editing toolbar above the note, so its title stays put when editing starts */
@@ -185,7 +186,7 @@ button.sn-mode-btn.is-editing:hover { background: var(--cta-hover); }
 .sn-fact { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--sp-6) var(--sp-8); min-width: 0; }
 .sn-fact + .sn-fact::before { content: "·"; margin: 0 var(--sp-8); color: var(--faint); }
 a.sn-facts-place { display: inline-flex; align-items: center; gap: var(--sp-6); min-width: 0; color: var(--muted); font-weight: var(--fw-medium); text-decoration: none; }
-a.sn-facts-place:hover { color: var(--ink); text-decoration: underline; }
+@media (hover: hover) { a.sn-facts-place:hover { color: var(--ink); text-decoration: underline; } }
 a.sn-facts-place svg { flex: none; width: var(--icon-s); height: var(--icon-s); color: var(--muted); }
 /* the tasks done: a bar of 96px, the accent for the part done, beside the words */
 .sn-facts-bar { display: flex; width: 96px; height: 6px; border-radius: var(--r-pill); background: var(--sel); overflow: hidden; }
@@ -205,7 +206,8 @@ a.sn-facts-place svg { flex: none; width: var(--icon-s); height: var(--icon-s); 
 .markdown-rendered .code-block, .markdown-rendered .sn-table-wrap { border-radius: var(--r-m); }
 
 /* ---------- Menus, dialogs, pickers */
-.menu-item:hover, .menu-item.is-selected { background: var(--hover-bg); }
+.menu-item.is-selected { background: var(--hover-bg); }
+@media (hover: hover) { .menu-item:hover { background: var(--hover-bg); } }
 .modal input[type="text"] { height: 36px; border-radius: var(--r-s); font-size: var(--fs-md); }
 .modal-buttons button.is-primary, .setting-item-control .sn-btn.is-primary, button.is-primary { background: var(--cta); color: var(--on-accent); border-color: var(--cta); }
 .setting-item-name { font-size: var(--fs-md); }
@@ -248,7 +250,7 @@ a.sn-facts-place svg { flex: none; width: var(--icon-s); height: var(--icon-s); 
 /* the notebook's own text, under its title: three lines that open it beside the list (board.js renderListDesc) */
 .sn-list-desc { margin: calc(var(--sp-6) * -1) 0 var(--sp-12); padding: var(--sp-6) var(--sp-8); border-radius: var(--r-s); color: var(--muted); line-height: var(--lh-ui); cursor: pointer; }
 .sn-list-desc-text { overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
-.sn-list-desc:hover { background: var(--hover-bg); color: var(--fg); }
+@media (hover: hover) { .sn-list-desc:hover { background: var(--hover-bg); color: var(--fg); } }
 .sn-list-desc.is-editing { background: var(--sel); color: var(--fg); }
 .sn-list-desc:focus { outline: none; }
 .sn-list-desc:focus-visible { box-shadow: var(--ring); }
@@ -263,20 +265,20 @@ a.sn-facts-place svg { flex: none; width: var(--icon-s); height: var(--icon-s); 
   flex-direction: row; align-items: flex-start; gap: var(--sp-12); padding: var(--sp-14);
   background: var(--win); box-shadow: inset 0 0 0 1px var(--line); cursor: default;
 }
-.sn-board .sn-card.sn-row:hover { background: var(--hover-bg); box-shadow: inset 0 0 0 1px var(--line); }
+@media (hover: hover) { .sn-board .sn-card.sn-row:hover { background: var(--hover-bg); box-shadow: inset 0 0 0 1px var(--line); } }
 .sn-board .sn-card.sn-row:focus { box-shadow: inset 0 0 0 1px var(--line); }
 .sn-board .sn-card.sn-row:focus-visible:not(.is-editing) { box-shadow: var(--ring); }
 /* the open note: the grey of the sidebar's chosen row and a stronger hairline (RS-33) */
 .sn-board .sn-card.sn-row.is-editing { background: var(--sel); box-shadow: inset 0 0 0 1px var(--line-strong); }
 /* --faint is for --bg and --win only: on a row's grey the date, the dots and the counts step up to --muted, as in the sidebar */
-.sn-row:is(:hover, .is-editing) :is(.sn-row-meta, .sn-row-meta > *::before, .sn-row-count) { color: var(--muted); }
+@media (hover: hover) { .sn-row:is(:hover, .is-editing) :is(.sn-row-meta, .sn-row-meta > *::before, .sn-row-count) { color: var(--muted); } }
 .sn-board .sn-card.sn-row.is-picked { background: color-mix(in srgb, var(--accent-soft) 70%, var(--win)); box-shadow: 0 0 0 1px var(--accent); }
 .sn-row-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: var(--sp-6); }
 .sn-row-meta { display: flex; align-items: center; gap: var(--sp-8); min-width: 0; font-size: var(--fs-sm); line-height: 16px; color: var(--faint); white-space: nowrap; }
 .sn-row-meta-icon { display: inline-flex; color: var(--muted); }
 .sn-row-meta-icon svg { width: var(--icon-xs); height: var(--icon-xs); }
 a.sn-row-parent { min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--muted); font-weight: var(--fw-medium); text-decoration: none; }
-a.sn-row-parent:hover { color: var(--ink); text-decoration: underline; }
+@media (hover: hover) { a.sn-row-parent:hover { color: var(--ink); text-decoration: underline; } }
 .sn-row-date { flex: none; }
 .sn-row-meta .sn-task-prog { display: inline-flex; align-items: center; gap: var(--sp-4); }
 .sn-row-meta .sn-task-prog svg { width: var(--icon-xs); height: var(--icon-xs); }
@@ -298,18 +300,19 @@ button.sn-row-enter {
   border: 0; border-radius: var(--r-s); background: var(--panel); color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; cursor: pointer;
 }
 button.sn-row-enter svg { width: var(--icon-m); height: var(--icon-m); }
-button.sn-row-enter:hover, .sn-row:focus-visible button.sn-row-enter { background: var(--accent-soft); color: var(--accent); }
+.sn-row:focus-visible button.sn-row-enter { background: var(--accent-soft); color: var(--accent-ink); }
+@media (hover: hover) { button.sn-row-enter:hover { background: var(--accent-soft); color: var(--accent-ink); } }
 /* a notebook: a tile at the top of the list, its icon over its name and how much it holds (cards.js renderFolderRow, RS-26) */
 .sn-board .sn-card.sn-row.is-folder { flex-direction: column; align-items: flex-start; gap: var(--sp-10); padding: var(--sp-12); background: var(--hover-bg); box-shadow: none; cursor: pointer; }
 /* under the pointer a step darker; pressed (the --sel rule at the end of the styles) and open, one more (DS-8) */
-:where(.sn-board) .sn-card.sn-row.is-folder:hover { background: var(--panel); box-shadow: none; } /* :where: no heavier than the pressed rule */
+@media (hover: hover) { :where(.sn-board) .sn-card.sn-row.is-folder:hover { background: var(--panel); box-shadow: none; } } /* :where: no heavier than the pressed rule */
 .sn-board .sn-card.sn-row.is-folder.is-editing { background: var(--sel); box-shadow: none; }
 /* a tile's name on one line, cut with an ellipsis rather than broken inside a word; the whole name is its tooltip */
 .sn-row.is-folder .sn-row-title { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-ui); font-weight: var(--fw-semibold); }
 .sn-row-folder-icon { flex: none; display: inline-flex; color: var(--muted); }
 .sn-row-folder-icon svg { width: var(--icon-l); height: var(--icon-l); }
 .sn-row-count { margin-top: calc(var(--sp-8) * -1); color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
-.sn-row-thumb { flex: none; width: 60px; height: 60px; margin-top: 19px; object-fit: cover; border-radius: var(--r-s); background: var(--panel); box-shadow: 0 0 0 1px var(--line); }
+.sn-row-thumb { flex: none; width: 60px; height: 60px; margin-top: 19px; object-fit: cover; border-radius: var(--r-s); background: var(--panel); outline: 1px solid var(--img-edge); outline-offset: -1px; }
 @media (max-width: 820px) {
   /* the phone's list (restyle RS-72 to RS-76): roomy sides, a 32px title, a 44px field, tiles with no count, larger rows */
   .sn-board.is-notes .sn-page { padding: var(--sp-8) var(--sp-20) var(--sp-48); }
@@ -400,7 +403,7 @@ body.theme-dark .sn-welcome-logo { filter: brightness(.82); } /* the icon's whit
 .sn-welcome-actions { display: flex; flex-direction: column; align-items: stretch; gap: var(--sp-8); max-width: 300px; margin: 0 auto; }
 .sn-welcome-actions button.sn-btn { justify-content: center; gap: var(--sp-8); height: var(--ctl-touch); border-radius: var(--r-s); font-size: var(--fs-ui); font-weight: var(--fw-medium); }
 .sn-welcome-actions button.sn-btn:not(.is-primary) { border: 1px solid var(--line); background: var(--win); color: var(--fg); }
-.sn-welcome-actions button.sn-btn:not(.is-primary):hover { background: var(--hover-bg); }
+@media (hover: hover) { .sn-welcome-actions button.sn-btn:not(.is-primary):hover { background: var(--hover-bg); } }
 .sn-welcome-note { max-width: 340px; margin: var(--sp-24) auto 0; color: var(--faint); font-size: var(--fs-sm); line-height: var(--lh-ui); }
 .sn-welcome-corner { position: absolute; top: calc(12px + var(--safe-top)); right: 12px; display: flex; gap: var(--sp-6); }
 .sn-welcome-corner .clickable-icon { width: 32px; height: var(--ctl-l); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); }
@@ -414,7 +417,7 @@ body.theme-dark .sn-welcome-logo { filter: brightness(.82); } /* the icon's whit
 .modal.mod-settings > .modal-close { top: 9px; right: 10px; }
 .modal.mod-settings > :not(.modal-title):not(.modal-close) { margin-inline: 0; }
 .sn-set-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 230px minmax(0, 1fr); }
-.sn-set-side { display: flex; flex-direction: column; gap: var(--sp-6); min-height: 0; padding: var(--sp-12) var(--sp-10); border-right: 1px solid var(--line); overflow-y: auto; }
+.sn-set-side { display: flex; flex-direction: column; gap: var(--sp-6); min-height: 0; padding: var(--sp-12) var(--sp-10); border-right: 1px solid var(--line); overflow-y: auto; overscroll-behavior: contain; }
 .sn-set-search-row { position: relative; flex: none; margin-bottom: var(--sp-6); }
 .sn-set-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); display: inline-flex; color: var(--muted); pointer-events: none; }
 .sn-set-search-icon svg { width: var(--icon-s); height: var(--icon-s); }
@@ -426,13 +429,13 @@ button.sn-set-tab, button.sn-set-tab:not(.clickable-icon) {
   display: flex; align-items: center; justify-content: flex-start; gap: var(--sp-10); width: 100%; height: var(--ctl-l); padding: 0 var(--sp-10); border: 0; border-radius: var(--r-s);
   background: none; box-shadow: none; color: var(--fg); font-size: var(--fs-ui); font-weight: var(--fw-regular); text-align: left; cursor: pointer;
 }
-button.sn-set-tab:hover { background: var(--hover-bg); }
+@media (hover: hover) { button.sn-set-tab:hover { background: var(--hover-bg); } }
 button.sn-set-tab.is-active { background: var(--sel); color: var(--ink); font-weight: var(--fw-medium); }
 button.sn-set-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .sn-set-tab-icon { display: inline-flex; color: var(--muted); }
 .sn-set-tab-icon svg { width: var(--icon-m); height: var(--icon-m); }
 button.sn-set-tab.is-active .sn-set-tab-icon { color: var(--ink); }
-.sn-set-body { min-height: 0; overflow-y: auto; padding: var(--sp-20) var(--sp-24) var(--sp-32); }
+.sn-set-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--sp-20) var(--sp-24) var(--sp-32); }
 .sn-set-heading { margin: var(--sp-24) var(--sp-2) var(--sp-10); color: var(--ink); font-size: var(--fs-text); font-weight: var(--fw-semibold); }
 .sn-set-body > .sn-set-heading:first-child { margin-top: 0; }
 .sn-set-group { border: 1px solid var(--line); border-radius: var(--r-m); background: var(--win); overflow: hidden; }
@@ -452,8 +455,8 @@ button.sn-set-tab.is-active .sn-set-tab-icon { color: var(--ink); }
   .modal.mod-settings { width: 100vw; height: 100dvh; max-height: none; border-radius: 0; padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
   .sn-set-layout { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
   .sn-set-side { flex-direction: column; padding: var(--sp-10) var(--sp-12) 0; border-right: 0; border-bottom: 1px solid var(--line); overflow: visible; }
-  .sn-set-tabs { flex-direction: row; gap: var(--sp-4); overflow-x: auto; scrollbar-width: none; padding-bottom: var(--sp-8); }
-  .sn-set-tabs::-webkit-scrollbar { display: none; }
+  /* the tabs wrap rather than scroll: a tab past the edge of a hidden scroller can't be seen */
+  .sn-set-tabs { flex-direction: row; flex-wrap: wrap; gap: var(--sp-4); padding-bottom: var(--sp-8); }
   .sn-set-nav-group { display: none; }
   button.sn-set-tab, button.sn-set-tab:not(.clickable-icon) { flex: none; width: auto; }
   .sn-set-body { padding: var(--sp-16) var(--sp-12) var(--sp-24); }
@@ -464,3 +467,8 @@ button.sn-set-tab.is-active .sn-set-tab-icon { color: var(--ink); }
    Last in the styles and ahead of every hover rule, so it shows whatever the hover rule of a control is. */
 html :is(button:not(.is-primary, .is-danger, .task-box), .clickable-icon, .sn-card.sn-row, .tree-item-self.is-clickable):active:not([disabled]) { background: var(--sel); }
 html button.is-primary:active:not([disabled]) { background: var(--cta-hover); }
+
+/* ---------- Forced colours (Windows high contrast): box-shadows are dropped there, so the surfaces whose only edge is a shadow ring get a real one */
+@media (forced-colors: active) {
+  .sn-composer, .sn-card, :is(.sn-chip, .markdown-rendered a.tag).is-outline, .markdown-rendered .org-ts.is-inactive, .org-cal button.cal-day.is-today { border: 1px solid CanvasText; }
+}

@@ -28,14 +28,17 @@ One palette, defined twice: on `body` for the light theme and on `body.theme-dar
 | `--tag` | `#45484e` | `#c4c6cb` | text on a chip |
 | `--accent` | `#4d64ff` | `#7c8eff` | links, focus, the chosen item, progress |
 | `--accent-soft` | `#ebeeff` | `#1f2547` | an accent plate: an included filter, the selected agenda row |
-| `--cta`, `--cta-hover` | `#4d64ff`, `#3245bb` | `#4d64ff`, `#7c8eff` | the primary button and its hover |
+| `--cta`, `--cta-hover` | `#4d64ff`, `#3245bb` | `#4d64ff`, `#3245bb` | the primary button and its hover (darker in both themes, so its white text keeps 4.5:1) |
+| `--accent-ink` | `#3245bb` | `#7c8eff` | the accent as text on an `--accent-soft` plate: an included filter, a chosen quick date |
+| `--danger-fill` | `#c42f27` | `#c42f27` | the fill of a button that destroys, under `--on-accent` text (`--todo` is too light for it in the dark theme) |
 | `--panel-strong` | `#e4e4e1` | `#36383d` | the stronger plate: counts, priority A, an overdue date |
 | `--todo` | `#c42f27` | `#ff7c70` | actions that destroy, errors, an invalid field |
 | `--hue-green-bg`/`-fg` … `--hue-purple-bg`/`-fg` | six plates and their text | | a tag's hue (`.hue-*`, picked by its name: `util.js hueOf`), a note's icon and type label (`.ic-*`: its `color` field, else by its name; `vault.js cardHue`; notebooks stay grey), an event's bar; orange is also "soon" and today's count |
 | `--due-bg`, `--due-fg`, `--due-soft` | `#fde8e6`, `#a8251e`, `#fef5f4` | `#3f1f1e`, `#ff9d94`, `#261b1b` | what is due or overdue: the overdue chip, block, head and count, priority A, the now line |
 | `--l2`, `--l3`, `--l7`, `--l8` | | | syntax colours in code blocks; content, not interface |
 | `--flash`, `--code-bg`, `--tbl-head`, `--tbl-head-line` | | | search highlight, code blocks, table heads |
-| `--on-accent` | `#fff` | `#fff` | text and marks on an `--accent`, `--cta` or `--todo` fill |
+| `--on-accent` | `#fff` | `#fff` | text and marks on an `--accent`, `--cta` or `--danger-fill` fill |
+| `--img-edge` | `#0000001a` | `#ffffff1a` | the 1px edge inside a picture: pure black or white at 10%, never a tinted grey |
 | `--paper` | `#fff` | `#fff` | the white of a page: a PDF, the switch's knob |
 | `--shade` | `--fg` | `#000` | the colour of shadows and dims |
 
@@ -66,7 +69,7 @@ Six sizes and no more (spec UI-20); `tests/typography.test.mjs` measures them on
 | Group | Variables | Rule |
 |---|---|---|
 | Spacing | `--sp-2`, `-4`, `-6`, `-8`, `-10`, `-12`, `-14`, `-16`, `-20`, `-24`, `-32`, `-40`, `-48` | named by their size in pixels; every `padding`, `margin` and `gap`. Negative: `calc(var(--sp-8) * -1)`. In a note's text, `em` follows the font size and stays |
-| Corners | `--r-xs` 6, `--r-s` 8, `--r-m` 10, `--r-l` 16, `--r-pill` | xs: chips, tags, keys, inline code, a priority; s: buttons, fields, rows; m: cards, tiles, menus; l: dialogs; pill: only counts, the switch and the tasks bar. Circles are `50%` |
+| Corners | `--r-xs` 6, `--r-s` 8, `--r-m` 10, `--r-l` 16, `--r-pill` | xs: chips, tags, keys, inline code, a priority, and the items of a menu, popup or floating bar (4px inside an m corner, so the corners are concentric); s: buttons, fields, rows; m: cards, tiles, menus; l: dialogs; pill: only counts, the switch and the tasks bar. Circles are `50%` |
 | Control heights | `--ctl-xs` 20, `--ctl-s` 24, `--ctl-m` 28, `--ctl-l` 32, `--ctl-field` 34, `--ctl-touch` 40 | xs: small chips; s: chips, icons in a row; m: fields, buttons in bars; l: sidebar buttons, menu rows; field: the search fields; touch: the least a finger gets (spec UI-9) |
 | Icons | `--icon-xs` 12, `--icon-s` 14, `--icon-m` 16, `--icon-l` 18; `--icon-stroke` 1.75px | Lucide icons; one stroke |
 | Bars | `--header-height` 40 | the sidebar's head |
@@ -91,7 +94,7 @@ Every control has the same states, drawn the same way.
 
 | State | Class or selector | Drawn as |
 |---|---|---|
-| Hover | `:hover` | `--hover-bg` behind, text to `--fg` |
+| Hover | `:hover`, always inside `@media (hover: hover)` | `--hover-bg` behind, text to `--fg`; never on a touch screen, where it would stick after a tap |
 | Pressed | `:active` | `--sel` behind (a primary button: `--cta-hover`); the one rule is the last in `app.css` |
 | Keyboard focus | `:focus-visible` | outline or `--ring`; panes that take keys show `--ring-inset` only once Tab has been pressed (`body.sn-kb`) |
 | Selected | `.is-selected` | the current row, day or item: `--sel` or `--accent-soft` |
@@ -157,7 +160,7 @@ Tags, task dates, filters, notebooks. One plate: `--panel`, `--tag` text, `--fs-
 |---|---|---|
 | Size | (none) | 24px: chips that are controls (filters, the tag cloud) |
 | | `.is-s` | 20px: chips in a row or a line of text (tags, dates, notebooks) |
-| Tone | `.is-accent` | on, included: the accent plate |
+| Tone | `.is-accent` | on, included: the accent plate, `--accent-ink` text; a chip that toggles also shows a check and has `aria-pressed` |
 | | `.is-danger` | due, excluded: `--panel-strong`, ink, semibold |
 | | `.is-warn` | soon: ink on the plain plate |
 | | `.is-outline` | inherited (a task's tag from its heading) |
@@ -198,7 +201,7 @@ The notebooks: `role="tree"` and `role="treeitem"` with `aria-level` and `aria-e
 
 ### Menu — `.menu`
 
-`role="menu"` of `.menu-item` (`role="menuitem"`): icon, title, an optional check. `.is-warn` for an item that destroys, `.is-disabled` for one that can't be used now. `--shadow-3`, `--z-menu`.
+`role="menu"` of `.menu-item` (`role="menuitem"`): icon, title, an optional check. 4px padding and `--r-m` around `--r-xs` items. `.is-warn` for an item that destroys, `.is-disabled` for one that can't be used now. `--shadow-3`, `--z-menu`.
 
 ### Dialog — `.modal`
 

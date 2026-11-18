@@ -67,5 +67,16 @@ export function allIconNames() {
   ICON_NAMES = out.sort();
   return out;
 }
+/** A row that scrolls sideways with its scrollbar hidden fades at an edge where more is past it (.fade-start, .fade-end),
+   so it shows that it scrolls (spec UI-10). */
+export function edgeFades(el) {
+  const upd = () => {
+    el.classList.toggle("fade-start", el.scrollLeft > 1);
+    el.classList.toggle("fade-end", el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  };
+  new ResizeObserver(upd).observe(el);
+  el.addEventListener("scroll", upd, { passive: true });
+  return el;
+}
 export const isMod = (e) => e.ctrlKey || e.metaKey;
 
