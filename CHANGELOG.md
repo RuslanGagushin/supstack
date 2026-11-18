@@ -6,3 +6,4 @@ One line per release, newest first: what changed for you.
 
 - Looks: hover changes ease in one speed, a press answers at once, the floating "demo vault" notice has a border and shadow,
   the properties panel's tag field and add button line up with the values, and `npm run visual` checks six key screens.
+- Phone: the note's top bar shows a back arrow and the note's full name, the Edit pencil looks like the icons beside it, and the title sits higher. Agenda: empty days use the same heading type as the others, only quieter, and the filter chips have more room under the toolbar.

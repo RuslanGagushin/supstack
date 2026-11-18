@@ -20,7 +20,7 @@ button.sn-btn.wb-tasks.is-active { border-color: var(--accent); }
 .tags { display: inline-flex; gap: var(--sp-4); flex-wrap: wrap; }
 /* a tag the task takes from its note: outlined rather than faded, so its text keeps 4.5:1 (spec A11Y-3) */
 
-.agbar { display: flex; gap: var(--sp-6); align-items: center; flex-wrap: wrap; padding: var(--sp-8) var(--sp-24); }
+.agbar { display: flex; gap: var(--sp-8) var(--sp-6); align-items: center; flex-wrap: wrap; padding: var(--sp-8) var(--sp-24); }
 .agbar .ag-btn[aria-pressed="true"] { background: var(--panel); color: var(--ink); }
 .agbar input.ag-input { flex: 1 1 200px; min-width: 0; height: var(--ctl-field); padding: 0 var(--sp-12); border-radius: var(--r-s); background: var(--win); }
 .agbar input.ag-input:focus { border-color: var(--accent); box-shadow: var(--ring); outline: none; }
@@ -59,7 +59,7 @@ button.sn-btn.wb-tasks.is-active { border-color: var(--accent); }
 .ag-rows { padding: var(--sp-6) 0; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--win); overflow: hidden; }
 .ag-day { display: flex; align-items: baseline; gap: var(--sp-10); padding: 0 var(--sp-2) var(--sp-10); color: var(--ink); font-size: var(--fs-lg); font-weight: var(--fw-bold); letter-spacing: -.015em; text-transform: capitalize; }
 /* a day without entries is one quiet line, not a card (spec UI-15) */
-.ag-card.is-empty > .ag-day { min-height: 0; padding-block: 0; color: var(--muted); font-size: var(--fs-md); font-weight: var(--fw-medium); letter-spacing: 0; }
+.ag-card.is-empty > .ag-day { min-height: 0; padding-block: 0; color: var(--muted); } /* same type as the other days, only quieter */
 .ag-day .num { color: var(--faint); font-size: var(--fs-ui); font-weight: var(--fw-regular); letter-spacing: 0; font-variant-numeric: tabular-nums; text-transform: none; }
 .ag-day.weekend:not(.today) { color: var(--ink); }
 .ag-card.is-empty > .ag-day.weekend { color: var(--muted); }
