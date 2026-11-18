@@ -2,6 +2,12 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.36.6
+
+- Phone: a tapped button or row no longer stays highlighted, toasts wrap instead of cutting the message short, and the settings tabs wrap so About is no longer hidden off the edge. The agenda's Day/Week/Month switch fades at the edge when it scrolls.
+- Easier to read: the primary button when pressed in dark mode, delete buttons in dark mode, and the text of a chip that is on. The sidebar's open tag and the Files "unused" filter show a check when on, and blue tags no longer look like the accent.
+- Quick capture: labels line up and no longer run into their fields in Russian, Save stays in view when the window is zoomed in, and the date field's full syntax shows under it. Disabled menu items look disabled again.
+
 ## 0.36.5
 
 - Task rows: in edit mode, away from the caret, dates show as the same chips as in reading view ("Tomorrow" with the repeat icon) and `[#A]` as the A badge; the caret brings back the Markdown of just the line it is in. In reading view a wrapped task title continues under its text, not under the box, and on a phone the fold arrow has its own tap area apart from the box.
