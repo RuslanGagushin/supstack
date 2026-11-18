@@ -31,6 +31,33 @@ describe("a task's lines in the reading view (UI-5)", () => {
   });
 });
 
+describe("a task's title that wraps in the reading view (UI-5)", () => {
+  const LONG = "the long pressure pipes that carried the water across every valley on the way to the town";
+  const NOTE = `- [ ] Plain: ${LONG}\n- [ ] Folds: ${LONG}\n  SCHEDULED: <2026-11-12 Thu>\n  - [ ] Subtask: ${LONG}\n`;
+  test("its next lines start where its text starts, and a subtask nests where it did", async () => {
+    await openVault({ demo: false, openNotes: "read", viewport: { width: 412, height: 900 }, touch: true, notes: { "cards/Pipes.md": NOTE } });
+    await ev(() => openEditor("cards/Pipes.md", { focus: false }));
+    await settle();
+    const rows = await ev(() => [...document.querySelectorAll("#editor .sn-reading li.task-list-item")].map((li) => {
+      const n = [...li.childNodes].find((x) => x.nodeType === 3 && x.data.trim());
+      const r = document.createRange();
+      r.setStart(n, n.data.search(/\S/)); r.setEnd(n, n.data.trimEnd().length);
+      const lines = [...r.getClientRects()].map((x) => Math.round(x.left));
+      const parent = li.parentElement.closest("li.task-list-item");
+      return { name: n.data.trim().split(":")[0], lines, edge: li.getBoundingClientRect().left, parentEdge: parent ? parent.getBoundingClientRect().left : null };
+    }));
+    const by = Object.fromEntries(rows.map((r) => [r.name, r]));
+    for (const name of ["Plain", "Folds", "Subtask"]) {
+      assert.ok(by[name], `${name} found: ${JSON.stringify(rows)}`); const { lines } = by[name];
+      assert.ok(lines.length > 1, `${name} wraps: ${JSON.stringify(rows)}`);
+      for (const x of lines.slice(1)) assert.ok(Math.abs(x - lines[0]) <= 1, `${name}: ${JSON.stringify(by[name])}`);
+    }
+    // the list's own indent (1.6em less the task row's -1.4em), not the parent's chevron and box as well
+    assert.ok(Math.abs(by.Subtask.edge - by.Subtask.parentEdge - 3.2) < 0.5, `a subtask nests where it did: ${JSON.stringify(by.Subtask)}`);
+    noErrors();
+  });
+});
+
 describe("planning words in the editor on a phone (UI-6)", () => {
   test("a planning word and its date are never split over two lines", async () => {
     await openVault({ demo: false, viewport: { width: 412, height: 900 }, notes: { "cards/Trip.md": TASKS } });

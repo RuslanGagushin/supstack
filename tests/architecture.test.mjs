@@ -110,7 +110,6 @@ test("padding, margin and gap use the spacing scale; the measured offsets are li
   const CSS = fileURLToPath(new URL("../web/src/css/", import.meta.url));
   // [a selector the rule starts with, the pixel value it keeps, why]
   const allowed = [
-    [".markdown-rendered .org-entry .org-body", "18px", "a task's body starts under its text: box, gap and state letter"],
     ["input.fv-search", "30px", "room for the search icon"],
     ["input.sn-set-search", "30px", "room for the search icon"],
     [".tree-item-children", "11px", "the indent guide runs under the toggle's centre"],

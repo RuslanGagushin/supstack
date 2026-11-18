@@ -269,7 +269,7 @@ export function renderEditor() {
 
   if (editor.mode !== "source") {
     // the note opens straight with its title: what it is shows in the tree, its icon is picked from its menu or Properties
-    const title = h("textarea", { cls: "sn-inline-title", rows: "1", spellcheck: "false" });
+    const title = h("textarea", { cls: "sn-inline-title", rows: "1", spellcheck: "false", "aria-label": t("noteTitle") });
     title.value = baseName(path);
     const growT = () => { title.style.height = "auto"; title.style.height = title.scrollHeight + "px"; };
     title.addEventListener("input", growT);
