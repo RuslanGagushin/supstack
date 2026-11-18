@@ -6,3 +6,4 @@ node_modules
 /.claude/launch.json
 /reports/
 /research_notes/
+tests/visual/*.diff.png
