@@ -595,7 +595,12 @@ pub(crate) fn sync_repo(dir: &Path, cfg: &GitConfig) -> Result<GitReport> {
 /// The copying works on any [`Folder`], so the desktop tests run it on a plain folder.
 #[cfg_attr(desktop, allow(dead_code))]
 mod mirror {
-    use std::{collections::HashMap, fs, path::Path, time::UNIX_EPOCH};
+    use std::{
+        collections::HashMap,
+        fs,
+        path::Path,
+        time::{SystemTime, UNIX_EPOCH},
+    };
 
     use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
@@ -628,6 +633,27 @@ mod mirror {
         before: Snapshot,
         /// the picked folder as it was copied into the clone
         folder: Listing,
+        /// blob ids of the files in `before` written too recently for their stamp to tell a later write apart
+        #[serde(default)]
+        racy: HashMap<String, String>,
+    }
+
+    /// A file's mtime only moves on the file system's clock tick (milliseconds on Linux, seconds elsewhere), so a
+    /// rewrite of the same size within that tick keeps its stamp. Files this fresh are compared by content, as git does.
+    const RACY_NS: u64 = 3_000_000_000;
+
+    fn blob_id(path: &Path) -> Option<String> {
+        let bytes = fs::read(path).ok()?;
+        git2::Oid::hash_object(git2::ObjectType::Blob, &bytes).ok().map(|o| o.to_string())
+    }
+
+    /// Blob ids of the files in `snap` whose mtime is within [`RACY_NS`] of now.
+    fn racy(dir: &Path, snap: &Snapshot) -> HashMap<String, String> {
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_nanos() as u64);
+        snap.iter()
+            .filter(|(_, (_, m))| m.saturating_add(RACY_NS) > now)
+            .filter_map(|(path, _)| blob_id(&dir.join(path)).map(|id| (path.clone(), id)))
+            .collect()
     }
 
     /// Visible files under `dir` with size and mtime, like the vault listing.
@@ -677,7 +703,14 @@ mod mirror {
     /// `manifest` gets the folder's new stamps for what was copied. Returns whether anything changed in the folder.
     fn copy_out(folder: &impl Folder, work: &Path, p: &Pending, manifest: &mut Listing, conflicts: &mut Vec<String>) -> Result<bool> {
         let after = snapshot(work);
-        let changed: Vec<&String> = after.iter().filter(|(path, stamp)| p.before.get(*path) != Some(*stamp)).map(|(path, _)| path).collect();
+        let changed: Vec<&String> = after
+            .iter()
+            .filter(|(path, stamp)| {
+                p.before.get(*path) != Some(*stamp)
+                    || p.racy.get(*path).is_some_and(|id| blob_id(&work.join(path)).as_ref() != Some(id))
+            })
+            .map(|(path, _)| path)
+            .collect();
         let gone: Vec<&String> = p.before.keys().filter(|path| !after.contains_key(*path)).collect();
         if changed.is_empty() && gone.is_empty() {
             return Ok(false);
@@ -756,7 +789,8 @@ mod mirror {
 
         // 2. git
         trace("git");
-        let pending = Pending { before: snapshot(&work), folder: listing };
+        let before = snapshot(&work);
+        let pending = Pending { racy: racy(&work, &before), before, folder: listing };
         save(&pending_path, &pending)?;
         let result = sync_repo(&work, cfg);
 
@@ -1135,9 +1169,14 @@ mod tests {
         sync_repo(&a, &c).unwrap();
 
         // git merges "two" into the clone, then writing it into the picked folder fails
+        let clone_note = base.join("tree/Note.md");
+        let stamp = fs::metadata(&clone_note).unwrap().modified().unwrap();
         phone.fail_writes.set(true);
         assert!(mirror::sync_folder(&phone, &base, &c).is_err());
         assert_eq!(phone.text("Note.md"), "one\n");
+        // as on a file system whose clock had not ticked since "one" was written: same size, same mtime
+        assert_eq!(fs::read_to_string(&clone_note).unwrap(), "two\n");
+        fs::File::options().write(true).open(&clone_note).unwrap().set_modified(stamp).unwrap();
 
         phone.fail_writes.set(false);
         let r = mirror::sync_folder(&phone, &base, &c).unwrap();

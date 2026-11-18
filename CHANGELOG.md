@@ -5,6 +5,7 @@ One line per release, newest first: what changed for you.
 ## 0.36.5
 
 - Task rows: in edit mode, away from the caret, dates show as the same chips as in reading view ("Tomorrow" with the repeat icon) and `[#A]` as the A badge; the caret brings back the Markdown of just the line it is in. In reading view a wrapped task title continues under its text, not under the box, and on a phone the fold arrow has its own tap area apart from the box.
+- Phone sync: a sync that stopped partway no longer misses a note that the other device changed to text of the same length.
 
 ## 0.36.4
 
