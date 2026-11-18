@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.36.5
+
+- Task rows: in edit mode, away from the caret, dates show as the same chips as in reading view ("Tomorrow" with the repeat icon) and `[#A]` as the A badge; the caret brings back the Markdown of just the line it is in. In reading view a wrapped task title continues under its text, not under the box, and on a phone the fold arrow has its own tap area apart from the box.
+
 ## 0.36.4
 
 - Icons in the notebook's bar, the note's header and its toolbar are one size: 16px on a desktop, 20px with a full tap area on a phone. On a narrow note, Done is a blue check instead of a filled blue square.
