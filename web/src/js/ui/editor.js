@@ -247,9 +247,7 @@ export function renderEditor() {
     const reading = editor.mode === "read";
     head.append(h("button", { cls: "sn-mode-btn" + (reading ? "" : " is-editing"), type: "button", title: (reading ? t("editingView") : t("readingView")) + " · Ctrl+E", onClick: () => toggleReading() },
       ic("", reading ? "square-pen" : "check"), h("span", { cls: "sn-mode-label", text: reading ? t("modeEdit") : t("modeDone") })));
-    const panel = iconBtn("panel-right", t("inspector"), () => toggleInspector(), "sn-insp-btn");
-    panel.append(ic("sn-insp-btn-phone", "info"));
-    head.append(panel);
+    head.append(iconBtn("panel-right", t("inspector"), () => toggleInspector(), "sn-insp-btn"));
     head.append(iconBtn("ellipsis-vertical", t("more"), (e) => editorMenu(path, e.currentTarget), "sn-editor-more"));
   }
   col.append(head);
