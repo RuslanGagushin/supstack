@@ -30,8 +30,13 @@ import { inspectorShown, toggleInspector } from "./inspector.js";
 
 export function applyTheme() {
   const dark = UI.theme === "dark" || (UI.theme === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+  // the swap is instant: transitions are off while the new colours are worked out, so no button or chip fades between the themes
+  const root = document.documentElement;
+  root.classList.add("is-theming");
   document.body.classList.toggle("theme-dark", dark);
   document.body.classList.toggle("theme-light", !dark);
+  void document.body.offsetHeight;
+  root.classList.remove("is-theming");
 }
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme);
 export function applyLanguage() {
