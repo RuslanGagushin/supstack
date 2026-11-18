@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.36.4
+
+- Icons in the notebook's bar, the note's header and its toolbar are one size: 16px on a desktop, 20px with a full tap area on a phone. On a narrow note, Done is a blue check instead of a filled blue square.
+
 ## 0.36.3
 
 - The note's header: the edit pencil and ⋮ are new icons at one size with a full tap area on a phone, and the side panel opens with the same panel icon on a phone as on a desktop (no more "i").
