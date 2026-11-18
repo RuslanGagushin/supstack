@@ -114,10 +114,10 @@
 .setting-item-control { flex: 0 0 auto; display: flex; align-items: center; gap: var(--sp-6); }
 .setting-item-control input[type="text"], .setting-item-control input[type="number"] { width: 170px; }
 .setting-heading { margin: var(--sp-20) 0 var(--sp-4); font-size: var(--fs-ui); font-weight: var(--fw-semibold); color: var(--faint); }
-.checkbox-container { position: relative; width: 40px; height: 22px; border-radius: var(--r-pill); background: var(--line-hover); cursor: default; transition: background var(--dur-1) var(--ease); flex: 0 0 auto; }
-.checkbox-container::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--paper); box-shadow: var(--shadow-1); transition: transform var(--dur-1) var(--ease); }
+.checkbox-container { position: relative; width: 34px; height: 20px; border-radius: var(--r-pill); background: var(--line-hover); cursor: default; transition: background var(--dur-1) var(--ease); flex: 0 0 auto; }
+.checkbox-container::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--paper); box-shadow: var(--shadow-1); transition: transform var(--dur-1) var(--ease); }
 .checkbox-container.is-active { background: var(--cta); }
-.checkbox-container.is-active::after { transform: translateX(18px); }
+.checkbox-container.is-active::after { transform: translateX(14px); }
 .checkbox-container:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* ---------- The toast: one message at a time (ui.js echo), bottom centre; at the top on phones */
@@ -144,7 +144,7 @@ button.sn-toast-btn:hover, button.sn-toast-x:hover { background: var(--hover-bg)
 
 /* ---------- Welcome */
 .sn-loading { position: fixed; inset: 0; z-index: var(--z-loading); display: flex; align-items: center; justify-content: center; background: var(--win); color: var(--muted); font-size: var(--fs-ui); gap: var(--sp-8); }
-.sn-spin svg { animation: sn-spin 1s linear infinite; width: var(--icon-l); height: var(--icon-l); }
+.sn-spin svg { animation: sn-spin var(--dur-spin) linear infinite; width: var(--icon-l); height: var(--icon-l); }
 @keyframes sn-spin { to { transform: rotate(360deg); } }
 
 /* ---------- The note's panel (ui/inspector.js): a column beside the note where the pane is 760px or wider (INSP_DOCK),

@@ -56,7 +56,7 @@ body {
   --r-xs: 6px; --r-s: 8px; --r-m: 10px; --r-l: 16px; --r-pill: 999px;
 
 
-  --icon-xs: 12px; --icon-s: 14px; --icon-m: 16px; --icon-l: 18px;
+  --icon-xs: 12px; --icon-s: 14px; --icon-m: 16px; --icon-l: 18px; --icon-xl: 20px; --icon-xxl: 22px;
   --icon-stroke: 1.75px;
 
   --header-height: 40px;
@@ -81,7 +81,7 @@ body {
   /* keyboard focus and the chosen item: a ring outside a control, or inside the edge of a row or a pane */
   --ring: 0 0 0 2px var(--accent); --ring-inset: inset 0 0 0 2px var(--accent);
   /* motion: --dur-1 for hover, folding and small changes, --dur-2 for panels, bars and popups */
-  --dur-1: 120ms; --dur-2: 200ms; --ease: ease-out;
+  --dur-1: 120ms; --dur-2: 200ms; --ease: ease-out; --dur-spin: 1.2s; /* one turn of a spinner */
   /* stacking, from the page up */
   --z-raised: 1; --z-resizer: 3; --z-float: 5; --z-tabbar: 28; --z-side: 30; --z-editor: 35; --z-welcome: 40; --z-loading: 45;
   --z-menu: 60; --z-modal: 70; --z-popup: 74; --z-toast: 80;

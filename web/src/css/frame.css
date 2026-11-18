@@ -207,9 +207,6 @@ button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--f
 .setting-heading { font-size: var(--fs-sm); letter-spacing: 0; color: var(--muted); margin-top: var(--sp-14); text-transform: none; font-weight: var(--fw-semibold); }
 .setting-item { display: flex; align-items: center; gap: var(--sp-16); border-top: 1px solid var(--line); padding: var(--sp-8) 0; }
 .setting-item-description { margin-top: var(--sp-2); line-height: var(--lh-ui); color: var(--faint); font-size: var(--fs-sm); }
-.checkbox-container { width: 34px; height: 20px; }
-.checkbox-container::after { width: 16px; height: 16px; }
-.checkbox-container.is-active::after { transform: translateX(14px); }
 /* settings: a fixed-height dialog with a tab per group, so switching tabs doesn't make it jump */
 .sn-about { padding: var(--sp-16) 0 var(--sp-14); }
 .sn-about-name { font-family: var(--font-ui); font-size: var(--fs-lg); font-weight: var(--fw-bold); }
@@ -225,7 +222,7 @@ button.clickable-icon.wb-icon:hover { border-color: var(--faint); color: var(--f
 }
 .suggestion-item.is-selected { background: var(--sel); }
 .icon-grid .suggestion-item { flex-direction: column; gap: var(--sp-6); padding: var(--sp-12) var(--sp-6); color: var(--muted); text-align: center; font-size: var(--fs-sm); }
-.icon-grid .suggestion-icon svg { width: 20px; height: 20px; }
+.icon-grid .suggestion-icon svg { width: var(--icon-xl); height: var(--icon-xl); }
 
 /* ---------- Welcome */
 .sn-loading { background: var(--bg); font-family: var(--font-ui); }
@@ -267,7 +264,7 @@ button.sn-tb-insert kbd { font-size: var(--fs-sm); color: var(--faint); padding:
 .wb-sync.is-ok .wb-sync-icon { color: var(--muted); }
 .wb-sync.is-warn .wb-sync-icon { color: var(--todo); }
 .wb-sync.is-busy .wb-sync-icon { color: var(--accent); }
-.wb-sync.is-spin .wb-sync-icon svg, .sn-sync-status.is-spin svg { animation: sn-spin 1.2s linear infinite; }
+.wb-sync.is-spin .wb-sync-icon svg, .sn-sync-status.is-spin svg { animation: sn-spin var(--dur-spin) linear infinite; }
 .wb-sync.is-flash { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 .wb-sync.is-flash .wb-sync-icon { color: var(--accent); }
 .sn-sync-status { display: flex; align-items: center; gap: var(--sp-6); margin: var(--sp-6) 0 var(--sp-2); font-size: var(--fs-ui); color: var(--fg); }
