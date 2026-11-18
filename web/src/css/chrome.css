@@ -39,10 +39,10 @@
 .sn-prop-key { display: flex; align-items: center; gap: var(--sp-6); min-height: 24px; overflow: hidden; color: var(--muted); }
 .sn-prop-key span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sn-prop-val { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4); min-height: 24px; overflow-wrap: anywhere; }
-.sn-prop-add { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; color: var(--faint); cursor: default; }
+.sn-prop-add { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; margin-inline-start: calc((22px - var(--icon-s)) / -2); border-radius: 50%; color: var(--faint); cursor: default; } /* its glyph, not its circle, lines up with the values' text */
 .sn-prop-add:hover { background: var(--panel); color: var(--fg); }
 .sn-prop-add svg { width: var(--icon-s); height: var(--icon-s); }
-.sn-prop-input { height: var(--ctl-s); min-width: 90px; flex: 1; border: 0; background: transparent; padding: 0 var(--sp-2); }
+.sn-prop-input { height: var(--ctl-s); min-width: 90px; flex: 1; border: 0; background: transparent; padding: 0; }
 .sn-icon-pick:hover { background: var(--panel); }
 .sn-icon-pick svg { width: var(--icon-s); height: var(--icon-s); color: var(--muted); }
 .sn-icon-pick.is-empty { color: var(--faint); }
