@@ -11,7 +11,7 @@ import { openTagView, setTarget } from "./board.js";
 import { edDom, editorTextarea, openEditor } from "./editor.js";
 import { liveCellOpen, liveTableAt, liveTableButtons, liveTableOp, tableMenu } from "./table-editor.js";
 import { updateEdToolbar } from "./editor-toolbar.js";
-import { ORG_DECOR_RE } from "./org-editing.js";
+import { ORG_DECOR_RE, planChip } from "./org-editing.js";
 import { openAttachment } from "./files.js";
 import { orgPickStateChar } from "./org-commands.js";
 import { taskBox } from "./task-icons.js";
@@ -103,6 +103,34 @@ class LpTags extends CM.WidgetType {
   toDOM() { return h("span", { cls: "tags org-tags" }, this.tags.map((x) => h("span", { cls: "sn-chip is-s hue-" + hueOf(x), text: x }))); }
 }
 class LpRule extends CM.WidgetType { eq() { return true; } toDOM() { return h("hr", { cls: "lp-hr" }); } }
+/** A planning word and its date, or a lone timestamp, as the reading view's chip ("Tomorrow", "In 3 days"): the caret brings the
+ *  Markdown back. A click lands the caret in it (ignoreEvent false), so the date is one click from editing. */
+class LpPlan extends CM.WidgetType {
+  constructor(word, stamp, state) { super(); this.word = word; this.stamp = stamp; this.state = state; }
+  eq(o) { return o.word === this.word && o.stamp === this.stamp && o.state === this.state; }
+  toDOM() { return planChip(this.word, this.stamp, { className: "is-state-" + this.state }) || h("span", { text: (this.word ? this.word + ": " : "") + this.stamp }); }
+  ignoreEvent() { return false; }
+}
+/** The indentation of a line under a task (its dates, its note), drawn as the task's own indentation and the room its box and the
+ *  space after it take (--box-lead, agenda.css), so the line starts where the task's text does, as in the reading view. */
+class LpLead extends CM.WidgetType {
+  constructor(indent) { super(); this.indent = indent; }
+  eq(o) { return o.indent === this.indent; }
+  toDOM() { return h("span", { cls: "cm-sn-lead" }, this.indent ? h("span", { cls: "cm-sn-lead-indent", text: this.indent }) : null, h("span", { cls: "cm-sn-lead-box" })); }
+}
+/** The task a line belongs to when it is indented under one (dates, a note): its indentation and state, else null. */
+function lpTaskOwner(state, l) {
+  const ind = /^[ \t]*/.exec(l.text)[0];
+  if (!ind || !l.text.trim() || /^[ \t]*(?:[-*+]|\d+[.)])[ \t]/.test(l.text)) return null;
+  for (let n = l.number - 1, i = 0; n >= 1 && i < 40; n--, i++) {
+    const t = state.doc.line(n).text;
+    if (!t.trim()) return null;
+    const m = /^([ \t]*)(?:[-*+]|\d+[.)])[ \t]+\[([ xX\/<>-])\][ \t]/.exec(t);
+    if (m) return m[1].length < ind.length ? { indent: m[1], state: taskState(m[2])?.id || "todo" } : null;
+    if (!/^[ \t]/.test(t) || /^[ \t]*(?:[-*+]|\d+[.)])[ \t]/.test(t)) return null; // past the task's other lines: not under a task
+  }
+  return null;
+}
 /** Set the state of the task on the line at `pos`: `pick(current)` gives the new box character (undefined leaves it). */
 function lpSetState(view, pos, pick) {
   const doc = view.state.doc, l = doc.lineAt(pos), nx = l.number < doc.lines ? doc.line(l.number + 1) : null;
@@ -282,7 +310,15 @@ function lpInline(view) {
         if (!inSkip(a, b) && !/^#+\s/.test(text)) mark(a, b, "cm-sn-tag", { "data-tag": m[2] });
       }
       const om = /^([ \t]*(?:[-*+]|\d+[.)])[ \t]+\[[ xX\/<>-]\][ \t]+)\[#([A-Z0-9])\](?=\s|$)/.exec(text);
-      if (om) mark(at(om[1].length), at(om[1].length + 4), `pri ${om[2]}`);
+      if (om) {
+        // away from the caret the priority reads as the reading view's badge: the letter alone ([# and ] hidden)
+        const a = at(om[1].length), b = a + 4;
+        if (lpNear(state, a, b)) mark(a, b, `pri ${om[2]}`);
+        else { hide(a, a + 2); mark(a + 2, a + 3, `pri ${om[2]}`); hide(a + 3, b); }
+      }
+      const owner = lpTaskOwner(state, l);
+      // a line under a task starts where the task's text does; with the caret on it, its indentation is plain spaces again
+      if (owner && !lpNearLine(state, l.from)) add(l.from, l.from + /^[ \t]*/.exec(text)[0].length, CM.Decoration.replace({ widget: new LpLead(owner.indent) }));
       // Org tags at the end of a heading or list item (:work:urgent:) show as tag pills away from the caret
       const tm = /^\s*(?:#{1,6}\s|[-*+]\s|\d+[.)]\s).*?(\s):((?:[\p{L}\p{N}_@#%-]+:)+)\s*$/u.exec(text);
       if (tm) {
@@ -296,12 +332,23 @@ function lpInline(view) {
         if (inSkip(a, b)) continue;
         const nr = lpNear(state, a, b);
         if (m[1]) {
+          // away from the caret a planning word and its date are one chip, as in the reading view
+          const dm = /^\s*([<[]\d{4}-\d{2}-\d{2}[^>\]\n]*[>\]](?:--<\d{4}-\d{2}-\d{2}[^>\n]*>)?)/.exec(text.slice(m.index + m[0].length));
+          const end = dm ? b + dm[0].length : b;
+          if (dm && !lpNear(state, a, end) && !inSkip(a, end)) {
+            add(a, end, CM.Decoration.replace({ widget: new LpPlan(m[1].slice(0, -1), dm[1], owner?.state || "todo") }));
+            skip.push([a, end]);
+            continue;
+          }
           mark(a, b - 1, "org-plan k-" + m[1].slice(0, -1).toLowerCase() + (nr ? " is-near" : "")); fmt(b - 1, b, nr);
           // the word and its date wrap as one: a narrow screen never leaves "scheduled" at a line's end (spec UI-6)
           const date = /^\s*[<[]\d{4}-\d{2}-\d{2}[^>\]\n]*[>\]]/.exec(text.slice(m.index + m[0].length));
           if (date) mark(a, b + date[0].length, "org-pair");
           continue;
         }
+        // a date on its own (an event, or when it was done) is a chip away from the caret; one after a planning word got here because
+        // the caret is on that pair, so it stays the Markdown, as the word beside it does
+        if (!nr && !/(?:SCHEDULED|DEADLINE|CLOSED):[ \t]*$/.test(text.slice(0, m.index))) { add(a, b, CM.Decoration.replace({ widget: new LpPlan("", m[0], owner?.state || "todo") })); continue; }
         mark(a, b, "org-ts" + (m[3] ? " is-inactive" : ""));
         fmt(a, a + 1, nr); fmt(b - 1, b, nr);
         const mid = m[0].indexOf(">--<");

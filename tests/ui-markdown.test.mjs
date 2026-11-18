@@ -264,12 +264,12 @@ describe("table editing", () => {
 
 describe("planning lines", () => {
   const NOTE = "- [ ] Book the tour\n  DEADLINE: <2026-11-07 Sat> SCHEDULED: <2026-11-05 Thu>\n\nIntro\n\n- [x] Set up\n  CLOSED: [2026-11-03 Tue 18:20]\n";
-  beforeEach(async () => { await openVault({ demo: false, notes: { "cards/P.md": NOTE } }); await ev(() => openEditor("cards/P.md", { focus: false })); });
+  beforeEach(async () => { await openVault({ demo: false, time: "2026-11-06T09:00:00", notes: { "cards/P.md": NOTE } }); await ev(() => openEditor("cards/P.md", { focus: false })); });
   const shown = (sel) => ev((s) => [...document.querySelectorAll(s)].map((x) => x.innerText.trim()), sel);
 
-  test("while editing, SCHEDULED, DEADLINE and CLOSED are lowercase pills without their colon, dates pills without their brackets", async () => {
-    assert.deepEqual(await shown("#editor .sn-live .org-plan"), ["deadline", "scheduled", "closed"]);
-    assert.deepEqual(await shown("#editor .sn-live .org-ts"), ["2026-11-07 Sat", "2026-11-05 Thu", "2026-11-03 Tue 18:20"]);
+  test("while editing, away from the caret, each planning word and its date are one chip, as while reading", async () => {
+    assert.deepEqual(await shown("#editor .sn-live .org-date"), ["Tomorrow", "Yesterday", "3 Nov"]);
+    assert.equal((await shown("#editor .sn-live .org-plan, #editor .sn-live .org-ts")).length, 0, "no words or timestamps left");
     assert.equal(await raw("cards/P.md"), NOTE, "the note's text is unchanged");
     noErrors();
   });
@@ -303,7 +303,8 @@ describe("planning lines", () => {
     });
     assert.deepEqual(tones, { closed: true, soon: true, plain: true });
     await ev(() => openEditor("cards/R.md", { focus: false, edit: true }));
-    assert.equal(await ev(() => document.querySelectorAll("#editor .org-date").length), 0, "editing shows the Markdown again");
+    const editing = await ev(() => ({ chips: [...document.querySelectorAll("#editor .sn-live .org-date")].map((c) => c.innerText.trim()), pri: document.querySelector("#editor .sn-live .pri.A")?.textContent }));
+    assert.deepEqual(editing, { chips: chips.map((c) => c[1]), pri: "A" }, "editing, away from the caret, shows the same chips and badge");
     assert.equal(await raw("cards/R.md"), note, "the note's text is unchanged");
     noErrors();
   });
@@ -312,7 +313,8 @@ describe("planning lines", () => {
     const caret = (find, off) => ev(([f, o]) => { const ta = $(".sn-editor-text"); ta.focus(); ta.setSelectionRange(ta.value.indexOf(f) + o); }, [find, off]);
     await caret("2026-11-07", 3);
     await page().waitForTimeout(50);
-    assert.deepEqual((await shown("#editor .sn-live .org-ts")).slice(0, 2), ["<2026-11-07 Sat>", "2026-11-05 Thu"]);
+    assert.deepEqual(await shown("#editor .sn-live .org-ts"), ["<2026-11-07 Sat>"], "the date the caret is in, as written");
+    assert.deepEqual(await shown("#editor .sn-live .org-date"), ["Yesterday", "3 Nov"], "the others stay chips");
     await caret("DEADLINE", 3);
     await page().waitForTimeout(50);
     assert.ok((await ev(() => document.querySelector("#editor .sn-live .cm-line:nth-child(2)").innerText)).includes("DEADLINE:"));

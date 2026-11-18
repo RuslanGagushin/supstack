@@ -396,7 +396,7 @@ export const ORG_DECOR_RE = /(SCHEDULED:|DEADLINE:|CLOSED:)|(<\d{4}-\d{2}-\d{2}[
 const PLAN_KIND = { DEADLINE: "dead", SCHEDULED: "sched", CLOSED: "closed" };
 /** A planning word and its timestamp as one chip, the way the agenda says it: "Tomorrow", "In 3 d.", "12 Nov"; the full
  *  Markdown in its tooltip. A deadline goes red on its day and after, amber in its warning days, unless the task is done. */
-function planChip(word, stamp, li) {
+export function planChip(word, stamp, li) {
   const ts = orgTsParse(stamp);
   if (!ts) return null;
   const kind = word ? PLAN_KIND[word] : ts.active ? "event" : "closed";

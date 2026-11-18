@@ -63,11 +63,17 @@ describe("planning words in the editor on a phone (UI-6)", () => {
     await openVault({ demo: false, viewport: { width: 412, height: 900 }, notes: { "cards/Trip.md": TASKS } });
     await ev(() => openEditor("cards/Trip.md", { focus: false, edit: true }));
     await settle();
+    // away from the caret each pair is one chip, which never breaks
+    const chips = await ev(() => [...document.querySelectorAll("#editor .cm-content .org-date")].map((c) => c.getClientRects().length));
+    assert.deepEqual(chips, [1, 1, 1]);
+    // with the caret in a pair, that word and its date are the Markdown again and wrap as one; the pair beside it stays a chip
+    await ev(() => { const ta = $(".sn-editor-text"); ta.focus(); ta.setSelectionRange(ta.value.indexOf("DEADLINE") + 3); });
+    await settle();
     const pairs = await ev(() => [...document.querySelectorAll("#editor .cm-content .org-plan")].map((pl) => {
       const pair = pl.closest(".org-pair"), ts = pair?.querySelector(".org-ts");
       return [pl.textContent, !!pair, ts ? Math.abs(ts.getBoundingClientRect().top - pl.getBoundingClientRect().top) < 6 : false];
     }));
-    assert.deepEqual(pairs, [["DEADLINE", true, true], ["SCHEDULED", true, true], ["SCHEDULED", true, true]]);
+    assert.deepEqual(pairs, [["DEADLINE", true, true]]);
     noErrors();
   });
 });

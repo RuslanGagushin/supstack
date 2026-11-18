@@ -23,6 +23,9 @@
 .sn-live .cm-sn-olmark { color: var(--muted); }
 .sn-live .cm-sn-task.s-done, .sn-live .cm-sn-task.s-fwd { color: var(--muted); }
 .sn-live .cm-sn-task.s-cancel { color: var(--faint); text-decoration: line-through; }
+/* a line under a task starts where the task's text does (LpLead, ui/live-preview.js): its indentation, then the box's room */
+.sn-live .cm-sn-lead-indent { white-space: pre; }
+.sn-live .cm-sn-lead-box { display: inline-block; width: var(--box-lead); }
 .sn-live .cm-line.cm-sn-quote { border-inline-start: 3px solid var(--panel); padding-inline-start: var(--sp-12); color: var(--muted); }
 .sn-live .lp-hr { display: inline-block; width: 100%; margin: 0; vertical-align: middle; }
 .sn-live .lp-block { padding: .2em 0; }
