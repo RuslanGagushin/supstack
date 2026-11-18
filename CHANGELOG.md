@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.36.3
+
+- The note's header: the edit pencil and ⋮ are new icons at one size with a full tap area on a phone, and the side panel opens with the same panel icon on a phone as on a desktop (no more "i").
+
 ## 0.36.2
 
 - Looks: hover changes ease in one speed, a press answers at once, the floating "demo vault" notice has a border and shadow,
