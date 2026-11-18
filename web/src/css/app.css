@@ -152,7 +152,7 @@ button.sn-editor-places:hover { background: var(--accent-soft); color: var(--acc
 /* a phone: "‹ Its notebook" instead of the path, the ×, and "+N" (which moves into ⋮) */
 a.sn-editor-back { display: none; min-width: 0; align-items: center; gap: var(--sp-2); margin-left: calc(var(--sp-6) * -1); padding: var(--sp-4) var(--sp-8) var(--sp-4) var(--sp-2); border-radius: var(--r-s); color: var(--fg); font-weight: var(--fw-medium); text-decoration: none; }
 a.sn-editor-back > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-a.sn-editor-back svg { flex: none; width: var(--icon-xxl); height: var(--icon-xxl); }
+a.sn-editor-back svg { flex: none; width: var(--icon-xl); height: var(--icon-xl); }
 a.sn-editor-back:active { background: var(--hover-bg); }
 @media (max-width: 820px) {
   a.sn-editor-back { display: inline-flex; }
@@ -166,14 +166,16 @@ a.sn-editor-back:active { background: var(--hover-bg); }
 button.sn-mode-btn { flex: none; display: inline-flex; align-items: center; gap: var(--sp-6); height: var(--ctl-l); margin: 0 var(--sp-2) 0 var(--sp-6); padding: 0 var(--sp-12) 0 var(--sp-10);
   border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); color: var(--ink); font-size: var(--fs-ui); font-weight: var(--fw-medium); cursor: pointer; }
 button.sn-mode-btn:hover { background: var(--hover-bg); }
-button.sn-mode-btn svg { display: block; width: var(--icon-s); height: var(--icon-s); } /* a block, so the icon sits in the middle, not on the text's baseline */
+button.sn-mode-btn svg { display: block; width: var(--icon-m); height: var(--icon-m); } /* a block, so the icon sits in the middle, not on the text's baseline */
 button.sn-mode-btn.is-editing { border-color: transparent; background: var(--cta); color: var(--on-accent); }
 button.sn-mode-btn.is-editing:hover { background: var(--cta-hover); }
-@container (max-width: 640px) { button.sn-mode-btn { width: var(--ctl-touch); height: var(--ctl-touch); margin: 0; padding: 0; justify-content: center; } .sn-mode-label { display: none; } button.sn-mode-btn:not(.is-editing) { border-color: transparent; background: transparent; color: var(--muted); }
-  /* icon only: the pencil and ⋮ the same 20px drawing in the same 40px hit area, no frame of their own; Done keeps its blue */
-  .sn-editor .sn-editor-head :is(button.sn-mode-btn, button.clickable-icon) svg { width: var(--icon-xl); height: var(--icon-xl); }
-  .sn-editor .sn-editor-head button.clickable-icon { width: var(--ctl-touch); height: var(--ctl-touch); min-width: var(--ctl-touch); padding: 0; justify-content: center; }
-  .sn-editor .sn-editor-head button.clickable-icon:hover { border-color: transparent; } }
+@container (max-width: 640px) { button.sn-mode-btn { width: var(--ctl-l); margin: 0; padding: 0; justify-content: center; } .sn-mode-label { display: none; }
+  /* icon only: no frame of its own, like the icon buttons beside it; Done is the check in the accent colour, not a filled square */
+  button.sn-mode-btn, button.sn-mode-btn.is-editing { border-color: transparent; background: transparent; color: var(--muted); }
+  button.sn-mode-btn.is-editing { color: var(--accent); }
+  button.sn-mode-btn.is-editing:hover { background: var(--hover-bg); } }
+/* one size for the icons of the bars: the notebook's, the note's header and its toolbar draw 16px in a 32px button (20px in 40px on a phone, below) */
+.sn-board .sn-topbar .clickable-icon:where(:not(.sn-seg > *)) svg, .sn-editor .sn-editor-head .clickable-icon svg { width: var(--icon-m); height: var(--icon-m); }
 /* reading keeps the room of the editing toolbar above the note, so its title stays put when editing starts */
 .sn-editor.is-read .sn-editor-scroll { padding-top: var(--ed-toolbar-h, var(--ctl-touch)); } /* until a toolbar is measured, its min-height (writing.css) */
 @media (max-width: 820px) { .sn-editor.is-read .sn-editor-scroll { padding-top: var(--sp-8); } } /* a phone gives the title the room: it moves down when editing brings the toolbar */
@@ -363,6 +365,9 @@ button.sn-row-enter:hover, .sn-row:focus-visible button.sn-row-enter { backgroun
   #app button.ag-over-head { min-height: var(--ctl-touch); }
   #app .sn-board button.clickable-icon.ag-nav { width: var(--ctl-touch); height: var(--ctl-touch); }
   #app :is(.sn-topbar, .sn-editor-head, .agbar, .sn-ed-toolbar) :is(button.clickable-icon, button.sn-tb-btn, button.sn-tb-insert, button.sn-mode-btn, button.ag-btn, button.ag-capture) { min-width: 40px; }
+  /* the same icons a finger reads: 20px in a 40px hit area, no frame of their own */
+  #app :is(.sn-topbar, .sn-editor-head, .sn-ed-toolbar) :is(button.clickable-icon, button.sn-tb-btn, button.sn-tb-insert, button.sn-mode-btn) svg { width: var(--icon-xl); height: var(--icon-xl); }
+  #app .sn-editor-head :is(button.clickable-icon, button.sn-mode-btn) { width: var(--ctl-touch); height: var(--ctl-touch); padding: 0; justify-content: center; }
 }
 
 /* ---------- The native apps (html.is-native, html.is-android: ui/native-shell.js) */

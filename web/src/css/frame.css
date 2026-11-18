@@ -256,7 +256,7 @@ button.sn-tb-insert, button.sn-tb-insert:not(.clickable-icon) {
   color: var(--muted); font-size: var(--fs-sm); font-weight: var(--fw-regular); cursor: pointer;
 }
 button.sn-tb-insert:hover { border-color: var(--faint); color: var(--fg); background: var(--win); }
-button.sn-tb-insert svg { width: var(--icon-s); height: var(--icon-s); }
+button.sn-tb-insert svg { width: var(--icon-m); height: var(--icon-m); }
 button.sn-tb-insert kbd { font-size: var(--fs-sm); color: var(--faint); padding: 0 var(--sp-4); border: 1px solid var(--line); border-radius: var(--r-xs); line-height: 15px; }
 .sn-reading:focus { outline: none; }
 
