@@ -29,6 +29,10 @@ describe("tap targets (UI-9)", () => {
   test("in the list, a note being edited, the agenda and the task list, every button is at least 40px, a task's box 32px", async () => {
     await openVault(PHONE);
     assert.deepEqual(await smallTargets(), [], "the list");
+    await ev(() => openEditor("cards/This week.md", { focus: false }));
+    await settle();
+    assert.deepEqual(await smallTargets(), [], "a note being read (fold chevrons beside task boxes)");
+    await ev(() => closeEditor());
     await ev(() => openEditor("cards/This week.md", { edit: true, focus: false }));
     await settle();
     assert.deepEqual(await smallTargets(), [], "a note being edited");

@@ -246,11 +246,21 @@ button.cap-cal-btn svg { width: var(--icon-s); height: var(--icon-s); }
 
 /* folding headings and tasks like Org's TAB */
 .markdown-rendered .org-hidden { display: none !important; }
-.markdown-rendered button.org-fold, .markdown-rendered button.org-fold:not(.clickable-icon) { width: 18px; height: 18px; margin: 0 var(--sp-2) 0 calc(var(--sp-2) * -1); padding: 0; border: 0; border-radius: var(--r-xs); background: transparent; color: var(--faint); vertical-align: -3px; cursor: pointer; }
+/* The fold chevron and what a task's lines start past. --fold-gap: 8px from the 18px fold to a 15px task box puts their centres 24px
+   apart, so neither small target crowds the other (WCAG 2.5.8). --box-lead: the box and its gap as base.css sizes them, in the em of a
+   button's font (--fs-ui), plus the space after it (.25em, resolved in the text's own font). --fold-lead: the fold and its gap. */
+.markdown-rendered { --fold-w: 18px; --fold-gap: var(--sp-8); --fold-lead: calc(var(--fold-w) + var(--fold-gap) - var(--sp-2)); --box-lead: calc(max(var(--sp-14), var(--fs-ui) * 1.125) + var(--fs-ui) * .625 + .25em); }
+.markdown-rendered button.org-fold, .markdown-rendered button.org-fold:not(.clickable-icon) { width: var(--fold-w); height: var(--fold-w); margin: 0 var(--fold-gap) 0 calc(var(--sp-2) * -1); padding: 0; border: 0; border-radius: var(--r-xs); background: transparent; color: var(--faint); vertical-align: -3px; cursor: pointer; }
 .markdown-rendered button.org-fold svg { width: var(--icon-s); height: var(--icon-s); transition: transform var(--dur-1) var(--ease); }
-/* a task's lines under its title (dates, a note) start under its text, past the fold button and the box (spec UI-5):
-   18px of button, then the box and its gap as base.css sizes them, in the em of a button's font (--fs-ui) */
-.markdown-rendered .org-entry .org-body { display: block; padding-left: calc(18px + max(var(--sp-14), var(--fs-ui) * 1.125) + var(--fs-ui) * .625 + .25em); } /* .25em: the space after the box */
+/* a task's lines start under its text: the dates and note under its title (spec UI-5), and the title's own next lines when it wraps.
+   The row hangs by --lead: padding to the text, its first line pulled back over the fold and the box. */
+.markdown-rendered li.task-list-item { --lead: var(--box-lead); padding-inline-start: var(--lead); text-indent: calc(-1 * var(--lead)); }
+.markdown-rendered li.task-list-item.org-foldable { --lead: calc(var(--fold-lead) + var(--box-lead)); }
+/* only the title line hangs: chips, the body and nested blocks start flush */
+.markdown-rendered li.task-list-item :not(li) { text-indent: 0; }
+.markdown-rendered li.task-list-item > :is(ul, ol) { margin-inline-start: calc(-1 * var(--lead)); } /* subtasks nest where they did */
+.markdown-rendered .org-entry .org-body { display: block; }
+.markdown-rendered .org-entry:not(.task-list-item) > :is(.org-body, p > .org-body) { padding-left: calc(var(--fold-lead) + var(--box-lead)); }
 .markdown-rendered .org-entry .org-body > br:first-child { display: none; }
 .markdown-rendered button.org-fold:hover { background: var(--panel); color: var(--fg); }
 .markdown-rendered .org-foldable.is-collapsed > button.org-fold svg, .markdown-rendered .org-foldable.is-collapsed > p > button.org-fold svg { transform: rotate(-90deg); }
@@ -261,7 +271,7 @@ button.cap-cal-btn svg { width: var(--icon-s); height: var(--icon-s); }
 .markdown-rendered :is(h1, h2, h3, h4, h5, h6):not(.org-entry) { position: relative; }
 .markdown-rendered :is(h1, h2, h3, h4, h5, h6):not(.org-entry) > button.org-fold { position: absolute; left: -22px; top: .35em; margin: 0; opacity: 0; transition: opacity var(--dur-1) var(--ease); }
 .markdown-rendered :is(h1, h2, h3, h4, h5, h6):not(.org-entry):hover > button.org-fold, .markdown-rendered :is(h1, h2, h3, h4, h5, h6):not(.org-entry).is-collapsed > button.org-fold, .markdown-rendered :is(h1, h2, h3, h4, h5, h6) > button.org-fold:focus-visible { opacity: 1; }
-@media (hover: none), (max-width: 820px) { .markdown-rendered :is(h1, h2, h3, h4, h5, h6):not(.org-entry) > button.org-fold { position: static; margin: 0 var(--sp-4) 0 calc(var(--sp-2) * -1); opacity: 1; } }
+@media (hover: none), (max-width: 820px) { .markdown-rendered :is(h1, h2, h3, h4, h5, h6):not(.org-entry) > button.org-fold { position: relative; left: auto; top: auto; margin: 0 var(--sp-4) 0 calc(var(--sp-2) * -1); opacity: 1; } }
 
 /* Files view: every attachment in the vault, list + preview */
 button.sn-btn.wb-files.is-active { border-color: var(--accent); }
