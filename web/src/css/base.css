@@ -110,6 +110,14 @@ button:not(.clickable-icon) {
 }
 button:not(.clickable-icon):hover { background: var(--bg); }
 button.is-primary:hover { background: var(--accent-hover); }
+html.is-theming body, html.is-theming body *, html.is-theming body *::before, html.is-theming body *::after { transition: none; }
+/* every control that changes colour under the pointer eases the change, in the one hover speed; :where() keeps the weight at zero,
+   so a rule with its own transition (a chevron's turn, a fade) still replaces this one */
+:where(button, a[href], select, input, textarea, .tree-item-self, .menu-item, .ag-row, .sn-prop, .sn-chip) {
+  transition: background-color var(--dur-1) var(--ease), color var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease), box-shadow var(--dur-1) var(--ease);
+}
+/* a press answers at once: only the hover eases */
+:where(button, a[href], .tree-item-self, .menu-item, .ag-row, .sn-prop, .sn-chip):active { transition: none; }
 /* fields: the base look at zero specificity (:where), so that a field's own class always outweighs it */
 :where(input[type="text"], input[type="search"], input[type="number"], input:not([type]), textarea, select) {
   background: var(--bg); border: 1px solid var(--line);
