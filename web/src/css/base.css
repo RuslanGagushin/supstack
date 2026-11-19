@@ -43,13 +43,13 @@ body {
   --font-code: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   /* the interface's six sizes (spec UI-20): 12, 13, 14, 16, 20, 24; --fs-sm is the smallest text */
   --fs-sm: 12px; --fs-ui: 13px; --fs-md: 14px;
-  --fs-text: 16px; --fs-note: 16px; --fs-lg: 20px; --fs-xl: 24px;
+  --fs-text: 16px; --fs-note: 14px; --fs-lg: 20px; --fs-xl: 24px;
 
   --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700;
   /* line heights: headings and titles, the interface, a note's text */
-  --lh-tight: 1.25; --lh-ui: 1.5; --lh-text: 1.7;
+  --lh-tight: 1.25; --lh-ui: 1.5; --lh-text: 1.65;
   /* tracking: headings at 24px and the list's title; the page's title (a note's, the agenda's), with its size and line */
-  --ls-head: -0.02em; --ls-title: -0.025em; --fs-title: 40px; --lh-title: 1.15;
+  --ls-head: -0.02em; --ls-title: -0.025em; --fs-title: 30px; --lh-title: 1.15;
   /* the spacing scale, named by its size in pixels: every padding, margin and gap uses it (besides 0, 1px hairlines
      and the few measured offsets listed in tests/architecture.test.mjs) */
   --sp-2: 2px; --sp-4: 4px; --sp-6: 6px; --sp-8: 8px; --sp-10: 10px; --sp-12: 12px; --sp-14: 14px; --sp-16: 16px;
@@ -69,7 +69,7 @@ body {
   /* control heights: small (chips, icons in a row), medium (fields, buttons in bars), large (sidebar buttons, menu rows), touch */
   --ctl-xs: 20px; --ctl-s: 24px; --ctl-m: 28px; --ctl-l: 32px; --ctl-field: 34px; --ctl-touch: 40px;
   /* a note's own headings, in whole pixels of its 16px text: 28, 24, 20, then the text's size (the title is 32, app.css) */
-  --h1-size: calc(var(--fs-note) * 1.75); --h2-size: calc(var(--fs-note) * 1.5); --h3-size: calc(var(--fs-note) * 1.25); --h4-size: var(--fs-note); --h5-size: var(--fs-note); --h6-size: var(--fs-note);
+  --h1-size: 24px; --h2-size: 22px; --h3-size: 17px; --h4-size: var(--fs-note); --h5-size: var(--fs-note); --h6-size: var(--fs-note);
 
   /* the few colours worked out from the palette: the primary button's hover, a border under the pointer, the dim behind a dialog */
   --accent-hover: color-mix(in srgb, var(--accent) 85%, var(--fg));
@@ -101,7 +101,7 @@ body {
   overflow: hidden;
 }
 /* the page's title is 32px on a phone (restyle RS-40) */
-@media (max-width: 820px) { body { --fs-title: 32px; } }
+@media (max-width: 820px) { body { --fs-title: 28px; } }
 ::selection { background: var(--sel); }
 ::-webkit-scrollbar { width: 12px; height: 12px; background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: var(--r-m); border: 3px solid transparent; background-clip: padding-box; }

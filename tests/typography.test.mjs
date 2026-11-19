@@ -7,7 +7,7 @@ import * as H from "./harness.mjs";
 const noErrors = () => assert.equal(H.errors.length, 0, H.errors.map((e) => e.stack || e).join("\n"));
 /**
  * The font sizes of the text on screen, with where each is used. The note's own title and headings are left out:
- * they follow the note's type (40px title, then 28, 24, 20), not the interface's six sizes; so is the agenda's title,
+ * they follow the note's type (30px title, then 24, 22, 17), not the interface's six sizes; so is the agenda's title,
  * set at the page's size like a note's (restyle RS-79).
  */
 const sizes = () => ev(() => {
@@ -20,7 +20,7 @@ const sizes = () => ev(() => {
     if (el.matches(".sn-inline-title, .ag-head.is-page .ag-title b") || el.closest(".markdown-rendered :is(h1, h2, h3, h4, h5, h6), .cm-sn-h")) continue;
     const fs = parseFloat(c.fontSize);
     if (!fs) continue;
-    if (fs === 32 && el.closest(".sn-list-title")) continue; // a phone's list title, at the page's size
+    if (fs === 28 && el.closest(".sn-list-title")) continue; // a phone's list title, at the page's size
     (out[fs] ||= []).push(el.tagName.toLowerCase() + "." + String(el.className).split(" ")[0] + (el.closest("kbd") ? " (kbd)" : ""));
   }
   return out;
@@ -48,12 +48,12 @@ describe("six sizes of type (UI-20, UI-21)", () => {
     });
   }
 
-  test("the note's own type: a 40px title, then 28, 24 and 20px headings", async () => {
+  test("the note's own type: a 30px title, then 24, 22 and 17px headings, 14px text", async () => {
     await openVault({ demo: false, openNotes: "read", notes: { "cards/N.md": "# One\n\n## Two\n\n### Three\n\n#### Four\n\nText\n" } });
     await ev(() => openEditor("cards/N.md", { focus: false, wide: false }));
     await settle();
     assert.deepEqual(await ev(() => [".sn-inline-title", "h1", "h2", "h3", "h4", "p"].map((s) => getComputedStyle(document.querySelector("#editor " + (s.startsWith(".") ? s : ".sn-reading " + s))).fontSize)),
-      ["40px", "28px", "24px", "20px", "16px", "16px"]);
+      ["30px", "24px", "22px", "17px", "14px", "14px"]);
   });
 });
 

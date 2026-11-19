@@ -53,14 +53,15 @@ Three colours are worked out from the palette: `--accent-hover` (a primary contr
 | `--fs-sm` | 12px | the smallest text: dates, counts, chips, keys |
 | `--fs-ui` | 13px | the interface's default |
 | `--fs-md` | 14px | list titles, menu items |
-| `--fs-note`, `--fs-text` | 16px | a note's text; the interface's larger text (the command palette's field, the phone's date strip) |
+| `--fs-note` | 14px | a note's text (as in Evernote: the note reads at the interface's size, its headings carry the structure) |
+| `--fs-text` | 16px | the interface's larger text (the command palette's field, the phone's date strip) |
 | `--fs-lg` | 20px | section titles |
 | `--fs-xl` | 24px | the list's title, the welcome title |
-| `--fs-title`, `--lh-title`, `--ls-title` | 40px (32px up to 820px wide), 1.15, −0.025em | a page's title: a note's, the agenda's days and month, a phone's list. Outside the six sizes, like a note's headings |
+| `--fs-title`, `--lh-title`, `--ls-title` | 30px (28px up to 820px wide), 1.15, −0.025em | a page's title: a note's, the agenda's days and month, a phone's list. Outside the six sizes, like a note's headings |
 | `--ls-head` | −0.02em | the list's title and a note's headings |
-| `--h1-size` … `--h6-size` | 28, 24, 20, then 16px | a note's own headings |
+| `--h1-size` … `--h6-size` | 24, 22, 17, then 14px | a note's own headings |
 | `--fw-regular`, `--fw-medium`, `--fw-semibold`, `--fw-bold` | 400, 500, 600, 700 | weights |
-| `--lh-tight`, `--lh-ui`, `--lh-text` | 1.25, 1.5, 1.7 | titles and headings; the interface; a note's text |
+| `--lh-tight`, `--lh-ui`, `--lh-text` | 1.25, 1.5, 1.65 | titles and headings; the interface; a note's text |
 
 Six sizes and no more (spec UI-20); `tests/typography.test.mjs` measures them on the page.
 
@@ -233,7 +234,7 @@ In a note's text: `> [!type]` draws a frame with the type's icon and title; the 
 | `padding`, `margin` and `gap` use the spacing scale; the few measured offsets are listed in the test with their reasons | `architecture` |
 | one layer: no `body.sn-app`, and `!important` only on the hide utilities and for reduced motion | `architecture` |
 | retired class names stay retired | `architecture` |
-| six font sizes, a page's title aside; a note's title 40px and headings 28, 24, 20px | `typography` |
+| six font sizes, a page's title aside; a note's title 30px, headings 24, 22, 17px and text 14px | `typography` |
 | every text against its background, both themes: 4.5:1, 3:1 for large text | `a11y` |
 | every Tab stop shows the focus | `a11y` |
 | a chip's tone is drawn, not only named | `ui-markdown` |
