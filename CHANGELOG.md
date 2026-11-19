@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.36.7
+
+- Notes read lighter: the text is 14px instead of 16px, the note's title 30px instead of 40px, and the headings scale with them, as in Evernote. Inline code matches the text around it.
+
 ## 0.36.6
 
 - Phone: a tapped button or row no longer stays highlighted, toasts wrap instead of cutting the message short, and the settings tabs wrap so About is no longer hidden off the edge. The agenda's Day/Week/Month switch fades at the edge when it scrolls.
