@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.36.8
+
+- A note that starts or ends with a table: click or tap under the last table, or between the title and the first one, to write a paragraph there. Enter in the title and ↑ from a table's header row also open a line above it, and text typed right against a table no longer becomes a table row.
+
 ## 0.36.7
 
 - Notes read lighter: the text is 14px instead of 16px, the note's title 30px instead of 40px, and the headings scale with them, as in Evernote. Inline code matches the text around it.
