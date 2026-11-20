@@ -9,7 +9,7 @@ import { syncHook } from "../services/sync.js";
 import { $$, h, ic, isMod } from "./dom.js";
 import { Menu } from "./ui.js";
 import { saveEditor, scheduleSave, setSaveState } from "./editor.js";
-import { liveActivate, liveTa, lpTableFill } from "./live-preview.js";
+import { liveActivate, liveOpenAt, liveTa, lpTableFill } from "./live-preview.js";
 import { edInsert, updateEdToolbar } from "./editor-toolbar.js";
 
 export function tableMenu(run, row) {
@@ -171,7 +171,8 @@ function liveCellLeave(down, o = {}) {
   liveCellClose({ save: false });
   if (!view) return;
   const doc = view.state.doc, near = (n, step) => { while (n >= 1 && n <= doc.lines && !doc.line(n).text.trim()) n += step; return n >= 1 && n <= doc.lines ? doc.line(n) : null; };
-  if (!down) { const l = near(doc.lineAt(c.from).number - 1, -1); if (l) liveActivate(l.to); return; }
+  // up from a table with no text above it: a new line over the table
+  if (!down) { const l = near(doc.lineAt(c.from).number - 1, -1); if (l) liveActivate(l.to); else liveOpenAt(Math.max(0, c.from - 1)); return; }
   const l = !o.newLine && near(doc.lineAt(c.to).number + 1, 1);
   if (l) { liveActivate(l.from); return; }
   ta.focus({ preventScroll: true }); // first: CodeMirror reads the browser's caret when it gets the focus

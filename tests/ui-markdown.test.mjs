@@ -199,6 +199,46 @@ describe("table editing", () => {
     noErrors();
   });
 
+  test("a note that is only a table: text goes above or below it, not into it", async () => {
+    const T = "| a | b |\n|---|---|\n| 1 | 2 |";
+    const open = async (body, o = {}) => { await openVault({ demo: false, notes: { "cards/T.md": body }, ...o }); await ev(() => openEditor("cards/T.md", { focus: false })); };
+    const box = () => ev(() => { const r = $("#editor .lp-table").getBoundingClientRect(); return { x: r.left + 50, top: r.top, bottom: r.bottom }; });
+    await open(T);
+    let b = await box();
+    await page().mouse.click(b.x, b.bottom + 60);
+    await page().keyboard.type("After");
+    assert.equal(await text(), T + "\n\nAfter", "a click under the note's last table starts a paragraph after it");
+    await open(T + "\n");
+    b = await box();
+    await page().mouse.click(b.x, b.bottom + 8);
+    await page().keyboard.type("After");
+    assert.equal(await text(), T + "\n\nAfter", "so does a click on the empty line right under it");
+    await open(T);
+    b = await box();
+    await page().mouse.click(b.x, b.top - 8);
+    await page().keyboard.type("Before");
+    assert.equal(await text(), "Before\n\n" + T, "a click between the title and the table starts a paragraph before it");
+    await open(T);
+    await page().click(".sn-inline-title");
+    await page().keyboard.press("Enter");
+    await page().keyboard.type("Before");
+    assert.equal(await text(), "Before\n\n" + T, "so does Enter in the title");
+    await open(T);
+    await page().click("#editor .sn-live thead th");
+    await page().keyboard.press("ArrowUp");
+    await page().keyboard.type("Before");
+    assert.equal(await text(), "Before\n\n" + T, "and the up arrow from the header row");
+    await open(T);
+    await ev(() => { const v = liveActivateEnd().cmView; v.dispatch({ changes: { from: v.state.doc.length, insert: "X" }, userEvent: "input.type" }); });
+    assert.equal(await text(), T + "\n\nX", "text typed at the table's end goes after a blank line");
+    await open(T, { touch: true, viewport: { width: 390, height: 760 } });
+    b = await box();
+    await page().touchscreen.tap(b.x, b.bottom + 60);
+    await page().keyboard.type("After");
+    assert.equal(await text(), T + "\n\nAfter", "a tap under the table on a phone");
+    noErrors();
+  });
+
   test("macOS smart dashes don't break a table separator or a rule", async () => {
     const typed = (v) => ev((v) => {
       const t = $(".sn-editor-text.is-live");

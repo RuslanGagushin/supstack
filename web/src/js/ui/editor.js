@@ -15,7 +15,7 @@ import { renderMarkdown, wireRendered } from "./markdown.js";
 import { renameCard } from "./actions.js";
 import { cardMenu, syncRowStates } from "./cards.js";
 import { cardSig, setTarget } from "./board.js";
-import { livePreviewExtensions, liveTa, liveText, refreshLiveEmbeds, renderLive, wireLive } from "./live-preview.js";
+import { liveOpenAt, livePageDown, livePreviewExtensions, liveTa, liveText, refreshLiveEmbeds, renderLive, wireLive } from "./live-preview.js";
 import { editorTable, editorTableOp, tableMenu } from "./table-editor.js";
 import { editorKeys, renderEditorProps, renderEdToolbar, toggleReading, updateEdToolbar } from "./editor-toolbar.js";
 import { downloadNote, updateFmtBar } from "./format-bar.js";
@@ -274,7 +274,7 @@ export function renderEditor() {
     const growT = () => { title.style.height = "auto"; title.style.height = title.scrollHeight + "px"; };
     title.addEventListener("input", growT);
     const commit = async () => { const v = title.value.replace(/\n/g, " ").trim(); if (v && v !== baseName(editor.path)) { const np = await renameCard(editor.path, v); title.value = baseName(np); renderEditor(); } else title.value = baseName(editor.path); };
-    title.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); title.blur(); $(".sn-editor-text")?.focus(); } if (e.key === "Escape") { e.stopPropagation(); title.value = baseName(editor.path); title.blur(); } });
+    title.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); title.blur(); const lv = liveTa(); if (lv) liveOpenAt(lv.selectionStart); else $(".sn-editor-text")?.focus(); } if (e.key === "Escape") { e.stopPropagation(); title.value = baseName(editor.path); title.blur(); } });
     title.addEventListener("blur", commit);
     page.append(title);
     requestAnimationFrame(growT);
@@ -297,6 +297,7 @@ export function renderEditor() {
     if (!editor.live || editor.live.path !== path || (!editor.dirty && editor.live.body !== n.body)) editor.live = { path, body: n.body };
     const box = h("div", { cls: "sn-live sn-reading markdown-rendered" });
     wireLive(box, path);
+    page.addEventListener("mousedown", livePageDown);
     page.append(box);
     renderLive();
   }

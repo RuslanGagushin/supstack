@@ -43,6 +43,60 @@ export function liveActivate(off) {
   return ta;
 }
 export function liveActivateEnd() { return liveActivate(liveText().length); }
+/** A line typed at `pos` would be part of a table when it is the table's first or last line, or an empty line right against it:
+ *  a table only ends at a blank line, and a line right above one is not a table any more. What has to go around the text there
+ *  ({ before, after }), else null. */
+function lpTableEdge(doc, pos) {
+  const l = doc.lineAt(pos);
+  if (![l.number - 1, l.number, l.number + 1].some((n) => n >= 1 && n <= doc.lines && doc.line(n).text.includes("|"))) return null;
+  for (const tb of findTables(doc.toString())) {
+    if (pos === tb.to) return { before: "\n\n", after: "" };
+    if (pos === tb.from) return { before: "", after: "\n\n" };
+    if (l.text.trim()) continue;
+    if (l.from === tb.to + 1) return { before: "\n", after: "" };
+    if (l.to === tb.from - 1) return { before: "", after: "\n" };
+  }
+  return null;
+}
+/** The caret at `pos`; where text would go into a table (lpTableEdge), on a new line of its own there, above or below the table. */
+export function liveOpenAt(pos) {
+  const ta = liveTa(), view = ta?.cmView;
+  if (!view) return null;
+  const edge = lpTableEdge(view.state.doc, Math.max(0, Math.min(pos, view.state.doc.length)));
+  if (!edge) return liveActivate(pos);
+  ta.focus({ preventScroll: true }); // first: CodeMirror reads the browser's caret when it gets the focus
+  view.dispatch({ changes: { from: pos, insert: edge.before + edge.after }, selection: { anchor: pos + edge.before.length }, scrollIntoView: true, userEvent: "input.table" });
+  updateEdToolbar();
+  return ta;
+}
+/** A click in the note's empty space around the body: above it (under the title) puts the caret at the start, below it at the end,
+ *  on a line of its own when a table begins or ends the note (liveOpenAt). Before, a note that was only a table had nowhere to click. */
+export function livePageDown(e) {
+  const box = $("#editor .sn-live"), view = liveTa()?.cmView;
+  if (e.button !== 0 || isMod(e) || e.shiftKey || !box || !view) return;
+  if (!(e.target === e.currentTarget || e.target === box || e.target.matches(".cm-editor, .cm-scroller"))) return;
+  const r = view.contentDOM.getBoundingClientRect();
+  if (e.clientY >= r.top && e.clientY <= r.bottom) return; // beside the lines: CodeMirror's
+  if (e.clientY < r.top) {
+    // only from the gap between the title (or the properties) and the body, not from beside them
+    let prev = box.previousElementSibling;
+    while (prev && !prev.getBoundingClientRect().height) prev = prev.previousElementSibling;
+    if (prev && e.clientY < prev.getBoundingClientRect().bottom) return;
+  }
+  e.preventDefault();
+  liveOpenAt(e.clientY < r.top ? 0 : view.state.doc.length);
+}
+/** Text typed or pasted against a table goes on a line of its own (lpTableEdge) rather than into the table. Not while an IME composes:
+ *  CodeMirror keeps the composed text where the browser put it (a tap first puts the caret on its own line, livePageDown). */
+const lpTableGuard = CM.EditorState.transactionFilter.of((tr) => {
+  if (!tr.docChanged || tr.isUserEvent("input.type.compose") || !(tr.isUserEvent("input.type") || tr.isUserEvent("input.paste"))) return tr;
+  const ch = [];
+  tr.changes.iterChanges((fromA, toA, _fromB, _toB, ins) => ch.push({ fromA, toA, text: ins.toString() }));
+  if (ch.length !== 1 || ch[0].fromA !== ch[0].toA || ch[0].text.startsWith("\n")) return tr;
+  const { fromA: pos, text } = ch[0], edge = lpTableEdge(tr.startState.doc, pos);
+  if (!edge) return tr;
+  return { changes: { from: pos, insert: edge.before + text + edge.after }, selection: { anchor: pos + edge.before.length + text.length }, scrollIntoView: true, userEvent: tr.annotation(CM.Transaction.userEvent) };
+});
 function liveTaskCount(text) {
   return (text.replace(CODE_RE, (m) => m.replace(/\[/g, "\u0001")).match(new RegExp(TASK_LINE_RE.source, "gm")) || []).length;
 }
@@ -409,12 +463,17 @@ export function livePreviewExtensions() {
     CM.EditorView.focusChangeEffect.of((state, focusing) => lpFocus.of(focusing)),
     lpInlinePlugin,
     lpBlockField,
+    lpTableGuard,
     CM.EditorView.domEventHandlers({
-      mousedown: (e) => {
-        const el = e.button === 0 && e.target.closest(".cm-sn-link, .cm-sn-tag");
-        if (!el) return false;
+      mousedown: (e, view) => {
+        if (e.button !== 0) return false;
+        const el = e.target.closest(".cm-sn-link, .cm-sn-tag");
+        if (el) { e.preventDefault(); lpOpenLink(el, e); return true; }
+        // a click on the empty line under (or over) a table: a line of its own, so what is typed next isn't a row of the table
+        const pos = !isMod(e) && !e.shiftKey && e.detail === 1 ? view.posAtCoords({ x: e.clientX, y: e.clientY }) : null;
+        if (pos == null || view.state.doc.lineAt(pos).text.trim() || !lpTableEdge(view.state.doc, pos)) return false;
         e.preventDefault();
-        lpOpenLink(el, e);
+        liveOpenAt(pos);
         return true;
       },
       keydown: (e, view) => lpTableArrow(e, view),
