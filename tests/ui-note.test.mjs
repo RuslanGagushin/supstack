@@ -155,7 +155,7 @@ describe("editor", () => {
     assert.equal(await value(), "**plain**", "undo takes back the typing");
     await page().keyboard.press("ControlOrMeta+z");
     assert.equal(await value(), "plain", "then the bold");
-    await page().keyboard.press("ControlOrMeta+Shift+z");
+    await page().keyboard.press(process.platform === "win32" ? "Control+y" : "ControlOrMeta+Shift+z");
     assert.equal(await value(), "**plain**");
     noErrors();
   });
