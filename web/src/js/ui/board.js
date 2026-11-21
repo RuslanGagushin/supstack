@@ -145,20 +145,20 @@ export function renderBoard(resetScroll = false) {
   if (focusComposer) { composer.input.value = focusComposer.value; composer.input.focus(); composer.grow(); }
   else if (focusSearch) { const si = $(".sn-search-input", root); si?.focus(); si?.setSelectionRange(focusSearch.pos, focusSearch.pos); }
   else if (focusCard) $(`.sn-card[data-path="${CSS.escape(focusCard)}"]`, root)?.focus({ preventScroll: true });
-  if (resetScroll) openFirstNote(model);
+  if (resetScroll) openDefaultNote(model);
   refreshNotebookPath();
 }
 /** The board as a list of notes with the open note beside it (not the agenda or the files, which have their own lists). */
 export const isNotesLayout = () => !board.view;
-/** In the list of notes, a move to another list opens its first note (not a notebook) beside it, as a mail app does,
-   unless the note already open is in the new list; with no notes, the card's own text if it has any.
-   On a phone the note would cover the list, so nothing opens there. */
-function openFirstNote(model) {
+/** When moving to another list, show the notebook's own text beside its children if it has any.
+    Otherwise keep the open note if it is in the new list, or open the first non-notebook note.
+    On a phone the note would cover the list, so nothing opens there. */
+function openDefaultNote(model) {
   if (innerWidth <= 820) return;
   const inList = (p) => p === board.target || model.shown.some((c) => c.path === p);
   const keep = editor.path && inList(editor.path) ? editor.path : null;
   const own = board.target && !board.tagView && hasText(board.target) ? board.target : null;
-  const path = keep || model.shown.find((c) => !c.folder)?.path || own;
+  const path = own || keep || model.shown.find((c) => !c.folder)?.path;
   if (!path) { if (editor.path && editor.wide) closeEditor(); return; }
   if (path === editor.path && !editor.wide) return;
   openEditor(path, { focus: false, wide: false });

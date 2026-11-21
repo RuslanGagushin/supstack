@@ -187,10 +187,11 @@ export function renderRow(path, via, folder = false) {
   wireRow(row, path, via);
   return row;
 }
-/** Go into a note of the list of notes: list its children, with the note itself on top and its first child open beside them. */
+/** Go into a notebook and keep keyboard focus in its list of children. */
 export function enterRow(path) {
   setTarget(path);
-  $(`.sn-board .sn-row[data-path="${CSS.escape(editor.path || path)}"]`)?.focus({ preventScroll: true });
+  const row = editor.path === path ? $(".sn-board .sn-row") : $(`.sn-board .sn-row[data-path="${CSS.escape(editor.path || path)}"]`);
+  row?.focus({ preventScroll: true });
 }
 /** Come back out to the parent's list, on the row of the card just left, which opens beside it. */
 export function leaveRow() {

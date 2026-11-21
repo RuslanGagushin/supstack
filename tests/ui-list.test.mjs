@@ -45,7 +45,7 @@ describe("board", () => {
     assert.deepEqual(await titles(), ["Aqueducts", "Colosseum"], "Aqueducts holds Pont du Gard, so it comes first as a notebook");
     assert.equal(await page().textContent(".sn-list-title"), "Roman Empire");
     assert.equal(await ev(() => document.querySelectorAll("#board .sn-topbar .sn-crumb").length), 0, "no breadcrumbs above the list");
-    assert.deepEqual(await ev(() => [[...document.querySelectorAll("#editor .sn-editor-path a.sn-editor-crumb")].map((a) => a.textContent).join("/"), document.querySelector("#editor .sn-editor-self").textContent]), ["History/Roman Empire", "Colosseum"], "the note beside it names its notebooks, then itself");
+    assert.deepEqual(await ev(() => [[...document.querySelectorAll("#editor .sn-editor-path a.sn-editor-crumb")].map((a) => a.textContent).join("/"), document.querySelector("#editor .sn-editor-self").textContent]), ["History", "Roman Empire"], "the notebook beside the list names its parent, then itself");
     await page().keyboard.press("Alt+ArrowUp");
     assert.equal(await ev(() => board.target), "cards/History.md");
     await page().keyboard.press("Alt+ArrowLeft");
@@ -146,16 +146,17 @@ describe("list of notes", () => {
   beforeEach(() => openVault({ notes: { "cards/Pics.md": "---\nparents: [\"[[History]]\"]\n---\nSome **photo** here\n\n![[pic.png]]\n" } }));
   const rows = () => ev(() => [...document.querySelectorAll("#board .sn-rows .sn-row")].map((r) => r.dataset.path.replace(/^cards\/|\.md$/g, "")));
 
-  test("the list shows the notebook's own text under its title and its children below, and opens the first child beside it", async () => {
+  test("the list shows the notebook's children and opens the notebook's own text beside them", async () => {
+    await ev(() => openEditor("cards/Pics.md", { focus: false, wide: false }));
     await ev(() => setTarget("cards/History.md"));
     assert.deepEqual(await rows(), ["Roman Empire", "Pics"], "its notebooks, then its notes; its own text is not a row");
     const r = await ev(() => ({
       path: editor.path, wide: editor.wide, app: document.getElementById("app").className,
       list: document.querySelector(".sn-main").getBoundingClientRect().width, note: document.querySelector(".sn-editor").getBoundingClientRect().width,
       own: document.querySelector(".sn-list-head + .sn-list-desc")?.textContent, snippet: document.querySelector('.sn-row[data-path="cards/Pics.md"] .sn-row-snippet').textContent,
-      editing: document.querySelector(".sn-row.is-editing")?.dataset.path, count: document.querySelector(".sn-list-count").textContent,
+       editing: document.querySelector(".sn-list-desc.is-editing")?.dataset.path, count: document.querySelector(".sn-list-count").textContent,
     }));
-    assert.equal(r.path, "cards/Pics.md");
+    assert.equal(r.path, "cards/History.md");
     assert.equal(r.wide, false);
     assert.match(r.app, /notes-layout/);
     assert.equal(Math.round(r.list), 360);
@@ -163,7 +164,7 @@ describe("list of notes", () => {
     assert.match(r.own, /^Everything about the past/);
     assert.equal(r.count, "1 notebook · 1 note");
     assert.equal(r.snippet, "Some photo here");
-    assert.equal(r.editing, "cards/Pics.md");
+    assert.equal(r.editing, "cards/History.md");
     noErrors();
   });
 
@@ -311,7 +312,7 @@ describe("list of notes", () => {
     await page().click('.sn-row[data-path="cards/Roman Empire.md"]');
     assert.equal(await ev(() => board.target), "cards/Roman Empire.md");
     await page().keyboard.press("ArrowLeft");
-    assert.deepEqual(await ev(() => [board.target, editor.path, document.activeElement.dataset.path]), ["cards/History.md", "cards/Pics.md", "cards/Roman Empire.md"], "back on the notebook; the first note stays open beside");
+    assert.deepEqual(await ev(() => [board.target, editor.path, document.activeElement.dataset.path]), ["cards/History.md", "cards/History.md", "cards/Roman Empire.md"], "back on the notebook, with the parent notebook's text open beside the list");
     await page().keyboard.press("ArrowRight");
     assert.equal(await ev(() => board.target), "cards/Roman Empire.md");
     assert.ok(await ev(() => document.activeElement.classList.contains("sn-row")), "a row of the new list has the focus, so the arrows go on");
