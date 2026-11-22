@@ -98,3 +98,116 @@ export function tableEdit(text, tb, op, row, col) {
   const f = formatTable(t), [s, e] = f.cell(...res);
   return { from: tb.from, to: tb.to, insert: f.text, sel: [tb.from + s, tb.from + e] };
 }
+
+/* ---------- Ranges of cells: a selection in a rendered table is a rectangle { r0, c0, r1, c1 } (inclusive, r0 <= r1, c0 <= c1).
+   Its ops work as the single-cell ones above, over every row or column of the rectangle, and return the rectangle to select after
+   (for an insert: the new row's or column's cell to edit), or "delete" for no table left. */
+/** The rectangle between two cells, inside the table. */
+export function tableRect(t, a, b) {
+  const lr = t.rows.length - 1, lc = t.align.length - 1, cl = (v, n) => Math.max(0, Math.min(v, n));
+  return { r0: cl(Math.min(a[0], b[0]), lr), r1: cl(Math.max(a[0], b[0]), lr), c0: cl(Math.min(a[1], b[1]), lc), c1: cl(Math.max(a[1], b[1]), lc) };
+}
+/** Rows r0..r1 moved to go before row `to` (an index in the table as it was); the header stays first. */
+function moveRows(t, s, to) {
+  const n = s.r1 - s.r0 + 1;
+  if (s.r0 < 1 || to < 1 || (to >= s.r0 && to <= s.r1 + 1)) return s;
+  const block = t.rows.splice(s.r0, n), at = to > s.r1 ? to - n : to;
+  t.rows.splice(at, 0, ...block);
+  return { ...s, r0: at, r1: at + n - 1 };
+}
+/** Columns c0..c1 moved to go before column `to` (an index in the table as it was), with their alignment. */
+function moveCols(t, s, to) {
+  const n = s.c1 - s.c0 + 1;
+  if (to < 0 || (to >= s.c0 && to <= s.c1 + 1)) return s;
+  const at = to > s.c1 ? to - n : to;
+  for (const x of [...t.rows, t.align]) x.splice(at, 0, ...x.splice(s.c0, n));
+  return { ...s, c0: at, c1: at + n - 1 };
+}
+export const TABLE_RANGE_OPS = {
+  rowAbove: (t, s) => { const at = Math.max(1, s.r0); t.rows.splice(at, 0, t.align.map(() => "")); return { r0: at, r1: at, c0: s.c0, c1: s.c0 }; },
+  rowBelow: (t, s) => { const at = s.r1 + 1; t.rows.splice(at, 0, t.align.map(() => "")); return { r0: at, r1: at, c0: s.c0, c1: s.c0 }; },
+  colLeft: (t, s) => { t.rows.forEach((x) => x.splice(s.c0, 0, "")); t.align.splice(s.c0, 0, ""); return { r0: s.r0, r1: s.r0, c0: s.c0, c1: s.c0 }; },
+  colRight: (t, s) => { const at = s.c1 + 1; t.rows.forEach((x) => x.splice(at, 0, "")); t.align.splice(at, 0, ""); return { r0: s.r0, r1: s.r0, c0: at, c1: at }; },
+  rowUp: (t, s) => moveRows(t, s, s.r0 - 1),
+  rowDown: (t, s) => (s.r1 < t.rows.length - 1 ? moveRows(t, s, s.r1 + 2) : s),
+  colMoveLeft: (t, s) => moveCols(t, s, s.c0 - 1),
+  colMoveRight: (t, s) => (s.c1 < t.align.length - 1 ? moveCols(t, s, s.c1 + 2) : s),
+  moveRows,
+  moveCols,
+  // the header row stays: deleting rows takes the body rows of the rectangle
+  rowDelete: (t, s) => {
+    const a = Math.max(1, s.r0);
+    if (a > s.r1) return s;
+    t.rows.splice(a, s.r1 - a + 1);
+    const r = Math.min(a, t.rows.length - 1);
+    return { ...s, r0: r, r1: r };
+  },
+  colDelete: (t, s) => {
+    if (s.c0 === 0 && s.c1 >= t.align.length - 1) return "delete";
+    t.rows.forEach((x) => x.splice(s.c0, s.c1 - s.c0 + 1)); t.align.splice(s.c0, s.c1 - s.c0 + 1);
+    const c = Math.min(s.c0, t.align.length - 1);
+    return { ...s, c0: c, c1: c };
+  },
+  alignLeft: (t, s) => { t.align.fill("left", s.c0, s.c1 + 1); return s; },
+  alignCenter: (t, s) => { t.align.fill("center", s.c0, s.c1 + 1); return s; },
+  alignRight: (t, s) => { t.align.fill("right", s.c0, s.c1 + 1); return s; },
+  sortAsc: (t, s) => { TABLE_OPS.sortAsc(t, 0, s.c0); return s; },
+  sortDesc: (t, s) => { TABLE_OPS.sortDesc(t, 0, s.c0); return s; },
+  clear: (t, s) => { for (let r = s.r0; r <= s.r1; r++) t.rows[r].fill("", s.c0, s.c1 + 1); return s; },
+  /** `grid` (rows of cell text, as in the note) from the rectangle's top left cell, the table growing to hold it;
+     a single value fills the whole rectangle, as in a spreadsheet. */
+  paste: (t, s, grid) => {
+    if (!grid?.length) return s;
+    if (grid.length === 1 && grid[0].length === 1) { for (let r = s.r0; r <= s.r1; r++) t.rows[r].fill(grid[0][0], s.c0, s.c1 + 1); return s; }
+    const w = Math.max(...grid.map((g) => g.length)), cols = s.c0 + w;
+    while (t.align.length < cols) { t.align.push(""); t.rows.forEach((x) => x.push("")); }
+    while (t.rows.length < s.r0 + grid.length) t.rows.push(t.align.map(() => ""));
+    grid.forEach((g, i) => g.forEach((v, j) => { t.rows[s.r0 + i][s.c0 + j] = v; }));
+    return { r0: s.r0, r1: s.r0 + grid.length - 1, c0: s.c0, c1: cols - 1 };
+  },
+  format: (t, s) => s,
+};
+/** TABLE_RANGE_OPS[op] on table `tb` of `text`, over rectangle `s`: replace [from, to) with `insert`; `rect` is what to select after. */
+export function tableRangeEdit(text, tb, op, s, arg) {
+  const t = parseTable(tb.lines), res = TABLE_RANGE_OPS[op](t, tableRect(t, [s.r0, s.c0], [s.r1, s.c1]), arg);
+  if (res === "delete") return { from: tb.from, to: text[tb.to] === "\n" ? tb.to + 1 : tb.to, insert: "", rect: null };
+  return { from: tb.from, to: tb.to, insert: formatTable(t).text, rect: res };
+}
+/** A cell's text as it reads (escaped pipes and <br> undone), and back as it goes into the note. */
+export const cellPlain = (raw) => raw.replace(/<br\s*\/?>/gi, "\n").replace(/\\\|/g, "|");
+export const cellRaw = (text) => text.replace(/\r?\n/g, "<br>").replace(/\\?\|/g, (m) => (m.length > 1 ? m : "\\|"));
+/** The cells of a rectangle, as they are in the note. */
+export const tableGrid = (t, s) => t.rows.slice(s.r0, s.r1 + 1).map((r) => r.slice(s.c0, s.c1 + 1));
+/** Cells as a Markdown table of their own (the first row its header), or the text of a single cell. */
+export function gridMarkdown(grid) {
+  if (grid.length === 1 && grid[0].length === 1) return cellPlain(grid[0][0]);
+  return formatTable({ rows: grid.map((r) => [...r]), align: grid[0].map(() => "") }).text;
+}
+/** Tab-separated values, as a spreadsheet copies them: a value in quotes may hold tabs, line breaks and doubled quotes. */
+function parseTsv(text) {
+  const rows = [[]];
+  let cell = "", i = 0;
+  const s = text.replace(/\r\n?/g, "\n").replace(/\n$/, "");
+  while (i <= s.length) {
+    if (cell === "" && s[i] === '"') {
+      let j = i + 1, v = "";
+      for (; j < s.length; j++) { if (s[j] === '"') { if (s[j + 1] === '"') { v += '"'; j++; } else break; } else v += s[j]; }
+      if (j < s.length && (j + 1 >= s.length || s[j + 1] === "\t" || s[j + 1] === "\n")) { cell = v; i = j + 1; continue; }
+    }
+    const ch = s[i];
+    if (ch === "\t" || ch === "\n" || i === s.length) { rows.at(-1).push(cell); cell = ""; if (ch === "\n") rows.push([]); i++; continue; }
+    cell += ch; i++;
+  }
+  return rows;
+}
+/** Pasted text as cells (in the note's form), or null when it is plain text for one cell: a Markdown table (its header a row too)
+   or tab-separated values from a spreadsheet. */
+export function clipboardGrid(text) {
+  const s = text.replace(/\r\n?/g, "\n").trim();
+  const tb = findTables(s);
+  if (tb.length === 1 && tb[0].from === 0 && tb[0].to === s.length) return parseTable(tb[0].lines).rows;
+  if (!text.includes("\t")) return null;
+  const rows = parseTsv(text).map((r) => r.map((v) => cellRaw(v.trim())));
+  const w = Math.max(...rows.map((r) => r.length));
+  return rows.map((r) => Array.from({ length: w }, (_, i) => r[i] ?? ""));
+}

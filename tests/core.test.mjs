@@ -212,6 +212,24 @@ describe("tables", () => {
     const r = tables.tableEdit(text, tb, "rowBelow", 1, 0);
     assert.equal(r.insert.split("\n").length, 4);
   });
+
+  test("range ops move, delete and paste blocks of rows and columns", () => {
+    const text = "| a | b | c |\n|---|---|---|\n| 1 | 2 | 3 |\n| 4 | 5 | 6 |\n| 7 | 8 | 9 |", tb = tables.findTables(text)[0];
+    const run = (op, s, arg) => { const o = tables.tableRangeEdit(text, tb, op, s, arg); return [o.insert && tables.parseTable(o.insert.split("\n")).rows.map((r) => r.join("")), o.rect]; };
+    assert.deepEqual(run("moveRows", { r0: 1, r1: 2, c0: 0, c1: 2 }, 4), [["abc", "789", "123", "456"], { r0: 2, r1: 3, c0: 0, c1: 2 }]);
+    assert.deepEqual(run("moveCols", { r0: 0, r1: 3, c0: 2, c1: 2 }, 0)[0], ["cab", "312", "645", "978"]);
+    assert.deepEqual(run("rowDelete", { r0: 0, r1: 2, c0: 0, c1: 2 })[0], ["abc", "789"], "the header stays");
+    assert.deepEqual(run("colDelete", { r0: 0, r1: 3, c0: 0, c1: 2 }), ["", null], "every column takes the table");
+    assert.deepEqual(run("paste", { r0: 3, r1: 3, c0: 2, c1: 2 }, [["x", "y"], ["z", "w"]]), [["abc", "123", "456", "78xy", "zw"], { r0: 3, r1: 4, c0: 2, c1: 3 }], "the table grows");
+    assert.deepEqual(run("paste", { r0: 1, r1: 2, c0: 0, c1: 0 }, [["0"]])[0], ["abc", "023", "056", "789"], "one value fills the selection");
+  });
+
+  test("clipboard text as cells: a spreadsheet's tabs (quoted values too) or a Markdown table", () => {
+    assert.deepEqual(tables.clipboardGrid('a\t"b\nc"\td\n1\t2|x\n'), [["a", "b<br>c", "d"], ["1", "2\\|x", ""]]);
+    assert.deepEqual(tables.clipboardGrid("| q | w |\n|--|--|\n| 1 | 2 |"), [["q", "w"], ["1", "2"]]);
+    assert.equal(tables.clipboardGrid("plain text"), null);
+    assert.equal(tables.gridMarkdown([["a\\|b<br>c"]]), "a|b\nc", "one cell copies as its text");
+  });
 });
 
 describe("plain text previews", () => {

@@ -10,6 +10,7 @@ import { createCard } from "./actions.js";
 import { openTagView, setTarget } from "./board.js";
 import { edDom, editorTextarea, openEditor } from "./editor.js";
 import { liveCellOpen, liveTableAt, liveTableButtons, liveTableOp, tableMenu } from "./table-editor.js";
+import { tableCellDown, tableCellDrag, tableHover, tableHoverEnd, tableSelMenuAt } from "./table-select.js";
 import { updateEdToolbar } from "./editor-toolbar.js";
 import { ORG_DECOR_RE, planChip } from "./org-editing.js";
 import { openAttachment } from "./files.js";
@@ -247,14 +248,17 @@ class LpTable extends CM.WidgetType {
     // a cell is edited on mousedown, so an open cell editor never loses the focus to the next cell
     el.addEventListener("mousedown", (e) => {
       const cell = e.button === 0 && !e.target.closest("a, input, button, .sn-cell-edit") && e.target.closest("td, th"), at = cell && liveTableAt(cell);
-      if (!at) return;
+      if (!at || tableCellDown(e, cell, at)) return;
       e.preventDefault();
       const src = at.tb.lines[at.row ? at.row + 1 : 0], sp = tableSpans(src)[at.col] || [0, 0];
       liveCellOpen(at.tb.from, at.row, at.col, { caret: liveClickOffset(cell, e, src.slice(...sp)) });
+      tableCellDrag(e, at); // a drag on to other cells selects them
     });
+    el.addEventListener("pointermove", (e) => { if (e.pointerType !== "touch") tableHover(e, el.querySelector(".sn-table-host")); });
+    el.addEventListener("pointerleave", () => tableHoverEnd(el.querySelector(".sn-table-host")));
     el.addEventListener("contextmenu", (e) => {
       const cell = e.target.closest("td, th"), at = cell && liveTableAt(cell);
-      if (at) tableMenu((op) => liveTableOp({ from: at.tb.from, row: at.row, col: at.col }, op, { edit: /^(row|col)(Above|Below|Left|Right)$/.test(op) }), at.row).showAtEvent(e);
+      if (at && !tableSelMenuAt(e, at)) tableMenu((op) => liveTableOp({ from: at.tb.from, row: at.row, col: at.col }, op, { edit: /^(row|col)(Above|Below|Left|Right)$/.test(op) }), at.row).showAtEvent(e);
     });
     return el;
   }

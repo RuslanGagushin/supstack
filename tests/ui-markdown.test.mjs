@@ -302,6 +302,153 @@ describe("table editing", () => {
   });
 });
 
+describe("selecting in a table", () => {
+  const body = "Intro\n\n| a | b | c |\n|---|---|---|\n| 1 | 2 | 3 |\n| 4 | 5 | 6 |\n| 7 | 8 | 9 |";
+  beforeEach(async () => { await openVault({ demo: false, notes: { "cards/T.md": body } }); await ev(() => openEditor("cards/T.md", { focus: true })); });
+  const text = () => ev(() => liveText());
+  const rows = () => ev(() => $$("#editor .sn-live tbody tr").map((tr) => [...tr.cells].map((c) => c.textContent).join("")));
+  const sel = () => ev(() => { const s = liveTableSel(); return s && { a: s.a, b: s.b, kind: s.kind }; });
+  const center = (r, c) => ev(([r, c]) => { const b = $("#editor .lp-table table").rows[r].cells[c].getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2, top: b.top, left: b.left }; }, [r, c]);
+  /** Hover cell (r, c) and press on its row's or column's handle. */
+  const handle = async (k, r, c) => {
+    const p = await center(r, c);
+    await page().mouse.move(p.x, p.y);
+    return ev((k) => { const b = $(`#editor .sn-table-${k}-handle.is-shown`).getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; }, k);
+  };
+  const clip = (type, data = {}) => ev(([type, data]) => {
+    const dt = new DataTransfer();
+    for (const [k, v] of Object.entries(data)) dt.setData(k, v);
+    document.activeElement.dispatchEvent(new ClipboardEvent(type, { clipboardData: dt, bubbles: true, cancelable: true }));
+    return { text: dt.getData("text/plain"), html: dt.getData("text/html") };
+  }, [type, data]);
+
+  test("a row's handle selects it, Shift extends, the bar and Delete act on the rows; Escape leaves", async () => {
+    let h = await handle("row", 1, 1);
+    await page().mouse.click(h.x, h.y);
+    assert.deepEqual(await sel(), { a: [1, 0], b: [1, 2], kind: "rows" });
+    assert.equal(await ev(() => $$("#editor .is-cell-selected").length), 3);
+    assert.ok(await ev(() => !!$(".sn-table-bar [data-act='trash-2']")), "the bar has the row actions");
+    h = await handle("row", 2, 1);
+    await page().keyboard.down("Shift"); await page().mouse.click(h.x, h.y); await page().keyboard.up("Shift");
+    assert.deepEqual(await sel(), { a: [1, 0], b: [2, 2], kind: "rows" });
+    await page().keyboard.press("Delete");
+    assert.deepEqual(await rows(), ["789"]);
+    assert.equal(await ev(() => !!$(".sn-cell-edit")), true, "a cell of what is left is edited");
+    await page().keyboard.press("Control+z");
+    h = await handle("row", 1, 0);
+    await page().mouse.click(h.x, h.y);
+    await page().keyboard.press("Escape");
+    assert.equal(await sel(), null);
+    assert.equal(await ev(() => !!$(".sn-table-bar")), false);
+    noErrors();
+  });
+
+  test("dragging a row's or a column's handle moves it", async () => {
+    let h = await handle("row", 3, 0);
+    const top = await center(1, 0);
+    await page().mouse.move(h.x, h.y); await page().mouse.down();
+    await page().mouse.move(h.x, top.top + 4, { steps: 6 });
+    assert.ok(await ev(() => $("#editor .sn-table-drop").classList.contains("is-shown")), "a line shows where it goes");
+    await page().mouse.up();
+    assert.deepEqual(await rows(), ["789", "123", "456"]);
+    assert.deepEqual(await sel(), { a: [1, 0], b: [1, 2], kind: "rows" }, "the moved row stays selected");
+    h = await handle("col", 1, 0);
+    const right = await ev(() => $("#editor .lp-table table").getBoundingClientRect().right);
+    await page().mouse.move(h.x, h.y); await page().mouse.down();
+    await page().mouse.move(right - 4, h.y, { steps: 6 }); await page().mouse.up();
+    assert.equal(await text(), "Intro\n\n| b   | c   | a   |\n| --- | --- | --- |\n| 8   | 9   | 7   |\n| 2   | 3   | 1   |\n| 5   | 6   | 4   |");
+    noErrors();
+  });
+
+  test("a column's bar aligns and sorts; Alt+arrows move the selection", async () => {
+    const h = await handle("col", 2, 1);
+    await page().mouse.click(h.x, h.y);
+    assert.deepEqual(await sel(), { a: [0, 1], b: [3, 1], kind: "cols" });
+    await page().click(".sn-table-bar [data-act='align-center']");
+    await page().click(".sn-table-bar [data-act='arrow-up-z-a']");
+    await page().keyboard.press("Alt+ArrowLeft");
+    assert.equal(await text(), "Intro\n\n| b   | a   | c   |\n| :-: | --- | --- |\n| 8   | 7   | 9   |\n| 5   | 4   | 6   |\n| 2   | 1   | 3   |");
+    assert.deepEqual(await sel(), { a: [0, 0], b: [3, 0], kind: "cols" });
+    assert.ok(await ev(() => $(".sn-table-bar [data-act='align-center']").classList.contains("is-active")));
+    noErrors();
+  });
+
+  test("a drag across cells selects them; they copy as a table, cut, and take a paste from a spreadsheet", async () => {
+    const a = await center(1, 0), z = await center(2, 1);
+    await page().mouse.move(a.x, a.y); await page().mouse.down();
+    await page().mouse.move(z.x, z.y, { steps: 5 }); await page().mouse.up();
+    assert.deepEqual(await sel(), { a: [1, 0], b: [2, 1], kind: "cells" });
+    assert.equal(await ev(() => !!$(".sn-cell-edit")), false, "no cell is edited");
+    const c = await clip("copy");
+    assert.equal(c.text, "| 1   | 2   |\n| --- | --- |\n| 4   | 5   |");
+    assert.equal(c.html, "<table><tr><td>1</td><td>2</td></tr><tr><td>4</td><td>5</td></tr></table>");
+    await clip("cut");
+    assert.deepEqual(await rows(), ["3", "6", "789"]);
+    await page().keyboard.press("Shift+ArrowDown"); await page().keyboard.press("Shift+ArrowRight"); await page().keyboard.press("Shift+ArrowRight");
+    assert.deepEqual(await sel(), { a: [1, 0], b: [3, 2], kind: "cells" });
+    await clip("paste", { "text/plain": "x\ty|z\n\"two\nlines\"\tq\n" });
+    assert.equal(await text(), "Intro\n\n| a            | b    | c   |\n| ------------ | ---- | --- |\n| x            | y\\|z | 3   |\n| two<br>lines | q    | 6   |\n| 7            | 8    | 9   |");
+    noErrors();
+  });
+
+  test("a pasted value fills the selection; typing over a cell starts it over; a table pasted in a cell grows the table", async () => {
+    const a = await center(1, 0), z = await center(2, 0);
+    await page().mouse.move(a.x, a.y); await page().mouse.down(); await page().mouse.move(z.x, z.y, { steps: 4 }); await page().mouse.up();
+    await clip("paste", { "text/plain": "0" });
+    assert.deepEqual(await rows(), ["023", "056", "789"]);
+    await page().keyboard.press("Shift+ArrowUp");
+    await page().keyboard.type("Q");
+    assert.equal(await ev(() => $(".sn-cell-edit")?.textContent), "Q", "the cell is edited with what was typed");
+    await page().keyboard.press("Escape");
+    await page().click("#editor .sn-live tbody tr:last-child td:last-child");
+    await clip("paste", { "text/plain": "| h | i |\n|---|---|\n| j | k |" });
+    assert.equal(await text(), "Intro\n\n| a   | b   | c   |     |\n| --- | --- | --- | --- |\n| Q   | 2   | 3   |     |\n| 0   | 5   | 6   |     |\n| 7   | 8   | h   | i   |\n|     |     | j   | k   |");
+    noErrors();
+  });
+
+  test("a new empty row is as tall as a row with a line of text", async () => {
+    await page().click("#editor .sn-inline-title");
+    await ev(() => $("#editor .sn-table-add-row").click());
+    await page().click("#editor .sn-inline-title");
+    const h = await ev(() => [...$("#editor .lp-table table").rows].map((r) => r.offsetHeight));
+    assert.equal(h.at(-1), h[1], "the empty last row");
+    noErrors();
+  });
+
+  test("on a phone, a tap low in the last row edits its cell rather than adding a row", async () => {
+    await openVault({ demo: false, touch: true, viewport: { width: 390, height: 640 }, notes: { "cards/T.md": body } });
+    await ev(() => openEditor("cards/T.md", { focus: false }));
+    const b = await ev(() => { const r = $("#editor .lp-table table").rows[3].cells[1].getBoundingClientRect(); return { x: r.left + 20, y: r.bottom - 3 }; });
+    await page().touchscreen.tap(b.x, b.y);
+    assert.equal(await ev(() => $$("#editor .sn-live tbody tr").length), 3, "no new row");
+    assert.equal(await ev(() => $(".sn-cell-edit")?.closest("tr").rowIndex), 3);
+    noErrors();
+  });
+
+  test("Shift+arrows from a cell select cells; Ctrl+Enter adds a row; a dot between two rows inserts one there", async () => {
+    await page().click("#editor .sn-live tbody tr:first-child td:first-child");
+    await page().keyboard.press("Home");
+    await page().keyboard.press("Shift+ArrowRight");
+    assert.equal(await sel(), null, "inside the text, Shift+arrow selects text");
+    await page().keyboard.press("Shift+ArrowDown");
+    assert.deepEqual(await sel(), { a: [1, 0], b: [2, 0], kind: "cells" });
+    await page().keyboard.press("ArrowDown");
+    assert.equal(await ev(() => $(".sn-cell-edit")?.closest("tr").rowIndex), 3, "an arrow edits the next cell");
+    await page().keyboard.press("Control+Enter");
+    assert.deepEqual(await rows(), ["123", "456", "789", ""]);
+    assert.equal(await ev(() => $(".sn-cell-edit")?.closest("tr").rowIndex), 4);
+    await page().keyboard.press("Escape");
+    const b = await ev(() => { const r = $("#editor .lp-table table").rows[2].getBoundingClientRect(); return { x: r.left + 6, y: r.top }; });
+    await page().mouse.move(b.x + 2, b.y + 3); await page().mouse.move(b.x, b.y + 1);
+    const dot = await ev(() => { const d = $("#editor .sn-table-ins-row.is-shown"); if (!d) return null; const r = d.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, at: d.dataset.at }; });
+    assert.equal(dot?.at, "2", "a dot on the border between the first two rows");
+    await page().mouse.click(dot.x, dot.y);
+    assert.deepEqual(await rows(), ["123", "", "456", "789", ""]);
+    assert.equal(await ev(() => $(".sn-cell-edit")?.closest("tr").rowIndex), 2, "the new row is edited");
+    noErrors();
+  });
+});
+
 describe("planning lines", () => {
   const NOTE = "- [ ] Book the tour\n  DEADLINE: <2026-11-07 Sat> SCHEDULED: <2026-11-05 Thu>\n\nIntro\n\n- [x] Set up\n  CLOSED: [2026-11-03 Tue 18:20]\n";
   beforeEach(async () => { await openVault({ demo: false, time: "2026-11-06T09:00:00", notes: { "cards/P.md": NOTE } }); await ev(() => openEditor("cards/P.md", { focus: false })); });

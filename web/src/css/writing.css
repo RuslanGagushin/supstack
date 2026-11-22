@@ -49,14 +49,45 @@ button.sn-table-add-col { top: 0; bottom: 15px; right: 0; width: 13px; }
 @media (hover: hover) { .sn-table-host:hover > :is(.sn-table-add-row, .sn-table-add-col) { opacity: 1; } }
 @media (hover: hover) { button.sn-table-add-row:hover, button.sn-table-add-col:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); } }
 @media (hover: none) { .sn-table-add-row, .sn-table-add-col { opacity: .5; } }
+/* selecting in a rendered table (table-select.js): handles on the left border of the row and the top border of the column under
+   the pointer (a click selects, a drag moves), dots on a border between two rows or columns (insert one there), the drop line of a
+   drag, and the selected cells */
+.lp-table .sn-table-host:focus-visible { outline: none; } /* the selection shows where the focus is */
+/* a light tint that keeps the grid lines (and the header its own shade); table-select.js draws the frame around the selection */
+.sn-table-host td.is-cell-selected { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.sn-table-host th.is-cell-selected { background: color-mix(in srgb, var(--accent) 8%, var(--tbl-head)); }
+.sn-table-host :is(td, th).is-cell-selected.is-editing { background: none; }
+.sn-table-host.is-dragging, .sn-table-host.is-dragging * { cursor: grabbing; }
+button.sn-table-handle, button.sn-table-ins {
+  position: absolute; z-index: var(--z-raised); display: none; align-items: center; justify-content: center; padding: 0; transform: translate(-50%, -50%);
+  border: 1px solid var(--line); border-radius: var(--r-xs); background: var(--win); color: var(--faint); cursor: grab; touch-action: none;
+}
+button.sn-table-handle.is-shown, button.sn-table-ins.is-shown { display: flex; }
+button.sn-table-row-handle { left: 1px; width: 10px; height: 20px; transform: translateY(-50%); } /* inside the cell's padding: the editor clips what goes past its left edge */
+button.sn-table-col-handle { top: 0; width: 20px; height: 12px; }
+.sn-table-handle svg { width: var(--icon-xs); height: var(--icon-xs); }
+button.sn-table-handle.is-active { background: var(--accent); border-color: var(--accent); color: var(--win); }
+button.sn-table-ins { width: 16px; height: 16px; border-radius: 50%; border-color: var(--accent); background: var(--accent); color: var(--win); cursor: pointer; }
+button.sn-table-ins-row { left: 1px; transform: translateY(-50%); }
+button.sn-table-ins-col { top: 0; }
+.sn-table-ins svg { width: var(--icon-xs); height: var(--icon-xs); }
+@media (hover: hover) { button.sn-table-handle:hover { border-color: var(--accent); color: var(--accent); } button.sn-table-handle.is-active:hover { color: var(--win); } }
+.sn-table-drop { position: absolute; z-index: var(--z-raised); display: none; background: var(--accent); pointer-events: none; }
+.sn-table-drop.is-shown { display: block; }
+.sn-table-drop.is-row { height: 2px; }
+.sn-table-drop.is-col { width: 2px; }
 /* the floating format bar over a text selection */
-.sn-fmtbar {
+/* and the bar over a selection in a table (table-select.js), under its menu */
+.sn-fmtbar, .sn-table-bar {
   position: fixed; z-index: var(--z-popup); display: flex; align-items: center; gap: 1px; padding: var(--sp-4);
   background: var(--win); border: 1px solid var(--line); border-radius: var(--r-m);
   box-shadow: var(--shadow-3);
 }
-.sn-fmtbar .sn-tb-sep { margin: 0 var(--sp-4); }
-.sn-fmtbar button.sn-tb-btn { border-radius: var(--r-xs); } /* concentric: the bar's corner (m) is the button's (xs) plus its 4px padding */
+.sn-table-bar { z-index: calc(var(--z-menu) - 1); }
+.sn-table-bar.is-hidden { display: none; }
+.sn-table-bar button.is-warn { color: var(--todo); }
+:is(.sn-fmtbar, .sn-table-bar) .sn-tb-sep { margin: 0 var(--sp-4); }
+:is(.sn-fmtbar, .sn-table-bar) button.sn-tb-btn { border-radius: var(--r-xs); } /* concentric: the bar's corner (m) is the button's (xs) plus its 4px padding */
 
 /* Inline completion at the caret */
 .ac-pop {
