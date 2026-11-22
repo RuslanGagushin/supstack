@@ -134,6 +134,8 @@ button.clickable-icon.wb-icon { padding: 0; }
    for a narrow pane scrolls sideways in its frame instead of cutting words into letters */
 .markdown-rendered :is(th, td) { overflow-wrap: normal; word-break: normal; }
 .markdown-rendered :is(th, td) > .sn-cell-edit { overflow-wrap: normal; }
+/* an empty cell holds a line of text's height, so a new (or emptied) row is as tall as one with a line of text in it */
+.markdown-rendered :is(th, td):empty::after { content: "\200b"; }
 .markdown-rendered th { background: var(--tbl-head); border-color: var(--tbl-head-line); vertical-align: middle; font-weight: var(--fw-semibold); text-align: left; }
 .markdown-rendered :is(th, td)[align="center"] { text-align: center; }
 .markdown-rendered :is(th, td)[align="right"] { text-align: end; }

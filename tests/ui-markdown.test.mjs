@@ -406,6 +406,15 @@ describe("selecting in a table", () => {
     noErrors();
   });
 
+  test("a new empty row is as tall as a row with a line of text", async () => {
+    await page().click("#editor .sn-inline-title");
+    await ev(() => $("#editor .sn-table-add-row").click());
+    await page().click("#editor .sn-inline-title");
+    const h = await ev(() => [...$("#editor .lp-table table").rows].map((r) => r.offsetHeight));
+    assert.equal(h.at(-1), h[1], "the empty last row");
+    noErrors();
+  });
+
   test("on a phone, a tap low in the last row edits its cell rather than adding a row", async () => {
     await openVault({ demo: false, touch: true, viewport: { width: 390, height: 640 }, notes: { "cards/T.md": body } });
     await ev(() => openEditor("cards/T.md", { focus: false }));
