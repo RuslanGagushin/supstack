@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.37.0
+
+- Tables can be worked on as a whole: handles select rows and columns, a drag moves them, dragging across cells or Shift+arrows selects a block, and the bar above it inserts, aligns, sorts, clears or deletes it. Copy, cut and paste work on selections (including spreadsheet cells or a Markdown table), and on a phone a tap low in the last row edits its cell instead of adding a row.
+
 ## 0.36.9
 
 - On desktop, opening a notebook with its own text shows that text beside the list of child notes instead of opening the first child.
