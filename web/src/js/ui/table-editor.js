@@ -11,8 +11,10 @@ import { Menu } from "./ui.js";
 import { saveEditor, scheduleSave, setSaveState } from "./editor.js";
 import { liveActivate, liveOpenAt, liveTa, lpTableFill } from "./live-preview.js";
 import { edInsert, updateEdToolbar } from "./editor-toolbar.js";
+import { liveTableSel, tableCellShiftKey, tableHandles, tableHover, tableSelClear } from "./table-select.js";
 
-export function tableMenu(run, row) {
+/** The table menu; o.clear adds "Clear cells" (for a selection of cells). */
+export function tableMenu(run, row, o = {}) {
   const m = new Menu();
   m.label(wt("tblRow"));
   if (row > 0) m.add(wt("tblRowAbove"), "arrow-up-to-line", () => run("rowAbove"));
@@ -31,7 +33,9 @@ export function tableMenu(run, row) {
   m.add(wt("tblSortAsc"), "arrow-down-a-z", () => run("sortAsc"));
   m.add(wt("tblSortDesc"), "arrow-up-z-a", () => run("sortDesc"));
   m.add(wt("tblColDelete"), "trash-2", () => run("colDelete"), { warning: true });
-  m.sep().add(wt("tblFormat"), "wand-sparkles", () => run("format"));
+  m.sep();
+  if (o.clear) m.add(wt("tblClear"), "eraser", () => run("clear"));
+  m.add(wt("tblFormat"), "wand-sparkles", () => run("format"));
   return m;
 }
 /** The table under the caret of a textarea, with the caret's cell. */
@@ -46,15 +50,17 @@ export function editorTableOp(ta, op, at = editorTable(ta)) {
 }
 /** Table keys in the editor (true when the key was used): Tab / Shift+Tab to the next / previous cell (a new row after the last),
    Enter to the cell below (a new row after the last; on an empty last row the table ends), Shift+Enter a line break in the cell,
-   Alt+arrows move the row or column. */
+   Ctrl/Cmd+Enter a new row below, Alt+arrows move the row or column. */
 export function editorTableKey(e, ta) {
-  if (e.isComposing || isMod(e) || !(e.key === "Tab" || e.key === "Enter" || (e.altKey && !e.shiftKey && /^Arrow/.test(e.key)))) return false;
+  const modEnter = isMod(e) && !e.shiftKey && !e.altKey && e.key === "Enter";
+  if (e.isComposing || (isMod(e) && !modEnter) || !(e.key === "Tab" || e.key === "Enter" || (e.altKey && !e.shiftKey && /^Arrow/.test(e.key)))) return false;
   if (e.key === "Enter" && ta.selectionStart !== ta.selectionEnd) return false;
   const at = editorTable(ta);
   if (!at) return false;
   e.preventDefault();
   const t = parseTable(at.tb.lines), last = t.rows.length - 1, cols = t.align.length;
   const go = (row, col, op = "format") => { editorTableOp(ta, op, { ...at, row, col }); return true; };
+  if (modEnter) return go(at.row, at.col, "rowBelow");
   if (e.altKey) return go(at.row, at.col, { ArrowUp: "rowUp", ArrowDown: "rowDown", ArrowLeft: "colMoveLeft", ArrowRight: "colMoveRight" }[e.key]);
   if (e.key === "Tab" && e.shiftKey) return at.col > 0 ? go(at.row, at.col - 1) : go(Math.max(0, at.row - 1), at.row ? cols - 1 : 0);
   if (e.key === "Tab") return at.col < cols - 1 ? go(at.row, at.col + 1) : at.row < last ? go(at.row + 1, 0) : go(at.row, 0, "rowBelow");
@@ -107,13 +113,14 @@ export function cellSetCaret(el, s, e = s) {
   getSelection().removeAllRanges(); getSelection().addRange(r);
 }
 /** The rendered table at document offset `from`, and one of its cells. */
-function liveTableEl(from) { const view = liveTa()?.cmView; return view ? $$("#editor .lp-table").find((el) => view.posAtDOM(el) === from) || null : null; }
+export function liveTableEl(from) { const view = liveTa()?.cmView; return view ? $$("#editor .lp-table").find((el) => view.posAtDOM(el) === from) || null : null; }
 const liveCellAt = (from, row, col) => liveTableEl(from)?.querySelector("table")?.rows[row]?.cells[col] || null;
 /** Edit one cell of a rendered table: o.caret puts the caret at that offset in the cell's text, o.select selects it all, o.atStart / the default the end. */
 export function liveCellOpen(from, row, col, o = {}) {
   const view = liveTa()?.cmView;
   if (!view) return null;
   liveCellClose({ save: false });
+  if (liveTableSel()) tableSelClear();
   const tb = findTables(view.state.doc.toString()).find((x) => x.from === from), td = tb && liveCellAt(from, row, col);
   if (!td) return null;
   const t = parseTable(tb.lines), text = t.rows[row][col];
@@ -128,6 +135,7 @@ export function liveCellOpen(from, row, col, o = {}) {
   el.addEventListener("blur", () => setTimeout(() => { if (editor.cell?.el === el && document.activeElement !== el) liveCellClose(); }, 0));
   el.focus({ preventScroll: true });
   cellSetCaret(el, o.select ? 0 : o.atStart ? 0 : o.caret ?? text.length, o.select ? text.length : o.atStart ? 0 : o.caret ?? text.length);
+  tableHover(null, td.closest(".sn-table-host")); // the handles of its row and column (on a touch screen, the only way to see them)
   updateEdToolbar();
   return el;
 }
@@ -147,7 +155,7 @@ function liveCellWrite(text) {
   c.to = c.from + text.length;
 }
 /** Close the cell editor: its table renders again. */
-function liveCellClose(o = {}) {
+export function liveCellClose(o = {}) {
   const c = editor.cell, view = liveTa()?.cmView;
   editor.cell = null;
   const el = c?.el.closest(".lp-table");
@@ -180,7 +188,7 @@ function liveCellLeave(down, o = {}) {
   updateEdToolbar();
 }
 /** Keys in a cell: Tab / Shift+Tab and Enter move on as in the source (a new row after the last; Enter on an empty last row ends the table),
-   Shift+Enter a <br>, arrows at the edge of the text go to the next cell or out of the table, Alt+arrows move the row or column, Escape stops editing. */
+   Shift+Enter a <br>, Ctrl/Cmd+Enter a new row below, Shift+arrows past the edge of the text select cells (table-select.js), arrows at the edge of the text go to the next cell or out of the table, Alt+arrows move the row or column, Escape stops editing. */
 function liveCellKeys(e) {
   const c = editor.cell;
   if (!c || e.isComposing) return;
@@ -189,6 +197,7 @@ function liveCellKeys(e) {
   if (isMod(e)) {
     const k = e.key.toLowerCase();
     if (k === "s") { take(); saveEditor(); }
+    else if (k === "enter" && !e.shiftKey && !e.altKey) { take(); liveCellGo(c.row, c.col, "rowBelow", { select: true }); }
     else if (k === "b" || k === "i") {
       take();
       const mark = k === "b" ? "**" : "*", v = c.el.textContent;
@@ -223,13 +232,15 @@ function liveCellKeys(e) {
     if (c.row < last) liveCellGo(c.row + 1, c.col, "format", { select: true }); else liveCellGo(c.row, c.col, "rowBelow", { select: true });
     return;
   }
+  if (tableCellShiftKey(e, c, s, en, len)) return;
   if (s !== en || e.shiftKey) return;
   if (e.key === "ArrowLeft" && s === 0 && (c.col > 0 || c.row > 0)) { take(); liveCellGo(c.col ? c.row : c.row - 1, c.col ? c.col - 1 : cols - 1); }
   else if (e.key === "ArrowRight" && s === len && (c.col < cols - 1 || c.row < last)) { take(); liveCellGo(c.col < cols - 1 ? c.row : c.row + 1, c.col < cols - 1 ? c.col + 1 : 0, "format", { atStart: true }); }
   else if (e.key === "ArrowUp") { take(); if (c.row > 0) liveCellGo(c.row - 1, c.col); else liveCellLeave(false); }
   else if (e.key === "ArrowDown") { take(); if (c.row < last) liveCellGo(c.row + 1, c.col); else liveCellLeave(true); }
 }
-/** In live preview a rendered table gets + buttons for a new row (below) and a new column (on the right). */
+/** In live preview a rendered table gets + buttons for a new row (below) and a new column (on the right), and the handles and
+   insert dots of table-select.js. */
 export function liveTableButtons(el) {
   for (const wrap of $$(".sn-table-wrap", el)) {
     if (wrap.closest("blockquote, .callout")) continue;
@@ -247,5 +258,6 @@ export function liveTableButtons(el) {
     host.append(wrap,
       add("sn-table-add-row", wt("tblRowBelow"), (b) => liveTableOp(b, "rowBelow", { row: host.querySelector("table").rows.length - 1, col: 0, edit: true })),
       add("sn-table-add-col", wt("tblColRight"), (b) => liveTableOp(b, "colRight", { row: 0, col: host.querySelector("table").rows[0].cells.length - 1, edit: true })));
+    tableHandles(host);
   }
 }
