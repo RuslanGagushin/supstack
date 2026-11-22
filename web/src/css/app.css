@@ -366,8 +366,13 @@ button.sn-row-enter svg { width: var(--icon-m); height: var(--icon-m); }
   .markdown-rendered button.org-fold { position: relative; }
   .markdown-rendered button.org-fold::after { content: ""; position: absolute; inset: -11px -4px -11px -18px; } /* 40×40 (spec UI-9) */
   .markdown-rendered button.org-fold + button.task-box::after { left: -4px; right: -14px; } /* the width it gives up on the left, taken on the right: still 32px+ */
-  :is(.sn-table-add-row, .sn-table-add-col)::after { content: ""; position: absolute; inset: -14px; }
-  :is(button.sn-table-handle, button.sn-table-ins)::after { content: ""; position: absolute; inset: -12px; }
+  /* …but only away from the table: grown over the last row or column, a tap meant for its cells added a new one */
+  .sn-table-add-row::after { content: ""; position: absolute; inset: 0 -14px -14px; }
+  .sn-table-add-col::after { content: ""; position: absolute; inset: -14px -14px -14px 0; }
+  /* a handle's hit area keeps to the border it sits on, so a tap on the cell next to it edits the cell */
+  button.sn-table-row-handle::after { content: ""; position: absolute; inset: -6px -4px -6px -1px; }
+  button.sn-table-col-handle::after { content: ""; position: absolute; inset: -14px -10px 0; }
+  button.sn-table-ins::after { content: ""; position: absolute; inset: -6px; }
   .sn-chip::after { content: ""; position: absolute; inset: -8px -2px; }
   /* buttons a finger can hit: 40px at least, the drawing inside them as it was (spec UI-9) */
   #app :is(.sn-topbar, .sn-editor-head, .agbar, .sn-ed-toolbar) :is(button, a[href]),

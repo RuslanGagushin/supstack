@@ -239,6 +239,7 @@ function liveCellKeys(e) {
   else if (e.key === "ArrowUp") { take(); if (c.row > 0) liveCellGo(c.row - 1, c.col); else liveCellLeave(false); }
   else if (e.key === "ArrowDown") { take(); if (c.row < last) liveCellGo(c.row + 1, c.col); else liveCellLeave(true); }
 }
+const cellTarget = () => {};
 /** In live preview a rendered table gets + buttons for a new row (below) and a new column (on the right), and the handles and
    insert dots of table-select.js. */
 export function liveTableButtons(el) {
@@ -259,5 +260,8 @@ export function liveTableButtons(el) {
       add("sn-table-add-row", wt("tblRowBelow"), (b) => liveTableOp(b, "rowBelow", { row: host.querySelector("table").rows.length - 1, col: 0, edit: true })),
       add("sn-table-add-col", wt("tblColRight"), (b) => liveTableOp(b, "colRight", { row: 0, col: host.querySelector("table").rows[0].cells.length - 1, edit: true })));
     tableHandles(host);
+    // a touch screen moves a tap that is near a button but on nothing it thinks clickable onto the button (Chromium's touch adjustment):
+    // a tap low in the last row added a row. Cells with a click listener of their own are targets as well, so a tap on one stays there.
+    for (const c of host.querySelectorAll("td, th")) c.addEventListener("click", cellTarget);
   }
 }

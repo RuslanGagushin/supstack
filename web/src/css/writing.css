@@ -53,7 +53,9 @@ button.sn-table-add-col { top: 0; bottom: 15px; right: 0; width: 13px; }
    the pointer (a click selects, a drag moves), dots on a border between two rows or columns (insert one there), the drop line of a
    drag, and the selected cells */
 .lp-table .sn-table-host:focus-visible { outline: none; } /* the selection shows where the focus is */
-.sn-table-host :is(td, th).is-cell-selected { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+/* a light tint that keeps the grid lines (and the header its own shade); table-select.js draws the frame around the selection */
+.sn-table-host td.is-cell-selected { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.sn-table-host th.is-cell-selected { background: color-mix(in srgb, var(--accent) 8%, var(--tbl-head)); }
 .sn-table-host :is(td, th).is-cell-selected.is-editing { background: none; }
 .sn-table-host.is-dragging, .sn-table-host.is-dragging * { cursor: grabbing; }
 button.sn-table-handle, button.sn-table-ins {

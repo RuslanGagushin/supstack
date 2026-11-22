@@ -55,8 +55,14 @@ function selShow() {
 function selPaint(host, r = null) {
   const tbl = host.querySelector("table");
   host.classList.toggle("has-selection", !!r);
-  for (const c of $$(".is-cell-selected", host)) c.classList.remove("is-cell-selected");
-  if (r && tbl) for (let i = r.r0; i <= r.r1; i++) for (let j = r.c0; j <= r.c1; j++) tbl.rows[i]?.cells[j]?.classList.add("is-cell-selected");
+  for (const c of $$(".is-cell-selected", host)) { c.classList.remove("is-cell-selected"); c.style.boxShadow = ""; }
+  // the selected cells, and a frame on the outer sides of the ones at its edges
+  if (r && tbl) for (let i = r.r0; i <= r.r1; i++) for (let j = r.c0; j <= r.c1; j++) {
+    const c = tbl.rows[i]?.cells[j];
+    if (!c) continue;
+    c.classList.add("is-cell-selected");
+    c.style.boxShadow = [i === r.r0 && "0 2px", i === r.r1 && "0 -2px", j === r.c0 && "2px 0", j === r.c1 && "-2px 0"].filter(Boolean).map((o) => `inset ${o} 0 var(--accent)`).join(", ");
+  }
   tableHover(null, host);
 }
 

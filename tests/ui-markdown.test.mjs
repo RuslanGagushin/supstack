@@ -406,6 +406,16 @@ describe("selecting in a table", () => {
     noErrors();
   });
 
+  test("on a phone, a tap low in the last row edits its cell rather than adding a row", async () => {
+    await openVault({ demo: false, touch: true, viewport: { width: 390, height: 640 }, notes: { "cards/T.md": body } });
+    await ev(() => openEditor("cards/T.md", { focus: false }));
+    const b = await ev(() => { const r = $("#editor .lp-table table").rows[3].cells[1].getBoundingClientRect(); return { x: r.left + 20, y: r.bottom - 3 }; });
+    await page().touchscreen.tap(b.x, b.y);
+    assert.equal(await ev(() => $$("#editor .sn-live tbody tr").length), 3, "no new row");
+    assert.equal(await ev(() => $(".sn-cell-edit")?.closest("tr").rowIndex), 3);
+    noErrors();
+  });
+
   test("Shift+arrows from a cell select cells; Ctrl+Enter adds a row; a dot between two rows inserts one there", async () => {
     await page().click("#editor .sn-live tbody tr:first-child td:first-child");
     await page().keyboard.press("Home");
