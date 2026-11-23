@@ -264,7 +264,9 @@ button.cap-cal-btn svg { width: var(--icon-s); height: var(--icon-s); }
 .markdown-rendered li.task-list-item.org-foldable { --lead: calc(var(--fold-lead) + var(--box-lead)); }
 /* only the title line hangs: chips, the body and nested blocks start flush */
 .markdown-rendered li.task-list-item :not(li) { text-indent: 0; }
-.markdown-rendered li.task-list-item > :is(ul, ol) { margin-inline-start: calc(-1 * var(--lead)); } /* subtasks nest where they did */
+/* in a list where some tasks fold, the others keep the fold's room too, so every box in the list stands in one column */
+.markdown-rendered :is(ul, ol):has(> li.org-foldable) > li.task-list-item:not(.org-foldable) { padding-inline-start: calc(var(--fold-lead) + var(--box-lead)); text-indent: calc(-1 * var(--box-lead)); }
+/* subtasks nest under their parent's text, a step right of its box */
 .markdown-rendered .org-entry .org-body { display: block; }
 .markdown-rendered .org-entry:not(.task-list-item) > :is(.org-body, p > .org-body) { padding-left: calc(var(--fold-lead) + var(--box-lead)); }
 .markdown-rendered .org-entry .org-body > br:first-child { display: none; }
