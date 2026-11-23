@@ -11,9 +11,14 @@ export const HUES = ["green", "blue", "orange", "pink", "yellow", "purple"];
 export const hueOf = (name) => { let x = 0; for (const c of String(name).toLowerCase()) x = (x * 31 + c.codePointAt(0)) >>> 0; return HUES[x % HUES.length]; };
 export const norm = (s) => String(s).toLowerCase().replace(/ё/g, "е");
 /** A note's Markdown as one line of plain text, for a preview: no code, embeds, link syntax, list and heading marks, tables or emphasis. */
+// marks where a block starts (a paragraph, a list item, a heading), so a preview can keep its items apart
+const BLOCK = "\u0001";
 export function plainText(md, max = 300) {
   return String(md)
     .replace(/^(```|~~~)[^\n]*\n[\s\S]*?(^\1[^\n]*$|(?![\s\S]))/gm, " ")
+    .replace(/\n[ \t]*\n/g, "\n" + BLOCK + "\n")
+    // template placeholders ({{date}}, {{title}}) are filled in when a note is made from it, not text
+    .replace(/\{\{[^{}\n]*\}\}/g, " ")
     .replace(/!\[\[[^\]\n]*\]\]|!\[[^\]\n]*\]\([^)\n]*\)/g, " ")
     .replace(/\[\[([^\]|\n]*)(?:\|([^\]\n]*))?\]\]/g, (m, a, b) => b || a.split("#")[0])
     .replace(/\[([^\]\n]*)\]\([^)\n]*\)/g, "$1")
@@ -22,12 +27,16 @@ export function plainText(md, max = 300) {
     // org planning lines under tasks (SCHEDULED: <…> DEADLINE: <…> CLOSED: […]) are not text
     .replace(/^[ \t]*(?:(?:SCHEDULED|DEADLINE|CLOSED):[ \t]*[<[][^>\]\n]*[>\]][ \t]*)+$/gm, " ")
     // list markers with any of the six task boxes, then a task's priority and its :tags: at the end of the line
-    .replace(/^[ \t]*(?:#{1,6}[ \t]+|[-*+][ \t]+(?:\[[ xX\/<>-]\][ \t]+)?|\d+[.)][ \t]+(?:\[[ xX\/<>-]\][ \t]+)?)/gm, "")
-    .replace(/^\[#[A-Za-z]\][ \t]*/gm, "")
+    .replace(/^[ \t]*(?:#{1,6}[ \t]+|[-*+][ \t]+(?:\[[ xX\/<>-]\][ \t]+)?|\d+[.)][ \t]+(?:\[[ xX\/<>-]\][ \t]+)?)/gm, BLOCK)
+    .replace(new RegExp(`^(${BLOCK}?)\\[#[A-Za-z]\\][ \\t]*`, "gm"), "$1")
     .replace(/[ \t]+:(?:[\p{L}\p{N}_@#%]+:)+[ \t]*$/gmu, "")
     .replace(/^[ \t]*(?:-{3,}|\*{3,}|_{3,})[ \t]*$/gm, " ")
     .replace(/\|/g, " ")
     .replace(/(\*\*|__|~~|==|\*|`)/g, "")
     .replace(/<[^>\n]+>/g, " ")
-    .replace(/\s+/g, " ").trim().slice(0, max);
+    .replace(/\s+/g, " ")
+    // blocks run on with " · " between them, or a plain space after a sentence or a label that already ends
+    .replace(new RegExp(`^[ ${BLOCK}]+`), "")
+    .replace(new RegExp(`([.!?:;…])?[ ${BLOCK}]*${BLOCK}[ ${BLOCK}]*`, "g"), (m, end) => end ? end + " " : " · ")
+    .replace(/[ ·]+$/, "").trim().slice(0, max);
 }
