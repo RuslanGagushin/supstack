@@ -117,13 +117,21 @@
 /* ---------- Search and filters */
 .sn-search:focus-within { border-color: var(--accent); box-shadow: var(--ring); }
 .sn-search-icon { display: inline-flex; color: var(--muted); }
-.sn-board .sn-search-input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; box-shadow: none; }
+.sn-board .sn-search-input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; background: transparent; box-shadow: none; }
 .sn-board .sn-filter-btn { gap: var(--sp-6); }
 .sn-board .sn-filter-btn svg { width: var(--icon-xs); height: var(--icon-xs); }
 .sn-board .sn-filter-btn.is-active { color: var(--accent); }
 .sn-board .sn-filter-btn[disabled] { opacity: var(--disabled); pointer-events: none; }
 .sn-filter-chip-x { display: inline-flex; opacity: 0.6; }
 .sn-filterbar .sn-spacer { flex: 1; }
+/* when the bar is too narrow for one line, the close button stays on the field's line and the filters wrap under them (#20) */
+.sn-filterbar { container-type: inline-size; }
+@container (max-width: 560px) {
+  .sn-filterbar > * { order: 2; }
+  .sn-filterbar > .sn-search { order: 0; flex-basis: calc(100% - var(--ctl-l) - var(--sp-6)); max-width: none; }
+  .sn-filterbar > .sn-search-close { order: 1; }
+  .sn-filterbar > .sn-spacer { display: none; }
+}
 
 /* ---------- Multi-select */
 .sn-card.is-picked::before {

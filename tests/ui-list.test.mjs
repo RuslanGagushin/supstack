@@ -503,3 +503,21 @@ describe("no note colors", () => {
     noErrors();
   });
 });
+
+describe("the search bar in a narrow list (#20)", () => {
+  test("the close button stays on the field's line; the filters wrap under them", async () => {
+    await openVault({ viewport: { width: 1024, height: 768 } });
+    await ev(() => { openEditor("cards/This week.md"); toggleSearch(true); });
+    await page().fill(".sn-search-input", "road");
+    await page().waitForTimeout(400);
+    const m = await ev(() => {
+      const g = (s) => document.querySelector(s).getBoundingClientRect();
+      const bar = g(".sn-filterbar"), field = g(".sn-search"), close = g(".sn-search-close"), scope = g(".sn-scope");
+      return { bar: bar.width, fieldTop: field.top, fieldBottom: field.bottom, closeMid: (close.top + close.bottom) / 2, closeLeft: close.left, fieldRight: field.right, scopeTop: scope.top, inputBg: getComputedStyle(document.querySelector(".sn-search-input")).backgroundColor };
+    });
+    assert.ok(m.bar < 560, `the list is narrow here: ${JSON.stringify(m)}`);
+    assert.ok(m.closeMid > m.fieldTop && m.closeMid < m.fieldBottom && m.closeLeft > m.fieldRight, `close beside the field: ${JSON.stringify(m)}`);
+    assert.ok(m.scopeTop >= m.fieldBottom, `the filters on the next line: ${JSON.stringify(m)}`);
+    assert.equal(m.inputBg, "rgba(0, 0, 0, 0)", "the input has no fill of its own inside the field");
+  });
+});

@@ -369,7 +369,7 @@ function renderFilterBar(model) {
   for (const tg of board.filter.tags) bar.append(h("button", { cls: "sn-chip sn-filter-chip", type: "button", onClick: () => toggleTagFilter(tg) }, h("span", { text: "#" + tg }), ic("sn-filter-chip-x", "x")));
   bar.append(h("div", { cls: "sn-spacer" }));
   if (filterActive(board.filter)) bar.append(h("button", { cls: "clickable-icon", type: "button", text: t("clear"), onClick: () => { board.filter = { query: "", tags: [], scope: board.filter.scope }; persistBoard(); renderBoard(); $(".sn-search-input")?.focus(); } }));
-  bar.append(iconBtn("x", t("close"), () => toggleSearch(false)));
+  bar.append(iconBtn("x", t("close"), () => toggleSearch(false), "sn-search-close"));
   return bar;
 }
 let composerTarget = null;
