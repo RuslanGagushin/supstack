@@ -145,6 +145,12 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: var(--sp-8)
   .ag-row .ag-main { grid-area: auto; }
   .ag-meta { display: flex; gap: var(--sp-8); grid-column: 1 / -1; font-size: var(--fs-sm); }
   .ag-meta > * { grid-area: auto; }
+  /* without a time, the date chip goes under the title, lined up with its text, as in the note and on a desktop (#25);
+     a row with a time keeps it above, as the hour it starts */
+  .ag-row:not(.has-time) > .ag-meta { order: 1; }
+  .ag-row:not(.has-time) > .ag-act { order: 2; }
+  .ag-row:not(.has-time):has(> .ag-main > .task-box) > .ag-meta { padding-left: calc(15px + var(--sp-8)); }
+  .ag-row:not(.has-time):has(> .ag-main > .ag-ev-bar) > .ag-meta { padding-left: calc(3px + var(--sp-10)); }
   .ag-lab { max-width: none; }
   .ag-act { visibility: visible; display: none; }
   .ag-row.is-selected .ag-act { display: flex; position: static; transform: none; justify-self: start; margin-top: var(--sp-4); }

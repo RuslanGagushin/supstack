@@ -113,3 +113,22 @@ describe("the task list's state filters (UI-12)", () => {
     noErrors();
   });
 });
+
+describe("an agenda row on a phone (#25)", () => {
+  test("without a time its date chip is under the title, lined up with its text; with a time, the time stays above", async () => {
+    await openVault({ demo: false, time: "2026-10-29T10:00:00", viewport: { width: 412, height: 915 }, touch: true, notes: {
+      "cards/Plan.md": "- [ ] Late one\n  SCHEDULED: <2026-10-27 Tue>\n- [ ] Timed today\n  SCHEDULED: <2026-10-29 Thu 11:00>\n",
+    } });
+    await ev(() => { AG.span = "week"; openTasksView(); });
+    await H.page.waitForTimeout(300);
+    const rows = await ev(() => Object.fromEntries([...document.querySelectorAll(".ag-row")].map((r) => {
+      const main = r.querySelector(".ag-main"), box = main.querySelector(".task-box").getBoundingClientRect();
+      const meta = r.querySelector(".ag-meta > :not(:empty)")?.getBoundingClientRect();
+      return [main.textContent.trim().replace(/Plan$/, ""), { title: Math.round(main.getBoundingClientRect().top), meta: meta && Math.round(meta.top), metaLeft: meta && Math.round(meta.left), text: Math.round(box.right) }];
+    })));
+    const late = rows["Late one"], timed = rows["Timed today"];
+    assert.ok(late && late.meta > late.title, `the date under the title: ${JSON.stringify(rows)}`);
+    assert.ok(late.metaLeft > late.text, `lined up with the text, past the box: ${JSON.stringify(rows)}`);
+    assert.ok(timed && timed.meta < timed.title, `the time above the title: ${JSON.stringify(rows)}`);
+  });
+});
