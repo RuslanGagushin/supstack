@@ -256,8 +256,9 @@ a.sn-facts-place svg { flex: none; width: var(--icon-s); height: var(--icon-s); 
 .sn-list-desc:focus-visible { box-shadow: var(--ring); }
 .sn-board.is-notes .sn-composer { margin: 0 0 var(--sp-20); }
 .sn-board.is-notes .sn-composer textarea { height: 40px; min-height: 40px; padding: var(--sp-10) var(--sp-12); line-height: 20px; }
-/* the notebooks' tiles in a grid, three to a row in a list of 360px; each note and the "Notes" label take a whole row (RS-25, RS-28) */
-.sn-rows { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: var(--sp-8); }
+/* the notebooks' tiles in a grid, three to a row in a list of 360px; each note and the "Notes" label take a whole row (RS-25, RS-28).
+   A tile is never narrower than its longest word needs (board.js fitTiles sets --tile-min, #23): fewer to a row instead */
+.sn-rows { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--tile-min, 96px), 1fr)); gap: var(--sp-8); }
 .sn-rows > :not(.is-folder) { grid-column: 1 / -1; }
 .sn-list-label { margin: var(--sp-12) 0 0; padding: 0 var(--sp-4); color: var(--faint); font-size: var(--fs-sm); font-weight: var(--fw-medium); }
 /* a note: a white card with a hairline (RS-29) */
@@ -307,8 +308,9 @@ button.sn-row-enter svg { width: var(--icon-m); height: var(--icon-m); }
 /* under the pointer a step darker; pressed (the --sel rule at the end of the styles) and open, one more (DS-8) */
 @media (hover: hover) { :where(.sn-board) .sn-card.sn-row.is-folder:hover { background: var(--panel); box-shadow: none; } } /* :where: no heavier than the pressed rule */
 .sn-board .sn-card.sn-row.is-folder.is-editing { background: var(--sel); box-shadow: none; }
-/* a tile's name on one line, cut with an ellipsis rather than broken inside a word; the whole name is its tooltip */
-.sn-row.is-folder .sn-row-title { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-ui); font-weight: var(--fw-semibold); }
+/* a tile's name on up to two lines, broken between words, never inside one (the tile is as wide as its longest word, #23);
+   a longer name is cut with an ellipsis, and the whole name is its tooltip */
+.sn-row.is-folder .sn-row-title { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; max-width: 100%; overflow: hidden; font-size: var(--fs-ui); font-weight: var(--fw-semibold); line-height: var(--lh-ui); }
 .sn-row-folder-icon { flex: none; display: inline-flex; color: var(--muted); }
 .sn-row-folder-icon svg { width: var(--icon-l); height: var(--icon-l); }
 .sn-row-count { margin-top: calc(var(--sp-8) * -1); color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }

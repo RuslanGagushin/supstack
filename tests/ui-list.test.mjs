@@ -541,3 +541,29 @@ describe("a demo vault's standing note (#22)", () => {
     });
   }
 });
+
+describe("notebook tiles (#23)", () => {
+  const vaultOf = (names) => {
+    const notes = Object.fromEntries(names.map((n) => [`cards/${n}.md`, "x"]));
+    notes["cards/Kid.md"] = `---\nparents: [${names.map((n) => `'[[${n}]]'`).join(", ")}]\n---\n`;
+    return notes;
+  };
+  const tiles = () => ev(() => [...document.querySelectorAll("#board .sn-row.is-folder")].map((r) => {
+    const tt = r.querySelector(".sn-row-title");
+    return { name: tt.textContent, whole: tt.scrollWidth <= tt.clientWidth, top: Math.round(r.getBoundingClientRect().top) };
+  }));
+  test("a long word is never cut: the grid fits fewer to a row", async () => {
+    await openVault({ demo: false, viewport: { width: 1440, height: 900 }, notes: vaultOf(["History", "Architecture", "Knowledge"]) });
+    await ev(() => openEditor("cards/Kid.md"));
+    const ts = await tiles();
+    assert.equal(ts.length, 3);
+    for (const x of ts) assert.ok(x.whole, `${x.name} shown whole: ${JSON.stringify(ts)}`);
+  });
+  test("names of short words wrap onto a second line and keep three to a row", async () => {
+    await openVault({ demo: false, viewport: { width: 1440, height: 900 }, notes: vaultOf(["Home", "Roman Empire", "Work notes"]) });
+    await ev(() => openEditor("cards/Kid.md"));
+    const ts = await tiles();
+    assert.equal(new Set(ts.map((x) => x.top)).size, 1, `one row: ${JSON.stringify(ts)}`);
+    for (const x of ts) assert.ok(x.whole, `${x.name} not cut inside a word: ${JSON.stringify(ts)}`);
+  });
+});
