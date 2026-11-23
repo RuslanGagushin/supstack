@@ -10,7 +10,9 @@ publish = false
 [dependencies]
 tauri = "2.12"
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+# float_roundtrip: the phone mirror saves file stamps (ms as f64) to JSON and compares them after reading them back;
+# without it a stamp can come back one unit off, and an unchanged file looks edited
+serde_json = { version = "1", features = ["float_roundtrip"] }
 base64 = "0.22"
 thiserror = "2"
 webpki-root-certs = "1"

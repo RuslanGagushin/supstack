@@ -1163,6 +1163,17 @@ mod tests {
     }
 
     #[test]
+    fn stamps_read_back_from_json_are_the_ones_written() {
+        // a stamp like this came back from pending.json one unit off, and recovery took an unchanged file for an edit
+        let mut l = mirror::Listing::new();
+        for (i, ms) in [1795452789397.0417_f64, 1795452762579.0405, 1700000000000.1235, 1.5e12 + 1.0 / 3.0].into_iter().enumerate() {
+            l.insert(format!("n{i}.md"), (ms, 4));
+        }
+        let back: mirror::Listing = serde_json::from_str(&serde_json::to_string(&l).unwrap()).unwrap();
+        assert_eq!(back, l);
+    }
+
+    #[test]
     fn a_sync_that_dies_while_copying_out_is_finished_by_the_next_one() {
         let (tmp, c, a, phone, base) = phone_setup("recover");
         fs::write(a.join("Note.md"), "two\n").unwrap();
