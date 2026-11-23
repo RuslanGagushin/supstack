@@ -348,11 +348,11 @@ export async function promptAddTag(paths) {
   paths = paths.filter((p) => vault.notes.has(p));
   if (!paths.length) return;
   const hasAll = (k) => paths.every((p) => vault.notes.get(p).tags.some((x) => x.replace(/^#/, "").toLowerCase() === k));
-  const items = vaultTags().filter((x) => !hasAll(x.name.toLowerCase())).map((x) => ({ value: x.name, title: "#" + x.name, note: String(x.n), icon: "hash" }));
+  const items = vaultTags().filter((x) => !hasAll(x.name.toLowerCase())).map((x) => ({ value: x.name, title: x.name, note: String(x.n), icon: "hash" }));
   const pick = await suggestModal({ placeholder: t("pickTag"), items, allowCreate: true });
   if (!pick) return;
   const tag = cleanTag(pick.create ?? pick.value);
   if (!tag) return;
   await addTags(paths, [tag]);
-  notice(t("tagAdded", { tag: "#" + tag, n: paths.length }));
+  notice(t("tagAdded", { tag, n: paths.length }));
 }

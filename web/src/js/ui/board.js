@@ -194,7 +194,7 @@ function renderRows(page, scroll, model, composer) {
   page.append(composer.el);
   const rows = [];
   // a list box of notes, named as the list's title says (spec A11Y-1)
-  const listName = board.tagView ? "#" + board.tagView : board.target ? baseName(board.target) : t("allCards");
+  const listName = board.tagView ? board.tagView : board.target ? baseName(board.target) : t("allCards");
   const box = h("div", { cls: "sn-rows", role: "listbox", "aria-label": listName, "aria-multiselectable": String(!!board.selectMode) });
   page.append(box);
   // notebooks are tiles at the top; "Notes" heads the notes under them (restyle RS-25, RS-28), seen but not read out:
@@ -230,7 +230,7 @@ function renderListHead(model) {
   const kind = tv ? t("listKindTag") : model.active ? t("listKindSearch") : t("listKindNotebook");
   const head = h("div", { cls: "sn-list-head" });
   head.append(h("div", { cls: "sn-list-kind", text: kind }));
-  head.append(h("h1", { cls: "sn-list-title" }, h("span", { text: tv ? "#" + tv : target ? baseName(target) : t("allCards") })));
+  head.append(h("h1", { cls: "sn-list-title" }, h("span", { text: tv ? tv : target ? baseName(target) : t("allCards") })));
   head.append(h("span", { cls: "sn-list-count", text: countText(model) }));
   return head;
 }
@@ -386,11 +386,11 @@ function renderFilterBar(model) {
   tb.addEventListener("click", (e) => {
     const m = new Menu();
     if (!tagCounts.size) m.add(t("noTags"), null, null, { disabled: true });
-    for (const [tg, n] of [...tagCounts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))) m.add(`#${tg}  ·  ${n}`, "hash", () => toggleTagFilter(tg), { checked: board.filter.tags.includes(tg) });
+    for (const [tg, n] of [...tagCounts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))) m.add(`${tg}  ·  ${n}`, "hash", () => toggleTagFilter(tg), { checked: board.filter.tags.includes(tg) });
     m.showBelow(e.currentTarget);
   });
   bar.append(tb);
-  for (const tg of board.filter.tags) bar.append(h("button", { cls: "sn-chip sn-filter-chip", type: "button", onClick: () => toggleTagFilter(tg) }, h("span", { text: "#" + tg }), ic("sn-filter-chip-x", "x")));
+  for (const tg of board.filter.tags) bar.append(h("button", { cls: "sn-chip sn-filter-chip", type: "button", onClick: () => toggleTagFilter(tg) }, h("span", { text: tg }), ic("sn-filter-chip-x", "x")));
   bar.append(h("div", { cls: "sn-spacer" }));
   if (filterActive(board.filter)) bar.append(h("button", { cls: "clickable-icon", type: "button", text: t("clear"), onClick: () => { board.filter = { query: "", tags: [], scope: board.filter.scope }; persistBoard(); renderBoard(); $(".sn-search-input")?.focus(); } }));
   bar.append(iconBtn("x", t("close"), () => toggleSearch(false), "sn-search-close"));

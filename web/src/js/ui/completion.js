@@ -423,7 +423,7 @@ export function tagsSection(box) {
   for (const [tg, n] of [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 40)) {
     const on = board.tagView === tg;
     // the open tag shows by a check as well as the accent plate, so the state is never colour alone
-    const b = h("button", { cls: "sn-chip" + (on ? " is-accent" : " hue-" + hueOf(tg)), type: "button", "aria-pressed": String(on), title: `#${tg} · ${n}` }, on && ic("", "check"), h("span", { text: tg }), h("span", { cls: "n", text: "· " + n }));
+    const b = h("button", { cls: "sn-chip" + (on ? " is-accent" : " hue-" + hueOf(tg)), type: "button", "aria-pressed": String(on), title: `${tg} · ${n}` }, on && ic("", "check"), h("span", { text: tg }), h("span", { cls: "n", text: "· " + n }));
     b.addEventListener("click", () => { if (on) goBack(); else openTagView(tg); });
     wrap.append(b);
   }
@@ -456,12 +456,12 @@ export function tagInputSuggest(input, { exclude = () => new Set(), onPick, onBa
     const q = input.value.trim().replace(/^#+/, "");
     const ex = exclude();
     items = vaultTags().filter((x) => !ex.has(x.name.toLowerCase()))
-      .map((x) => ({ value: x.name, title: "#" + x.name, note: String(x.n), icon: "hash", s: fuzzyScore(q, x.name) })).filter((x) => x.s > 0);
+      .map((x) => ({ value: x.name, title: x.name, note: String(x.n), icon: "hash", s: fuzzyScore(q, x.name) })).filter((x) => x.s > 0);
     if (q) items.sort((a, b) => b.s - a.s);
     items = items.slice(0, 10);
     const typed = cleanTag(q);
     if (typed && !items.some((x) => x.value.toLowerCase() === typed.toLowerCase()) && !ex.has(typed.toLowerCase()))
-      items.push({ value: typed, title: "#" + typed, note: wt("newTag"), icon: "plus" });
+      items.push({ value: typed, title: typed, note: wt("newTag"), icon: "plus" });
     if (!items.length) return close();
     sel = Math.min(sel, items.length - 1);
     if (!pop) { pop = h("div", { cls: "ac-pop", role: "listbox" }); if (closeTagPop !== close) closeTagPop?.(); closeTagPop = close; document.body.append(pop); document.addEventListener("pointerdown", outside, true); }

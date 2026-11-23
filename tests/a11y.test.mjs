@@ -68,7 +68,7 @@ describe("roles for assistive technology (A11Y-1)", () => {
     assert.deepEqual(s.selected.sort(), ["History", "Knowledge"]);
     await ev(() => openTagView("travel"));
     await settle();
-    assert.equal((await state()).name, "#travel");
+    assert.equal((await state()).name, "travel");
     noErrors();
   });
 });

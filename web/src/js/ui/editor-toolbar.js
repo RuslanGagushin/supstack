@@ -77,7 +77,7 @@ export function fillProps(host, path, n, o = {}) {
   // tags (frontmatter)
   const fmTags = fmTagList(n.fm);
   const tagVals = fmTags.map((tg) => {
-    const c = h("span", { cls: "sn-chip is-s hue-" + hueOf(tg) }, "#" + tg);
+    const c = h("span", { cls: "sn-chip is-s hue-" + hueOf(tg) }, tg);
     const x = ic("sn-chip-x", "x");
     x.addEventListener("click", () => removeTag(path, tg));
     c.append(x);
