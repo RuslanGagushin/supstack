@@ -251,7 +251,8 @@ export function renderTasksView(root) {
   else if (AG.view === "agenda") {
     const days = AG.span === "day" ? [AG.anchor] : Array.from({ length: 7 }, (_, i) => AG.anchor - ((oymd(AG.anchor).w + 6) % 7) + i);
     // the title says which days ("9–15 November", or the day), the week's number beside it; the log is the bar's toggle
-    body.append(agHead("calendar-check", tt("vAgenda") + " · " + tt("weekN", { n: oisoWeek(days[0]) }),
+    // the tab above already says Agenda: the line over the title names the week only (#29)
+    body.append(agHead("calendar-check", tt("weekN", { n: oisoWeek(days[0]) }),
       h("div", { cls: "ag-title", title: tt(AG.span === "week" ? "weekAgenda" : "dayAgenda") },
         h("b", { text: AG.span === "week" ? dayRange(days[0], days[6], T) : oFmt(days[0], "dddd, D MMMM") + (oymd(days[0]).y !== oymd(T).y ? " " + oymd(days[0]).y : "") })), true));
     // on a phone: the week as a strip of days (a dot where something is on), a tap opens that day; the month is one more tap

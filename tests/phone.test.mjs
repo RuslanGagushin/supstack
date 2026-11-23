@@ -132,3 +132,17 @@ describe("an agenda row on a phone (#25)", () => {
     assert.ok(timed && timed.meta < timed.title, `the time above the title: ${JSON.stringify(rows)}`);
   });
 });
+
+describe("the agenda's bar on a phone (#29)", () => {
+  test("Capture only in the bottom bar; the line over the title names the week, not the tab again", async () => {
+    await openVault({ time: "2026-10-29T10:00:00", viewport: { width: 412, height: 915 }, touch: true, lang: "ru" });
+    await ev(() => { AG.span = "week"; AG.view = "agenda"; openTasksView(); });
+    await H.page.waitForTimeout(300);
+    const m = await ev(() => ({
+      own: [...document.querySelectorAll("button.ag-capture")].some((b) => b.getClientRects().length),
+      tab: !!document.querySelector('.sn-tab[data-tab="capture"]')?.getClientRects().length,
+      kind: document.querySelector(".ag-head .ag-kind").textContent,
+    }));
+    assert.deepEqual(m, { own: false, tab: true, kind: "Неделя 44" });
+  });
+});

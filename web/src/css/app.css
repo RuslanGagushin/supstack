@@ -349,6 +349,8 @@ button.sn-row-enter svg { width: var(--icon-m); height: var(--icon-m); }
     transition: transform var(--dur-2) var(--ease);
   }
   .sn-tabbar.is-hidden { transform: translateY(100%); }
+  /* the bar's Capture is the one way in: the agenda's own + would be a second (#29) */
+  .sn-board.is-tasks .sn-topbar button.ag-capture { display: none; }
   button.sn-tab, button.sn-tab:not(.clickable-icon) {
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-2); height: 54px; padding: 0;
     border: 0; background: none; box-shadow: none; color: var(--faint); font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: var(--fw-medium);
