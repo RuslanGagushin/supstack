@@ -70,6 +70,9 @@ button.sn-btn.wb-tasks.is-active { border-color: var(--accent); }
 .ag-body.one-cat .ag-cat { display: none; }
 .ag-body.no-time .ag-row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "main lab"; }
 .ag-body.no-time .ag-row .ag-time { display: none; }
+/* the same within a group (the overdue block, a day) where no row has a time: its rows start at the card's edge (#24) */
+:is(.ag-rows, .ag-card):not(:has(> .ag-row.has-time, > .ag-grid)) > .ag-row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "main lab"; }
+:is(.ag-rows, .ag-card):not(:has(> .ag-row.has-time, > .ag-grid)) > .ag-row .ag-time { display: none; }
 .ag-time { grid-area: time; } .ag-main { grid-area: main; } .ag-lab { grid-area: lab; }
 .ag-meta { display: contents; }
 .ag-row { cursor: pointer; position: relative; border-top: 1px solid var(--line); }

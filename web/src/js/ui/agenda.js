@@ -380,7 +380,7 @@ function orgRow(x) {
   // a row under its own day needs no "Scheduled" chip: the day already says so (late and deadline chips stay)
   if (x.kind === "sched" && !x.overdue && label === tt("lScheduled")) label = "";
   const time = x.time != null ? ohm(x.time) + (x.end != null ? "–" + ohm(x.end) : "") : "";
-  const row = h("div", { cls: `ag-row k-${kindCls}` + (x.overdue ? " overdue" : "") + (e.done ? " is-done" : ""), role: "option", dataset: { i: String(i), path: e.path, line: String(e.line) } });
+  const row = h("div", { cls: `ag-row k-${kindCls}` + (x.overdue ? " overdue" : "") + (e.done ? " is-done" : "") + (x.time != null ? " has-time" : ""), role: "option", dataset: { i: String(i), path: e.path, line: String(e.line) } });
   const main = h("span", { cls: "ag-main" });
   // a task's priority colours its box; only the top one also gets a letter, so it does not rest on colour alone
   if (e.isTodo) { const b = taskBox(e.state, { dataset: { act: "tick" } }); if (e.pri) { b.title +=` · ${tt("priority")} ${e.pri}`; } main.append(b); }

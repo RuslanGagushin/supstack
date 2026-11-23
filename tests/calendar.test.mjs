@@ -186,3 +186,19 @@ describe("the task list and the capture form (UI-18, UI-19)", () => {
   });
 });
 
+
+describe("the time column in the week (#24)", () => {
+  test("a group with no time starts its rows at the card's edge; a day with times keeps the column", async () => {
+    await openVault({ demo: false, time: NOW, viewport: { width: 1440, height: 900 }, notes: {
+      "cards/Plan.md": "- [ ] Late one\n  SCHEDULED: <2026-10-27 Tue>\n- [ ] Untimed today\n  SCHEDULED: <2026-10-29 Thu>\n- [ ] Timed today\n  SCHEDULED: <2026-10-29 Thu 11:00>\n- [ ] Untimed friday\n  SCHEDULED: <2026-10-30 Fri>\n",
+    } });
+    await ev(() => { AG.span = "week"; openTasksView(); });
+    await page().waitForTimeout(300);
+    const at = await ev(() => Object.fromEntries([...document.querySelectorAll(".ag-row")].map((r) => {
+      const card = (r.closest(".ag-rows") || r.closest(".ag-card")).getBoundingClientRect();
+      return [r.querySelector(".ag-main").textContent.trim().replace(/Plan$/, ""), Math.round(r.querySelector(".ag-main").getBoundingClientRect().left - card.left)];
+    })));
+    assert.ok(at["Late one"] <= 20 && at["Untimed friday"] <= 20, `no empty column without times: ${JSON.stringify(at)}`);
+    assert.ok(at["Timed today"] > 80 && at["Untimed today"] === at["Timed today"], `a day with a time keeps it for every row: ${JSON.stringify(at)}`);
+  });
+});
