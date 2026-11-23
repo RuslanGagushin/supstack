@@ -51,12 +51,9 @@ export function defaultEcho() {
   if (vault.fs?.kind === "copy") return t("volatileBanner");
   return ""; // the line stays hidden until there is a message
 }
-/** The vault whose standing note has had its turn: the note shows once per vault, as a quiet pill that goes after a
-   few seconds, and then only the sidebar's vault row carries it, so it never sits over the cards. */
-let standingShownFor = null;
 /** The toast: one message at a time, floating over the page (bottom centre; at the top on phones). A new message replaces
-   the last; it goes after a few seconds unless it keeps (o.keep) or offers an action. With nothing to say it shows the
-   vault's standing note (a demo or a copy) once, as a quiet pill, or nothing. */
+   the last; it goes after a few seconds unless it keeps (o.keep) or offers an action. The vault's standing note (a demo or
+   a copy) never floats here: it is a strip above the list (board.js), so it never lies over the text (#22). */
 function toastBox() {
   let box = $("#toast");
   if (!box) document.body.append((box = h("div", { id: "toast", cls: "sn-toast is-blank", role: "status", "aria-live": "polite" })));
@@ -67,10 +64,7 @@ export function echo(text, o = {}) {
   text = keyText(text || "");
   clearTimeout(echoTimer);
   let isDefault = !!text && text === defaultEcho();
-  if (isDefault && !o.undo && !o.action) {
-    if (standingShownFor === vault.fs) { text = ""; isDefault = false; } // already shown for this vault: back to nothing
-    else { standingShownFor = vault.fs; echoTimer = setTimeout(() => echo(""), 8000); }
-  }
+  if (isDefault && !o.undo && !o.action) { text = ""; isDefault = false; } // the standing note: back to nothing
   const quiet = isDefault || !!o.hint;
   box.replaceChildren();
   box.classList.toggle("is-quiet", quiet);

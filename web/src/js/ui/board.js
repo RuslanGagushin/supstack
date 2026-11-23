@@ -7,7 +7,7 @@ import { filterActive } from "../core/board-model.js";
 import { board, editor, graph, S, vault } from "../services/state.js";
 import { boardModel, cardIcon, cardTags, makeComparator, persistBoard } from "../services/vault.js";
 import { $, $$, h, ic, iconBtn } from "./dom.js";
-import { Menu } from "./ui.js";
+import { defaultEcho, Menu } from "./ui.js";
 import { createCard, deleteCards, dropCards, promptAddParent, promptAddTag, promptIcon, promptMove, saveCurrentView } from "./actions.js";
 import { attachLongPress, cardMenu, renderRow, syncRowStates } from "./cards.js";
 import { dnd } from "./dnd.js";
@@ -113,6 +113,8 @@ export function renderBoard(resetScroll = false) {
   sentinelObs?.disconnect();
 
   root.append(renderToolbar());
+  const standing = renderStanding();
+  if (standing) root.append(standing);
   if (board.searchOpen) root.append(renderFilterBar(model));
   const scroll = h("div", { cls: "sn-scroll" });
   const page = h("div", { cls: "sn-page" });
@@ -336,6 +338,15 @@ export function toggleSearch(open) {
   persistBoard();
   renderBoard();
   if (board.searchOpen) $(".sn-search-input")?.focus();
+}
+/** A demo or a copy says so in a strip above the list, in the layout, until it is closed for that vault (#22). */
+const standingClosed = new WeakSet();
+function renderStanding() {
+  const text = defaultEcho();
+  if (!text || !vault.fs || standingClosed.has(vault.fs)) return null;
+  const strip = h("div", { cls: "sn-standing", role: "note" }, h("span", { cls: "sb-dot", "aria-hidden": "true" }), h("span", { cls: "sn-standing-text", text }));
+  strip.append(iconBtn("x", t("close"), () => { standingClosed.add(vault.fs); strip.remove(); }, "sn-standing-x"));
+  return strip;
 }
 const applyQuery = debounce(() => { persistBoard(); renderBoard(); }, 160);
 function renderFilterBar(model) {

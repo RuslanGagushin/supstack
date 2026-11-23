@@ -521,3 +521,23 @@ describe("the search bar in a narrow list (#20)", () => {
     assert.equal(m.inputBg, "rgba(0, 0, 0, 0)", "the input has no fill of its own inside the field");
   });
 });
+
+describe("a demo vault's standing note (#22)", () => {
+  for (const [name, o] of [["desktop", { viewport: { width: 1440, height: 900 } }], ["phone", { viewport: { width: 412, height: 915 }, touch: true }]]) {
+    test(`${name}: a strip above the list, not a toast over the page; closed, it stays closed`, async () => {
+      await openVault(o);
+      await page().waitForTimeout(300);
+      const m = await ev(() => {
+        const strip = document.querySelector("#board .sn-standing"), toast = document.querySelector("#toast");
+        const sr = strip.getBoundingClientRect(), first = document.querySelector("#board .sn-page").getBoundingClientRect();
+        return { text: strip.textContent, toastShown: !!toast && !toast.classList.contains("is-blank"), above: sr.bottom <= first.top + 1 };
+      });
+      assert.match(m.text, /Demo vault/);
+      assert.equal(m.toastShown, false, "no toast floats over the page");
+      assert.ok(m.above, `the strip takes its own room above the list: ${JSON.stringify(m)}`);
+      await page().click("#board .sn-standing-x");
+      await ev(() => renderBoard());
+      assert.equal(await ev(() => !!document.querySelector("#board .sn-standing")), false, "closed for this vault");
+    });
+  }
+});
