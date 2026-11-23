@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.37.1
+
+- Thirteen small fixes from a close look at the page on desktop and phone: subtasks line up, headings fold tidily on narrow screens, the search bar and notebook tiles fit without cutting words, card previews and the demo notice read cleanly, agenda rows and the side panel line up, tags look the same everywhere, an empty search offers a way out, and Russian says «Повестка».
+
 ## 0.37.0
 
 - Tables can be worked on as a whole: handles select rows and columns, a drag moves them, dragging across cells or Shift+arrows selects a block, and the bar above it inserts, aligns, sorts, clears or deletes it. Copy, cut and paste work on selections (including spreadsheet cells or a Markdown table), and on a phone a tap low in the last row edits its cell instead of adding a row.
