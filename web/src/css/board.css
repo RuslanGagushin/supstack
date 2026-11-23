@@ -159,6 +159,10 @@
 .sn-card:focus-visible { box-shadow: var(--ring); }
 
 .sn-empty { margin: var(--sp-48) auto; text-align: center; }
+.sn-empty-acts { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-8); margin-top: var(--sp-16); }
+.sn-empty-acts button.sn-btn { height: var(--ctl-l); padding: 0 var(--sp-12); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); color: var(--ink); font-size: var(--fs-ui); font-weight: var(--fw-medium); }
+@media (hover: hover) { .sn-empty-acts button.sn-btn:hover { background: var(--hover-bg); } }
+@media (hover: none) { .sn-empty-acts button.sn-btn { height: var(--ctl-touch); } }
 .sn-footnote { margin-top: var(--sp-20); font-size: var(--fs-sm); color: var(--faint); text-align: center; }
 .sn-sentinel { height: 1px; }
 

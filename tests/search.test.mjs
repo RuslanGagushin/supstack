@@ -2,6 +2,7 @@
 import { beforeEach, describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { openVault, ev, settle } from "./harness.mjs";
+import * as H from "./harness.mjs";
 
 /** Search for `query` in the list (scope "here" or "all") and give the titles shown, in order, with their preview lines. */
 const search = (query, scope = "all", tags = []) => ev(([query, scope, tags]) => {
@@ -62,5 +63,24 @@ describe("search order, tags and scope (SRCH-1, SRCH-2, SRCH-3)", () => {
     await ev(() => removeNote("cards/Office.md"));
     await settle();
     assert.deepEqual(await titles("gelato"), []);
+  });
+});
+
+describe("an empty search offers the way out (#28)", () => {
+  test("in a notebook, Search everywhere widens it and keeps the query; with tags on, Clear tags drops them", async () => {
+    await openVault({ demo: false, notes: { "cards/Box.md": "inside", "cards/Kid.md": "---\nparents: ['[[Box]]']\n---\nnothing", "cards/Far.md": "the aqueduct is here", "cards/Tagged.md": "#rome only" } });
+    await ev(() => { setTarget("cards/Box.md"); toggleSearch(true); });
+    await H.page.fill(".sn-search-input", "aqueduct");
+    await H.page.waitForTimeout(400);
+    const btns = () => ev(() => [...document.querySelectorAll("#board .sn-empty-acts button")].map((b) => b.textContent));
+    assert.deepEqual(await btns(), ["Search everywhere"]);
+    await H.page.click("#board .sn-empty-acts button");
+    await H.page.waitForTimeout(200);
+    assert.deepEqual(await ev(() => [board.filter.scope, board.filter.query, boardModel().shown.map((c) => c.path)]), ["all", "aqueduct", ["cards/Far.md"]]);
+    await ev(() => { board.filter = { query: "aqueduct", tags: ["rome"], scope: "all" }; renderBoard(); });
+    assert.deepEqual(await btns(), ["Clear tags"], "at the vault's whole there is nowhere wider; the tags can go");
+    await H.page.click("#board .sn-empty-acts button");
+    await H.page.waitForTimeout(200);
+    assert.deepEqual(await ev(() => [board.filter.tags, boardModel().shown.length]), [[], 1]);
   });
 });

@@ -126,7 +126,7 @@ export function renderBoard(resetScroll = false) {
   // while searching or in a tag's view it would be unclear where a new note goes: no field there
   composer.el.hidden = model.active || !!board.tagView;
   const cards = renderRows(page, scroll, model, composer);
-  if (!model.shown.length) page.append(h("div", { cls: "sn-empty", text: model.active ? t("noMatches") : t("noCards") }));
+  if (!model.shown.length) page.append(renderEmpty(model));
   const footnotes = [];
   if (model.all.skippedRepeats && !model.active) footnotes.push(t("repeatsSkipped", { n: model.all.skippedRepeats }));
   if (model.truncated) footnotes.push(t("truncatedNote", { n: S.maxCards }));
@@ -351,6 +351,19 @@ export function toggleSearch(open) {
   persistBoard();
   renderBoard();
   if (board.searchOpen) $(".sn-search-input")?.focus();
+}
+/** An empty list says why; an empty search offers the way out: the whole vault when it searched one notebook, and
+   dropping the tags when tags are on (#28). */
+function renderEmpty(model) {
+  const box = h("div", { cls: "sn-empty" }, h("div", { text: model.active ? t("noMatches") : t("noCards") }));
+  if (!model.active) return box;
+  const acts = h("div", { cls: "sn-empty-acts" });
+  if (board.filter.scope !== "all" && board.target && !board.tagView)
+    acts.append(h("button", { cls: "sn-btn", type: "button", text: t("searchEverywhere"), onClick: () => { board.filter.scope = "all"; persistBoard(); renderBoard(); } }));
+  if (board.filter.tags.length)
+    acts.append(h("button", { cls: "sn-btn", type: "button", text: t("clearTagFilters"), onClick: () => { board.filter = { ...board.filter, tags: [] }; persistBoard(); renderBoard(); } }));
+  if (acts.childElementCount) box.append(acts);
+  return box;
 }
 /** A demo or a copy says so in a strip above the list, in the layout, until it is closed for that vault (#22). */
 const standingClosed = new WeakSet();
