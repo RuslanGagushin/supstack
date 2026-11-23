@@ -18,9 +18,9 @@ describe("tags", () => {
   test("the tag input in Properties suggests the vault's tags, most used first, and leaves out the note's own", async () => {
     await page().click("#editor .sn-insp .sn-prop-input");
     const rows = await page().$$eval(".ac-pop .ac-title", (els) => els.map((e) => e.textContent));
-    assert.deepEqual(rows, ["#project", "#home", "#reading"]);
+    assert.deepEqual(rows, ["project", "home", "reading"]);
     await page().keyboard.type("rea");
-    assert.deepEqual(await page().$$eval(".ac-pop .ac-title", (els) => els.map((e) => e.textContent)), ["#reading", "#rea"]);
+    assert.deepEqual(await page().$$eval(".ac-pop .ac-title", (els) => els.map((e) => e.textContent)), ["reading", "rea"]);
     await page().keyboard.press("Enter");
     await settle();
     assert.match(await raw("cards/Note.md"), /tags:\n  - garden\n  - reading\n/);
@@ -54,5 +54,22 @@ describe("tags", () => {
     assert.match(await raw("cards/A.md"), /tags:\n  - project\n  - home\n  - Later\n/);
     assert.match(await raw("cards/B.md"), /^---\ntags:\n  - Later\n---\nText #project/);
     assert.deepEqual(H.errors, []);
+  });
+});
+
+describe("a tag reads the same everywhere (#27)", () => {
+  test("in the note's text, a task's chip, the panel and a tag's list it is shown without #", async () => {
+    await openVault({ demo: false, viewport: { width: 1440, height: 900 }, openNotes: "read", notes: { "cards/Trip.md": "---\ntags: [travel]\n---\nSee #rome there.\n\n- [ ] Pack :travel:\n  SCHEDULED: <2026-11-12 Thu>\n" } });
+    await ev(() => { openEditor("cards/Trip.md", { focus: false }); if (!document.querySelector(".sn-insp")) toggleInspector(); });
+    await H.page.waitForTimeout(300);
+    const shown = await ev(() => ({
+      text: [...document.querySelectorAll("#editor .markdown-rendered a.tag")].map((a) => a.textContent),
+      panel: [...document.querySelectorAll("#editor .sn-insp .sn-chip")].map((c) => c.textContent.trim()).filter(Boolean),
+    }));
+    assert.ok(shown.text.includes("rome") && shown.text.every((x) => !x.startsWith("#")), JSON.stringify(shown));
+    assert.ok(shown.panel.every((x) => !x.startsWith("#")), JSON.stringify(shown));
+    await ev(() => openTagView("travel"));
+    await H.page.waitForTimeout(200);
+    assert.equal(await ev(() => document.querySelector("#board .sn-list-title").textContent), "travel");
   });
 });

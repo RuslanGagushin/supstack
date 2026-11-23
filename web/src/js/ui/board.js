@@ -7,7 +7,7 @@ import { filterActive } from "../core/board-model.js";
 import { board, editor, graph, S, vault } from "../services/state.js";
 import { boardModel, cardIcon, cardTags, makeComparator, persistBoard } from "../services/vault.js";
 import { $, $$, h, ic, iconBtn } from "./dom.js";
-import { Menu } from "./ui.js";
+import { defaultEcho, Menu } from "./ui.js";
 import { createCard, deleteCards, dropCards, promptAddParent, promptAddTag, promptIcon, promptMove, saveCurrentView } from "./actions.js";
 import { attachLongPress, cardMenu, renderRow, syncRowStates } from "./cards.js";
 import { dnd } from "./dnd.js";
@@ -113,6 +113,8 @@ export function renderBoard(resetScroll = false) {
   sentinelObs?.disconnect();
 
   root.append(renderToolbar());
+  const standing = renderStanding();
+  if (standing) root.append(standing);
   if (board.searchOpen) root.append(renderFilterBar(model));
   const scroll = h("div", { cls: "sn-scroll" });
   const page = h("div", { cls: "sn-page" });
@@ -124,7 +126,7 @@ export function renderBoard(resetScroll = false) {
   // while searching or in a tag's view it would be unclear where a new note goes: no field there
   composer.el.hidden = model.active || !!board.tagView;
   const cards = renderRows(page, scroll, model, composer);
-  if (!model.shown.length) page.append(h("div", { cls: "sn-empty", text: model.active ? t("noMatches") : t("noCards") }));
+  if (!model.shown.length) page.append(renderEmpty(model));
   const footnotes = [];
   if (model.all.skippedRepeats && !model.active) footnotes.push(t("repeatsSkipped", { n: model.all.skippedRepeats }));
   if (model.truncated) footnotes.push(t("truncatedNote", { n: S.maxCards }));
@@ -192,7 +194,7 @@ function renderRows(page, scroll, model, composer) {
   page.append(composer.el);
   const rows = [];
   // a list box of notes, named as the list's title says (spec A11Y-1)
-  const listName = board.tagView ? "#" + board.tagView : board.target ? baseName(board.target) : t("allCards");
+  const listName = board.tagView ? board.tagView : board.target ? baseName(board.target) : t("allCards");
   const box = h("div", { cls: "sn-rows", role: "listbox", "aria-label": listName, "aria-multiselectable": String(!!board.selectMode) });
   page.append(box);
   // notebooks are tiles at the top; "Notes" heads the notes under them (restyle RS-25, RS-28), seen but not read out:
@@ -204,9 +206,22 @@ function renderRows(page, scroll, model, composer) {
       prevFolder = !!c.folder;
       const el = renderRow(c.path, c.via, !!c.folder); box.append(el); rows.push(el);
     }
+    fitTiles(box);
   };
   lazyAdd(page, scroll, model.shown, addRows);
   return rows;
+}
+/** Tiles as wide as their longest word needs (#23): a name wraps onto a second line between words, and a word too long for
+   a tile makes the grid fit fewer to a row instead of being cut. Within a 96–200px tile, with the tile's 12px sides. */
+const measureCtx = document.createElement("canvas").getContext("2d");
+function fitTiles(box) {
+  const titles = [...box.querySelectorAll(":scope > .is-folder .sn-row-title")];
+  if (!titles.length || !titles[0].isConnected || !measureCtx) return;
+  const st = getComputedStyle(titles[0]);
+  measureCtx.font = `${st.fontWeight} ${st.fontSize} ${st.fontFamily}`;
+  let widest = 0;
+  for (const x of titles) for (const w of x.textContent.split(/\s+/)) widest = Math.max(widest, measureCtx.measureText(w).width);
+  if (widest) box.style.setProperty("--tile-min", Math.min(200, Math.max(96, Math.ceil(widest) + 26)) + "px");
 }
 /** The top of the list of notes: the card (or tag) it lists and how many notebooks and notes it shows. */
 function renderListHead(model) {
@@ -215,7 +230,7 @@ function renderListHead(model) {
   const kind = tv ? t("listKindTag") : model.active ? t("listKindSearch") : t("listKindNotebook");
   const head = h("div", { cls: "sn-list-head" });
   head.append(h("div", { cls: "sn-list-kind", text: kind }));
-  head.append(h("h1", { cls: "sn-list-title" }, h("span", { text: tv ? "#" + tv : target ? baseName(target) : t("allCards") })));
+  head.append(h("h1", { cls: "sn-list-title" }, h("span", { text: tv ? tv : target ? baseName(target) : t("allCards") })));
   head.append(h("span", { cls: "sn-list-count", text: countText(model) }));
   return head;
 }
@@ -337,6 +352,28 @@ export function toggleSearch(open) {
   renderBoard();
   if (board.searchOpen) $(".sn-search-input")?.focus();
 }
+/** An empty list says why; an empty search offers the way out: the whole vault when it searched one notebook, and
+   dropping the tags when tags are on (#28). */
+function renderEmpty(model) {
+  const box = h("div", { cls: "sn-empty" }, h("div", { text: model.active ? t("noMatches") : t("noCards") }));
+  if (!model.active) return box;
+  const acts = h("div", { cls: "sn-empty-acts" });
+  if (board.filter.scope !== "all" && board.target && !board.tagView)
+    acts.append(h("button", { cls: "sn-btn", type: "button", text: t("searchEverywhere"), onClick: () => { board.filter.scope = "all"; persistBoard(); renderBoard(); } }));
+  if (board.filter.tags.length)
+    acts.append(h("button", { cls: "sn-btn", type: "button", text: t("clearTagFilters"), onClick: () => { board.filter = { ...board.filter, tags: [] }; persistBoard(); renderBoard(); } }));
+  if (acts.childElementCount) box.append(acts);
+  return box;
+}
+/** A demo or a copy says so in a strip above the list, in the layout, until it is closed for that vault (#22). */
+const standingClosed = new WeakSet();
+function renderStanding() {
+  const text = defaultEcho();
+  if (!text || !vault.fs || standingClosed.has(vault.fs)) return null;
+  const strip = h("div", { cls: "sn-standing", role: "note" }, h("span", { cls: "sb-dot", "aria-hidden": "true" }), h("span", { cls: "sn-standing-text", text }));
+  strip.append(iconBtn("x", t("close"), () => { standingClosed.add(vault.fs); strip.remove(); }, "sn-standing-x"));
+  return strip;
+}
 const applyQuery = debounce(() => { persistBoard(); renderBoard(); }, 160);
 function renderFilterBar(model) {
   const bar = h("div", { cls: "sn-filterbar" });
@@ -362,14 +399,14 @@ function renderFilterBar(model) {
   tb.addEventListener("click", (e) => {
     const m = new Menu();
     if (!tagCounts.size) m.add(t("noTags"), null, null, { disabled: true });
-    for (const [tg, n] of [...tagCounts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))) m.add(`#${tg}  ·  ${n}`, "hash", () => toggleTagFilter(tg), { checked: board.filter.tags.includes(tg) });
+    for (const [tg, n] of [...tagCounts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))) m.add(`${tg}  ·  ${n}`, "hash", () => toggleTagFilter(tg), { checked: board.filter.tags.includes(tg) });
     m.showBelow(e.currentTarget);
   });
   bar.append(tb);
-  for (const tg of board.filter.tags) bar.append(h("button", { cls: "sn-chip sn-filter-chip", type: "button", onClick: () => toggleTagFilter(tg) }, h("span", { text: "#" + tg }), ic("sn-filter-chip-x", "x")));
+  for (const tg of board.filter.tags) bar.append(h("button", { cls: "sn-chip sn-filter-chip", type: "button", onClick: () => toggleTagFilter(tg) }, h("span", { text: tg }), ic("sn-filter-chip-x", "x")));
   bar.append(h("div", { cls: "sn-spacer" }));
   if (filterActive(board.filter)) bar.append(h("button", { cls: "clickable-icon", type: "button", text: t("clear"), onClick: () => { board.filter = { query: "", tags: [], scope: board.filter.scope }; persistBoard(); renderBoard(); $(".sn-search-input")?.focus(); } }));
-  bar.append(iconBtn("x", t("close"), () => toggleSearch(false)));
+  bar.append(iconBtn("x", t("close"), () => toggleSearch(false), "sn-search-close"));
   return bar;
 }
 let composerTarget = null;

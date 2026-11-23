@@ -15,7 +15,7 @@ describe("rendering", () => {
     const html = await render("[[Target|go]] [[Missing]] #tag ==hi==\n\n> [!warning] Careful\n> body\n\n- [ ] task\n\n![[p.svg]]");
     assert.match(html, /<a (data-href="Target" class="internal-link"|class="internal-link" data-href="Target")>go<\/a>/);
     assert.match(html, /internal-link is-unresolved/);
-    assert.match(html, /class="tag hue-\w+"[^>]*>#tag</); // a tag carries its hue
+    assert.match(html, /class="tag hue-\w+"[^>]*>tag</); // a tag carries its hue, shown without its # (#27)
     assert.match(html, /<mark>hi<\/mark>/);
     assert.match(html, /callout/);
     assert.match(html, /<li class="task-list-item is-state-todo[^"]*" data-task=" "><button type="button" class="task-box s-todo"/);

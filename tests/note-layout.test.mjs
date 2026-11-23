@@ -34,7 +34,7 @@ describe("a task's lines in the reading view (UI-5)", () => {
 describe("a task's title that wraps in the reading view (UI-5)", () => {
   const LONG = "the long pressure pipes that carried the water across every valley on the way to the town";
   const NOTE = `- [ ] Plain: ${LONG}\n- [ ] Folds: ${LONG}\n  SCHEDULED: <2026-11-12 Thu>\n  - [ ] Subtask: ${LONG}\n`;
-  test("its next lines start where its text starts, and a subtask nests where it did", async () => {
+  test("its next lines start where its text starts; boxes of a list stand in one column, and a subtask's is a step right of its parent's", async () => {
     await openVault({ demo: false, openNotes: "read", viewport: { width: 412, height: 900 }, touch: true, notes: { "cards/Pipes.md": NOTE } });
     await ev(() => openEditor("cards/Pipes.md", { focus: false }));
     await settle();
@@ -44,7 +44,8 @@ describe("a task's title that wraps in the reading view (UI-5)", () => {
       r.setStart(n, n.data.search(/\S/)); r.setEnd(n, n.data.trimEnd().length);
       const lines = [...r.getClientRects()].map((x) => Math.round(x.left));
       const parent = li.parentElement.closest("li.task-list-item");
-      return { name: n.data.trim().split(":")[0], lines, edge: li.getBoundingClientRect().left, parentEdge: parent ? parent.getBoundingClientRect().left : null };
+      const boxOf = (x) => Math.round(x.querySelector(":scope > .task-box, :scope > p > .task-box").getBoundingClientRect().left);
+      return { name: n.data.trim().split(":")[0], lines, box: boxOf(li), parentBox: parent ? boxOf(parent) : null };
     }));
     const by = Object.fromEntries(rows.map((r) => [r.name, r]));
     for (const name of ["Plain", "Folds", "Subtask"]) {
@@ -52,8 +53,11 @@ describe("a task's title that wraps in the reading view (UI-5)", () => {
       assert.ok(lines.length > 1, `${name} wraps: ${JSON.stringify(rows)}`);
       for (const x of lines.slice(1)) assert.ok(Math.abs(x - lines[0]) <= 1, `${name}: ${JSON.stringify(by[name])}`);
     }
-    // the list's own indent (1.6em less the task row's -1.4em), not the parent's chevron and box as well
-    assert.ok(Math.abs(by.Subtask.edge - by.Subtask.parentEdge - 3.2) < 0.5, `a subtask nests where it did: ${JSON.stringify(by.Subtask)}`);
+    // a task that folds hangs its chevron before the box, and the plain one beside it keeps that room: one column of boxes (#18)
+    assert.equal(by.Plain.box, by.Folds.box, `boxes in one column: ${JSON.stringify(rows)}`);
+    // the subtask's box sits under its parent's text, not left of the parent's box
+    assert.ok(by.Subtask.box - by.Subtask.parentBox >= 16, `a subtask nests right of its parent: ${JSON.stringify(by.Subtask)}`);
+    assert.ok(Math.abs(by.Subtask.box - by.Folds.lines[0]) <= 4, `a subtask's box under its parent's text: ${JSON.stringify(rows)}`);
     noErrors();
   });
 });
@@ -108,6 +112,26 @@ describe("mentions under the note (UI-8)", () => {
     await ev(() => openEditor("cards/Alone.md", { focus: false, wide: false }));
     await settle();
     assert.equal(await ev(() => getComputedStyle(document.querySelector("#editor .sn-reading")).minHeight), "240px");
+    noErrors();
+  });
+});
+
+describe("a heading that folds, on a phone (#19)", () => {
+  test("it starts where the text does, its chevron at the line's right end, and it still folds", async () => {
+    await openVault({ demo: false, openNotes: "read", viewport: { width: 412, height: 900 }, touch: true, notes: { "cards/Plan.md": "Intro text.\n\n## Trip\n\nFirst part.\n\n## Later\n\nSecond part.\n" } });
+    await ev(() => openEditor("cards/Plan.md", { focus: false }));
+    await settle();
+    const m = await ev(() => {
+      const root = document.querySelector("#editor .sn-reading .markdown-rendered") || document.querySelector("#editor .markdown-rendered");
+      const r = document.createRange(), leftOf = (el) => { const t = [...el.childNodes].find((x) => x.nodeType === 3 && x.data.trim()); r.selectNodeContents(t); return r.getBoundingClientRect(); };
+      const h2 = root.querySelector("h2"), fold = h2.querySelector(".org-fold").getBoundingClientRect(), text = leftOf(h2);
+      return { para: Math.round(leftOf(root.querySelector("p")).left), head: Math.round(text.left), foldRight: Math.round(fold.right), headRight: Math.round(h2.getBoundingClientRect().right), centres: Math.round((fold.top + fold.bottom) / 2 - (text.top + text.bottom) / 2) };
+    });
+    assert.ok(Math.abs(m.head - m.para) <= 1, `heading starts with the text: ${JSON.stringify(m)}`);
+    assert.ok(Math.abs(m.foldRight - m.headRight) <= 1 && Math.abs(m.centres) <= 3, `chevron at the right end of the first line: ${JSON.stringify(m)}`);
+    await ev(() => document.querySelector("#editor h2 .org-fold").click());
+    await settle();
+    assert.equal(await ev(() => [...document.querySelectorAll("#editor p")].find((p) => p.textContent === "First part.")?.closest(".org-hidden") != null || [...document.querySelectorAll("#editor p")].some((p) => p.textContent === "First part." && p.classList.contains("org-hidden"))), true, "the section folds");
     noErrors();
   });
 });

@@ -114,16 +114,32 @@
   font-size: var(--fs-ui); font-weight: var(--fw-semibold); font-family: var(--font-ui);
 }
 
+/* ---------- A demo or a copy says so above the list, in the layout (board.js renderStanding, #22) */
+.sn-standing { display: flex; align-items: center; gap: var(--sp-8); margin: 0 var(--sp-24) var(--sp-8); padding: var(--sp-4) var(--sp-4) var(--sp-4) var(--sp-12); border-radius: var(--r-s); background: var(--panel); color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh-ui); }
+.sn-standing .sb-dot { flex: none; background: var(--hue-orange-fg); }
+.sn-standing-text { flex: 1; min-width: 0; }
+.sn-standing-x { flex: none; }
+@media (max-width: 820px) { .sn-standing { margin-inline: var(--sp-16); } }
+@media (hover: none) { .sn-standing-x { position: relative; } .sn-standing-x::after { content: ""; position: absolute; inset: -9px -7px; } } /* 40×40 (spec UI-9) */
+
 /* ---------- Search and filters */
 .sn-search:focus-within { border-color: var(--accent); box-shadow: var(--ring); }
 .sn-search-icon { display: inline-flex; color: var(--muted); }
-.sn-board .sn-search-input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; box-shadow: none; }
+.sn-board .sn-search-input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; background: transparent; box-shadow: none; }
 .sn-board .sn-filter-btn { gap: var(--sp-6); }
 .sn-board .sn-filter-btn svg { width: var(--icon-xs); height: var(--icon-xs); }
 .sn-board .sn-filter-btn.is-active { color: var(--accent); }
 .sn-board .sn-filter-btn[disabled] { opacity: var(--disabled); pointer-events: none; }
 .sn-filter-chip-x { display: inline-flex; opacity: 0.6; }
 .sn-filterbar .sn-spacer { flex: 1; }
+/* when the bar is too narrow for one line, the close button stays on the field's line and the filters wrap under them (#20) */
+.sn-filterbar { container-type: inline-size; }
+@container (max-width: 560px) {
+  .sn-filterbar > * { order: 2; }
+  .sn-filterbar > .sn-search { order: 0; flex-basis: calc(100% - var(--ctl-l) - var(--sp-6)); max-width: none; }
+  .sn-filterbar > .sn-search-close { order: 1; }
+  .sn-filterbar > .sn-spacer { display: none; }
+}
 
 /* ---------- Multi-select */
 .sn-card.is-picked::before {
@@ -143,6 +159,10 @@
 .sn-card:focus-visible { box-shadow: var(--ring); }
 
 .sn-empty { margin: var(--sp-48) auto; text-align: center; }
+.sn-empty-acts { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-8); margin-top: var(--sp-16); }
+.sn-empty-acts button.sn-btn { height: var(--ctl-l); padding: 0 var(--sp-12); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); color: var(--ink); font-size: var(--fs-ui); font-weight: var(--fw-medium); }
+@media (hover: hover) { .sn-empty-acts button.sn-btn:hover { background: var(--hover-bg); } }
+@media (hover: none) { .sn-empty-acts button.sn-btn { height: var(--ctl-touch); } }
 .sn-footnote { margin-top: var(--sp-20); font-size: var(--fs-sm); color: var(--faint); text-align: center; }
 .sn-sentinel { height: 1px; }
 

@@ -503,3 +503,67 @@ describe("no note colors", () => {
     noErrors();
   });
 });
+
+describe("the search bar in a narrow list (#20)", () => {
+  test("the close button stays on the field's line; the filters wrap under them", async () => {
+    await openVault({ viewport: { width: 1024, height: 768 } });
+    await ev(() => { openEditor("cards/This week.md"); toggleSearch(true); });
+    await page().fill(".sn-search-input", "road");
+    await page().waitForTimeout(400);
+    const m = await ev(() => {
+      const g = (s) => document.querySelector(s).getBoundingClientRect();
+      const bar = g(".sn-filterbar"), field = g(".sn-search"), close = g(".sn-search-close"), scope = g(".sn-scope");
+      return { bar: bar.width, fieldTop: field.top, fieldBottom: field.bottom, closeMid: (close.top + close.bottom) / 2, closeLeft: close.left, fieldRight: field.right, scopeTop: scope.top, inputBg: getComputedStyle(document.querySelector(".sn-search-input")).backgroundColor };
+    });
+    assert.ok(m.bar < 560, `the list is narrow here: ${JSON.stringify(m)}`);
+    assert.ok(m.closeMid > m.fieldTop && m.closeMid < m.fieldBottom && m.closeLeft > m.fieldRight, `close beside the field: ${JSON.stringify(m)}`);
+    assert.ok(m.scopeTop >= m.fieldBottom, `the filters on the next line: ${JSON.stringify(m)}`);
+    assert.equal(m.inputBg, "rgba(0, 0, 0, 0)", "the input has no fill of its own inside the field");
+  });
+});
+
+describe("a demo vault's standing note (#22)", () => {
+  for (const [name, o] of [["desktop", { viewport: { width: 1440, height: 900 } }], ["phone", { viewport: { width: 412, height: 915 }, touch: true }]]) {
+    test(`${name}: a strip above the list, not a toast over the page; closed, it stays closed`, async () => {
+      await openVault(o);
+      await page().waitForTimeout(300);
+      const m = await ev(() => {
+        const strip = document.querySelector("#board .sn-standing"), toast = document.querySelector("#toast");
+        const sr = strip.getBoundingClientRect(), first = document.querySelector("#board .sn-page").getBoundingClientRect();
+        return { text: strip.textContent, toastShown: !!toast && !toast.classList.contains("is-blank"), above: sr.bottom <= first.top + 1 };
+      });
+      assert.match(m.text, /Demo vault/);
+      assert.equal(m.toastShown, false, "no toast floats over the page");
+      assert.ok(m.above, `the strip takes its own room above the list: ${JSON.stringify(m)}`);
+      await page().click("#board .sn-standing-x");
+      await ev(() => renderBoard());
+      assert.equal(await ev(() => !!document.querySelector("#board .sn-standing")), false, "closed for this vault");
+    });
+  }
+});
+
+describe("notebook tiles (#23)", () => {
+  const vaultOf = (names) => {
+    const notes = Object.fromEntries(names.map((n) => [`cards/${n}.md`, "x"]));
+    notes["cards/Kid.md"] = `---\nparents: [${names.map((n) => `'[[${n}]]'`).join(", ")}]\n---\n`;
+    return notes;
+  };
+  const tiles = () => ev(() => [...document.querySelectorAll("#board .sn-row.is-folder")].map((r) => {
+    const tt = r.querySelector(".sn-row-title");
+    return { name: tt.textContent, whole: tt.scrollWidth <= tt.clientWidth, top: Math.round(r.getBoundingClientRect().top) };
+  }));
+  test("a long word is never cut: the grid fits fewer to a row", async () => {
+    await openVault({ demo: false, viewport: { width: 1440, height: 900 }, notes: vaultOf(["History", "Architecture", "Knowledge"]) });
+    await ev(() => openEditor("cards/Kid.md"));
+    const ts = await tiles();
+    assert.equal(ts.length, 3);
+    for (const x of ts) assert.ok(x.whole, `${x.name} shown whole: ${JSON.stringify(ts)}`);
+  });
+  test("names of short words wrap onto a second line and keep three to a row", async () => {
+    await openVault({ demo: false, viewport: { width: 1440, height: 900 }, notes: vaultOf(["Home", "Roman Empire", "Work notes"]) });
+    await ev(() => openEditor("cards/Kid.md"));
+    const ts = await tiles();
+    assert.equal(new Set(ts.map((x) => x.top)).size, 1, `one row: ${JSON.stringify(ts)}`);
+    for (const x of ts) assert.ok(x.whole, `${x.name} not cut inside a word: ${JSON.stringify(ts)}`);
+  });
+});

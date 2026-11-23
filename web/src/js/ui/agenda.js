@@ -251,7 +251,8 @@ export function renderTasksView(root) {
   else if (AG.view === "agenda") {
     const days = AG.span === "day" ? [AG.anchor] : Array.from({ length: 7 }, (_, i) => AG.anchor - ((oymd(AG.anchor).w + 6) % 7) + i);
     // the title says which days ("9–15 November", or the day), the week's number beside it; the log is the bar's toggle
-    body.append(agHead("calendar-check", tt("vAgenda") + " · " + tt("weekN", { n: oisoWeek(days[0]) }),
+    // the tab above already says Agenda: the line over the title names the week only (#29)
+    body.append(agHead("calendar-check", tt("weekN", { n: oisoWeek(days[0]) }),
       h("div", { cls: "ag-title", title: tt(AG.span === "week" ? "weekAgenda" : "dayAgenda") },
         h("b", { text: AG.span === "week" ? dayRange(days[0], days[6], T) : oFmt(days[0], "dddd, D MMMM") + (oymd(days[0]).y !== oymd(T).y ? " " + oymd(days[0]).y : "") })), true));
     // on a phone: the week as a strip of days (a dot where something is on), a tap opens that day; the month is one more tap
@@ -380,7 +381,7 @@ function orgRow(x) {
   // a row under its own day needs no "Scheduled" chip: the day already says so (late and deadline chips stay)
   if (x.kind === "sched" && !x.overdue && label === tt("lScheduled")) label = "";
   const time = x.time != null ? ohm(x.time) + (x.end != null ? "–" + ohm(x.end) : "") : "";
-  const row = h("div", { cls: `ag-row k-${kindCls}` + (x.overdue ? " overdue" : "") + (e.done ? " is-done" : ""), role: "option", dataset: { i: String(i), path: e.path, line: String(e.line) } });
+  const row = h("div", { cls: `ag-row k-${kindCls}` + (x.overdue ? " overdue" : "") + (e.done ? " is-done" : "") + (x.time != null ? " has-time" : ""), role: "option", dataset: { i: String(i), path: e.path, line: String(e.line) } });
   const main = h("span", { cls: "ag-main" });
   // a task's priority colours its box; only the top one also gets a letter, so it does not rest on colour alone
   if (e.isTodo) { const b = taskBox(e.state, { dataset: { act: "tick" } }); if (e.pri) { b.title +=` · ${tt("priority")} ${e.pri}`; } main.append(b); }
@@ -505,7 +506,7 @@ function orgAgendaKey(ev) {
   if (k === ".") { stop(); orgNav(0); return; }
   if (k === "j") { stop(); orgNav("jump"); return; }
   if (k === "l") { stop(); AG.log = !AG.log; saveAG(); renderBoard(); echo(`${tt("log")}: ${AG.log ? "on" : "off"}`); return; }
-  if (k === "r" || k === "g") { stop(); orgCache.clear(); renderBoard(); echo(LANG === "ru" ? "Агенда обновлена" : "Agenda refreshed"); return; }
+  if (k === "r" || k === "g") { stop(); orgCache.clear(); renderBoard(); echo(LANG === "ru" ? "Повестка обновлена" : "Agenda refreshed"); return; }
   if (k === "/") { stop(); orgAskFilter(); return; }
   if (k === "\\") { stop(); AG.filter = {}; renderBoard(); return; }
   if (k === "c") { stop(); orgCapture(); return; }
