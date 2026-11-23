@@ -310,3 +310,11 @@ describe("search (SRCH-1, SRCH-2, SRCH-3)", () => {
     assert.equal(headingsText("# One\ntext #tag\n### Three ##\n    # code"), "One\nThree ##\n");
   });
 });
+
+describe("the Russian interface's words (#30)", () => {
+  test("the agenda is «Повестка», never «Агенда»", async () => {
+    const src = (await import("node:fs")).readFileSync(new URL("../web/src/js/core/strings.js", import.meta.url), "utf8");
+    assert.doesNotMatch(src, /[Аа]генд/);
+    assert.match(src, /tabAgenda: "Повестка"/);
+  });
+});

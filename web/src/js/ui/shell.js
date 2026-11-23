@@ -378,7 +378,7 @@ function hotkeyGroups() {
     [t("keysGroupNote"), [[kb("Ctrl", "E"), t("k_reading")], [or(kb("[["), kb("Ctrl", "L")), t("k_link")], [kb("/"), wt("slashHint")], [kb("#"), wt("tagsSection")],
       [kb("Ctrl", "Shift", "T"), t("menuAddTag").replace("…", "")], [kb("Ctrl", "Shift", "F"), wt("focus")]]],
     [t("keysGroupTasks"), [[kb("Ctrl", "Shift", "K"), tt("tasksHint")], [kb("Ctrl", "Enter"), LANG === "ru" ? "Задача: следующее состояние (в редакторе)" : "Next task state (in the editor)"],
-      [kb("Ctrl", "C", "…"), tt("keysEditor")], [kb(LANG === "ru" ? "агенда" : "agenda"), tt("keysAgenda")]]],
+      [kb("Ctrl", "C", "…"), tt("keysEditor")], [kb(LANG === "ru" ? "повестка" : "agenda"), tt("keysAgenda")]]],
   ];
 }
 /** The keyboard shortcuts are a section of the settings. */

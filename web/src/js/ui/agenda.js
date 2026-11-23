@@ -506,7 +506,7 @@ function orgAgendaKey(ev) {
   if (k === ".") { stop(); orgNav(0); return; }
   if (k === "j") { stop(); orgNav("jump"); return; }
   if (k === "l") { stop(); AG.log = !AG.log; saveAG(); renderBoard(); echo(`${tt("log")}: ${AG.log ? "on" : "off"}`); return; }
-  if (k === "r" || k === "g") { stop(); orgCache.clear(); renderBoard(); echo(LANG === "ru" ? "Агенда обновлена" : "Agenda refreshed"); return; }
+  if (k === "r" || k === "g") { stop(); orgCache.clear(); renderBoard(); echo(LANG === "ru" ? "Повестка обновлена" : "Agenda refreshed"); return; }
   if (k === "/") { stop(); orgAskFilter(); return; }
   if (k === "\\") { stop(); AG.filter = {}; renderBoard(); return; }
   if (k === "c") { stop(); orgCapture(); return; }
