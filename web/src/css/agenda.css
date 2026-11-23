@@ -280,7 +280,12 @@ button.cap-cal-btn svg { width: var(--icon-s); height: var(--icon-s); }
 .markdown-rendered :is(h1, h2, h3, h4, h5, h6):not(.org-entry) > button.org-fold { position: absolute; left: -22px; top: .35em; margin: 0; opacity: 0; transition: opacity var(--dur-1) var(--ease); }
 .markdown-rendered :is(h1, h2, h3, h4, h5, h6):not(.org-entry).is-collapsed > button.org-fold, .markdown-rendered :is(h1, h2, h3, h4, h5, h6) > button.org-fold:focus-visible { opacity: 1; }
 @media (hover: hover) { .markdown-rendered :is(h1, h2, h3, h4, h5, h6):not(.org-entry):hover > button.org-fold { opacity: 1; } }
-@media (hover: none), (max-width: 820px) { .markdown-rendered :is(h1, h2, h3, h4, h5, h6):not(.org-entry) > button.org-fold { position: relative; left: auto; top: auto; margin: 0 var(--sp-4) 0 calc(var(--sp-2) * -1); opacity: 1; } }
+/* on a touch screen or a narrow page there is no margin to hang it in: it stands at the heading's right end, always shown, and the
+   heading starts where the text does (#19) */
+@media (hover: none), (max-width: 820px) {
+  .markdown-rendered :is(h1, h2, h3, h4, h5, h6):not(.org-entry).org-foldable { padding-inline-end: calc(var(--fold-w) + var(--sp-8)); }
+  .markdown-rendered :is(h1, h2, h3, h4, h5, h6):not(.org-entry) > button.org-fold { left: auto; right: 0; top: .35em; opacity: 1; }
+}
 
 /* Files view: every attachment in the vault, list + preview */
 button.sn-btn.wb-files.is-active { border-color: var(--accent); }

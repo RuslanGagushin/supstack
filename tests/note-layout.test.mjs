@@ -115,3 +115,23 @@ describe("mentions under the note (UI-8)", () => {
     noErrors();
   });
 });
+
+describe("a heading that folds, on a phone (#19)", () => {
+  test("it starts where the text does, its chevron at the line's right end, and it still folds", async () => {
+    await openVault({ demo: false, openNotes: "read", viewport: { width: 412, height: 900 }, touch: true, notes: { "cards/Plan.md": "Intro text.\n\n## Trip\n\nFirst part.\n\n## Later\n\nSecond part.\n" } });
+    await ev(() => openEditor("cards/Plan.md", { focus: false }));
+    await settle();
+    const m = await ev(() => {
+      const root = document.querySelector("#editor .sn-reading .markdown-rendered") || document.querySelector("#editor .markdown-rendered");
+      const r = document.createRange(), leftOf = (el) => { const t = [...el.childNodes].find((x) => x.nodeType === 3 && x.data.trim()); r.selectNodeContents(t); return r.getBoundingClientRect(); };
+      const h2 = root.querySelector("h2"), fold = h2.querySelector(".org-fold").getBoundingClientRect(), text = leftOf(h2);
+      return { para: Math.round(leftOf(root.querySelector("p")).left), head: Math.round(text.left), foldRight: Math.round(fold.right), headRight: Math.round(h2.getBoundingClientRect().right), centres: Math.round((fold.top + fold.bottom) / 2 - (text.top + text.bottom) / 2) };
+    });
+    assert.ok(Math.abs(m.head - m.para) <= 1, `heading starts with the text: ${JSON.stringify(m)}`);
+    assert.ok(Math.abs(m.foldRight - m.headRight) <= 1 && Math.abs(m.centres) <= 3, `chevron at the right end of the first line: ${JSON.stringify(m)}`);
+    await ev(() => document.querySelector("#editor h2 .org-fold").click());
+    await settle();
+    assert.equal(await ev(() => [...document.querySelectorAll("#editor p")].find((p) => p.textContent === "First part.")?.closest(".org-hidden") != null || [...document.querySelectorAll("#editor p")].some((p) => p.textContent === "First part." && p.classList.contains("org-hidden"))), true, "the section folds");
+    noErrors();
+  });
+});
