@@ -190,7 +190,12 @@ button.clickable-icon.wb-icon { padding: 0; }
 .sn-prop .sn-prop-key { color: var(--faint); }
 @media (hover: hover) { .sn-prop:hover { background: var(--hover-bg); } }
 .sn-prop-key svg { width: var(--icon-xs); height: var(--icon-xs); flex: 0 0 auto; color: var(--faint); }
-.sn-prop-other { color: var(--muted); font-family: var(--font-code); white-space: pre-wrap; font-size: var(--fs-sm); }
+.sn-prop-other { color: var(--fg); white-space: pre-wrap; }
+.sn-prop-other.is-yaml { color: var(--muted); font-family: var(--font-code); font-size: var(--fs-sm); } /* a list or a map, as YAML */
+.sn-prop-swatch { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
+.sn-prop-swatch.hue-green { background: var(--hue-green-fg); } .sn-prop-swatch.hue-blue { background: var(--hue-blue-fg); }
+.sn-prop-swatch.hue-orange { background: var(--hue-orange-fg); } .sn-prop-swatch.hue-pink { background: var(--hue-pink-fg); }
+.sn-prop-swatch.hue-yellow { background: var(--hue-yellow-fg); } .sn-prop-swatch.hue-purple { background: var(--hue-purple-fg); }
 .sn-icon-pick { display: inline-flex; align-items: center; gap: var(--sp-6); padding: var(--sp-2) var(--sp-6); border-radius: var(--r-xs); cursor: default; font-size: var(--fs-sm); }
 .sn-editor-text.is-source { font-size: var(--fs-ui); font-family: var(--font-code); }
 .sn-fm-error { font-family: var(--font-code); background: color-mix(in srgb, var(--todo) 10%, transparent); color: var(--todo); }

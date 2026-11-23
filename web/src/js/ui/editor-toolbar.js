@@ -3,7 +3,7 @@
    (insert, wrap, prefix lines, headings).
    ========================================================= */
 import { LANG, t, wt } from "../core/i18n.js";
-import { baseName, hueOf } from "../core/util.js";
+import { baseName, HUES, hueOf } from "../core/util.js";
 import { dumpYaml } from "../core/frontmatter.js";
 import { formatTable } from "../core/tables.js";
 import { editor, graph, PARENTS_FIELD, UI, vault } from "../services/state.js";
@@ -101,8 +101,13 @@ export function fillProps(host, path, n, o = {}) {
   const known = new Set([field, "icon", "tags", "tag", "child_template"]);
   const others = Object.entries(n.fm).filter(([k]) => !known.has(k));
   for (const [k, v] of others) {
-    const txt = typeof v === "object" && v !== null ? dumpYaml(v).trim() : String(v);
-    props.append(row(k === "child_order" ? "list-ordered" : k === "order" ? "hash" : "text", k, h("span", { cls: "sn-prop-other", text: txt, title: t("otherProps") })));
+    // a list or a map reads as the YAML it is; a plain value in the panel's own type, like the values above it (#26)
+    const yaml = typeof v === "object" && v !== null;
+    const txt = yaml ? dumpYaml(v).trim() : String(v);
+    const val = h("span", { cls: "sn-prop-other" + (yaml ? " is-yaml" : ""), text: txt, title: t("otherProps") });
+    // a colour the app knows shows as itself: a swatch before its name
+    const hue = k === "color" && typeof v === "string" && HUES.includes(v.trim().toLowerCase()) ? v.trim().toLowerCase() : null;
+    props.append(row(k === "child_order" ? "list-ordered" : k === "order" ? "hash" : "text", k, ...(hue ? [h("span", { cls: "sn-prop-swatch hue-" + hue, "aria-hidden": "true" })] : []), val));
   }
   host.append(props);
   if (hadFocus || (tagFocus && focusLost())) inputOf()?.focus();

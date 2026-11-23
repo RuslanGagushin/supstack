@@ -494,3 +494,21 @@ describe("the note's panel", () => {
     noErrors();
   });
 });
+
+describe("the side panel's properties (#26)", () => {
+  test("plain values in the panel's type, a known colour with a swatch, a list as YAML", async () => {
+    await openVault({ demo: false, viewport: { width: 1440, height: 900 }, notes: { "cards/Props.md": "---\ncolor: green\norder: 3\ncategory: Week\naliases: [a, b]\n---\nText\n" } });
+    await ev(() => { openEditor("cards/Props.md"); if (!document.querySelector(".sn-insp")) toggleInspector(); });
+    await H.page.waitForTimeout(300);
+    const m = await ev(() => {
+      const val = (k) => [...document.querySelectorAll(".sn-insp .sn-prop")].find((r) => r.querySelector(".sn-prop-key").textContent === k)?.querySelector(".sn-prop-val");
+      const font = (el) => getComputedStyle(el).fontFamily;
+      const body = font(document.querySelector(".sn-insp .sn-prop-key"));
+      return { body, color: font(val("color").querySelector(".sn-prop-other")), order: font(val("order").querySelector(".sn-prop-other")), aliases: font(val("aliases").querySelector(".sn-prop-other")), swatch: !!val("color").querySelector(".sn-prop-swatch.hue-green"), noSwatch: !val("category").querySelector(".sn-prop-swatch") };
+    });
+    assert.equal(m.color, m.body, JSON.stringify(m));
+    assert.equal(m.order, m.body, JSON.stringify(m));
+    assert.notEqual(m.aliases, m.body, `a list stays as YAML: ${JSON.stringify(m)}`);
+    assert.ok(m.swatch && m.noSwatch, JSON.stringify(m));
+  });
+});
