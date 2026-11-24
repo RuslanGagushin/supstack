@@ -212,16 +212,19 @@ function renderRows(page, scroll, model, composer) {
   return rows;
 }
 /** Tiles as wide as their longest word needs (#23): a name wraps onto a second line between words, and a word too long for
-   a tile makes the grid fit fewer to a row instead of being cut. Within a 96–200px tile, with the tile's 12px sides. */
+   a tile makes the grid fit fewer to a row instead of being cut. Within a 96–200px tile, with the tile's own sides (10px each, so three tiles fit a 360px list). */
 const measureCtx = document.createElement("canvas").getContext("2d");
 function fitTiles(box) {
   const titles = [...box.querySelectorAll(":scope > .is-folder .sn-row-title")];
   if (!titles.length || !titles[0].isConnected || !measureCtx) return;
+  // measured in a fallback font the names come out wider: measure again once the page's own font is in
+  if (document.fonts && document.fonts.status !== "loaded") document.fonts.ready.then(() => fitTiles(box));
   const st = getComputedStyle(titles[0]);
   measureCtx.font = `${st.fontWeight} ${st.fontSize} ${st.fontFamily}`;
   let widest = 0;
   for (const x of titles) for (const w of x.textContent.split(/\s+/)) widest = Math.max(widest, measureCtx.measureText(w).width);
-  if (widest) box.style.setProperty("--tile-min", Math.min(200, Math.max(96, Math.ceil(widest) + 26)) + "px");
+  const tile = getComputedStyle(titles[0].closest(".is-folder")), sides = parseFloat(tile.paddingLeft) + parseFloat(tile.paddingRight) + 2;
+  if (widest) box.style.setProperty("--tile-min", Math.min(200, Math.max(96, Math.ceil(widest + sides))) + "px");
 }
 /** The top of the list of notes: the card (or tag) it lists and how many notebooks and notes it shows. */
 function renderListHead(model) {

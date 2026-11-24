@@ -107,7 +107,7 @@ export function fillProps(host, path, n, o = {}) {
     const val = h("span", { cls: "sn-prop-other" + (yaml ? " is-yaml" : ""), text: txt, title: t("otherProps") });
     // a colour the app knows shows as itself: a swatch before its name
     const hue = k === "color" && typeof v === "string" && HUES.includes(v.trim().toLowerCase()) ? v.trim().toLowerCase() : null;
-    props.append(row(k === "child_order" ? "list-ordered" : k === "order" ? "hash" : "text", k, ...(hue ? [h("span", { cls: "sn-prop-swatch hue-" + hue, "aria-hidden": "true" })] : []), val));
+    props.append(row(k === "child_order" ? "list-ordered" : k === "order" ? "hash" : k === "color" ? "palette" : "text", k, ...(hue ? [h("span", { cls: "sn-prop-swatch hue-" + hue, "aria-hidden": "true" })] : []), val));
   }
   host.append(props);
   if (hadFocus || (tagFocus && focusLost())) inputOf()?.focus();

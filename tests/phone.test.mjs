@@ -123,8 +123,9 @@ describe("an agenda row on a phone (#25)", () => {
     await H.page.waitForTimeout(300);
     const rows = await ev(() => Object.fromEntries([...document.querySelectorAll(".ag-row")].map((r) => {
       const main = r.querySelector(".ag-main"), box = main.querySelector(".task-box").getBoundingClientRect();
-      const meta = r.querySelector(".ag-meta > :not(:empty)")?.getBoundingClientRect();
-      return [main.textContent.trim().replace(/Plan$/, ""), { title: Math.round(main.getBoundingClientRect().top), meta: meta && Math.round(meta.top), metaLeft: meta && Math.round(meta.left), text: Math.round(box.right) }];
+      // the chip that is shown: above the title (a time) or on the line under it (a date)
+      const meta = [...r.querySelectorAll(".ag-meta > :not(:empty), .ag-lab-sub")].find((x) => x.getClientRects().length)?.getBoundingClientRect();
+      return [[...main.childNodes].filter((n) => !n.classList?.contains("ag-sub")).map((n) => n.textContent).join("").trim(), { title: Math.round(main.getBoundingClientRect().top), meta: meta && Math.round(meta.top), metaLeft: meta && Math.round(meta.left), text: Math.round(box.right) }];
     })));
     const late = rows["Late one"], timed = rows["Timed today"];
     assert.ok(late && late.meta > late.title, `the date under the title: ${JSON.stringify(rows)}`);

@@ -23,6 +23,8 @@
 .sb-status-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sb-dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--faint); }
 .sb-status.is-unsaved .sb-dot { background: var(--hue-orange-fg); }
+/* while the strip above the list says it (#22), the foot doesn't say it again; closed, or in another view, the foot keeps it */
+body:has(#board .sn-standing) .sb-status.is-unsaved > * { visibility: hidden; }
 button.clickable-icon.sb-foot-btn { flex: none; width: var(--ctl-m); height: var(--ctl-m); padding: 0; border-radius: var(--r-s); color: var(--muted); }
 @media (hover: hover) { button.clickable-icon.sb-foot-btn:hover { background: var(--hover-bg); color: var(--fg); } }
 .sb-foot-btn svg.svg-icon { width: var(--icon-m); height: var(--icon-m); }
@@ -304,7 +306,7 @@ button.sn-row-enter svg { width: var(--icon-m); height: var(--icon-m); }
 .sn-row:focus-visible button.sn-row-enter { background: var(--accent-soft); color: var(--accent-ink); }
 @media (hover: hover) { button.sn-row-enter:hover { background: var(--accent-soft); color: var(--accent-ink); } }
 /* a notebook: a tile at the top of the list, its icon over its name and how much it holds (cards.js renderFolderRow, RS-26) */
-.sn-board .sn-card.sn-row.is-folder { flex-direction: column; align-items: flex-start; gap: var(--sp-10); padding: var(--sp-12); background: var(--hover-bg); box-shadow: none; cursor: pointer; }
+.sn-board .sn-card.sn-row.is-folder { flex-direction: column; align-items: flex-start; gap: var(--sp-10); padding: var(--sp-12) var(--sp-10); background: var(--hover-bg); box-shadow: none; cursor: pointer; }
 /* under the pointer a step darker; pressed (the --sel rule at the end of the styles) and open, one more (DS-8) */
 @media (hover: hover) { :where(.sn-board) .sn-card.sn-row.is-folder:hover { background: var(--panel); box-shadow: none; } } /* :where: no heavier than the pressed rule */
 .sn-board .sn-card.sn-row.is-folder.is-editing { background: var(--sel); box-shadow: none; }
@@ -420,7 +422,7 @@ body.theme-dark .sn-welcome-logo { filter: brightness(.82); } /* the icon's whit
 
 /* ---------- Settings: sections on the left, groups of rows on cards on the right */
 .modal.mod-settings {
-  display: flex; flex-direction: column; width: min(960px, calc(100vw - 48px)); height: min(700px, calc(100vh - 48px));
+  display: flex; flex-direction: column; width: min(880px, calc(100vw - 48px)); height: min(600px, calc(100vh - 48px)); /* one size for every section, so switching never resizes it */
   padding: 0; overflow: hidden; background: var(--win);
 }
 .modal.mod-settings > .modal-title { flex: none; margin: 0; padding: var(--sp-14) 52px var(--sp-12) var(--sp-20); border-bottom: 1px solid var(--line); background: var(--win); font-size: var(--fs-text); }
