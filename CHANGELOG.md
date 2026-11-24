@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.37.2
+
+- On a phone, three notebook tiles fit a 360px list from the first paint, and an agenda row without a time keeps its date chip beside its tags. The demo vault no longer says «Not saved» twice, the colour property gets a palette icon, the agenda's tag chips say what they do, and Settings keeps one size when you switch sections.
+
 ## 0.37.1
 
 - Thirteen small fixes from a close look at the page on desktop and phone: subtasks line up, headings fold tidily on narrow screens, the search bar and notebook tiles fit without cutting words, card previews and the demo notice read cleanly, agenda rows and the side panel line up, tags look the same everywhere, an empty search offers a way out, and Russian says «Повестка».
