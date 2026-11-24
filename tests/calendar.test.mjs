@@ -196,7 +196,7 @@ describe("the time column in the week (#24)", () => {
     await page().waitForTimeout(300);
     const at = await ev(() => Object.fromEntries([...document.querySelectorAll(".ag-row")].map((r) => {
       const card = (r.closest(".ag-rows") || r.closest(".ag-card")).getBoundingClientRect();
-      return [r.querySelector(".ag-main").textContent.trim().replace(/Plan$/, ""), Math.round(r.querySelector(".ag-main").getBoundingClientRect().left - card.left)];
+      return [[...r.querySelector(".ag-main").childNodes].filter((n) => !n.classList?.contains("ag-sub")).map((n) => n.textContent).join("").trim(), Math.round(r.querySelector(".ag-main").getBoundingClientRect().left - card.left)];
     })));
     assert.ok(at["Late one"] <= 20 && at["Untimed friday"] <= 20, `no empty column without times: ${JSON.stringify(at)}`);
     assert.ok(at["Timed today"] > 80 && at["Untimed today"] === at["Timed today"], `a day with a time keeps it for every row: ${JSON.stringify(at)}`);

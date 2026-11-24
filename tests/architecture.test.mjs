@@ -123,8 +123,6 @@ test("padding, margin and gap use the spacing scale; the measured offsets are li
     [":where(select)", "28px", "room for the chevron"],
     [".ag-main:has(> .task-box) .ag-sub", "15px", "an agenda row's tags and note start under its title: the task box's width"],
     [".ag-main:has(> .ag-ev-bar) .ag-sub", "3px", "an agenda event's tags and note start under its title: the colour bar's width"],
-    [".ag-row:not(.has-time):has(> .ag-main > .task-box) > .ag-meta", "15px", "a phone's agenda row: its date under its title, past the task box"],
-    [".ag-row:not(.has-time):has(> .ag-main > .ag-ev-bar) > .ag-meta", "3px", "a phone's agenda row: its date under its title, past the colour bar"],
   ];
   const bad = [];
   for (const f of readdirSync(CSS).filter((f) => f.endsWith(".css"))) {

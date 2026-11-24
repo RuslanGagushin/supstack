@@ -24,7 +24,9 @@ button.sn-btn.wb-tasks.is-active { border-color: var(--accent); }
 .agbar .ag-btn[aria-pressed="true"] { background: var(--panel); color: var(--ink); }
 .agbar input.ag-input { flex: 1 1 200px; min-width: 0; height: var(--ctl-field); padding: 0 var(--sp-12); border-radius: var(--r-s); background: var(--win); }
 .agbar input.ag-input:focus { border-color: var(--accent); box-shadow: var(--ring); outline: none; }
-.ag-chips { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: var(--sp-4); }
+.ag-chips { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4); }
+.ag-chips-label { display: inline-flex; align-items: center; gap: var(--sp-4); margin-inline-end: var(--sp-4); color: var(--faint); font-size: var(--fs-sm); }
+.ag-chips-label svg { width: var(--icon-xs); height: var(--icon-xs); }
 /* wide screens show the log, "Go to…" and the tag chips in the bar; phones put them under the filters button */
 .agbar .ag-narrow-only { display: none; }
 .sn-board .agbar .ag-filters.is-active { background: var(--accent-soft); color: var(--accent-ink); }
@@ -98,6 +100,7 @@ body.sn-kb .ag-body:focus-visible:not(:has(.ag-row.is-selected)) { box-shadow: v
 .ag-main:has(> .ag-ev-bar) .ag-sub { padding-left: calc(3px + var(--sp-10)); }
 .ag-body.one-cat .ag-sub:not(:has(.tags)) { display: none; }
 .ag-main .ag-cat { white-space: nowrap; }
+.ag-lab-sub { display: none; }
 .ag-time { color: var(--faint); font-size: var(--fs-ui); white-space: nowrap; }
 .ag-lab { max-width: 20ch; color: var(--muted); font-size: var(--fs-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* the label is a chip: a calendar for a scheduled date (grey), a flag for a deadline (red when due, amber in its warning days) */
@@ -145,12 +148,11 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: var(--sp-8)
   .ag-row .ag-main { grid-area: auto; }
   .ag-meta { display: flex; gap: var(--sp-8); grid-column: 1 / -1; font-size: var(--fs-sm); }
   .ag-meta > * { grid-area: auto; }
-  /* without a time, the date chip goes under the title, lined up with its text, as in the note and on a desktop (#25);
+  /* without a time, the date chip goes under the title, on one line with its tags and note, lined up with its text (#25);
      a row with a time keeps it above, as the hour it starts */
-  .ag-row:not(.has-time) > .ag-meta { order: 1; }
-  .ag-row:not(.has-time) > .ag-act { order: 2; }
-  .ag-row:not(.has-time):has(> .ag-main > .task-box) > .ag-meta { padding-left: calc(15px + var(--sp-8)); }
-  .ag-row:not(.has-time):has(> .ag-main > .ag-ev-bar) > .ag-meta { padding-left: calc(3px + var(--sp-10)); }
+  .ag-row:not(.has-time) > .ag-meta { display: none; }
+  .ag-row:not(.has-time) .ag-lab-sub { display: inline-flex; }
+  .ag-body.one-cat .ag-row:not(.has-time) .ag-sub:has(.ag-lab-sub) { display: flex; }
   .ag-lab { max-width: none; }
   .ag-act { visibility: visible; display: none; }
   .ag-row.is-selected .ag-act { display: flex; position: static; transform: none; justify-self: start; margin-top: var(--sp-4); }

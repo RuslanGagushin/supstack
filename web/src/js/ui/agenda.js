@@ -208,7 +208,8 @@ export function renderTasksView(root) {
   const tags = [...tagCount.entries()].sort((a, b) => b[1] - a[1]).slice(0, 30).map((x) => x[0]).sort();
   for (const k of Object.keys(AG.filter)) if (!tags.includes(k)) tags.push(k);
   if (tags.length) {
-    const chips = h("div", { cls: "ag-chips" });
+    // the chips say what they are: a click includes a tag, a second excludes it, a third lets it go
+    const chips = h("div", { cls: "ag-chips", role: "group", "aria-label": tt("filterTags") }, h("span", { cls: "ag-chips-label", "aria-hidden": "true" }, ic("", "tag"), tt("filterByTag")));
     for (const tg of tags) {
       const v = AG.filter[tg];
       const c = h("button", { cls: "sn-chip" + (v === 1 ? " is-accent" : v === -1 ? " is-danger is-struck" : ""), type: "button", text: (v === 1 ? "+" : v === -1 ? "−" : "") + tg, title: "include · exclude · off (/)" });
@@ -397,6 +398,9 @@ function orgRow(x) {
   // its tags and the note it is in, quietly under its title (spec UI-18); the note is left out when every row comes from one note (.one-cat)
   const shown = e.alltags.filter((x) => !inTitle.includes("#" + x.toLowerCase()));
   const sub = h("span", { cls: "ag-sub" });
+  // a phone shows an untimed row's date chip on this line, before its tags (the desktop keeps it in its own column);
+  // only one of the two copies is ever displayed, so a screen reader reads it once
+  if (!time && label) sub.append(h("span", { cls: "ag-lab ag-lab-sub" }, labelChip(kindCls, label, tone)));
   if (shown.length) sub.append(h("span", { cls: "tags" }, shown.map((tg) => h("span", { cls: "sn-chip is-s" + (e.inherited.includes(tg) ? " is-outline" : " hue-" + hueOf(tg)), text: tg }))));
   sub.append(h("span", { cls: "ag-cat", title: e.path, text: e.category }));
   main.append(sub);
