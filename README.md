@@ -55,7 +55,7 @@ Supstack shows a folder of Markdown notes (a *vault*) as notebooks with a list o
   </tr>
   <tr>
     <td width="50%"><img src="docs/screenshots/board-dark.png" alt="The list of notes in the dark theme"><br><sub><b>Dark theme.</b> The same view, with light and dark themes following the system.</sub></td>
-    <td width="50%"><img src="docs/screenshots/notes-layout.png" alt="Inside a notebook: its description, the notebooks in it and its notes"><br><sub><b>Inside a notebook.</b> Its own text as a description under the title, then the notebooks in it, then its notes.</sub></td>
+    <td width="50%"><img src="docs/screenshots/notes-layout.png" alt="Inside a notebook: its description, the notebooks in it and its notes"><br><sub><b>Inside a notebook.</b> Its own text under the title and open beside the list, then the notebooks in it, then its notes.</sub></td>
   </tr>
   <tr>
     <td colspan="2"><img src="docs/screenshots/agenda.png" alt="The week agenda with scheduled, overdue and closed tasks"><br><sub><b>Agenda.</b> Tasks from the whole vault by day, with overdue items and a time grid.</sub></td>

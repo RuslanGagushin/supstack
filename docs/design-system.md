@@ -2,7 +2,7 @@
 
 How the app's interface is put together: the variables every style draws from, the components built on them, and the rules the tests hold the styles to. The variables live in [`web/src/css/base.css`](../web/src/css/base.css); the components in the other six stylesheets, loaded in this order: `base`, `board`, `chrome`, `frame`, `writing`, `agenda`, `app`.
 
-**The look** (since 0.33, [`restyle-specification.md`](restyle-specification.md)): one white page in three columns, the sidebar on a light grey, hairlines between them and around cards rather than shadows; bold titles over a small label in the accent that says what the page is; rectangular plates rather than pills; the accent for the interface's own state; colour for content — each tag and note in its hue, deadlines orange, what is overdue red, what is closed green (0.34). Shadows are kept for what floats over the page: menus, popups, the toast, dialogs, the sidebar as a drawer, a raised segment. Red (`--todo`) is kept for what destroys, errors and an invalid field.
+**The look** (since the 0.33 restyle): one white page in three columns, the sidebar on a light grey, hairlines between them and around cards rather than shadows; bold titles, with a small label in the accent only where the page needs to say what it is (the list, the agenda); rectangular plates rather than pills; the accent for the interface's own state; colour for content — each tag and note in its hue, deadlines orange, what is overdue red, what is closed green (0.34). Shadows are kept for what floats over the page: menus, popups, the toast, dialogs, the sidebar as a drawer, a raised segment. Red (`--todo`) is kept for what destroys, errors and an invalid field.
 
 **The one rule:** a new value is a variable in `base.css` first. Colours, sizes, spacing, radii, shadows, layers, durations and weights are never written as numbers in a component's rule. `npm test` fails when one is (see [What the tests check](#what-the-tests-check)).
 
@@ -74,6 +74,7 @@ Six sizes and no more (spec UI-20); `tests/typography.test.mjs` measures them on
 | Control heights | `--ctl-xs` 20, `--ctl-s` 24, `--ctl-m` 28, `--ctl-l` 32, `--ctl-field` 34, `--ctl-touch` 40 | xs: small chips; s: chips, icons in a row; m: fields, buttons in bars; l: sidebar buttons, menu rows; field: the search fields; touch: the least a finger gets (spec UI-9) |
 | Icons | `--icon-xs` 12, `--icon-s` 14, `--icon-m` 16, `--icon-l` 18; `--icon-stroke` 1.75px | Lucide icons; one stroke |
 | Bars | `--header-height` 40 | the sidebar's head |
+| Tiles | `--tile-min` 96px (set per list, up to 200px) | the narrowest a notebook's tile gets; `fitTiles` widens it to the longest word in the names |
 | Panels | `--insp-w` 280 | the note's panel beside the note |
 
 ### Depth, focus, motion, layers
@@ -182,9 +183,15 @@ A modifier repeats the base's `:is(.sn-chip, .markdown-rendered a.tag)`; the bas
 
 A note in the list is `.sn-card.sn-row` with `role="option"` in a `role="listbox"`; the open note is `aria-selected`, picked notes `.is-picked`. Title first, then the text, then one line with the date, "2/8 tasks" and the tags (spec UI-22). A note is a white card with a hairline (an inset shadow, so the row keeps its size); the open one sits on `--bg` with `--line-strong`.
 
-A notebook in the list is a tile, `.sn-row.is-folder`: its icon, its name on one line (cut with an ellipsis, the whole name as its tooltip) and how many notes it holds, on `--hover-bg`. The tiles share a grid with the notes (`.sn-rows`), three to a row in a list of 360px; a faint `.sn-list-label` ("Notes", `aria-hidden`) heads the notes under them. ↑ and ↓ walk the list in order; → goes into a notebook and ← back out; Enter opens.
+A notebook in the list is a tile, `.sn-row.is-folder`: its icon, its name on up to two lines (broken between words, never inside one; a longer name ends in an ellipsis, the whole name is its tooltip) and how many notes it holds, on `--hover-bg`. The tiles share a grid with the notes (`.sn-rows`), three to a row in a list of 360px; a tile is never narrower than its longest word (`board.js fitTiles` sets `--tile-min`, 96–200px, measured again once the page's font has loaded; a tile's sides are 10px, so three fit a 360px list), so a long word gives fewer tiles to a row rather than a broken one; a faint `.sn-list-label` ("Notes", `aria-hidden`) heads the notes under them. ↑ and ↓ walk the list in order; → goes into a notebook and ← back out; Enter opens.
 
-The list's head, `.sn-list-head`: a faint kind (`.sn-list-kind`: Notebook, Tag or Search), the title at 24px bold, the count under it.
+The list's head, `.sn-list-head`: a faint kind (`.sn-list-kind`: Notebook, Tag or Search), the title at 24px bold, the count under it. A notebook with its own text shows that text beside its children's list (on a desktop) rather than opening the first child.
+
+**Search bar** — `.sn-filterbar`: the field, the filter buttons and a close button on one line. It is a container: below 560px the field and the close button keep the first line and the filters wrap under them.
+
+**Standing notice** — `.sn-standing`: a demo vault or a copy says so in a `--panel` strip above the list, in the layout (not floating), with an orange dot (`.sb-dot`) and a close button; `role="note"`. Closed, it stays closed for that vault. While it shows, the sidebar's foot doesn't say "Not saved" again.
+
+**Empty list** — `.sn-empty`: one line saying why. An empty search adds `.sn-empty-acts`, bordered `--win` buttons for the way out: search everywhere (when it searched one notebook) and clear the tag filters (when tags are on).
 
 ### A page's head
 
@@ -212,6 +219,22 @@ Over `.modal-bg` (`--scrim`), `--r-l`, `--shadow-4`, `--z-modal`; Escape closes 
 
 `role="status"`, `aria-live="polite"`: one line at the bottom (at the top on a phone), with an Undo or other action button and a close button. `.is-quiet` for passing news (saved, synced). `--shadow-3`, `--z-toast`.
 
+### Format bar and table bar — `.sn-fmtbar`, `.sn-table-bar`
+
+A floating bar over a selection: `--win`, a hairline, `--r-m` around `--r-xs` buttons (concentric), `--shadow-3`. `.sn-fmtbar` sits over selected text at `--z-popup`; `.sn-table-bar` over a selection in a table, just under the menus (`calc(var(--z-menu) - 1)`), with `.is-warn` on Delete.
+
+### Table selection — `.sn-table-host`
+
+In live preview ([`ui/table-select.js`](../web/src/js/ui/table-select.js)): handles on the left border of the row and the top border of the column under the pointer (`.sn-table-handle`, `--win` with a hairline, the accent when chosen; a click selects, a drag moves), accent dots on the border between two rows or columns that insert one there (`.sn-table-ins`), a 2px accent drop line while dragging (`.sn-table-drop`), and the chosen cells tinted with 8% of the accent (`.is-cell-selected`; a header cell keeps its own shade under the tint). An empty cell holds a line's height. On a touch screen each handle's tap area keeps to its border, and the add-row and add-column bars grow only away from the table, so a tap meant for a cell edits the cell.
+
+### Fold buttons in a note
+
+A heading's fold arrow hangs in the margin left of it, shown on hover. On a touch screen or a page up to 820px wide there is no margin: it stands at the heading's right end, always shown, and the heading starts where the text does. In a list where some tasks fold, the others keep the fold's room too, so every box stands in one column; subtasks nest under their parent's text.
+
+### Properties — `.sn-prop`
+
+A key in `--faint` with its icon, the value in `--fg`; a list or a map shows as YAML (`.sn-prop-other.is-yaml`, code font, `--muted`). A `color` value has a palette icon and shows its hue as a 10px dot (`.sn-prop-swatch.hue-*`).
+
 ### Calendar — `.org-cal`
 
 A month of `.cal-day` buttons in a `role="grid"`: arrows move a day or a week, PageUp and PageDown a month. The chosen day `.is-selected`, today `.is-today`, quick dates `.cal-q` (`.is-active` when chosen).
@@ -219,6 +242,16 @@ A month of `.cal-day` buttons in a `role="grid"`: arrows move a day or a week, P
 ### Callout
 
 In a note's text: `> [!type]` draws a frame with the type's icon and title; the icon is `--muted` for every type.
+
+## Screenshots
+
+[`docs/screenshots/`](screenshots/) shows the system on the demo vault; `npm run screenshots` takes them again in headless Chrome ([`scripts/screenshots.mjs`](../scripts/screenshots.mjs)), and `npm run visual` compares six key screens with their references.
+
+| | |
+|---|---|
+| ![The board, light](screenshots/board-light.png) | ![The board, dark](screenshots/board-dark.png) |
+| ![A note being read](screenshots/editor.png) | ![A note being edited](screenshots/editor-editing.png) |
+| ![Inside a notebook](screenshots/notes-layout.png) | ![The agenda](screenshots/agenda.png) |
 
 ## What the tests check
 
