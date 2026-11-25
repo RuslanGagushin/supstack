@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.38.1
+
+- After updating on Android, sync copies tasks to the phone if it has never had them, instead of treating their absence as a deletion and removing them from other devices.
+
 ## 0.38.0
 
 - Tasks live apart from the notes, in `.supstack/tasks.jsonl` (one task a line), each linked to a note by the note's `id:`. They show only in the agenda; deleting a note keeps its tasks, and the link works again if the note comes back. Boxes in a note are plain checklists again (open or done, no dates), left out of the agenda. A vault from an earlier version offers to move its dated, prioritised and in-progress tasks and its events out of the notes once, keeping a copy of each note in `.supstack/backup/`. The agenda can rename, delete and link tasks to notes and archive closed ones; Capture and Share can make a task with or without a note; git sync merges the tasks file task by task, Android included.
