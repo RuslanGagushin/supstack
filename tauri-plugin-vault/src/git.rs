@@ -848,7 +848,7 @@ mod mirror {
 
         // 1. the picked folder → the clone, so git sees the edits made since the last sync
         trace("list");
-        let listing = folder.list()?;
+        let mut listing = folder.list()?;
         for (path, stamp) in &listing {
             let dest = work.join(path);
             if manifest.get(path) == Some(stamp) && dest.exists() {
@@ -863,10 +863,27 @@ mod mirror {
                 fs::write(&dest, bytes)?;
             }
         }
+        // a file the clone has and the folder does not was deleted on the phone only if the folder had it at the last
+        // sync (the manifest says so). One the folder never had is copied out instead: a hidden file an older version did
+        // not mirror (the tasks, before 0.38) must not be taken for one the phone deleted, or the deletion goes to git.
+        let mut missing = Vec::new();
         for path in snapshot(&work).keys() {
-            if !listing.contains_key(path) {
-                let _ = fs::remove_file(work.join(path));
+            if listing.contains_key(path) {
+                continue;
             }
+            if manifest.contains_key(path) {
+                trace(&format!("deleted on the phone: {path}"));
+                let _ = fs::remove_file(work.join(path));
+            } else {
+                missing.push(path.clone());
+            }
+        }
+        for path in missing {
+            trace(&format!("copy-out {path} (never in the folder)"));
+            let bytes = fs::read(work.join(&path))?;
+            let size = bytes.len() as u64;
+            let mtime = folder.write(&path, bytes)?;
+            listing.insert(path, (mtime, size));
         }
 
         // 2. git
@@ -1368,6 +1385,32 @@ mod tests {
         mirror::sync_folder(&phone, &base, &c).unwrap();
         sync_repo(&a, &c).unwrap();
         assert!(fs::read_to_string(a.join(file)).unwrap().contains("from the phone"));
+        let _ = fs::remove_dir_all(&tmp);
+    }
+
+    #[test]
+    fn a_file_the_folder_never_had_is_copied_out_not_deleted() {
+        // as after updating from a version that mirrored no tasks: the clone has tasks.jsonl, the folder and the manifest don't
+        let (tmp, c, a, phone, base) = phone_setup("never");
+        let file = mirror::HIDDEN[1];
+        fs::create_dir_all(a.join(".supstack")).unwrap();
+        fs::write(a.join(file), "{\"id\":\"t1\",\"title\":\"kept\"}\n").unwrap();
+        sync_repo(&a, &c).unwrap();
+        mirror::sync_folder(&phone, &base, &c).unwrap();
+        fs::remove_file(phone.dir.join(file)).unwrap();
+        let manifest = base.join("manifest.json");
+        let mut m: serde_json::Map<String, serde_json::Value> = serde_json::from_str(&fs::read_to_string(&manifest).unwrap()).unwrap();
+        m.remove(file);
+        fs::write(&manifest, serde_json::to_string(&m).unwrap()).unwrap();
+        mirror::sync_folder(&phone, &base, &c).unwrap();
+        assert_eq!(phone.text(file), "{\"id\":\"t1\",\"title\":\"kept\"}\n", "copied out to the phone");
+        sync_repo(&a, &c).unwrap();
+        assert!(a.join(file).exists(), "and not deleted on the other device");
+        // a file the phone did have and deleted is deleted everywhere, as before
+        fs::remove_file(phone.dir.join(file)).unwrap();
+        mirror::sync_folder(&phone, &base, &c).unwrap();
+        sync_repo(&a, &c).unwrap();
+        assert!(!a.join(file).exists());
         let _ = fs::remove_dir_all(&tmp);
     }
 
