@@ -32,7 +32,7 @@ Supstack shows a folder of Markdown notes (a *vault*) as notebooks with a list o
 ## Why Supstack
 
 - 🗂️ **Notebooks, not folders.** Notes nest in notebooks of any depth, and one note can sit in several notebooks at once.
-- ✅ **Real task management in plain Markdown.** Six task states, priorities, `SCHEDULED` / `DEADLINE` dates with repeaters, and an agenda across the whole vault.
+- ✅ **Real task management beside your notes.** Six task states, priorities, `SCHEDULED` / `DEADLINE` dates with repeaters and an agenda, in a plain JSON Lines file; each task links to any note or notebook.
 - ✍️ **Live preview editor.** CodeMirror 6 renders Markdown as you type: callouts, tables, code blocks, task boxes.
 - 🔄 **Git sync built in.** Commit, merge and push from the app; conflicting edits are kept side by side, never lost.
 - 📂 **Your files, untouched.** Supstack adds only the frontmatter it needs, so Obsidian, any editor, Git and Syncthing keep working on the same folder.
@@ -87,7 +87,7 @@ Supstack shows a folder of Markdown notes (a *vault*) as notebooks with a list o
 - **Select mode:** select several notes to move, add to another notebook or delete them together. **Undo** reverts the last change.
 
 ### Editor
-- **Live preview editing:** the note is one editor (CodeMirror 6) that shows its Markdown rendered: headings, bold, italic, highlights, code, links, tags, task boxes, bullets and priorities read as they will look, and their Markdown shows only where the caret is. Callouts and code blocks render as blocks and open into their Markdown when you click or arrow into them; tables stay rendered and are edited a cell at a time. Click a link to follow it (Ctrl/Cmd+click opens the note in the editor), click a task's box to tick it (right-click it for every state), select text for a floating format bar (bold, italic, highlight, code, link, heading, lists, quote). Undo and redo cover every edit. Your files stay plain Markdown.
+- **Live preview editing:** the note is one editor (CodeMirror 6) that shows its Markdown rendered: headings, bold, italic, highlights, code, links, tags, task boxes, bullets and priorities read as they will look, and their Markdown shows only where the caret is. Callouts and code blocks render as blocks and open into their Markdown when you click or arrow into them; tables stay rendered and are edited a cell at a time. Click a link to follow it (Ctrl/Cmd+click opens the note in the editor), click a checklist box to tick it, select text for a floating format bar (bold, italic, highlight, code, link, heading, lists, quote). Undo and redo cover every edit. Your files stay plain Markdown.
 - **Foldable callouts and table editing:** `> [!info]+` makes a callout that starts open and `> [!info]-` one that starts folded; click its title to fold or unfold it. Click a table cell to edit it in place; Tab and Shift+Tab go to the next and previous cell, Enter goes to the cell below (Tab or Enter at the end adds a row, Enter on an empty last row leaves the table), Shift+Enter breaks a line in a cell, and Alt+arrows move the row or column. The table's Markdown keeps its columns lined up. Right-click a cell (or use the toolbar's table button) to add, move, delete, align or sort rows and columns; the + buttons under and beside a table add a row or a column, Ctrl/Cmd+Enter adds one below, and the dots on a border between two rows or columns insert one there. As in Obsidian, the handle on a row's left or a column's top selects it (Shift+click for several) and drags it somewhere else; drag across cells or press Shift+arrows to select a block of them. A bar over the selection inserts, moves, aligns, sorts, clears or deletes; Delete clears cells or removes selected rows and columns, Alt+arrows move them, typing starts a cell over, and copy and paste work with spreadsheets (cells from Excel or Google Sheets, or a Markdown table, go in from the selected cell and the table grows to hold them).
 - **Notes open to read.** The reading view shows a task's priority as a letter and its dates as the agenda says them (*Tomorrow*, *In 3 days*, *12 Nov*; a deadline red when due, amber in its warning days). *Edit*, a double click or `Ctrl+E` switches to editing, where the dates are shown as written; the note stays in place as you switch. **Settings › Appearance › Open notes** makes notes open for editing instead.
 - **The note's panel.** Beside the open note on a desktop: its properties (editable while reading too), its tasks by state with the nearest date, an outline of its headings, the notes that link to it, and its word count, dates and file. The button in the note's header hides and shows it; on a phone the same panel is a sheet that ⓘ opens from the bottom, and the note starts right under its title.
@@ -97,25 +97,28 @@ Supstack shows a folder of Markdown notes (a *vault*) as notebooks with a list o
 - Turn a selection into a **new note inside** the one you are in.
 
 ### Tasks and the agenda
-- **A task is a list item with a box**, and the character in the box is its state. The editor, the reading view and the agenda draw each state as its own icon:
+- **Tasks live apart from the notes**, in `.supstack/tasks.jsonl`: one task a line, as JSON, so the file stays readable and git merges it. A task can belong to a note, a notebook (which is a note too) or to none: it links to the note by an `id:` the note gets in its frontmatter the first time a task links to it, so renaming or moving the note keeps the link. **Deleting a note keeps its tasks**; the agenda says *Note deleted*, and the link works again if the note comes back.
+- A task has one of six states, drawn as its own icon in the agenda:
 
   | Box | State | |
   |---|---|---|
-  | `- [ ]` | to do | open |
-  | `- [/]` | in progress | open |
-  | `- [<]` | waiting / scheduling | open |
-  | `- [x]` | done | closed |
-  | `- [-]` | cancelled | closed, left out of progress |
-  | `- [>]` | forwarded (moved elsewhere) | closed, left out of progress |
+  | `[ ]` | to do | open |
+  | `[/]` | in progress | open |
+  | `[<]` | waiting / scheduling | open |
+  | `[x]` | done | closed |
+  | `[-]` | cancelled | closed |
+  | `[>]` | forwarded (moved elsewhere) | closed |
 
-  The set is fixed. Headings are never tasks. A click on the box ticks an open task or reopens a closed one; right-click it (or press `T` in the agenda) to pick any state; `Ctrl+Enter` steps `[ ]` → `[/]` → `[x]` and turns a plain line into a task.
-- Tasks take **priorities** (`- [ ] [#A] …`), `:tags:` and **`SCHEDULED` / `DEADLINE`** dates on the line under them, with Org's repeaters (`+1w`, `++1m`, `.+3d`): closing a repeating task moves it to its next date. A dated task gets `CLOSED:` when it closes. Subtasks count towards their parent's `[2/5]`.
-- The **agenda** (calendar icon, or `Ctrl+Shift+K`) collects them from the whole vault by day, a week or a month at a time (`d`, `w`, `M`; the month shows how many entries each day has, and a click opens the day), with a calendar to jump to a date and a quick-capture form for new entries. Its task list shows every open task or the ones in one state, and match queries filter by state (`STATE=doing`, `/wait|doing`).
+  A click on the box ticks an open task or reopens a closed one; right-click it (or press `T`) to pick any state, `t` steps `[ ]` → `[/]` → `[x]`.
+- Tasks take **priorities**, tags and **`SCHEDULED` / `DEADLINE`** dates with Org's repeaters (`+1w`, `++1m`, `.+3d`): closing a repeating task moves it to its next date. A task gets its closing time when it closes. The agenda's row menu (right-click) also renames a task (`F2`), links it to another note (`L`), opens its note (`Enter`) and deletes it (`Delete`); **Archive closed tasks** moves those closed before today to `.supstack/tasks-archive.jsonl`.
+- **Boxes in a note are a checklist**: `- [ ]` and `- [x]`, open or done, no dates. They count towards the note's progress and are not tasks of the agenda. `Ctrl+Enter` ticks the box on the caret's line (or makes the line one), and `Ctrl+C n` (or the toolbar's task button) turns the line into a task of the agenda linked to the note.
+- **From an earlier version:** a vault whose notes still have tasks with dates, priorities or states other than open and done, or lines with dates (events), offers once to move them to `tasks.jsonl`, each linked to its note. Each note is copied to `.supstack/backup/<time>/` first; plain boxes stay where they are. The command list (`Ctrl+P`) offers it again later.
+- The **agenda** (calendar icon, or `Ctrl+Shift+K`) shows the tasks and events by day, a week or a month at a time (`d`, `w`, `M`; the month shows how many entries each day has, and a click opens the day), with a calendar to jump to a date and a quick-capture form for new entries: a task or a meeting (with a note to link it to, or none), a line in a note, or the journal. Its task list shows every open task or the ones in one state, and match queries filter by state (`STATE=doing`, `/wait|doing`).
 - **One task, one line a day.** A task shows on its plan's day and on its deadline's day; once overdue it is listed under *Overdue* above the week rather than again on its past day, and a deadline's early warning (*In 3 days*) shows only when nothing else lists the task today. Today has an hour grid from its first to its last entry with a time, and a day with nothing on is one quiet line.
 - **Export to a calendar:** the agenda's calendar button (or *Export to a calendar* in `Ctrl+P`) saves `Supstack tasks.ics` with every open task's `SCHEDULED` and `DEADLINE` dates and every event, repeaters included, for Google Calendar, Apple Calendar or Outlook to import. It is a copy: changes made in the calendar don't come back.
 - **Reminders:** a task whose `SCHEDULED` or `DEADLINE` date has a time (`<2026-11-12 Thu 10:00>`) gives a system notification at that time, each time a repeating one comes round. Android schedules them ahead, so they come with the app closed; on Windows and macOS they come while the app is running. They follow every change: a task done, cancelled, moved or deleted before its time doesn't notify. The app asks to notify only once the vault has a task with a time, and works as before if you say no.
 - **Quick capture from anywhere** (Windows and macOS): `Ctrl+Alt+N` (`Cmd+Option+N` on a Mac) works in any app and brings Supstack forward with the capture form. **Settings › Keyboard shortcuts** changes the keys or turns it off.
-- **Share to Supstack** (Android): share text or a link from any app and pick where it goes: a line in today's note (a link stays a link), or a new note at the top level or in a notebook. The app remembers the last choice.
+- **Share to Supstack** (Android): share text or a link from any app and pick where it goes: a line in today's note (a link stays a link), a task in the agenda, or a new note at the top level or in a notebook. The app remembers the last choice.
 
 ### Search and filters
 - `Ctrl+F` searches the notebook you are in, through every level, or the whole vault; filter by tag with `+tag` / `-tag` in the query, or with the Tags button. Notes with the words in their title come first, then those with them in a heading, then the rest. Results show which notebook each note sits in, with the line where the words are.
@@ -123,14 +126,14 @@ Supstack shows a folder of Markdown notes (a *vault*) as notebooks with a list o
 
 ### Sync
 - **Git sync:** the vault folder is a git repository. **Sync now** (or the automatic sync, after edits and every few minutes) commits your changes, merges the remote branch and pushes. Set the remote URL (HTTPS) and a personal access token in **Settings › Git**; once sync is set up, the *Git* row in the sidebar shows its state and opens it.
-- If a note changed on two devices, your text stays in place and the other version is saved next to it as `Note (conflict …).md`, so nothing is lost.
+- If a note changed on two devices, your text stays in place and the other version is saved next to it as `Note (conflict …).md`, so nothing is lost. The tasks file is merged task by task instead: a task changed on one device takes that change, one changed on both takes the later one, and new tasks from both are kept.
 - The access token is never in the vault, so it is never committed or copied with the folder: on Windows and macOS it is kept in the system's keychain (Credential Manager, Keychain), on Android in the app's private storage. A `.gitignore` is created on the first sync for `.trash` and temporary files.
 - On Android the repository lives in the app's private storage and is copied to and from the folder you picked on every sync, so the vault takes up space twice there.
 
 ### Look and keyboard
 - No top bar: a full-height sidebar holds *Go to note…*, a blue *New note* button and *Today*, the agenda, Files and Git sync, the notebooks, and the vault and settings at the bottom; it folds away and each view's own bar brings it back. Inter type, the open note on a white sheet on warm grey.
 - Light and dark themes; English and Russian interface.
-- Emacs-flavoured details: a minibuffer with key hints, and most actions have shortcuts. Org-style `C-c` chords work in the editor, for example `C-c C-t` to step a task's state and `C-c C-s` / `C-c C-d` to schedule or set a deadline.
+- Emacs-flavoured details: a minibuffer with key hints, and most actions have shortcuts. Org-style `C-c` chords work in the editor, for example `C-c t` to tick a box and `C-c n` to turn the line into a task; the agenda has Org's keys (`t`, `s`, `e`, `+`/`-`, `:`).
 - On phones the list fills the screen and a note opens over it with *‹ its notebook* to go back, the sidebar becomes a drawer, and the Android **Back** button closes the editor, menus and dialogs before leaving the app.
 - **Settings** has a section per group: Appearance (language, theme, the list's default sort and size), Keyboard shortcuts, Git (in the app) and About, which shows the version and checks for updates.
 

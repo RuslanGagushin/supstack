@@ -1,49 +1,30 @@
 /* =========================================================
-   Tasks changed from the agenda and the editor's commands: state, priority,
-   SCHEDULED / DEADLINE and tags, each an undoable edit of the note (core/org.js does the text).
+   Tasks changed from the agenda: state, priority, SCHEDULED / DEADLINE, tags, the title, the note a task belongs to,
+   and deleting it — each an undoable change of .supstack/tasks.jsonl (services/tasks.js; core/tasks.js does the record).
    ========================================================= */
-import { tt } from "../core/i18n.js";
-import { orgNextState, orgSetPlanning, orgSetPriority, orgSetState, orgSetTags, orgTsStr, TASK_STATES } from "../core/org.js";
-import { board, editor, vault } from "../services/state.js";
-import { txn, writeRaw } from "../services/save.js";
+import { t, tt } from "../core/i18n.js";
+import { baseName, dirName } from "../core/util.js";
+import { orgNextState, orgTsStr, TASK_STATES } from "../core/org.js";
+import { taskSetPlan, taskSetPriority, taskSetState, taskSetTags, taskShift } from "../core/tasks.js";
+import { board, vault } from "../services/state.js";
+import { cardIcon } from "../services/vault.js";
+import { deleteTask, editTask, linkTask } from "../services/tasks.js";
 import { $, h } from "./dom.js";
 import { taskIcon } from "./task-icons.js";
-import { echo, promptModal, suggestModal } from "./ui.js";
-import { saveEditor } from "./editor.js";
+import { confirmModal, echo, promptModal, suggestModal } from "./ui.js";
 import { orgAskDate } from "./org-editing.js";
+import { openEditor } from "./editor.js";
 
-/* ---------- calendar arithmetic on day numbers (local calendar dates) */
-
-/* ---------- timestamps: <2026-10-28 Wed 10:00-11:00 +1w -2d>  (active)  [..] (inactive) */
-
-
-/* ---------- keywords */
-
-/* ---------- line grammar */
-
-/* ---------- parsing a note into entries (cached per text) */
-
-/* ---------- editing entries in notes (undoable, synced) */
-export async function orgEdit(e, fn) {
-  if (editor.path === e.path && editor.dirty) await saveEditor();
-  const n = vault.notes.get(e.path);
-  if (!n) return false;
-  const lines = n.raw.split("\n");
-  let li = e.line;
-  if (lines[li] !== e.raw) { li = lines.indexOf(e.raw); if (li < 0) { echo(tt("lost")); return false; } }
-  const msg = fn(lines, li);
-  if (msg == null || msg === false) return false;
-  await txn(String(msg).slice(0, 90), () => writeRaw(e.path, lines.join("\n")));
-  return true;
-}
-/** Ctrl+Enter or t: the next state in [ ] → [/] → [x]; `toggle` (a click on the box) ticks an open task and reopens a closed one. */
-export const orgCycle = (e, dir = 1, toggle = false) => (e.kind === "event" ? false : orgEdit(e, (L, li) => orgSetState(L, li, toggle ? (e.done ? " " : "x") : orgNextState(e.state, dir))));
-export const orgPri = (e, dir, explicit) => (e.kind === "event" ? false : orgEdit(e, (L, li) => orgSetPriority(L, li, dir, explicit)));
+/** t, or a click on the box (`toggle`: ticks an open task, reopens a closed one): [ ] → [/] → [x]. */
+export const orgCycle = (e, dir = 1, toggle = false) => (e.kind === "event" ? false : editTask(e.id, (r) => taskSetState(r, toggle ? (e.done ? " " : "x") : orgNextState(e.state, dir))));
+export const orgPri = (e, dir, explicit) => (e.kind === "event" ? false : editTask(e.id, (r) => taskSetPriority(r, dir, explicit)));
+/** Move a date by `days`: "sched", "dead", or ("ts") an event's. */
+export const orgShiftEntry = (e, kind, days) => editTask(e.id, (r) => taskShift(r, kind, days));
 export const orgRefocus = () => { if (board.view === "tasks" && !document.activeElement?.closest?.(".sn-editor, input, textarea")) setTimeout(() => $(".ag-body")?.focus({ preventScroll: true }), 0); };
 export async function orgPickState(e) {
   if (e.kind === "event") return;
   const ch = await orgPickStateChar(e.state);
-  if (ch !== undefined) await orgEdit(e, (L, li) => orgSetState(L, li, ch));
+  if (ch !== undefined) await editTask(e.id, (r) => taskSetState(r, ch));
   orgRefocus();
 }
 /** The state menu: the six states with their icons. Resolves to the box character, or undefined when dismissed. */
@@ -64,19 +45,49 @@ export async function orgPlanEntry(e, key) {
   const r = await orgAskDate(key === "SCHEDULED" ? tt("schedule") : tt("deadline"), cur);
   orgRefocus();
   if (r === undefined) return;
-  await orgEdit(e, (L, li) => {
-    if (r === null) { orgSetPlanning(L, li, key, null); return tt("planRemoved", { key }); }
-    const ts = orgTsStr({ active: true, dn: r.dn, time: r.time, end: r.end, rep: r.rep || cur?.rep || null, warn: r.warn || cur?.warn || null });
-    orgSetPlanning(L, li, key, ts);
-    return tt("planSet", { key, ts });
-  });
+  await editTask(e.id, (rec) => taskSetPlan(rec, key, r === null ? null : orgTsStr({ active: true, dn: r.dn, time: r.time, end: r.end, rep: r.rep || cur?.rep || null, warn: r.warn || cur?.warn || null })));
+}
+/** An event's date and time. */
+export async function orgWhenEntry(e) {
+  const cur = e.stamps[0]?.ts || null;
+  const r = await orgAskDate(tt("timestamp"), cur);
+  orgRefocus();
+  if (!r) return;
+  await editTask(e.id, (rec) => { rec.when = orgTsStr({ active: true, dn: r.dn, time: r.time, end: r.end, rep: r.rep || null, warn: null }); return tt("stampTo", { ts: rec.when }); });
 }
 export async function orgTagsEntry(e) {
-  if (e.kind === "event") return;
   const v = await promptModal(tt("tags"), e.tags.length ? ":" + e.tags.join(":") + ":" : "");
   orgRefocus();
   if (v == null && !e.tags.length) return;
-  const tags = String(v || "").split(/[:\s,]+/).map((x) => x.replace(/^#/, "")).filter(Boolean);
-  await orgEdit(e, (L, li) => orgSetTags(L, li, tags));
+  await editTask(e.id, (r) => taskSetTags(r, String(v || "").split(/[:\s,]+/).filter(Boolean)));
 }
-
+export async function orgRenameEntry(e) {
+  const v = await promptModal(tt("taskTitle"), e.fullTitle);
+  orgRefocus();
+  if (v == null || v === e.fullTitle) return;
+  await editTask(e.id, (r) => { r.title = v; return tt("taskRenamed"); });
+}
+export async function orgDeleteEntry(e) {
+  const ok = await confirmModal(tt("taskDelete"), e.title, t("delete"));
+  orgRefocus();
+  if (ok) await deleteTask(e.id);
+}
+/** The notes a task can link to, the one it links to marked. */
+function noteItems(current) {
+  return [...vault.notes.keys()].sort((a, b) => baseName(a).localeCompare(baseName(b), undefined, { numeric: true }))
+    .map((p) => ({ value: p, title: baseName(p), icon: cardIcon(p) || "file-text", note: dirName(p), checked: p === current }));
+}
+/** Pick a note for the task, or (the first row) none. */
+export async function orgLinkEntry(e) {
+  const items = noteItems(e.path);
+  if (e.noteId) items.unshift({ value: null, title: tt("taskUnlink"), icon: "unlink" });
+  const pick = await suggestModal({ placeholder: tt("taskLinkTo"), items });
+  orgRefocus();
+  if (pick && pick.value !== e.path) await linkTask(e.id, pick.value);
+}
+/** Open the note the task belongs to. */
+export function orgOpenEntry(e) {
+  if (e.path && vault.notes.has(e.path)) { openEditor(e.path, { focus: true, wide: false }); return true; }
+  echo(e.noteGone ? tt("noteGoneLong") : tt("noNoteLong"));
+  return false;
+}

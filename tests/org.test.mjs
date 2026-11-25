@@ -121,7 +121,9 @@ describe("task states", () => {
 });
 
 describe("parsing a note", () => {
-  const entries = () => ev(() => orgEntries(vault.notes.get("cards/Work.md")).map((e) => ({ kind: e.kind, kw: e.kw, pri: e.pri, title: e.title, tags: e.alltags, inh: e.inherited, cb: [e.cbDone, e.cbTotal], nested: e.nested, sched: e.sched?.dn ?? null, dead: e.dead?.dn ?? null, closed: !!e.closed, outline: e.outline })));
+  // the note's text as written (the vault moved its tasks to tasks.jsonl when it opened): core/org.js still reads a
+  // note's tasks, for moving them out of it and for its checklist
+  const entries = () => ev((raw) => { orgCache.delete("x/Work.md"); return orgParse({ path: "x/Work.md", raw, fm: { tags: ["home"] }, name: "Work" }); }, NOTE).then((list) => list.map((e) => ({ kind: e.kind, kw: e.kw, pri: e.pri, title: e.title, tags: e.alltags, inh: e.inherited, cb: [e.cbDone, e.cbTotal], nested: e.nested, sched: e.sched?.dn ?? null, dead: e.dead?.dn ?? null, closed: !!e.closed, outline: e.outline })));
 
   test("tasks in every state and events; no headings, nothing from code blocks", async () => {
     const es = await entries();
@@ -150,8 +152,9 @@ describe("parsing a note", () => {
     assert.equal(old.closed, true);
   });
 
-  test("card progress counts done tasks; cancelled and forwarded ones drop out", async () => {
-    assert.deepEqual(await ev(() => cardTaskProgress("cards/Work.md")), { done: 2, n: 9 });
+  test("card progress counts the boxes left in the note: its checklist", async () => {
+    // outline, draft, review, errand task and loose checkbox stayed; the rest moved to tasks.jsonl
+    assert.deepEqual(await ev(() => cardTaskProgress("cards/Work.md")), { done: 1, n: 5 });
   });
 });
 
@@ -164,10 +167,10 @@ describe("agenda", () => {
 
   test("with the log on, a task closed today is listed once, as closed", async () => {
     const kinds = await ev(async () => {
-      await writeRaw("cards/Z.md", "- [x] Fix the mount\n  CLOSED: [2026-10-29 Thu 09:00] SCHEDULED: <2026-10-29 Thu>\n");
+      const rec = await addTask({ state: "x", title: "Fix the mount", closed: "[2026-10-29 Thu 09:00]", sched: "<2026-10-29 Thu>" });
       const T = onow().dn;
       const r = [true, false].map((log) => orgDayEntries(T, orgAll(), T, { log }).filter((x) => x.e.title === "Fix the mount").map((x) => x.kind));
-      await writeRaw("cards/Z.md", ""); // the vault is shared by the tests that follow
+      await deleteTask(rec.id); // the vault is shared by the tests that follow
       return r;
     });
     assert.deepEqual(kinds, [["closed"], ["sched"]]);
@@ -181,14 +184,16 @@ describe("agenda", () => {
   });
 
   test("match queries: tags, properties, task states", async () => {
-    const m = (q) => ev((q) => orgAll().filter(orgMatcher(q)).map((e) => e.title), q);
-    assert.deepEqual(await m("+work -shop/!"), ["Write report", "draft", "review", "Call Bob", "errand task #errand", "loose checkbox"]);
+    // the agenda's tasks are the ones that moved to tasks.jsonl; the plain boxes stayed in the note as its checklist
+    const m = (q) => ev((q) => orgAll().filter(orgMatcher(q)).map((e) => e.title).sort(), q);
+    assert.deepEqual(await m("+work -shop/!"), ["Call Bob", "Write report"], "a heading's tags moved with its tasks");
     assert.deepEqual(await m("+work-shop"), [], "a hyphen is part of the tag name here (Markdown #tags), unlike Org's +work-boss");
     assert.deepEqual(await m("PRIORITY=A"), ["Write report"]);
     assert.deepEqual(await m("/wait|DOING"), ["Call Bob", "Parts"]);
-    assert.deepEqual(await m("/done"), ["outline", "Old thing"]);
-    assert.deepEqual(await m("errand|shop"), ["Parts", "errand task #errand"]);
-    assert.deepEqual(await m("STATE=todo+urgent"), ["Write report", "draft", "review"], "subtasks inherit the tag");
+    assert.deepEqual(await m("/done"), ["Old thing"]);
+    assert.deepEqual(await m("errand|shop"), ["Parts"]);
+    assert.deepEqual(await m("+home/!"), ["Call Bob", "Parts", "Write report"], "the note's tags are the task's, inherited");
+    assert.deepEqual(await m("STATE=todo+urgent"), ["Write report"]);
     assert.deepEqual(await m("TODO=cancel"), ["Dropped idea"], "TODO= still names the state");
     assert.deepEqual(await m("CATEGORY=gym"), ["Run"]);
   });
@@ -203,9 +208,10 @@ describe("agenda", () => {
     assert.match(await page.getAttribute("#tasks-btn", "title"), /2 overdue|overdue/i);
     await ev(() => { const i = AGROWS.findIndex((x) => x.e.title === "Call Bob"); orgSelect(i); $(".ag-body").focus(); });
     await page.keyboard.press("t");
-    await page.waitForFunction(() => vault.notes.get("cards/Work.md").raw.includes("- [x] Call Bob\n  CLOSED: [2026-10-29 Thu 10:00] SCHEDULED: <2026-10-25 Sun>"));
+    const rec = (title) => [...taskStore.records.values()].find((r) => r.title === title);
+    await page.waitForFunction((src) => { const r = eval(src)("Call Bob"); return r.state === "x" && r.closed === "[2026-10-29 Thu 10:00]" && r.sched === "<2026-10-25 Sun>"; }, rec.toString());
     await page.click(".ag-row:has-text('Run') .task-box");
-    await page.waitForFunction(() => vault.notes.get("cards/Gym.md").raw === "- [ ] Run\n  SCHEDULED: <2026-10-29 Thu +1w>\n", null, { timeout: 5000 });
+    await page.waitForFunction((src) => { const r = eval(src)("Run"); return r.state === " " && r.sched === "<2026-10-29 Thu +1w>"; }, rec.toString(), { timeout: 5000 });
     await ev(() => $(".ag-body").focus());
     await page.keyboard.press("q");
     assert.equal(await ev(() => board.view), null);

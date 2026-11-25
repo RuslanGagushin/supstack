@@ -13,7 +13,9 @@ const search = (query, scope = "all", tags = []) => ev(([query, scope, tags]) =>
 }, [query, scope, tags]);
 
 describe("search snippets (SRCH-4)", () => {
-  beforeEach(() => openVault());
+  // a note that still has its tasks in it (its vault has a tasks file, so they stay where they are)
+  const WEEK = "Plans.\n\n- [/] [#A] Book the tour :travel:\n  DEADLINE: <2026-11-26 Thu>\n- [>] Plan the Rome trip (moved to next month)\n- [x] Packed\n  CLOSED: [2026-11-20 Fri 18:20]\n";
+  beforeEach(() => openVault({ demo: false, notes: { "cards/This week.md": WEEK, ".supstack/tasks.jsonl": "" } }));
 
   test("the line under a found note has no task boxes, priorities, planning lines or :tags:", async () => {
     const rows = await search("rome");

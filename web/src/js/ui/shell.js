@@ -3,14 +3,15 @@
    ========================================================= */
 import { ft, fvt, LANG, setLang, st, t, tt, ut, wt } from "../core/i18n.js";
 import { on } from "../services/events.js";
-import { board, editor, graph, S, saveUI, setGraph, tree, UI, vault } from "../services/state.js";
+import { board, editor, graph, S, saveUI, setGraph, tree, UI, undoStack, vault } from "../services/state.js";
 import { buildGraph, persistBoard, readVault, saveSettings } from "../services/vault.js";
 import { undo } from "../services/save.js";
+import { movableTasks, moveTasksFromNotes, taskStore } from "../services/tasks.js";
 import { runSync, stopSync, sync, syncAvailable, syncBoot } from "../services/sync.js";
 import { upd } from "../services/updates.js";
 import { lsGet, lsSet } from "../services/storage.js";
 import { $, h, ic, iconBtn, keyName, keyText } from "./dom.js";
-import { defaultEcho, echo, Menu, notice, openLayer, promptModal, suggestModal } from "./ui.js";
+import { confirmModal, defaultEcho, echo, Menu, notice, openLayer, promptModal, suggestModal } from "./ui.js";
 import { createCard, promptAddTag, quickOpen, saveCurrentView, tagTargets, togglePin } from "./actions.js";
 import { goBack, patchBoard, renderBoard, setTarget, toggleSearch } from "./board.js";
 import { expandTo, renderTree, renderTreeSoft, revealInTree } from "./tree.js";
@@ -20,7 +21,7 @@ import { pickVault, showWelcome } from "./welcome.js";
 import { syncButton, syncSettingsBody, syncSettingsModal } from "./sync-panel.js";
 import { openToday, outlineMenu, setFocusMode } from "./completion.js";
 import { orgFoldNote } from "./org-editing.js";
-import { AG, exportCalendar, openTasksView, orgCapture, renderTasksButton, tasksButton } from "./agenda.js";
+import { AG, archiveClosedTasks, exportCalendar, openTasksView, orgCapture, renderTasksButton, tasksButton } from "./agenda.js";
 import { CAPTURE_KEY_DEFAULT, captureKey, captureShortcutAvailable, setCaptureKey } from "./native-shell.js";
 import { applyLayout, foldDrawer, sideIsDrawer, sideSetByHand } from "./layout.js";
 import { onow } from "../core/org.js";
@@ -93,7 +94,10 @@ function commandList() {
   add(`${tt("tasks")}: ${tt("vSearch")}`, "search", () => openTasksView(true, "search"));
   add(tt("capTitle") + "…", "plus-circle", () => orgCapture());
   add(tt("icsExport"), "calendar-arrow-down", exportCalendar);
+  add(tt("archiveClosed"), "archive", archiveClosedTasks);
+  if (movableTasks().tasks) add(tt("moveTasksCmd"), "list-checks", () => offerTaskMove(true));
   if (editor.path) section(t("cmdGroupNote"));
+  if (editor.path) add(tt("taskForNote"), "list-plus", () => orgCapture({ tpl: "t", link: editor.path }));
   if (editor.path) { add(ft("foldAll"), "chevrons-down-up", () => orgFoldNote(true)); add(ft("unfoldAll"), "chevrons-up-down", () => orgFoldNote(false)); }
   if (editor.path) {
     // the note's header has only Edit / Done and ⋮: what was a button there is a command here too
@@ -396,5 +400,35 @@ export async function loadVault(fs) {
     $("#board")?.focus();
     syncBoot();
   } finally { showLoading(false); }
+  await offerTaskMove();
+}
+/**
+ * Tasks are kept in .supstack/tasks.jsonl (from 0.38): a vault without that file whose notes have tasks with dates,
+ * priorities or states other than open and done moves them there. A vault on disk asks first, once (the command list offers it
+ * again), and keeps a copy of each note it changes; a demo or a copy of a vault in memory just moves them.
+ * `asked`: from the command list.
+ */
+async function offerTaskMove(asked = false) {
+  // a vault that already has its tasks file chose where its tasks are: only the command list moves more
+  if (!asked && taskStore.exists) return;
+  const m = movableTasks();
+  if (!m.tasks) { if (asked) echo(tt("moveNone")); return; }
+  if (vault.fs.kind !== "disk") {
+    await moveTasksFromNotes({ backup: false, quiet: !asked });
+    if (!asked) undoStack.length = 0; // the vault opens with its tasks where they belong, not with a step to undo
+    return;
+  }
+  const key = "sn-tasks-moved:" + (typeof vault.fs.root === "string" ? vault.fs.root : vault.fs.name);
+  if (!asked && lsGet(key, null)) return;
+  const fs = vault.fs;
+  // the vault is open meanwhile: opening it does not wait for the answer
+  const answer = confirmModal(tt("moveTitle"), tt("moveText", { n: m.tasks, notes: m.notes }), tt("moveOk")).then(async (ok) => {
+    if (vault.fs !== fs) return; // another vault opened while the question was up
+    lsSet(key, ok ? "moved" : "declined");
+    if (!ok) { if (!asked) echo(tt("moveLater")); return; }
+    const r = await moveTasksFromNotes({ backup: true });
+    if (r.backup) echo(tt("movedBackup", { n: r.tasks, notes: r.notes, dir: r.backup }));
+  });
+  if (asked) await answer;
 }
 on("changed", () => refresh());

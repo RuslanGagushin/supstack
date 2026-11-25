@@ -12,7 +12,7 @@ describe("the big vault (PERF-1)", () => {
   });
 
   test("it opens in the page with notebooks four levels deep, tasks, tags and links", async () => {
-    await openVault({ demo: false, notes: bigVault(1000) });
+    await openVault({ demo: false, notes: { ...bigVault(1000), ".supstack/tasks.jsonl": "" } }); // its tasks stay in its notes, as the generator wrote them
     const r = await ev(() => {
       const depth = (p, seen = new Set()) => { if (seen.has(p)) return 0; seen.add(p); const ps = graph.parentsOf(p); return ps.length ? 1 + Math.max(...ps.map((x) => depth(x, seen))) : 0; };
       const notes = [...vault.notes.values()];
@@ -47,7 +47,7 @@ export const LIMITS = { open: 5000, reopen: 5000, poll: 300, search: 1500, searc
 
 describe("timings on 10 000 notes (PERF-2)", () => {
   test("opening, an idle poll, a two-word search and the first list stay under their limits", async () => {
-    await openNativeApp({ notes: bigVault(10000), expose: true });
+    await openNativeApp({ notes: { ...bigVault(10000), ".supstack/tasks.jsonl": "" }, expose: true });
     await ev(() => new Promise((r) => { const t = setInterval(() => { if (vault.notes.size >= 10000) { clearInterval(t); r(); } }, 50); }));
     const ms = await ev(async () => {
       const t = async (fn) => { const a = performance.now(); await fn(); return Math.round(performance.now() - a); };
@@ -99,7 +99,7 @@ describe("polling for outside changes (PERF-4)", () => {
 describe("the index cache (PERF-5, PERF-6)", () => {
   const N = 1000;
   const open = async () => {
-    await openNativeApp({ notes: bigVault(N), expose: true });
+    await openNativeApp({ notes: { ...bigVault(N), ".supstack/tasks.jsonl": "" }, expose: true });
     await ev((n) => new Promise((r) => { const t = setInterval(() => { if (vault.notes.size >= n) { clearInterval(t); r(); } }, 20); }), N);
   };
   /** Write the cache, open the vault again, and say what was parsed, taken from the cache and read from the disk. */
@@ -170,7 +170,7 @@ describe("the index cache (PERF-5, PERF-6)", () => {
 describe("watching the folder on desktop (PERF-3)", () => {
   const N = 1000;
   const open = async () => {
-    await openNativeApp({ notes: bigVault(N), expose: true, watch: true });
+    await openNativeApp({ notes: { ...bigVault(N), ".supstack/tasks.jsonl": "" }, expose: true, watch: true });
     await ev((n) => new Promise((r) => { const t = setInterval(() => { if (vault.notes.size >= n && vault.watching) { clearInterval(t); r(); } }, 20); }), N);
   };
   const calls = () => ev(() => window.__invokes.map(([c, a]) => [c.split("|")[1], a?.path ?? null]));
@@ -193,7 +193,7 @@ describe("watching the folder on desktop (PERF-3)", () => {
     await ev(() => { window.__invokes.length = 0; return pollChanges(); });
     assert.deepEqual(await calls(), []);
     await ev(() => pollChanges({ force: true }));
-    assert.deepEqual(await calls(), [["list", null]]);
+    assert.deepEqual(await calls(), [["list", null], ["read", ".supstack/tasks.jsonl"]], "a sync may bring other devices' tasks: their file is read too");
   });
 
   test("new files, deleted files and a deleted folder are picked up; the app's own saves are not read back", async () => {

@@ -35,7 +35,7 @@ export function oaddMonths(dn, n) { const o = oymd(dn); let mi = o.m - 1 + n; co
 function oaddUnit(dn, n, u) { switch (u) { case "w": return dn + 7 * n; case "m": return oaddMonths(dn, n); case "y": return oaddMonths(dn, 12 * n); case "h": return dn + Math.floor(n / 24); default: return dn + n; } }
 const ounitDays = (n, u) => (u === "w" ? 7 * n : u === "m" ? 30 * n : u === "y" ? 365 * n : u === "h" ? Math.ceil(n / 24) : n);
 export const oFmt = (dn, f) => formatMoment(oDate(dn), f);
-const OTS_RE = () => /([<\[])(\d{4})-(\d{2})-(\d{2})([^>\]\n]*)([>\]])(?:--([<\[])(\d{4})-(\d{2})-(\d{2})([^>\]\n]*)([>\]]))?/g;
+export const OTS_RE = () => /([<\[])(\d{4})-(\d{2})-(\d{2})([^>\]\n]*)([>\]])(?:--([<\[])(\d{4})-(\d{2})-(\d{2})([^>\]\n]*)([>\]]))?/g;
 function orgMkTs(open, y, m, d, rest) {
   const ts = { active: open === "<", dn: odn(+y, +m, +d), time: null, end: null, rep: null, warn: null };
   for (const tok of String(rest || "").trim().split(/\s+/)) {
@@ -67,8 +67,8 @@ export function orgOccursOn(ts, dn) {
   return d === dn;
 }
 const orgHasActive = (s) => /<\d{4}-\d{2}-\d{2}[^>\n]*>/.test(s);
-const orgStripTs = (s) => s.replace(OTS_RE(), (m, o) => (o === "<" ? "" : m)).replace(/\s{2,}/g, " ").trim();
-function orgStamps(text) {
+export const orgStripTs = (s) => s.replace(OTS_RE(), (m, o) => (o === "<" ? "" : m)).replace(/\s{2,}/g, " ").trim();
+export function orgStamps(text) {
   const out = [], re = OTS_RE();
   let m;
   while ((m = re.exec(text))) { if (m[1] === "<") out.push({ ts: orgMkTs(m[1], m[2], m[3], m[4], m[5]), endTs: m[7] ? orgMkTs(m[7], m[8], m[9], m[10], m[11]) : null }); }
@@ -187,7 +187,7 @@ export function orgSetPlanning(lines, li, key, val) {
   const txt = ind + parts.join(" ");
   if (has) lines[pl] = txt; else lines.splice(pl, 0, txt);
 }
-function orgShiftRep(ts) {
+export function orgShiftRep(ts) {
   const r = ts.rep, T = onow().dn;
   let n = ts.dn;
   if (r.type === "+") n = oaddUnit(n, r.n, r.u);

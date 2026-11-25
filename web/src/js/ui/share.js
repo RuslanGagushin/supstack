@@ -1,8 +1,8 @@
 /* =========================================================
    "Share to Supstack" (spec TASK-6, Android): text or a link shared from another app arrives through the vault plugin;
-   this asks where it goes — a line in today's note, or a new note in a notebook — and saves it.
+   this asks where it goes — a line in today's note, a task of the agenda, or a new note in a notebook — and saves it.
    ========================================================= */
-import { t } from "../core/i18n.js";
+import { t, tt } from "../core/i18n.js";
 import { baseName } from "../core/util.js";
 import { orgNowTs } from "../core/org.js";
 import { lsGet, lsSet } from "../services/storage.js";
@@ -11,6 +11,7 @@ import { IS_ANDROID, vinvoke } from "../services/native.js";
 import { graph, vault } from "../services/state.js";
 import { dailyNotePath } from "../services/daily-notes.js";
 import { txn, writeRaw } from "../services/save.js";
+import { addTask } from "../services/tasks.js";
 import { h, iconBtn } from "./dom.js";
 import { echo, openLayer } from "./ui.js";
 import { createCard } from "./actions.js";
@@ -28,7 +29,7 @@ export function sharedParts({ text = "", subject = "" }) {
 /** Where shared text can go: today's note, the top level, then every notebook by name. */
 function destinations() {
   const books = [...vault.notes.keys()].filter((p) => graph.childrenOf(p).length).sort((a, b) => baseName(a).localeCompare(baseName(b)));
-  return [["daily", t("shareDaily")], ["root", t("shareRoot")], ...books.map((p) => ["book:" + p, t("shareIn", { name: baseName(p) })])];
+  return [["daily", t("shareDaily")], ["task", t("shareTask")], ["root", t("shareRoot")], ...books.map((p) => ["book:" + p, t("shareIn", { name: baseName(p) })])];
 }
 
 /** Ask where the shared text goes and save it there. */
@@ -49,7 +50,11 @@ export function shareDialog(shared) {
     const text = body.value.replace(/\s+$/, "");
     lsSet("sn-share-to", to.value);
     close();
-    if (to.value === "daily") {
+    if (to.value === "task") {
+      // a task of the agenda, linked to no note; a shared link goes in its title as a link
+      const one = URL_RE.test(text) && !text.includes("\n");
+      await addTask({ state: " ", title: one && head !== text ? `[${head}](${text})` : head }, { label: tt("taskAdded", { title: head }).slice(0, 90) });
+    } else if (to.value === "daily") {
       // a line in today's note, a link as a link, the text indented under it
       const path = dailyNotePath();
       const line = URL_RE.test(text) && !text.includes("\n") ? `- [${head}](${text}) ${orgNowTs()}` : `- ${head} ${orgNowTs()}`;

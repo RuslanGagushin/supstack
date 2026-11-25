@@ -59,13 +59,17 @@ export async function removeNote(path, { fromSync = false } = {}) {
   scheduleIndexFlush(vault.notes, vault.sizes);
   if (!fromSync) syncHook("delete", path);
 }
+/** Something other than a note that the open txn() changes (the tasks file): `restore(value)` puts it back on undo. */
+export function txnKeep(key, value, restore) {
+  if (currentTxn && !currentTxn.keep.has(key)) currentTxn.keep.set(key, { value, restore });
+}
 export async function txn(label, fn) {
-  const tx = { label: "", before: new Map() };
+  const tx = { label: "", before: new Map(), keep: new Map() };
   currentTxn = tx;
   try { const l = await fn(tx); tx.label = l ?? label; }
   finally { currentTxn = null; }
   emit("changed");
-  if (tx.before.size) {
+  if (tx.before.size || tx.keep.size) {
     undoStack.push(tx);
     if (undoStack.length > 20) undoStack.shift();
     if (tx.label) emit("notice", tx.label, { undo: true });
@@ -78,6 +82,7 @@ export async function undo() {
     if (raw === null) { if (vault.notes.has(path)) await removeNote(path); }
     else await writeRaw(path, raw);
   }
+  for (const { value, restore } of tx.keep?.values() ?? []) await restore(value);
   indexNames();
   emit("changed");
   emit("notice", t("undone", { label: tx.label.split("\n")[0] }));

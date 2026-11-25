@@ -3,6 +3,7 @@
    ========================================================= */
 import { APP_ICON } from "./app-icon.js";
 import { nt, t } from "../core/i18n.js";
+import { ARCHIVE_PATH, serializeTasks, TASKS_PATH } from "../core/tasks.js";
 import { HandleFS, idb, MemoryFS } from "../services/fs.js";
 import { IS_ANDROID, IS_NATIVE, lastNative } from "../services/native.js";
 import { saveUI, UI, vault } from "../services/state.js";
@@ -38,7 +39,7 @@ export async function loadCopy(fileList) {
     const rel = (f.webkitRelativePath || f.name).split("/").slice(1).join("/");
     if (!rel) continue;
     if (/\.md$/i.test(rel)) fs.add(rel, await f.text(), f.lastModified);
-    else if (rel === SETTINGS_PATH || rel === OLD_SETTINGS_PATH) fs.add(rel, await f.text(), f.lastModified); // the settings, also where they were kept before
+    else if (rel === SETTINGS_PATH || rel === OLD_SETTINGS_PATH || rel === TASKS_PATH || rel === ARCHIVE_PATH) fs.add(rel, await f.text(), f.lastModified); // the settings (also where they were kept before) and the tasks
     else fs.add(rel, f, f.lastModified);
   }
   await loadVault(fs);
@@ -52,8 +53,8 @@ export function demoVault() {
   note("Roman Empire", `parents:\n  - "[[History]]"\nicon: crown\nchild_order:\n  - "[[Colosseum]]"\n  - "[[Aqueducts]]"`, `The state that existed from 27 BC.\n\nSee also [[Colosseum]].`, 12);
   note("Architecture", `icon: building-2\ncolor: blue\norder: 2`, `Buildings, bridges and the people who built them.`, 18);
   note("Architectural Marvels", `parents:\n  - "[[Architecture]]"\nicon: sparkles`, `The most impressive structures ever made.`, 9);
-  note("Aqueducts", `parents:\n  - "[[Roman Empire]]"\n  - "[[Architectural Marvels]]"\ncolor: green\nicon: waves\ntags: [engineering]`, `This note sits in **two notebooks** — it shows up in both, together with the notes inside it.\n\n- gravity-fed channels\n- arched bridges\n\n> [!tip] Try it\n> Drag this note onto a notebook to move it there. Hold **Ctrl** or **Alt** to add it to that notebook as well.`, 1);
-  note("Pont du Gard", `parents:\n  - "[[Aqueducts]]"\nicon: milestone`, `A Roman aqueduct bridge in southern France, built in the 1st century AD.\n\n| Fact | Value |\n|---|---|\n| Height | 48.8 m |\n| Tiers | 3 |`, 6);
+  note("Aqueducts", `id: demo-aqueducts\nparents:\n  - "[[Roman Empire]]"\n  - "[[Architectural Marvels]]"\ncolor: green\nicon: waves\ntags: [engineering]`, `This note sits in **two notebooks** — it shows up in both, together with the notes inside it.\n\n- gravity-fed channels\n- arched bridges\n\n> [!tip] Try it\n> Drag this note onto a notebook to move it there. Hold **Ctrl** or **Alt** to add it to that notebook as well.`, 1);
+  note("Pont du Gard", `id: demo-pont\nparents:\n  - "[[Aqueducts]]"\nicon: milestone`, `A Roman aqueduct bridge in southern France, built in the 1st century AD.\n\n| Fact | Value |\n|---|---|\n| Height | 48.8 m |\n| Tiers | 3 |`, 6);
   note("Colosseum", `parents:\n  - "[[Roman Empire]]"\n  - "[[Architectural Marvels]]"\nicon: castle\ncolor: yellow`, `An amphitheatre for 50,000 spectators.\n\n- [x] Read about the hypogeum\n- [ ] Visit at sunrise\n\n#travel`, 0.02);
   note("Knowledge", `icon: book-open\ncolor: purple\norder: 3`, `How to learn and keep what you learn.`, 30);
   note("Terms", `parents:\n  - "[[Knowledge]]"\nicon: book-a`, `Short definitions worth remembering.`, 25);
@@ -62,7 +63,21 @@ export function demoVault() {
   note("Back-of-napkin math", `parents:\n  - "[[Terms]]"\nicon: calculator\ntags: [definition]`, `A rough estimate that's good enough to decide whether an idea is worth a closer look.\n\n==Order of magnitude beats precision.==`, 7);
   const day = (n) => { const d0 = new Date(now + n * 86400000); return `${d0.getFullYear()}-${String(d0.getMonth() + 1).padStart(2, "0")}-${String(d0.getDate()).padStart(2, "0")}`; };
   const dts = (n, extra = "") => { const d0 = new Date(now + n * 86400000); return `${day(n)} ${["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d0.getDay()]}${extra}`; };
-  note("This week", `icon: calendar-check\ncolor: green\norder: 0\ncategory: Week`, `Tasks in plain Markdown — open **Agenda** in the sidebar (Ctrl+Shift+K). Click a box to tick it, right-click it for every state.\n\n## Trip\n\n- [/] [#A] Book the Pont du Gard tour :travel:\n  DEADLINE: <${dts(1)}> SCHEDULED: <${dts(-1)}>\n  Call the visitor centre first.\n- [ ] Finish reading about [[Aqueducts]]\n  SCHEDULED: <${dts(0, " 10:00")}>\n  - [x] gravity-fed channels\n  - [ ] arched bridges\n  - [ ] siphons\n\n## Routines\n\n- [ ] Weekly review :review:\n  SCHEDULED: <${dts(3)} +1w>\n- [<] [#C] Order the history book\n- [>] Plan the Rome trip (moved to next month)\n- [-] Renew the old museum pass\n- [x] Set up this vault\n  CLOSED: [${dts(-2, " 18:20")}]\n\n## Calendar\n\n- Lunch with Marta <${dts(0, " 13:00-14:00")}>\n- Museum night <${dts(2, " 19:30")}> #travel\n`, 0.01);
+  // the agenda's tasks are in .supstack/tasks.jsonl, each linked to a note by the note's id; the boxes in a note are its checklist
+  note("This week", `id: demo-week\nicon: calendar-check\ncolor: green\norder: 0\ncategory: Week\ntags: [plans]`, `The week's tasks are in the **Agenda** (Ctrl+Shift+K), each one linked to a note — these to this one. Click a task's box there to tick it, right-click it for every state.\n\nThe boxes in a note are its checklist:\n\n## Packing\n\n- [x] Passport\n- [ ] Camera\n- [ ] A guidebook on [[Aqueducts]]\n`, 0.01);
+  const at = new Date(now).toISOString();
+  const task = (id, f) => [id, { id, state: " ", ...f, created: at, upd: at }];
+  fs.add(TASKS_PATH, serializeTasks(new Map([
+    task("t01", { state: "/", pri: "A", title: "Book the Pont du Gard tour", tags: ["travel"], dead: `<${dts(1)}>`, sched: `<${dts(-1)}>`, note: "demo-pont" }),
+    task("t02", { title: "Finish reading about [[Aqueducts]]", sched: `<${dts(0, " 10:00")}>`, note: "demo-aqueducts" }),
+    task("t03", { title: "Weekly review", tags: ["review"], sched: `<${dts(3)} +1w>`, note: "demo-week" }),
+    task("t04", { state: "<", pri: "C", title: "Order the history book", note: "demo-week" }),
+    task("t05", { state: ">", title: "Plan the Rome trip (moved to next month)", note: "demo-week" }),
+    task("t06", { state: "-", title: "Renew the old museum pass" }),
+    task("t07", { state: "x", title: "Set up this vault", closed: `[${dts(-2, " 18:20")}]`, note: "demo-week" }),
+    task("t08", { state: null, title: "Lunch with Marta", when: `<${dts(0, " 13:00-14:00")}>`, note: "demo-week" }),
+    task("t09", { state: null, title: "Museum night", tags: ["travel"], when: `<${dts(2, " 19:30")}>` }),
+  ])), d(0.01));
   note("Cycle A", `parents:\n  - "[[Cycle B]]"\ncolor: red\nicon: refresh-cw`, `Notebooks A and B are inside each other. Their lists and a search must not hang.`, 10);
   note("Cycle B", `parents:\n  - "[[Cycle A]]"\nicon: refresh-ccw`, `The other half of the cycle.`, 10);
   note("Orphan", `parents:\n  - "[[A note that doesn't exist]]"\ncolor: grey`, `Its parent is missing — the chip is shown dashed.`, 15);

@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## Unreleased
+
+- Tasks live apart from the notes, in `.supstack/tasks.jsonl` (one task a line), each linked to a note by the note's `id:`. They show only in the agenda; deleting a note keeps its tasks, and the link works again if the note comes back. Boxes in a note are plain checklists again (open or done, no dates), left out of the agenda. A vault from an earlier version offers to move its dated, prioritised and in-progress tasks and its events out of the notes once, keeping a copy of each note in `.supstack/backup/`. The agenda can rename, delete and link tasks to notes and archive closed ones; Capture and Share can make a task with or without a note; git sync merges the tasks file task by task, Android included.
+
 ## 0.37.2
 
 - On a phone, three notebook tiles fit a 360px list from the first paint, and an agenda row without a time keeps its date chip beside its tags. The demo vault no longer says «Not saved» twice, the colour property gets a palette icon, the agenda's tag chips say what they do, and Settings keeps one size when you switch sections.
