@@ -294,22 +294,36 @@ describe("live preview", () => {
     noErrors();
   });
 
-  test("every state shows its icon; Ctrl+Enter steps the state, a plain line becomes a task; right-click picks any state", async () => {
-    await ev(() => { const t = $(".sn-editor-text.is-live"); t.cmView.dispatch({ changes: { from: 0, to: t.value.length, insert: "- [/] b\n- [<] c\n- [-] f\n- [>] g\n- [x] d\n  CLOSED: [2026-11-03 Tue 18:20]\nplain" } }); t.blur(); });
+  test("every state shows its icon; Ctrl+Enter ticks a box or unticks it, a plain line becomes one; no state menu", async () => {
+    await ev(() => { const t = $(".sn-editor-text.is-live"); t.cmView.dispatch({ changes: { from: 0, to: t.value.length, insert: "- [/] b\n- [<] c\n- [-] f\n- [>] g\n- [x] d\nplain" } }); t.blur(); });
     assert.deepEqual(await ev(() => $$("#editor .task-box").map((b) => b.className.replace("task-box s-", ""))), ["doing", "wait", "cancel", "fwd", "done"]);
     assert.ok(await ev(() => !!$("#editor .cm-sn-task.s-cancel")), "a cancelled task's text is struck through");
     await caretAt((await value()).length);
     await page().keyboard.press("Control+Enter");
     assert.match(await value(), /\n- \[ \] plain$/);
     await page().keyboard.press("Control+Enter");
-    assert.match(await value(), /\n- \[\/\] plain$/);
+    assert.match(await value(), /\n- \[x\] plain$/, "a box in a note is open or done");
+    await page().keyboard.press("Control+Enter");
+    assert.match(await value(), /\n- \[ \] plain$/);
+    assert.doesNotMatch(await value(), /CLOSED/, "and gets no CLOSED: line");
     await ev(() => $(".sn-editor-text.is-live").blur());
     await ev(() => $$("#editor .task-box")[4].dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true })));
-    await page().waitForSelector(".prompt .suggestion-item");
-    await page().keyboard.type("waiting");
-    await page().keyboard.press("Enter");
-    await page().waitForFunction(() => $(".sn-editor-text.is-live").value.includes("- [<] d\n- [/] plain"), null, { timeout: 5000 });
-    assert.doesNotMatch(await value(), /CLOSED/, "reopening drops CLOSED");
+    assert.equal(await page().locator(".prompt .suggestion-item").count(), 0);
+    await ev(() => $$("#editor .task-box")[4].dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true })));
+    await page().waitForFunction(() => $(".sn-editor-text.is-live").value.includes("- [ ] d\n"), null, { timeout: 5000 });
+    noErrors();
+  });
+
+  test("Ctrl+C n turns the caret's line into a task of the agenda, linked to the note", async () => {
+    await ev(() => { const t = $(".sn-editor-text.is-live"); t.cmView.dispatch({ changes: { from: 0, to: t.value.length, insert: "Intro\n- [ ] Call the museum\nOutro" } }); });
+    await caretAt("Intro\n- [ ] Call".length);
+    await page().keyboard.press("Control+c");
+    await page().keyboard.press("n");
+    await page().waitForFunction(() => orgAll().some((e) => e.title === "Call the museum"), null, { timeout: 5000 });
+    await settle();
+    const e = await ev(() => orgAll().find((x) => x.title === "Call the museum"));
+    assert.equal(e.path, await ev(() => editor.path));
+    assert.doesNotMatch(await value(), /Call the museum/);
     noErrors();
   });
 
@@ -414,7 +428,7 @@ describe("the note's panel", () => {
     assert.deepEqual([p.shown, p.position, p.facts, p.active], [true, "static", false, true], "a column; no line of properties under the title");
     assert.deepEqual(p.secs, ["props", "tasks", "outline", "links", "info"]);
     assert.deepEqual(await ev(() => [$("#editor .sn-insp [data-sec=tasks] .sn-insp-count").textContent, $$("#editor .sn-insp .sn-insp-toc-item").map((b) => b.textContent)]),
-      ["2/8", ["Trip", "Routines", "Calendar"]], "tasks done of all, and the note's headings");
+      ["1/3", ["Packing"]], "the checklist's ticked boxes of all, and the note's headings");
     await ev(() => openEditor("cards/Aqueducts.md", { focus: false }));
     await settle();
     p = await panel();
@@ -431,7 +445,7 @@ describe("the note's panel", () => {
     noErrors();
   });
 
-  test("a section folds and stays folded; a heading in the outline and the next date go to the note", async () => {
+  test("a section folds and stays folded; a heading in the outline goes to the note", async () => {
     await openVault({ openNotes: "read", viewport: { width: 1440, height: 900 } });
     await ev(() => openEditor("cards/This week.md", { focus: false, wide: false }));
     await settle();
@@ -439,10 +453,8 @@ describe("the note's panel", () => {
     assert.deepEqual(await ev(() => [$("#editor .sn-insp [data-sec=info]").classList.contains("is-collapsed"), UI.inspFold]), [true, { info: true }]);
     await ev(() => renderEditor());
     assert.equal(await ev(() => $("#editor .sn-insp [data-sec=info]").classList.contains("is-collapsed")), true, "still folded after a redraw");
-    await page().click("#editor .sn-insp .sn-insp-toc-item >> nth=1");
-    await page().click("#editor .sn-insp [data-sec=tasks] .sn-insp-link");
+    await page().click("#editor .sn-insp .sn-insp-toc-item >> nth=0");
     await settle();
-    assert.equal(await ev(() => editor.mode), "edit", "the task's date opens the note for editing at the task");
     noErrors();
   });
 

@@ -1,17 +1,16 @@
 import { ct, ft, LANG, t, tt } from "../core/i18n.js";
 import { debounce, hueOf } from "../core/util.js";
 import { splitNote } from "../core/frontmatter.js";
-import { oaddMonths, odn, oFmt, ohm, oIndentW, oisoWeek, onow, opad, OPLAN_RE, orgHead, orgLine, orgNextState, orgPlanMap, orgReadDate, orgRelDay, orgWarnDays, orgSetPlanning, orgSetPriority, orgSetState, orgSetTags, orgSkip, orgTsParse, orgTsStr, oymd, taskStateName } from "../core/org.js";
+import { oaddMonths, odn, oFmt, ohm, oIndentW, oisoWeek, onow, opad, OPLAN_RE, orgLine, orgReadDate, orgRelDay, orgWarnDays, orgSkip, orgTsParse, orgTsStr, oymd, taskState } from "../core/org.js";
 import { lsGet, lsSet } from "../services/storage.js";
 import { editor, vault } from "../services/state.js";
-import { orgAll } from "../services/tasks.js";
+import { addTask, orgAll } from "../services/tasks.js";
 import { $, $$, h, ic, isMod, setIcon } from "./dom.js";
-import { defaultEcho, echo, promptPanel, promptModal } from "./ui.js";
+import { defaultEcho, echo, promptPanel } from "./ui.js";
 import { openEditor } from "./editor.js";
 import { liveActivate, liveText } from "./live-preview.js";
 import { edInsert, updateEdToolbar } from "./editor-toolbar.js";
 import { caretRect } from "./completion.js";
-import { orgPickPriority } from "./org-commands.js";
 import { dateChip } from "./task-icons.js";
 import { openTasksView, orgCapture } from "./agenda.js";
 
@@ -235,77 +234,40 @@ function orgEd(ta, fn) {
   if (r.msg) echo(r.msg);
   updateEdToolbar?.();
 }
-/** Ctrl+Enter / Ctrl+C Ctrl+T: the task's next state ([ ] → [/] → [x], Shift goes back); a plain line becomes "- [ ] …". */
-function edToggleTask(ta, dir = 1) {
+/** Ctrl+Enter / Ctrl+C t: tick the box on the caret's line or untick it (a box in a note is open or done, nothing more);
+ *  a plain line or list item becomes "- [ ] …". */
+function edToggleTask(ta) {
   orgEd(ta, (lines, cl) => {
-    const had = orgHeadAt(lines, cl, false) >= 0, oldLen = lines[cl].length;
-    const li = orgHeadAt(lines, cl, true);
+    const had = orgHeadAt(lines, cl, false), oldLen = lines[cl].length;
+    const li = had >= 0 ? had : orgHeadAt(lines, cl, true);
     if (li < 0) return false;
-    const msg = had ? orgSetState(lines, li, orgNextState(orgLine(lines[li]).box, dir)) : tt("stateTo", { kw: taskStateName(" ") });
+    let msg = tt("boxOff");
+    if (had >= 0) {
+      const info = orgLine(lines[li]);
+      const to = taskState(info.box)?.open ? "x" : " ";
+      lines[li] = info.lead + info.marker + " " + `[${to}] ` + info.rest;
+      msg = to === "x" ? tt("boxOn") : tt("boxOff");
+    }
     return { msg, anchor: li, dcol: li === cl ? lines[cl].length - oldLen : 0 };
   });
 }
-function edOrgPriority(ta, explicit) {
+/** Ctrl+C n, the toolbar's task button: the caret's line becomes a task of the agenda, linked to this note (and leaves
+ *  the note); on an empty line, Capture opens for a task linked to it. */
+function edLineToTask(ta) {
+  const path = editor.path;
+  if (!path) return;
+  let title = "";
   orgEd(ta, (lines, cl) => {
-    const li = orgHeadAt(lines, cl, false);
-    if (li < 0) return false;
-    const old = lines[li].length;
-    const msg = orgSetPriority(lines, li, 1, explicit);
-    return { msg, anchor: li, dcol: li === cl ? lines[li].length - old : 0 };
+    const L = lines[cl] ?? "";
+    const info = orgLine(L);
+    title = (info ? info.rest : L).trim();
+    if (!title || info?.type === "h") { title = ""; return null; }
+    lines.splice(cl, 1);
+    if (cl > 0 && OPLAN_RE.test(lines[cl] || "")) lines.splice(cl, 1);
+    return { msg: "", line: Math.min(cl, lines.length - 1), col: 0 };
   });
-}
-async function edOrgAsk(ta, kind) {
-  const s0 = ta.selectionStart;
-  const lines0 = ta.value.split("\n");
-  const cl0 = ta.value.slice(0, s0).split("\n").length - 1;
-  let cur = null, li0;
-  if (kind === "SCHEDULED" || kind === "DEADLINE") {
-    li0 = orgHeadAt(lines0, cl0, false);
-    if (li0 < 0 && orgHeadAt([...lines0], cl0, true) < 0) { echo(tt("noEntry")); return; }
-    const map = li0 >= 0 && OPLAN_RE.test(lines0[li0 + 1] || "") ? orgPlanMap(lines0[li0 + 1]) : {};
-    cur = orgTsParse(map[kind]);
-  }
-  let value;
-  if (kind === "tags") {
-    const info = orgLine(lines0[orgHeadAt(lines0, cl0, false)]);
-    if (!info) { echo(tt("noEntry")); return; }
-    const o = orgHead(info.rest);
-    value = await promptModal(tt("tags"), o.tags.length ? ":" + o.tags.join(":") + ":" : "");
-    if (value == null && !o.tags.length) return;
-  } else if (kind === "priority") {
-    value = await orgPickPriority();
-    if (value === undefined) return;
-  } else {
-    value = await orgAskDate(kind === "SCHEDULED" ? tt("schedule") : kind === "DEADLINE" ? tt("deadline") : tt("timestamp"), cur);
-    if (value === undefined || (value === null && (kind === "active" || kind === "inactive"))) { ta = $(".sn-editor-text"); ta?.focus(); ta?.setSelectionRange(s0, s0); return; }
-  }
-  ta = $(".sn-editor-text");
-  if (!ta) return;
-  ta.focus();
-  ta.setSelectionRange(s0, s0);
-  if (kind === "priority") return edOrgPriority(ta, value);
-  if (kind === "active" || kind === "inactive") {
-    const ts = orgTsStr({ active: kind === "active", dn: value.dn, time: value.time, end: value.end, rep: value.rep, warn: value.warn });
-    const v = ta.value;
-    const pre = s0 > 0 && !/\s/.test(v[s0 - 1]) ? " " : "";
-    edInsert(ta, s0, ta.selectionEnd, pre + ts);
-    return;
-  }
-  orgEd(ta, (lines, cl) => {
-    const oldLen = lines[cl].length;
-    const li = orgHeadAt(lines, cl, kind === "SCHEDULED" || kind === "DEADLINE");
-    if (li < 0) return false;
-    const dcol = li === cl ? lines[cl].length - oldLen : 0;
-    if (kind === "tags") {
-      const old = lines[li].length;
-      const msg = orgSetTags(lines, li, String(value || "").split(/[:\s,]+/).map((x) => x.replace(/^#/, "")).filter(Boolean));
-      return { msg, anchor: li, dcol: li === cl ? lines[li].length - old : 0 };
-    }
-    if (value === null) { orgSetPlanning(lines, li, kind, null); return { msg: tt("planRemoved", { key: kind }), anchor: li, dcol }; }
-    const ts = orgTsStr({ active: true, dn: value.dn, time: value.time, end: value.end, rep: value.rep || cur?.rep || null, warn: value.warn || cur?.warn || null });
-    orgSetPlanning(lines, li, kind, ts);
-    return { msg: tt("planSet", { key: kind, ts }), anchor: li, dcol };
-  });
+  if (!title) { orgCapture({ tpl: "t", link: path }); return; }
+  addTask({ state: " ", title }, { notePath: path, label: tt("taskFromLine", { title }).slice(0, 90) });
 }
 /** The Ctrl+C prefix in the editor (only with no selection, so Ctrl+C still copies). Returns true when handled. */
 let orgPrefix = false;
@@ -315,14 +277,8 @@ export function orgEditorKey(e, ta) {
     orgPrefix = false;
     e.preventDefault(); e.stopPropagation();
     const k = e.key.toLowerCase(), c = e.ctrlKey || e.metaKey;
-    if (k === "t") edToggleTask(ta);
-    else if (c && k === "s") edOrgAsk(ta, "SCHEDULED");
-    else if (c && k === "d") edOrgAsk(ta, "DEADLINE");
-    else if (k === "," ) edOrgAsk(ta, "priority");
-    else if (k === ".") edOrgAsk(ta, "active");
-    else if (k === "!") edOrgAsk(ta, "inactive");
-    else if (c && k === "q") edOrgAsk(ta, "tags");
-    else if (c && k === "c") edToggleTask(ta);
+    if (k === "t" || (c && k === "c")) edToggleTask(ta);
+    else if (k === "n") edLineToTask(ta);
     else if (k === "a") openTasksView();
     else if (k === "c") orgCapture();
     else if (e.key === "Escape" || (c && k === "g")) echo(defaultEcho(), { keep: true });
@@ -335,16 +291,13 @@ export function orgEditorKey(e, ta) {
     echo("Ctrl+C …", { keep: true });
     return true;
   }
-  if (isMod(e) && e.key === "Enter") { e.preventDefault(); edToggleTask(ta, e.shiftKey ? -1 : 1); return true; }
+  if (isMod(e) && e.key === "Enter") { e.preventDefault(); edToggleTask(ta); return true; }
   return false;
 }
 /** Toolbar buttons for the editor (called from renderEdToolbar). */
 export function orgToolbar(btn, g) {
-  btn(g, "list-todo", tt("cycle"), (el) => edToggleTask(el), "Ctrl+C Ctrl+T · Ctrl+Enter");
-  btn(g, "flag", tt("priority"), (el) => edOrgAsk(el, "priority"), "Ctrl+C ,");
-  btn(g, "calendar-clock", tt("schedule"), (el) => edOrgAsk(el, "SCHEDULED"), "Ctrl+C Ctrl+S");
-  btn(g, "alarm-clock", tt("deadline"), (el) => edOrgAsk(el, "DEADLINE"), "Ctrl+C Ctrl+D");
-  btn(g, "calendar-plus", tt("timestamp"), (el) => edOrgAsk(el, "active"), "Ctrl+C .");
+  btn(g, "list-todo", tt("boxToggle"), (el) => edToggleTask(el), "Ctrl+Enter");
+  btn(g, "list-plus", tt("lineToTask"), (el) => edLineToTask(el), "Ctrl+C n");
 }
 export const orgLineIsEntry = (ta) => {
   const v = ta.value, s = ta.selectionStart;

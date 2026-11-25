@@ -71,20 +71,19 @@ describe("rendering", () => {
     assert.equal(await ev(() => document.body.lastChild.querySelectorAll("li.is-checked").length), 4, "done, cancelled and forwarded tasks are closed");
   });
 
-  test("clicking a rendered box ticks the task in the file, right-clicking picks a state", async () => {
+  test("clicking a rendered box ticks it in the file and nothing more: a box in a note is a checklist's", async () => {
     await ev(async () => { await writeRaw("cards/A.md", "- [ ] one\n- [/] two\n> - [ ] quoted\n"); openEditor("cards/A.md"); editor.mode = "read"; renderEditor(); });
     // a native click in the page (Playwright's actionability wait is flaky here)
     await H.page.waitForFunction(() => document.querySelectorAll(".sn-reading .task-box").length === 3);
     await ev(() => document.querySelectorAll(".sn-reading .task-box")[1].click());
-    await H.page.waitForFunction(() => /^- \[ \] one\n- \[x\] two\n  CLOSED: \[\d{4}-\d\d-\d\d \w{3} \d\d:\d\d\]\n> - \[ \] quoted\n$/.test(vault.notes.get("cards/A.md").raw));
+    await H.page.waitForFunction(() => vault.notes.get("cards/A.md").raw === "- [ ] one\n- [x] two\n> - [ ] quoted\n", null, { timeout: 5000 });
     await ev(() => document.querySelectorAll(".sn-reading .task-box")[2].click());
     await H.page.waitForFunction(() => /\n> - \[x\] quoted\n$/.test(vault.notes.get("cards/A.md").raw));
+    await ev(() => document.querySelectorAll(".sn-reading .task-box")[1].click());
+    await H.page.waitForFunction(() => vault.notes.get("cards/A.md").raw.startsWith("- [ ] one\n- [ ] two\n"));
+    // no state menu: right-click is the browser's own
     await ev(() => document.querySelectorAll(".sn-reading .task-box")[0].dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true })));
-    await H.page.waitForSelector(".prompt .suggestion-item");
-    assert.deepEqual(await H.page.$$eval(".prompt .suggestion-title", (x) => x.map((e) => e.textContent)), ["To do", "In progress", "Waiting / scheduling", "Done", "Cancelled", "Forwarded"]);
-    await H.page.keyboard.type("forw");
-    await H.page.keyboard.press("Enter");
-    await H.page.waitForFunction(() => vault.notes.get("cards/A.md").raw.startsWith("- [>] one\n"));
+    assert.equal(await H.page.locator(".prompt .suggestion-item").count(), 0);
   });
 });
 
@@ -451,7 +450,8 @@ describe("selecting in a table", () => {
 
 describe("planning lines", () => {
   const NOTE = "- [ ] Book the tour\n  DEADLINE: <2026-11-07 Sat> SCHEDULED: <2026-11-05 Thu>\n\nIntro\n\n- [x] Set up\n  CLOSED: [2026-11-03 Tue 18:20]\n";
-  beforeEach(async () => { await openVault({ demo: false, time: "2026-11-06T09:00:00", notes: { "cards/P.md": NOTE } }); await ev(() => openEditor("cards/P.md", { focus: false })); });
+  // a vault with a tasks file keeps the tasks left in a note where they are: this is how a note shows them
+  beforeEach(async () => { await openVault({ demo: false, time: "2026-11-06T09:00:00", notes: { "cards/P.md": NOTE, ".supstack/tasks.jsonl": "" } }); await ev(() => openEditor("cards/P.md", { focus: false })); });
   const shown = (sel) => ev((s) => [...document.querySelectorAll(s)].map((x) => x.innerText.trim()), sel);
 
   test("while editing, away from the caret, each planning word and its date are one chip, as while reading", async () => {
@@ -464,7 +464,7 @@ describe("planning lines", () => {
   test("while reading, each date is one chip said as in the agenda, and the priority one letter", async () => {
     const note = "- [ ] [#A] Book the tour\n  DEADLINE: <2026-11-07 Sat> SCHEDULED: <2026-11-05 Thu>\n- [ ] Plan\n  DEADLINE: <2026-11-30 Mon>\n"
       + "- [ ] Weekly review\n  SCHEDULED: <2026-11-09 Mon 10:00 +1w>\n- [x] Set up\n  CLOSED: [2026-11-03 Tue 18:20]\n- [x] Old\n  DEADLINE: <2026-11-01 Sun>\n\nLunch <2026-11-06 Fri 13:00-14:00>\n";
-    await openVault({ demo: false, time: "2026-11-06T09:00:00", openNotes: "read", notes: { "cards/R.md": note } });
+    await openVault({ demo: false, time: "2026-11-06T09:00:00", openNotes: "read", notes: { "cards/R.md": note, ".supstack/tasks.jsonl": "" } });
     await ev(() => openEditor("cards/R.md", { focus: false }));
     const chips = await ev(() => [...document.querySelectorAll("#editor .sn-reading .org-date")].map((c) => [c.className.replace(/\b(sn-chip|is-s|org-date)\b/g, "").replace(/\s+/g, " ").trim(), c.innerText.trim(), !!c.querySelector(".org-date-rep")]));
     assert.deepEqual(chips, [

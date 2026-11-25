@@ -31,11 +31,21 @@ describe("share to Supstack", () => {
   test("a shared link becomes a line in today's note, as a link", async () => {
     await open();
     const d = await share({ text: "https://example.com/article", subject: "A good article" });
-    assert.deepEqual(d, { title: "A good article", body: "https://example.com/article", to: ["A line in today’s note", "A new note at the top level", "A new note in Reading"] });
+    assert.deepEqual(d, { title: "A good article", body: "https://example.com/article", to: ["A line in today’s note", "A task in the agenda", "A new note at the top level", "A new note in Reading"] });
     await saveTo("A line in today’s note");
     const raw = await ev(() => vault.notes.get(dailyNotePath())?.raw);
     assert.match(raw, /^- \[A good article\]\(https:\/\/example\.com\/article\) \[\d{4}-\d{2}-\d{2} \w{3} \d{2}:\d{2}\]\n$/);
     assert.equal(await ev(() => !!document.querySelector(".sn-share")), false);
+    noErrors();
+  });
+
+  test("a shared link can be a task of the agenda instead, its title a link", async () => {
+    await open();
+    await share({ text: "https://example.com/form", subject: "Fill in the form" });
+    await saveTo("A task in the agenda");
+    await page().waitForFunction(() => window.__vaultFiles[".supstack/tasks.jsonl"]);
+    const rec = JSON.parse(await ev(() => window.__vaultFiles[".supstack/tasks.jsonl"].text.trim()));
+    assert.deepEqual([rec.state, rec.title, rec.note], [" ", "[Fill in the form](https://example.com/form)", undefined]);
     noErrors();
   });
 

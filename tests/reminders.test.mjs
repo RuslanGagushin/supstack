@@ -16,6 +16,8 @@ async function open(notes, { permission = "granted", userAgent = null, storage =
   await openNativeApp({ notes, expose: true, clock: NOW, userAgent, storage, answers: { "plugin:notification|is_permission_granted": null, "plugin:notification|request_permission": permission } });
   await page().clock.runFor(1000);
   await ev(() => new Promise((r) => { const t = () => (vault.notes.size ? r() : setTimeout(t, 10)); t(); }));
+  // the notes' tasks move to the tasks file, as a vault from before 0.38 offers when it opens
+  if (await page().locator(".modal .is-danger").count()) await page().click(".modal .is-danger");
   await page().clock.runFor(3000);
 }
 /** The notification plugin's calls since `from`: [command, the notification's title and its time if scheduled, or the ids]. */
@@ -57,7 +59,11 @@ describe("on desktop", () => {
 
   test("a task closed, deleted or moved before its time no longer reminds (TASK-2)", async () => {
     await open({ "cards/Day.md": DAY });
-    await ev(() => writeRaw("cards/Day.md", vault.notes.get("cards/Day.md").raw.replace("- [ ] Pay rent", "- [x] Pay rent").replace("10:05", "12:00")));
+    await ev(async () => {
+      const id = (t) => [...taskStore.records.values()].find((r) => r.title === t).id;
+      await editTask(id("Pay rent"), (r) => taskSetState(r, "x"));
+      await editTask(id("Call Ann"), (r) => taskSetPlan(r, "SCHEDULED", "<2026-10-29 Thu 12:00>"));
+    });
     await page().clock.runFor(3000); // planned again a little after the save
     await clearCalls();
     await page().clock.runFor(90 * 60 * 1000);
@@ -74,7 +80,7 @@ describe("on desktop", () => {
     await open({ "cards/Day.md": DAY }, { permission: "denied" });
     assert.deepEqual(await calls(), [["is_permission_granted"], ["request_permission"]]);
     await clearCalls();
-    await ev(() => writeRaw("cards/Day.md", vault.notes.get("cards/Day.md").raw + "- [ ] More\n  SCHEDULED: <2026-10-29 Thu 10:10>\n"));
+    await ev(() => addTask({ title: "More", sched: "<2026-10-29 Thu 10:10>" }));
     await page().clock.runFor(15 * 60 * 1000);
     assert.deepEqual(await calls(), [["is_permission_granted"]], "not asked again, nothing shown");
     noErrors();
@@ -92,7 +98,7 @@ describe("on Android", () => {
     ]);
     assert.equal(scheduled.length, 2 + 14, "and the daily one for the next two weeks");
     await clearCalls();
-    await ev(() => writeRaw("cards/Day.md", vault.notes.get("cards/Day.md").raw.replace("- [ ] Pay rent", "- [-] Pay rent")));
+    await ev(() => editTask([...taskStore.records.values()].find((r) => r.title === "Pay rent").id, (r) => taskSetState(r, "-")));
     await page().clock.runFor(3000);
     assert.deepEqual(await calls(), [["is_permission_granted"], ["cancel", 1]], "the cancelled task's reminder goes; the others stay as they were");
     noErrors();

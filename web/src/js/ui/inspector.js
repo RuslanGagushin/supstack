@@ -4,16 +4,13 @@
    by a button in the note's header (kept per device). When the note's pane is too narrow for a column it lies over
    the text, and on a phone it is a sheet from the bottom; both only while asked for.
    ========================================================= */
-import { t, tt, wt } from "../core/i18n.js";
-import { orgRelDay, TASK_STATES } from "../core/org.js";
+import { t, wt } from "../core/i18n.js";
 import { editor, saveUI, UI, vault } from "../services/state.js";
-import { cardTaskProgress, orgEntries } from "../services/tasks.js";
+import { cardTaskProgress } from "../services/tasks.js";
 import { $, h, ic, iconBtn } from "./dom.js";
 import { formatDate } from "./cards.js";
 import { fillProps, mentionsBox } from "./editor-toolbar.js";
 import { noteOutline } from "./completion.js";
-import { openEditorAtLine } from "./org-editing.js";
-import { taskIcon } from "./task-icons.js";
 
 /** The note's pane holds the panel as a column from this width on (app.css says the same in its container query). */
 export const INSP_DOCK = 760;
@@ -118,26 +115,14 @@ export function renderInspector() {
   else fillProps(props.body, path, n, { selector: "#editor .sn-insp [data-sec=props] .sn-insp-sec-body" });
   want.push(props.el);
 
-  // Tasks: how far along, how many in each state, and the nearest date still open
+  // The checklist: how many of the note's boxes are ticked (the agenda's tasks are kept apart, in tasks.jsonl)
   const prog = cardTaskProgress(path);
   if (prog) {
     const s = section(aside, "tasks", "list-checks", t("factTasks"));
     s.count.textContent = `${prog.done}/${prog.n}`;
-    const tasks = orgEntries(n).filter((x) => x.isTodo);
     const bar = h("span", { cls: "sn-facts-bar sn-insp-bar", role: "progressbar", "aria-valuemin": "0", "aria-valuemax": String(prog.n), "aria-valuenow": String(prog.done), "aria-label": t("factDone", prog) }, h("span", {}));
     bar.firstChild.style.width = Math.round((prog.done / prog.n) * 100) + "%";
-    const states = h("div", { cls: "sn-insp-states" });
-    for (const st of TASK_STATES) {
-      const k = tasks.filter((x) => x.kw === st.id).length;
-      if (k) states.append(h("span", { cls: "sn-chip is-s", title: tt("st_" + st.id) }, taskIcon(st.ch), h("span", { text: `${tt("st_" + st.id)} · ${k}` })));
-    }
-    const kids = [h("div", { cls: "sn-insp-line" }, bar, h("span", { text: t("factDone", prog) })), states];
-    const dated = tasks.filter((x) => !x.done).map((x) => ({ x, ts: [x.dead, x.sched].filter(Boolean).sort((a, b) => a.dn - b.dn)[0] })).filter((d) => d.ts).sort((a, b) => a.ts.dn - b.ts.dn)[0];
-    if (dated) {
-      kids.push(h("button", { cls: "sn-insp-link", type: "button", title: t("inspNext"), onClick: () => openEditorAtLine(path, dated.x.line) },
-        ic("", dated.ts === dated.x.dead ? "flag" : "calendar"), h("span", { cls: "sn-insp-link-text", text: dated.x.title }), h("span", { cls: "sn-insp-sub", text: orgRelDay(dated.ts.dn) })));
-    }
-    s.body.replaceChildren(...kids);
+    s.body.replaceChildren(h("div", { cls: "sn-insp-line" }, bar, h("span", { text: t("factDone", prog) })));
     want.push(s.el);
   }
 

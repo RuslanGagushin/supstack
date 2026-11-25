@@ -58,7 +58,7 @@ export function tasksToIcs(entries, { now = new Date(), labels = { deadline: "De
     else if (ts.time == null) lines.push(`DTEND;VALUE=DATE:${icsDate(ts.dn + 1)}`);
     if (ts.rep && ts.rep.n > 0 && RRULE_FREQ[ts.rep.u]) lines.push(`RRULE:FREQ=${RRULE_FREQ[ts.rep.u]};INTERVAL=${ts.rep.n}`);
     lines.push(`SUMMARY:${icsText(plainTitle(title))}`);
-    lines.push(`DESCRIPTION:${icsText(e.path)}`);
+    lines.push(`DESCRIPTION:${icsText(e.path || e.category || "")}`);
     if (e.alltags?.length) lines.push(`CATEGORIES:${e.alltags.map(icsText).join(",")}`);
     if (e.pri) lines.push(`PRIORITY:${{ A: 1, B: 5, C: 9 }[e.pri] ?? 5}`);
     lines.push("END:VEVENT");

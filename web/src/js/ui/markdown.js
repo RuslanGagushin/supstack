@@ -8,7 +8,7 @@ import { IS_NATIVE } from "../services/native.js";
 import { editor, graph, vault } from "../services/state.js";
 import { resolveAttachment, resolveFileLink, resolveLink } from "../services/vault.js";
 import { attachmentUrl, IMG_EXT, PDF_EXT } from "../services/attachments.js";
-import { orgLine, orgSetState, TASK_LINE_RE, taskState, taskStateName } from "../core/org.js";
+import { TASK_LINE_RE, taskState } from "../core/org.js";
 import { EMBED_DEPTH, embedAllowed, embedSection } from "../core/embed.js";
 import { txn, writeRaw } from "../services/save.js";
 import { h, ic, isMod } from "./dom.js";
@@ -17,7 +17,6 @@ import { openTagView, setTarget } from "./board.js";
 import { openEditor, saveEditor } from "./editor.js";
 import { refresh } from "./shell.js";
 import { orgDecorate } from "./org-editing.js";
-import { orgPickStateChar } from "./org-commands.js";
 import { taskBox } from "./task-icons.js";
 import { openAttachment } from "./files.js";
 
@@ -356,15 +355,8 @@ export function wireRendered(el, sourcePath) {
     const tb = e.target.closest(".task-box[data-task]");
     if (tb) { e.preventDefault(); e.stopPropagation(); toggleTask(sourcePath, +tb.dataset.task); }
   });
-  el.addEventListener("contextmenu", async (e) => {
-    const tb = e.target.closest(".task-box[data-task]");
-    if (!tb) return;
-    e.preventDefault(); e.stopPropagation();
-    const ch = await orgPickStateChar(tb.dataset.state);
-    if (ch !== undefined) setTaskState(sourcePath, +tb.dataset.task, ch);
-  });
 }
-/** A click on a task's box: tick an open task, reopen a closed one. */
+/** A click on a box: tick it, or untick a ticked one. */
 export const toggleTask = (path, index) => setTaskState(path, index, (cur) => (taskState(cur)?.open ? "x" : " "));
 /** Put the note's index-th box (in TASK_LINE_RE's order) into state `ch` (or `ch(current)`), as one undoable edit. */
 export async function setTaskState(path, index, ch) {
@@ -380,10 +372,9 @@ export async function setTaskState(path, index, ch) {
   if (!m) return;
   const to = typeof ch === "function" ? ch(m[2]) : ch;
   const lines = raw.split("\n"), li = (fm + body.slice(0, m.index)).split("\n").length - 1;
-  let msg;
-  if (orgLine(lines[li])?.box != null) msg = orgSetState(lines, li, to);
-  else { lines[li] = lines[li].replace(/\[[ xX\/<>-]\]/, `[${to}]`); msg = tt("stateTo", { kw: taskStateName(to) }); } // a task inside a quote or callout
-  if (!msg) return;
+  // a box in a note is a checklist's: only its character changes (no CLOSED:, no repeating — those are the agenda's tasks)
+  lines[li] = lines[li].replace(/\[[ xX\/<>-]\]/, `[${to}]`);
+  const msg = taskState(to)?.open ? tt("boxOff") : tt("boxOn");
   await txn(msg, () => writeRaw(path, lines.join("\n")));
   refresh();
 }

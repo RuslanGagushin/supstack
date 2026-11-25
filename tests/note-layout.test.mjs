@@ -8,9 +8,12 @@ import * as H from "./harness.mjs";
 const noErrors = () => assert.equal(H.errors.length, 0, H.errors.map((e) => e.stack || e).join("\n"));
 const TASKS = "- [ ] Book the tour :travel:\n  DEADLINE: <2026-11-14 Sat> SCHEDULED: <2026-11-12 Thu>\n  Call the visitor centre first.\n- [/] [#A] Pay the deposit\n  SCHEDULED: <2026-11-13 Fri 10:00>\n";
 
+// a vault with its tasks file keeps the tasks in its notes where they are: these tests look at how a note shows them
+const KEEP = { ".supstack/tasks.jsonl": "" };
+
 describe("a task's lines in the reading view (UI-5)", () => {
   test("its date chips and its note start where its text starts; with a priority, where the priority starts", async () => {
-    await openVault({ demo: false, openNotes: "read", notes: { "cards/Trip.md": TASKS } });
+    await openVault({ demo: false, openNotes: "read", notes: { "cards/Trip.md": TASKS, ...KEEP } });
     await ev(() => openEditor("cards/Trip.md", { focus: false, wide: false }));
     await settle();
     const rows = await ev(() => [...document.querySelectorAll("#editor .sn-reading li.org-entry")].map((li) => {
@@ -35,7 +38,7 @@ describe("a task's title that wraps in the reading view (UI-5)", () => {
   const LONG = "the long pressure pipes that carried the water across every valley on the way to the town";
   const NOTE = `- [ ] Plain: ${LONG}\n- [ ] Folds: ${LONG}\n  SCHEDULED: <2026-11-12 Thu>\n  - [ ] Subtask: ${LONG}\n`;
   test("its next lines start where its text starts; boxes of a list stand in one column, and a subtask's is a step right of its parent's", async () => {
-    await openVault({ demo: false, openNotes: "read", viewport: { width: 412, height: 900 }, touch: true, notes: { "cards/Pipes.md": NOTE } });
+    await openVault({ demo: false, openNotes: "read", viewport: { width: 412, height: 900 }, touch: true, notes: { "cards/Pipes.md": NOTE, ...KEEP } });
     await ev(() => openEditor("cards/Pipes.md", { focus: false }));
     await settle();
     const rows = await ev(() => [...document.querySelectorAll("#editor .sn-reading li.task-list-item")].map((li) => {
@@ -64,7 +67,7 @@ describe("a task's title that wraps in the reading view (UI-5)", () => {
 
 describe("planning words in the editor on a phone (UI-6)", () => {
   test("a planning word and its date are never split over two lines", async () => {
-    await openVault({ demo: false, viewport: { width: 412, height: 900 }, notes: { "cards/Trip.md": TASKS } });
+    await openVault({ demo: false, viewport: { width: 412, height: 900 }, notes: { "cards/Trip.md": TASKS, ...KEEP } });
     await ev(() => openEditor("cards/Trip.md", { focus: false, edit: true }));
     await settle();
     // away from the caret each pair is one chip, which never breaks

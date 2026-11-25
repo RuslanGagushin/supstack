@@ -3,21 +3,21 @@
    ========================================================= */
 import { LANG, t, tt } from "../core/i18n.js";
 import { baseName, debounce, norm, hueOf } from "../core/util.js";
-import { oaddMonths, oFmt, ohm, oisoWeek, onow, orgCache, orgRelDay, orgDayEntries, orgNowTs, orgPriRank, orgReadDate, orgShift, orgSkip, orgStats, orgTsStr, orgWithGrid, oymd, TASK_STATES } from "../core/org.js";
+import { oaddMonths, oFmt, ohm, oisoWeek, onow, orgRelDay, orgDayEntries, orgNowTs, orgPriRank, orgReadDate, orgSkip, orgStats, orgTsStr, orgWithGrid, oymd, TASK_STATES } from "../core/org.js";
 import { lsGet, lsSet } from "../services/storage.js";
 import { board, vault } from "../services/state.js";
 import { persistBoard } from "../services/vault.js";
 import { txn, writeRaw } from "../services/save.js";
 import { dailyNotePath } from "../services/daily-notes.js";
-import { orgAll } from "../services/tasks.js";
+import { addTask, archiveClosed, orgAll, reloadTasks } from "../services/tasks.js";
 import { $, $$, edgeFades, h, ic, iconBtn, isMod, keyText } from "./dom.js";
 import { echo, Menu, openLayer, promptModal } from "./ui.js";
 import { renderMarkdown, wireRendered } from "./markdown.js";
 import { goBack, leaveTagView, navEntry, renderBoard } from "./board.js";
 import { renderTree } from "./tree.js";
 import { setSide, sideToggle } from "./shell.js";
-import { orgCycle, orgEdit, orgPickPriority, orgPickState, orgPlanEntry, orgPri, orgRefocus, orgTagsEntry } from "./org-commands.js";
-import { openEditorAtLine, orgAskDate, orgCalendar, orgDateText } from "./org-editing.js";
+import { orgCycle, orgDeleteEntry, orgLinkEntry, orgOpenEntry, orgPickPriority, orgPickState, orgPlanEntry, orgPri, orgRefocus, orgRenameEntry, orgShiftEntry, orgTagsEntry, orgWhenEntry } from "./org-commands.js";
+import { orgAskDate, orgCalendar, orgDateText } from "./org-editing.js";
 import { dateChip, taskBox, taskIcon } from "./task-icons.js";
 import { tasksToIcs } from "../core/ics.js";
 import { downloadText } from "./format-bar.js";
@@ -184,7 +184,8 @@ export function renderTasksView(root) {
     for (const [v, k, key] of [["day", "day", "d"], ["week", "week", "w"], ["month", "month", "M"]]) { const b = h("button", { cls: "clickable-icon" + (AG.span === v ? " is-active" : ""), type: "button", text: tt(k), title: `${tt(k)} (${key})` }); b.addEventListener("click", () => { AG.span = v; saveAG(); renderBoard(); }); sp.append(b); }
     agbar.append(sp, btn(tt("today"), tt("today") + " (.)", () => orgNav(0)),
       btn(tt("goTo"), tt("goTo") + " (j)", () => orgNav("jump"), null, "ag-wide-only"), btn(tt("log"), tt("log") + " (l)", () => { AG.log = !AG.log; saveAG(); renderBoard(); }, AG.log, "ag-wide-only"),
-      iconBtn("calendar-arrow-down", tt("icsExport"), exportCalendar, "ag-wide-only ag-ics"));
+      iconBtn("calendar-arrow-down", tt("icsExport"), exportCalendar, "ag-wide-only ag-ics"),
+      iconBtn("archive", tt("archiveClosed"), archiveClosedTasks, "ag-wide-only ag-archive"));
   } else if (AG.view === "todo") {
     const sp = h("div", { cls: "sn-seg" });
     for (const k of TODO_FILTERS) {
@@ -227,6 +228,7 @@ export function renderTasksView(root) {
       const m = new Menu();
       if (AG.view === "agenda") m.add(tt("log"), "history", () => { AG.log = !AG.log; saveAG(); renderBoard(); }, { checked: !!AG.log });
       if (AG.view === "agenda") m.add(tt("icsExport"), "calendar-arrow-down", exportCalendar);
+      if (AG.view === "agenda") m.add(tt("archiveClosed"), "archive", archiveClosedTasks);
       if (tags.length) {
         m.sep(); m.label(tt("filterTags"));
         for (const tg of tags) {
@@ -312,8 +314,7 @@ export function renderTasksView(root) {
     if (words.length) {
       const items = all.filter((e) => {
         if (orgSkip(e) || !pass(e)) return false;
-        const n = vault.notes.get(e.path);
-        const txt = norm(n.raw.split("\n").slice(e.line, e.kind === "event" ? e.line + 1 : e.secEnd).join("\n") + " " + e.alltags.join(" "));
+        const txt = norm(e.fullTitle + " " + e.alltags.join(" ") + " " + e.category);
         return words.every((w) => (w.startsWith("-") && w.length > 1 ? !txt.includes(w.slice(1)) : txt.includes(w.replace(/^\+/, ""))));
       });
       if (items.length) body.append(h("section", { cls: "ag-card" }, items.map((e) => orgRow({ e, kind: "search", label: "", time: null, dn: null }))));
@@ -342,8 +343,7 @@ export function renderTasksView(root) {
   scroll.scrollTop = oldScroll;
   if (AG.sel) {
     let i = AGROWS.findIndex((x) => orgRowKey(x) === AG.sel);
-    if (i < 0) { const ek = AG.sel.split("\u0000").slice(0, 2).join("\u0000"); i = AGROWS.findIndex((x) => x.e.key === ek); }
-    if (i < 0 && AG.selRaw) i = AGROWS.findIndex((x) => x.e.path === AG.selRaw.path && x.e.raw === AG.selRaw.raw);
+    if (i < 0) { const ek = AG.sel.split("\u0000")[0]; i = AGROWS.findIndex((x) => x.e.key === ek); }
     if (i >= 0) orgSelect(i, false); else AG.sel = null;
   }
   if (focusId) { const inp = $(`[data-ag-input="${focusId}"]`, root); if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); } }
@@ -382,7 +382,7 @@ function orgRow(x) {
   // a row under its own day needs no "Scheduled" chip: the day already says so (late and deadline chips stay)
   if (x.kind === "sched" && !x.overdue && label === tt("lScheduled")) label = "";
   const time = x.time != null ? ohm(x.time) + (x.end != null ? "–" + ohm(x.end) : "") : "";
-  const row = h("div", { cls: `ag-row k-${kindCls}` + (x.overdue ? " overdue" : "") + (e.done ? " is-done" : "") + (x.time != null ? " has-time" : ""), role: "option", dataset: { i: String(i), path: e.path, line: String(e.line) } });
+  const row = h("div", { cls: `ag-row k-${kindCls}` + (x.overdue ? " overdue" : "") + (e.done ? " is-done" : "") + (x.time != null ? " has-time" : ""), role: "option", dataset: { i: String(i), id: e.id, path: e.path || "" } });
   const main = h("span", { cls: "ag-main" });
   // a task's priority colours its box; only the top one also gets a letter, so it does not rest on colour alone
   if (e.isTodo) { const b = taskBox(e.state, { dataset: { act: "tick" } }); if (e.pri) { b.title +=` · ${tt("priority")} ${e.pri}`; } main.append(b); }
@@ -402,12 +402,13 @@ function orgRow(x) {
   // only one of the two copies is ever displayed, so a screen reader reads it once
   if (!time && label) sub.append(h("span", { cls: "ag-lab ag-lab-sub" }, labelChip(kindCls, label, tone)));
   if (shown.length) sub.append(h("span", { cls: "tags" }, shown.map((tg) => h("span", { cls: "sn-chip is-s" + (e.inherited.includes(tg) ? " is-outline" : " hue-" + hueOf(tg)), text: tg }))));
-  sub.append(h("span", { cls: "ag-cat", title: e.path, text: e.category }));
+  // the note it belongs to; a task without one, or whose note is gone, says so quietly
+  sub.append(h("span", { cls: "ag-cat" + (e.path ? "" : " is-none"), title: e.path || e.category, text: e.category }));
   main.append(sub);
   const act = h("span", { cls: "ag-act" });
   if (e.kind !== "event") act.append(h("button", { type: "button", dataset: { act: "state" }, text: tt("actState"), title: "T" }));
   if (x.kind === "sched" || x.kind === "dead" || x.kind === "ts") act.append(h("button", { type: "button", dataset: { act: "later" }, text: tt("actLater"), title: "Shift+→" }));
-  act.append(h("button", { type: "button", dataset: { act: "goto" }, text: tt("actOpen"), title: "Enter" }));
+  if (e.path) act.append(h("button", { type: "button", dataset: { act: "goto" }, text: tt("actOpen"), title: "Enter" }));
   row.append(h("span", { cls: "ag-meta" }, h("span", { cls: "ag-time", text: time }), h("span", { cls: "ag-lab" }, labelChip(kindCls, label, tone))), main, act);
   return row;
 }
@@ -423,7 +424,7 @@ export function orgSelect(i, scroll = true) {
   const x = AGROWS[i];
   if (!x) return;
   AG.sel = orgRowKey(x);
-  AG.selRaw = { path: x.e.path, raw: x.e.raw };
+  AG.selRaw = { id: x.e.id };
   $$(".ag-row.is-selected").forEach((r) => { r.classList.remove("is-selected"); r.setAttribute("aria-selected", "false"); });
   const r = $(`.ag-row[data-i="${i}"]`);
   if (r) { r.classList.add("is-selected"); r.setAttribute("aria-selected", "true"); if (scroll) r.scrollIntoView({ block: "nearest" }); }
@@ -434,15 +435,21 @@ function orgAct(x, act) {
   if (act === "todo") return orgCycle(e);
   if (act === "tick") return orgCycle(e, 1, true);
   if (act === "state") return orgPickState(e);
-  if (act === "later" || act === "earlier") return orgEdit(e, (L, li) => orgShift(L, li, x.kind === "dead" || x.kind === "sched" ? x.kind : "ts", act === "later" ? 1 : -1));
-  if (act === "goto") return openEditorAtLine(e.path, e.line);
+  if (act === "later" || act === "earlier") return orgShiftEntry(e, x.kind === "dead" || x.kind === "sched" ? x.kind : "ts", act === "later" ? 1 : -1);
+  if (act === "goto") return orgOpenEntry(e);
 }
 function orgRowMenu(x) {
   const e = x.e, m = new Menu();
   if (e.kind !== "event") { m.add(tt("cycle"), "list-todo", () => orgPickState(e)); m.add(tt("priority"), "flag", async () => { const p = await orgPickPriority(e.pri); if (p !== undefined) orgPri(e, 0, p); }); }
-  if (e.kind !== "event") { m.add(tt("schedule"), "calendar-clock", () => orgPlanEntry(e, "SCHEDULED")); m.add(tt("deadline"), "alarm-clock", () => orgPlanEntry(e, "DEADLINE")); m.add(tt("tags"), "tag", () => orgTagsEntry(e)); }
+  if (e.kind !== "event") { m.add(tt("schedule"), "calendar-clock", () => orgPlanEntry(e, "SCHEDULED")); m.add(tt("deadline"), "alarm-clock", () => orgPlanEntry(e, "DEADLINE")); }
+  else m.add(tt("timestamp"), "calendar-clock", () => orgWhenEntry(e));
+  m.add(tt("tags"), "tag", () => orgTagsEntry(e));
+  m.add(tt("taskRename"), "pencil", () => orgRenameEntry(e));
   m.sep();
-  m.add(tt("actOpen"), "file-text", () => openEditorAtLine(e.path, e.line));
+  if (e.path) m.add(tt("taskOpenNote", { note: e.category }), "file-text", () => orgOpenEntry(e));
+  m.add(e.noteId ? tt("taskLinkOther") : tt("taskLink"), "link", () => orgLinkEntry(e));
+  m.sep();
+  m.add(tt("taskDelete"), "trash-2", () => orgDeleteEntry(e), { warning: true });
   return m;
 }
 function orgSetView(v) {
@@ -501,7 +508,7 @@ function orgAgendaKey(ev) {
   if (k === "+" || k === "=") { stop(); if (row) orgPri(row.e, 1); return; }
   if (k === "-" || k === "_") { stop(); if (row) orgPri(row.e, -1); return; }
   if (k === ",") { stop(); if (row) orgPickPriority(row.e.pri).then((p) => { orgRefocus(); if (p !== undefined) orgPri(row.e, 0, p); }); return; }
-  if (k === "s") { stop(); if (row) orgPlanEntry(row.e, "SCHEDULED"); return; }
+  if (k === "s") { stop(); if (row) (row.e.kind === "event" ? orgWhenEntry(row.e) : orgPlanEntry(row.e, "SCHEDULED")); return; }
   if (k === "e") { stop(); if (row) orgPlanEntry(row.e, "DEADLINE"); return; }
   if (k === ":") { stop(); if (row) orgTagsEntry(row.e); return; }
   if (k === "d" || k === "w" || k === "M") { stop(); AG.span = k === "d" ? "day" : k === "w" ? "week" : "month"; AG.view = "agenda"; saveAG(); renderBoard(); return; }
@@ -510,7 +517,10 @@ function orgAgendaKey(ev) {
   if (k === ".") { stop(); orgNav(0); return; }
   if (k === "j") { stop(); orgNav("jump"); return; }
   if (k === "l") { stop(); AG.log = !AG.log; saveAG(); renderBoard(); echo(`${tt("log")}: ${AG.log ? "on" : "off"}`); return; }
-  if (k === "r" || k === "g") { stop(); orgCache.clear(); renderBoard(); echo(LANG === "ru" ? "Повестка обновлена" : "Agenda refreshed"); return; }
+  if (k === "r" || k === "g") { stop(); reloadTasks().then(() => { renderBoard(); echo(LANG === "ru" ? "Повестка обновлена" : "Agenda refreshed"); }); return; }
+  if (k === "F2") { stop(); if (row) orgRenameEntry(row.e); return; }
+  if (k === "Delete") { stop(); if (row) orgDeleteEntry(row.e); return; }
+  if (k === "L") { stop(); if (row) orgLinkEntry(row.e); return; }
   if (k === "/") { stop(); orgAskFilter(); return; }
   if (k === "\\") { stop(); AG.filter = {}; renderBoard(); return; }
   if (k === "c") { stop(); orgCapture(); return; }
@@ -523,15 +533,20 @@ function orgAgendaKey(ev) {
 let orgAgPrefix = false;
 
 /* ---------- capture */
-const CAP = Object.assign({ tpl: "t", to: "daily" }, lsGet("sn-capture", {}));
-async function orgDailyPath() {
-  const path = dailyNotePath();
-  if (!vault.notes.has(path)) await writeRaw(path, "");
-  return path;
+// tasks and meetings go to tasks.jsonl, linked to a note or to none (`link`); a note line and a journal line are written into a note (`to`)
+const CAP = Object.assign({ tpl: "t", to: "daily", link: "none" }, lsGet("sn-capture", {}));
+async function orgNotePath(where) {
+  if (where === "daily") { const path = dailyNotePath(); if (!vault.notes.has(path)) await writeRaw(path, ""); return path; }
+  if (where === "inbox") { const path = `${tt("capInbox")}.md`; if (!vault.notes.has(path)) await writeRaw(path, ""); return path; }
+  if (where.startsWith("card:")) return vault.notes.has(where.slice(5)) ? where.slice(5) : null;
+  return null;
 }
+/** Capture (c, the sidebar's +, Ctrl+Alt+N from anywhere): a task, a meeting, a line in a note or the journal.
+ *  `pre`: { tpl, head, link } — `link` a note's path to link the task to. */
 export function orgCapture(pre = {}) {
   const tpls = [["t", "capTodo", "list-todo"], ["n", "capNote", "sticky-note"], ["m", "capMeeting", "users"], ["j", "capJournal", "book-open"]];
   let tpl = pre.tpl || CAP.tpl;
+  if (!tpls.some((x) => x[0] === tpl)) tpl = "t";
   const panel = h("div", { cls: "modal ag-cap", role: "dialog", "aria-label": tt("capTitle") });
   const close = openLayer(panel);
   const tplRow = h("div", { cls: "cap-tpl" });
@@ -540,10 +555,21 @@ export function orgCapture(pre = {}) {
   const when = h("input", { type: "text", cls: "cap-when", placeholder: tt("dateEg"), autocomplete: "off" }); // the whole syntax is in the hint under it, which a narrow field would cut
   const hint = h("span", { cls: "cap-hint" });
   const notes = h("textarea", { cls: "cap-notes", rows: "3", placeholder: tt("capNotes") });
-  const targets = [["daily", tt("capDaily")], ["inbox", `${tt("capInbox")}.md`]];
-  if (board.target && vault.notes.has(board.target)) targets.push(["card:" + board.target, baseName(board.target)]);
-  if (!targets.some(([v]) => v === CAP.to)) CAP.to = "daily";
-  const to = h("select", { cls: "cap-to" }, targets.map(([v, l]) => h("option", { value: v, text: l, selected: v === CAP.to })));
+  // the note the open list or note is about, as a third choice
+  const here = pre.link || (board.target && vault.notes.has(board.target) ? board.target : null);
+  const noteTargets = [["daily", tt("capDaily")], ["inbox", `${tt("capInbox")}.md`]];
+  if (here) noteTargets.push(["card:" + here, baseName(here)]);
+  const linkTargets = [["none", tt("capNoNote")], ...noteTargets];
+  if (pre.link) CAP.link = "card:" + pre.link;
+  const to = h("select", { cls: "cap-to" });
+  const fillTo = () => {
+    const isTask = tpl === "t" || tpl === "m", list = isTask ? linkTargets : noteTargets;
+    let cur = isTask ? CAP.link : CAP.to;
+    if (!list.some(([v]) => v === cur)) cur = list[0][0];
+    to.replaceChildren(...list.map(([v, l]) => h("option", { value: v, text: l, selected: v === cur })));
+    to.value = cur;
+  };
+  to.addEventListener("change", () => { if (tpl === "t" || tpl === "m") CAP.link = to.value; else CAP.to = to.value; });
   const calBtn = h("button", { type: "button", cls: "cap-cal-btn", title: LANG === "ru" ? "Календарь" : "Calendar", "aria-label": LANG === "ru" ? "Календарь" : "Calendar", "aria-expanded": "false" }, ic("", "calendar-days"));
   let capCal = null;
   calBtn.addEventListener("click", () => {
@@ -557,11 +583,16 @@ export function orgCapture(pre = {}) {
     if (e.shiftKey && /^Arrow(Left|Right|Up|Down)$/.test(e.key)) { e.preventDefault(); if (!capCal) calBtn.click(); capCal.move({ ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key]); }
   });
   const whenWrap = h("div", { cls: "cap-field" }, h("span", { text: tt("capWhen") }), h("div", { cls: "cap-when-row" }, when, calBtn), hint);
-  const toWrap = h("label", { cls: "cap-field" }, h("span", { text: tt("capTo") }), to);
+  const notesWrap = h("label", { cls: "cap-field" }, h("span", { text: tt("capNotes") }), notes);
+  const toLabel = h("span", { text: tt("capTo") });
+  const toWrap = h("label", { cls: "cap-field" }, toLabel, to);
   const upd = () => {
     for (const b of tplRow.children) b.setAttribute("aria-pressed", String(b.dataset.tpl === tpl));
     whenWrap.hidden = tpl === "n" || tpl === "j";
+    notesWrap.hidden = tpl === "t" || tpl === "m"; // a task is its title; what more there is to say goes in its note
     toWrap.hidden = tpl === "j";
+    toLabel.textContent = tpl === "t" || tpl === "m" ? tt("capLink") : tt("capTo");
+    fillTo();
     const v = when.value.trim();
     const r = v ? orgReadDate(v) : null;
     hint.textContent = v ? (r ? (tpl === "m" ? "" : "SCHEDULED: ") + orgTsStr({ active: true, dn: r.dn, time: r.time, end: r.end, rep: r.rep, warn: r.warn }) : tt("cantRead")) : tpl === "m" ? tt("capNeedDate") : tt("dateHelp");
@@ -580,25 +611,25 @@ export function orgCapture(pre = {}) {
     const r = dv && !whenWrap.hidden ? orgReadDate(dv) : null;
     if (dv && !whenWrap.hidden && !r) { when.focus(); return; }
     if (tpl === "m" && !r) { when.focus(); echo(tt("capNeedDate")); return; }
-    CAP.tpl = tpl; CAP.to = to.value; lsSet("sn-capture", CAP);
+    const where = to.value;
+    CAP.tpl = tpl; lsSet("sn-capture", CAP);
     close();
-    const extra = notes.value.replace(/\s+$/, "").split("\n").filter((l, i, a) => a.join("").trim()).map((l) => "  " + l);
     const ts = r ? orgTsStr({ active: true, dn: r.dn, time: r.time, end: r.end, rep: r.rep, warn: r.warn }) : null;
-    let out;
-    if (tpl === "t") out = [`- [ ] ${title}`, ...(ts ? [`  SCHEDULED: ${ts}`] : []), ...extra];
-    else if (tpl === "n") out = [`- ${title} ${orgNowTs()}`, ...extra];
-    else if (tpl === "m") out = [`- ${title} ${ts} #meeting`, ...extra];
-    else out = [`- ${ohm(onow().min)} ${title}`, ...extra];
-    let path;
-    if (tpl === "j" || CAP.to === "daily") path = await orgDailyPath();
-    else if (CAP.to === "inbox") { path = `${tt("capInbox")}.md`; if (!vault.notes.has(path)) await writeRaw(path, ""); }
-    else path = CAP.to.slice(5);
+    if (tpl === "t" || tpl === "m") {
+      const notePath = where === "none" ? null : await orgNotePath(where);
+      const fields = tpl === "t" ? { state: " ", title, sched: ts } : { state: null, title, when: ts, tags: ["meeting"] };
+      await addTask(fields, { notePath, label: (notePath ? tt("capFiled", { note: baseName(notePath), head: title }) : tt("taskAdded", { title })).slice(0, 90) });
+      return;
+    }
+    const extra = notes.value.replace(/\s+$/, "").split("\n").filter((l, i, a) => a.join("").trim()).map((l) => "  " + l);
+    const out = tpl === "n" ? [`- ${title} ${orgNowTs()}`, ...extra] : [`- ${ohm(onow().min)} ${title}`, ...extra];
+    const path = (await orgNotePath(tpl === "j" ? "daily" : where)) || (await orgNotePath("daily"));
     const raw = vault.notes.get(path)?.raw ?? "";
     const next = (raw && !raw.endsWith("\n") ? raw + "\n" : raw) + out.join("\n") + "\n";
     await txn(tt("capFiled", { note: baseName(path), head: title }).slice(0, 90), () => writeRaw(path, next));
   };
   panel.append(iconBtn("x", t("close"), () => close(), "modal-close"), h("div", { cls: "modal-title", text: tt("capTitle") }), tplRow,
-    h("label", { cls: "cap-field" }, h("span", { text: tt("capHead") }), head), whenWrap, h("label", { cls: "cap-field" }, h("span", { text: tt("capNotes") }), notes), toWrap,
+    h("label", { cls: "cap-field" }, h("span", { text: tt("capHead") }), head), whenWrap, notesWrap, toWrap,
     h("div", { cls: "modal-buttons" }, h("span", { cls: "cap-keys", text: tt("capHint") }), h("button", { type: "button", text: tt("capAbort"), onClick: () => close() }), h("button", { type: "button", cls: "is-primary", text: tt("capOk"), onClick: finish })));
   when.addEventListener("input", upd);
   panel.addEventListener("keydown", (e) => {
@@ -610,5 +641,5 @@ export function orgCapture(pre = {}) {
   upd();
   setTimeout(() => head.focus(), 0);
 }
-
-
+/** Move the tasks closed before today to the archive (the agenda's filter menu, the command list). */
+export async function archiveClosedTasks() { await archiveClosed(1); }

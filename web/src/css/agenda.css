@@ -100,6 +100,8 @@ body.sn-kb .ag-body:focus-visible:not(:has(.ag-row.is-selected)) { box-shadow: v
 .ag-main:has(> .ag-ev-bar) .ag-sub { padding-left: calc(3px + var(--sp-10)); }
 .ag-body.one-cat .ag-sub:not(:has(.tags)) { display: none; }
 .ag-main .ag-cat { white-space: nowrap; }
+/* a task without a note, or whose note is gone, says so in italics */
+.ag-main .ag-cat.is-none { font-style: italic; }
 .ag-lab-sub { display: none; }
 .ag-time { color: var(--faint); font-size: var(--fs-ui); white-space: nowrap; }
 .ag-lab { max-width: 20ch; color: var(--muted); font-size: var(--fs-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

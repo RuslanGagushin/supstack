@@ -15,6 +15,7 @@ import { ATTACHMENTS, CARDS, DAILY, inFolder, vaultFolder } from "./folders.js";
 import { dropAttachment } from "./attachments.js";
 import { stopSync, syncHook } from "./sync.js";
 import { flushIndexCache, loadIndexCache, scheduleIndexFlush } from "./index-cache.js";
+import { loadTasks, reloadTasks } from "./tasks.js";
 
 export function isMd(p) { return /\.md$/i.test(p); }
 export function isCard(path) {
@@ -204,6 +205,7 @@ export async function readVault(fs) {
   reportUnreadable(failed.sort());
   indexNames();
   await loadSettings();
+  await loadTasks(fs);
   const moved = await gatherNotes();
   const saved = lsGet(boardKey(), null);
   Object.assign(board, {
@@ -220,7 +222,7 @@ export async function readVault(fs) {
   undoStack.length = 0;
   setGraph(buildGraph());
   flushIndexCache(vault.notes, vault.sizes);
-  lastFullPoll = Date.now(); // reading it was a full look
+  lastFullPoll = lastTasksRead = Date.now(); // reading it was a full look
   watchVault(fs);
   warmSearchIndex(fs);
   emit("opened");
@@ -300,6 +302,7 @@ export async function saveSettings() {
 /* Watch for changes made elsewhere (other apps, sync) */
 let polling = false;
 let lastFullPoll = 0;
+let lastTasksRead = 0;
 /** How often the whole vault is listed while the app watches the folder. */
 export const WATCHED_POLL_MS = 60000;
 /**
@@ -316,6 +319,8 @@ export async function pollChanges({ force = false } = {}) {
     lastFullPoll = Date.now();
     const seen = new Set(list.map((f) => f.path));
     await pickUp(list, [...vault.allPaths].filter((p) => !seen.has(p)));
+    // the tasks file is hidden, so no listing names it: read again after a sync, else once a minute
+    if (force || Date.now() - lastTasksRead >= WATCHED_POLL_MS) { lastTasksRead = Date.now(); await reloadTasks(); }
   } catch (e) { console.warn("poll failed", e); } finally { polling = false; }
 }
 /** Take in files that are new or changed (listing entries with a handle) and the paths that are gone. */

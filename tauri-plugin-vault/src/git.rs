@@ -6,6 +6,7 @@
 
 use std::{
     cell::{Cell, RefCell},
+    collections::{BTreeMap, BTreeSet},
     path::{Path, PathBuf},
     rc::Rc,
     time::{SystemTime, UNIX_EPOCH},
@@ -373,6 +374,69 @@ fn stamp() -> String {
     format!("{y:04}-{m:02}-{d:02} {:02}.{:02}.{:02}", t / 3600, t % 3600 / 60, t % 60)
 }
 
+/// The vault's task files (web/src/js/core/tasks.js): one task as JSON a line, sorted by id. Git's line merge can't
+/// tell two tasks apart, so when both sides changed one of these files it is merged task by task instead of keeping a
+/// conflict copy, which the app would never read.
+fn is_task_file(path: &str) -> bool {
+    path.starts_with(".supstack/") && path.ends_with(".jsonl")
+}
+
+/// A task file's lines: id → (the line as written, its `upd` stamp), and the lines that are not tasks.
+fn task_lines(bytes: &[u8]) -> (BTreeMap<String, (String, String)>, Vec<String>) {
+    let mut tasks = BTreeMap::new();
+    let mut other = Vec::new();
+    for line in String::from_utf8_lossy(bytes).lines() {
+        let line = line.trim_end_matches('\r');
+        if line.trim().is_empty() {
+            continue;
+        }
+        let v: Option<serde_json::Value> = serde_json::from_str(line).ok();
+        match v.as_ref().and_then(|v| v.get("id")).and_then(|id| id.as_str()).filter(|id| !id.is_empty()) {
+            Some(id) => {
+                let upd = v.as_ref().and_then(|v| v.get("upd")).and_then(|u| u.as_str()).unwrap_or("").to_owned();
+                tasks.insert(id.to_owned(), (line.to_owned(), upd));
+            }
+            None => other.push(line.to_owned()),
+        }
+    }
+    (tasks, other)
+}
+
+/// Merge two versions of a task file, task by task, against `base` (what both started from) when there is one:
+/// a task changed on one side only takes that change, a task changed on both takes the later change (`upd`), a task
+/// deleted on one side and changed on the other stays, and new tasks from both sides are kept. Without a base nothing
+/// is deleted. The result is sorted by id, as the app writes it.
+pub(crate) fn merge_tasks(base: Option<&[u8]>, ours: &[u8], theirs: &[u8]) -> Vec<u8> {
+    let (b, _) = base.map(task_lines).unwrap_or_default();
+    let (o, mut other) = task_lines(ours);
+    let (t, their_other) = task_lines(theirs);
+    let ids: BTreeSet<&String> = o.keys().chain(t.keys()).collect();
+    let mut out = Vec::new();
+    for id in ids {
+        let was = b.get(id).map(|x| &x.0);
+        let pick = match (o.get(id), t.get(id)) {
+            (Some(x), Some(y)) if x.0 == y.0 => Some(&x.0),
+            (Some(x), Some(y)) if Some(&x.0) == was => Some(&y.0),
+            (Some(x), Some(y)) if Some(&y.0) == was => Some(&x.0),
+            (Some(x), Some(y)) => Some(if y.1 > x.1 { &y.0 } else { &x.0 }),
+            // deleted on the other side: gone, unless it changed here since
+            (Some(x), None) => (base.is_none() || Some(&x.0) != was).then_some(&x.0),
+            (None, Some(y)) => (base.is_none() || Some(&y.0) != was).then_some(&y.0),
+            (None, None) => None,
+        };
+        if let Some(line) = pick {
+            out.push(line.clone());
+        }
+    }
+    for line in their_other {
+        if !other.contains(&line) {
+            other.push(line);
+        }
+    }
+    out.extend(other);
+    if out.is_empty() { Vec::new() } else { (out.join("\n") + "\n").into_bytes() }
+}
+
 /// "Cards/Note.md" → "Cards/Note (conflict 2026-10-28 10.00.00).md"
 fn conflict_path(path: &str) -> String {
     let (dir, name) = path.rsplit_once('/').map_or(("", path), |(d, n)| (d, n));
@@ -435,6 +499,8 @@ fn checkout_keeping_edits(repo: &Repository, report: &mut GitReport) -> Result<(
         let file = dir.join(&path);
         match std::fs::read(&file) {
             Ok(now) if now == mine => {}
+            // a task file: both sides' tasks, the edit made here included
+            Ok(theirs) if is_task_file(&path) => std::fs::write(&file, merge_tasks(None, &mine, &theirs))?,
             Ok(theirs) => {
                 let copy = conflict_path(&path);
                 std::fs::write(dir.join(&copy), theirs)?;
@@ -463,6 +529,13 @@ fn merge(repo: &Repository, their: &AnnotatedCommit, sig: &Signature, report: &m
             idx.conflict_remove(Path::new(&path))?;
             let resolved = |e: &IndexEntry| IndexEntry { flags: e.flags & !STAGE_MASK, ..clone_entry(e) };
             match (&c.our, &c.their) {
+                (Some(o), Some(t)) if is_task_file(&path) => {
+                    let read = |e: &IndexEntry| repo.find_blob(e.id).map(|b| b.content().to_vec());
+                    let base = c.ancestor.as_ref().map(read).transpose()?;
+                    let merged = merge_tasks(base.as_deref(), &read(o)?, &read(t)?);
+                    let id = repo.blob(&merged)?;
+                    idx.add(&IndexEntry { id, file_size: merged.len() as u32, ..resolved(o) })?;
+                }
                 (Some(o), Some(t)) => {
                     idx.add(&resolved(o))?;
                     let copy = conflict_path(&path);
@@ -604,16 +677,18 @@ mod mirror {
 
     use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-    use super::{conflict_path, sync_repo, trace, GitConfig, GitReport};
+    use super::{conflict_path, is_task_file, merge_tasks, sync_repo, trace, GitConfig, GitReport};
     use crate::{Error, Result};
 
     /// The vault's settings (web/src/js/services/vault.js SETTINGS_PATH): the one hidden file that is synced,
     /// as it is on desktop, where the vault folder is the repository.
     pub(crate) const SETTINGS: &str = ".supstack/settings.json";
+    /// The hidden files that are synced: the settings, and the tasks (web/src/js/core/tasks.js TASKS_PATH, ARCHIVE_PATH).
+    pub(crate) const HIDDEN: [&str; 3] = [SETTINGS, ".supstack/tasks.jsonl", ".supstack/tasks-archive.jsonl"];
 
     /// The picked folder, as the mirror uses it.
     pub(crate) trait Folder {
-        /// every visible file (no name starting with a dot) and [`SETTINGS`] if there is one, with its stamp
+        /// every visible file (no name starting with a dot) and the [`HIDDEN`] ones there are, with their stamps
         fn list(&self) -> Result<Listing>;
         fn read(&self, path: &str) -> Result<Vec<u8>>;
         /// writes the file, creating folders on the way; returns its new mtime
@@ -677,10 +752,12 @@ mod mirror {
         }
         let mut out = Snapshot::new();
         walk(dir, "", &mut out);
-        if let Ok(meta) = fs::metadata(dir.join(SETTINGS)) {
-            if meta.is_file() {
-                let m = meta.modified().ok().and_then(|t| t.duration_since(UNIX_EPOCH).ok()).map_or(0, |d| d.as_nanos() as u64);
-                out.insert(SETTINGS.to_owned(), (meta.len(), m));
+        for path in HIDDEN {
+            if let Ok(meta) = fs::metadata(dir.join(path)) {
+                if meta.is_file() {
+                    let m = meta.modified().ok().and_then(|t| t.duration_since(UNIX_EPOCH).ok()).map_or(0, |d| d.as_nanos() as u64);
+                    out.insert(path.to_owned(), (meta.len(), m));
+                }
             }
         }
         out
@@ -719,7 +796,12 @@ mod mirror {
         let edited = |path: &str| now.get(path) != p.folder.get(path);
         for path in changed {
             let bytes = fs::read(work.join(path))?;
-            if edited(path) {
+            if edited(path) && is_task_file(path) {
+                // the tasks edited here and git's, together; the manifest keeps the old stamp, so they go to git next time
+                trace(&format!("copy-out {path} (merged)"));
+                let here = folder.read(path)?;
+                folder.write(path, merge_tasks(None, &here, &bytes))?;
+            } else if edited(path) {
                 // the manifest keeps the old stamp, so the edit is copied in and committed next time
                 let copy = conflict_path(path);
                 trace(&format!("copy-out {path} → {copy}"));
@@ -818,7 +900,7 @@ mod mirror {
         use base64::{engine::general_purpose::STANDARD, Engine};
         use tauri::{AppHandle, Manager, Runtime};
 
-        use super::{sync_folder, Folder, Listing, SETTINGS};
+        use super::{sync_folder, Folder, Listing, HIDDEN};
         use crate::{git::GitConfig, git::GitReport, Error, Result, VaultExt};
 
         fn fnv(s: &str) -> String {
@@ -848,9 +930,11 @@ mod mirror {
                 let vault = self.app.vault();
                 let mut out: Listing = vault.list(self.root.to_owned())?.into_iter().map(|e| (e.path, (e.mtime, e.size))).collect();
                 // the listing leaves hidden files out
-                if vault.exists(self.root.to_owned(), SETTINGS.to_owned()).unwrap_or(false) {
-                    let r = vault.read(self.root.to_owned(), SETTINGS.to_owned(), true)?;
-                    out.insert(SETTINGS.to_owned(), (r.mtime, r.size));
+                for path in HIDDEN {
+                    if vault.exists(self.root.to_owned(), path.to_owned()).unwrap_or(false) {
+                        let r = vault.read(self.root.to_owned(), path.to_owned(), true)?;
+                        out.insert(path.to_owned(), (r.mtime, r.size));
+                    }
                 }
                 Ok(out)
             }
@@ -1021,6 +1105,49 @@ mod tests {
     }
 
     #[test]
+    fn task_files_merge_task_by_task() {
+        let t = |id: &str, title: &str, upd: &str| format!("{{\"id\":\"{id}\",\"state\":\" \",\"title\":\"{title}\",\"upd\":\"{upd}\"}}");
+        let base = [t("a", "A", "1"), t("b", "B", "1"), t("c", "C", "1"), t("d", "D", "1")].join("\n") + "\n";
+        // ours: A changed, D deleted, E new; theirs: B changed, C changed later than ours, D unchanged, F new
+        let ours = [t("a", "A2", "2"), t("b", "B", "1"), t("c", "C-ours", "2"), t("e", "E", "2")].join("\n") + "\n";
+        let theirs = [t("b", "B3", "3"), t("c", "C-theirs", "3"), t("d", "D", "1"), t("f", "F", "3"), t("a", "A", "1")].join("\n") + "\nnot a task\n";
+        let got = String::from_utf8(super::merge_tasks(Some(base.as_bytes()), ours.as_bytes(), theirs.as_bytes())).unwrap();
+        let want = [t("a", "A2", "2"), t("b", "B3", "3"), t("c", "C-theirs", "3"), t("e", "E", "2"), t("f", "F", "3")].join("\n") + "\nnot a task\n";
+        assert_eq!(got, want);
+        // without a base nothing is lost
+        let got = String::from_utf8(super::merge_tasks(None, ours.as_bytes(), theirs.as_bytes())).unwrap();
+        assert!(got.contains("\"d\"") && got.contains("\"e\"") && got.contains("C-theirs"), "{got}");
+    }
+
+    #[test]
+    fn two_devices_that_change_tasks_get_both_changes_without_a_conflict() {
+        let tmp = std::env::temp_dir().join(format!("supstack-tasks-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&tmp);
+        let (remote, a, b) = (tmp.join("remote.git"), tmp.join("a"), tmp.join("b"));
+        Repository::init_bare(&remote).unwrap();
+        for d in [&a, &b] {
+            fs::create_dir_all(d.join(".supstack")).unwrap();
+        }
+        let c = cfg(&remote);
+        let file = ".supstack/tasks.jsonl";
+        let t = |id: &str, title: &str, upd: &str| format!("{{\"id\":\"{id}\",\"state\":\" \",\"title\":\"{title}\",\"upd\":\"{upd}\"}}\n");
+        fs::write(a.join(file), t("t1", "one", "1") + &t("t2", "two", "1")).unwrap();
+        sync_repo(&a, &c).unwrap();
+        sync_repo(&b, &c).unwrap();
+        // each device changes the same task and adds one at the end: git's own merge would conflict
+        fs::write(a.join(file), t("t1", "one", "1") + &t("t2", "two from a", "2") + &t("t3", "three", "2")).unwrap();
+        fs::write(b.join(file), t("t1", "one from b", "3") + &t("t2", "two", "1") + &t("t4", "four", "3")).unwrap();
+        sync_repo(&a, &c).unwrap();
+        let r = sync_repo(&b, &c).unwrap();
+        assert!(r.conflicts.is_empty(), "{r:?}");
+        let want = t("t1", "one from b", "3") + &t("t2", "two from a", "2") + &t("t3", "three", "2") + &t("t4", "four", "3");
+        assert_eq!(fs::read_to_string(b.join(file)).unwrap(), want);
+        sync_repo(&a, &c).unwrap();
+        assert_eq!(fs::read_to_string(a.join(file)).unwrap(), want);
+        let _ = fs::remove_dir_all(&tmp);
+    }
+
+    #[test]
     fn a_repository_on_another_branch_pushes_what_it_merged_to_the_configured_one() {
         let tmp = std::env::temp_dir().join(format!("supstack-branch-{}", std::process::id()));
         let _ = fs::remove_dir_all(&tmp);
@@ -1121,8 +1248,10 @@ mod tests {
             }
             let mut out = mirror::Listing::new();
             walk(&self.dir, "", &mut out);
-            if let Ok(meta) = fs::metadata(self.dir.join(mirror::SETTINGS)) {
-                out.insert(mirror::SETTINGS.into(), (meta.modified().unwrap().duration_since(UNIX_EPOCH).unwrap().as_nanos() as f64 / 1e6, meta.len()));
+            for path in mirror::HIDDEN {
+                if let Ok(meta) = fs::metadata(self.dir.join(path)) {
+                    out.insert(path.into(), (meta.modified().unwrap().duration_since(UNIX_EPOCH).unwrap().as_nanos() as f64 / 1e6, meta.len()));
+                }
             }
             Ok(out)
         }
@@ -1223,6 +1352,22 @@ mod tests {
         sync_repo(&a, &c).unwrap();
         assert_eq!(fs::read_to_string(a.join("Note.md")).unwrap(), "from the phone\n");
         assert_eq!(fs::read_to_string(a.join(&r.conflicts[0])).unwrap(), "from a\n");
+        let _ = fs::remove_dir_all(&tmp);
+    }
+
+    #[test]
+    fn the_tasks_travel_to_and_from_the_phone() {
+        let (tmp, c, a, phone, base) = phone_setup("tasks");
+        let file = mirror::HIDDEN[1];
+        fs::create_dir_all(a.join(".supstack")).unwrap();
+        fs::write(a.join(file), "{\"id\":\"t1\",\"title\":\"a\"}\n").unwrap();
+        sync_repo(&a, &c).unwrap();
+        mirror::sync_folder(&phone, &base, &c).unwrap();
+        assert_eq!(phone.text(file), "{\"id\":\"t1\",\"title\":\"a\"}\n");
+        fs::write(phone.dir.join(file), "{\"id\":\"t1\",\"title\":\"a\"}\n{\"id\":\"t2\",\"title\":\"from the phone\"}\n").unwrap();
+        mirror::sync_folder(&phone, &base, &c).unwrap();
+        sync_repo(&a, &c).unwrap();
+        assert!(fs::read_to_string(a.join(file)).unwrap().contains("from the phone"));
         let _ = fs::remove_dir_all(&tmp);
     }
 

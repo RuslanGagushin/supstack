@@ -1,6 +1,6 @@
 import { hueOf } from "../core/util.js";
 import { CODE_RE, extractLinkpath } from "../core/frontmatter.js";
-import { orgLine, orgSetState, TASK_LINE_RE, taskState } from "../core/org.js";
+import { TASK_LINE_RE, taskState } from "../core/org.js";
 import { findTables, tableSpans } from "../core/tables.js";
 import { editor, graph } from "../services/state.js";
 import { resolveFileLink, resolveLink } from "../services/vault.js";
@@ -14,7 +14,6 @@ import { tableCellDown, tableCellDrag, tableHover, tableHoverEnd, tableSelMenuAt
 import { updateEdToolbar } from "./editor-toolbar.js";
 import { ORG_DECOR_RE, planChip } from "./org-editing.js";
 import { openAttachment } from "./files.js";
-import { orgPickStateChar } from "./org-commands.js";
 import { taskBox } from "./task-icons.js";
 
 /* ---------- Live preview: the note body is one CodeMirror document, and away from the caret its Markdown
@@ -188,20 +187,13 @@ function lpTaskOwner(state, l) {
 }
 /** Set the state of the task on the line at `pos`: `pick(current)` gives the new box character (undefined leaves it). */
 function lpSetState(view, pos, pick) {
-  const doc = view.state.doc, l = doc.lineAt(pos), nx = l.number < doc.lines ? doc.line(l.number + 1) : null;
+  const l = view.state.doc.lineAt(pos);
   const m = /^((?:[ \t]*>)*[ \t]*(?:[-*+]|\d+[.)])[ \t]+\[)([ xX\/<>-])\]/.exec(l.text);
   if (!m) return;
   const to = pick(m[2]);
   if (to === undefined) return;
-  if (orgLine(l.text)?.box == null) { view.dispatch({ changes: { from: l.from + m[1].length, to: l.from + m[1].length + 1, insert: to }, userEvent: "input.task" }); return; }
-  // CLOSED: and repeaters live on the planning line under the task, so the change covers both lines
-  const before = nx ? l.text + "\n" + nx.text : l.text, L = before.split("\n");
-  if (!orgSetState(L, 0, to)) return;
-  const after = L.join("\n");
-  let a = 0, b = 0;
-  while (a < before.length && a < after.length && before[a] === after[a]) a++;
-  while (b < before.length - a && b < after.length - a && before[before.length - 1 - b] === after[after.length - 1 - b]) b++;
-  view.dispatch({ changes: { from: l.from + a, to: l.from + before.length - b, insert: after.slice(a, after.length - b) }, userEvent: "input.task" });
+  // a box in a note is a checklist's: only its character changes
+  view.dispatch({ changes: { from: l.from + m[1].length, to: l.from + m[1].length + 1, insert: to }, userEvent: "input.task" });
 }
 class LpBox extends CM.WidgetType {
   constructor(ch) { super(); this.ch = ch; }
@@ -210,11 +202,6 @@ class LpBox extends CM.WidgetType {
     const el = taskBox(this.ch);
     el.addEventListener("mousedown", (e) => e.preventDefault());
     el.addEventListener("click", (e) => { e.preventDefault(); lpSetState(view, view.posAtDOM(el), (cur) => (taskState(cur)?.open ? "x" : " ")); });
-    el.addEventListener("contextmenu", async (e) => {
-      e.preventDefault();
-      const pos = view.posAtDOM(el), ch = await orgPickStateChar(this.ch);
-      if (ch !== undefined) lpSetState(view, pos, () => ch);
-    });
     return el;
   }
   ignoreEvent() { return true; }

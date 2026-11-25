@@ -158,7 +158,7 @@ describe("the agenda's week (UI-13 to UI-17)", () => {
 });
 
 describe("the task list and the capture form (UI-18, UI-19)", () => {
-  before(() => openVault({ demo: false, time: NOW, notes: { ...NOTES, "cards/Gym.md": "- [ ] Run\n  SCHEDULED: <2026-10-22 Thu +1w>\n- [ ] Stretch\n" } }));
+  before(() => openVault({ demo: false, time: NOW, notes: { ...NOTES, "cards/Gym.md": "- [ ] Run\n  SCHEDULED: <2026-10-22 Thu +1w>\n- [/] Stretch\n" } }));
 
   test("a task's note is a quiet caption after its title, not a column; a list without times has no time column", async () => {
     await ev(() => openTasksView(true, "todo"));
