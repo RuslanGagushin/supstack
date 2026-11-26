@@ -182,13 +182,6 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: var(--sp-8)
 .markdown-rendered .sn-chip.org-date .org-date-rep { display: inline-flex; }
 .markdown-rendered .sn-chip.org-date .org-date-rep svg { width: var(--icon-xs); height: var(--icon-xs); }
 /* capture */
-.cap-tpl { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-6); margin: var(--sp-4) 0 var(--sp-14); }
-button.cap-tpl-btn, button.cap-tpl-btn:not(.clickable-icon) { flex-direction: column; align-items: flex-start; gap: var(--sp-4); padding: var(--sp-8) var(--sp-10); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--bg); font-weight: var(--fw-regular); cursor: pointer; text-align: left; }
-button.cap-tpl-btn svg { width: var(--icon-s); height: var(--icon-s); color: var(--muted); }
-button.cap-tpl-btn .cap-tpl-name { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-6); width: 100%; }
-button.cap-tpl-btn kbd { min-width: 18px; padding: 0 var(--sp-4); border: 1px solid var(--line); border-radius: var(--r-xs); background: var(--win); color: var(--muted); font-family: var(--font-code); font-size: var(--fs-sm); font-weight: var(--fw-regular); text-align: center; }
-button.cap-tpl-btn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
-button.cap-tpl-btn[aria-pressed="true"] svg { color: var(--accent); }
 /* one label column for the whole dialog, as wide as its longest label (a translation can be longer than the English):
    the fields are subgrids of the dialog's grid, so every field starts on the same edge */
 .modal.ag-cap { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: var(--sp-10); align-content: start; }
@@ -200,7 +193,11 @@ button.cap-tpl-btn[aria-pressed="true"] svg { color: var(--accent); }
 .cap-hint { grid-column: 2; min-height: 1.2em; color: var(--muted); }
 .cap-hint.is-bad { color: var(--todo); }
 .cap-keys { margin-right: auto; align-self: center; color: var(--faint); font-size: var(--fs-sm); }
-@media (max-width: 520px) { .cap-tpl { grid-template-columns: repeat(2, minmax(0, 1fr)); } .cap-keys { display: none; } }
+@media (max-width: 520px) { .cap-keys { display: none; } }
+/* the note field: the notes matching what is typed, in a list right under it (in the form's flow: the dialog clips what overflows it) */
+.cap-note-box { min-width: 0; }
+.cap-note-list { max-height: 216px; overflow-y: auto; overscroll-behavior: contain; margin-top: var(--sp-4); padding: var(--sp-4); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--bg); color: var(--ink); font-size: var(--fs-md); }
+.cap-note-list[hidden] { display: none; }
 @media (max-width: 480px) { .wb-brand { display: none; } }
 
 /* calendar popup (date prompts and Capture), in the app's own look: the month as a title, days as soft round buttons,

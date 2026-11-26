@@ -238,21 +238,42 @@ describe("the agenda and the notes' boxes", () => {
     assert.equal(await H.page.locator(".ag-row .ag-cat").first().textContent(), "List");
   });
 
-  test("capture makes a task with no note, or one linked to the note open in the list", async () => {
-    await ev(() => orgCapture({ tpl: "t", head: "Buy stamps" }));
+  test("capture makes a task with no note, or one linked to a note found by its name", async () => {
+    await ev(() => orgCapture({ head: "Buy stamps" }));
     await H.page.fill(".cap-when", "fri 11:00");
-    await H.page.selectOption(".cap-to", "none");
     await H.page.click(".ag-cap .is-primary");
     await tick(200);
     const rec = (await records()).find((x) => x.title === "Buy stamps");
     assert.equal(rec.sched, "<2026-10-30 Fri 11:00>");
     assert.equal(rec.note, undefined);
-    await ev(() => orgCapture({ tpl: "m", head: "Standup", link: "cards/List.md" }));
+    // typing part of a name lists the matching notes; Enter takes the first, then the date
+    await ev(() => orgCapture({ head: "Standup" }));
+    await H.page.fill(".cap-note", "lis");
+    assert.deepEqual(await ev(() => [...document.querySelectorAll(".cap-note-list .suggestion-title")].map((x) => x.textContent)).then((a) => a.includes("List")), true);
+    await H.page.press(".cap-note", "Enter");
+    assert.equal(await H.page.inputValue(".cap-note"), "List");
+    assert.equal(await ev(() => document.activeElement.classList.contains("cap-when")), true, "on to the date");
     await H.page.fill(".cap-when", "fri 9:30");
     await H.page.click(".ag-cap .is-primary");
     await tick(200);
     const m = (await records()).find((x) => x.title === "Standup");
-    assert.deepEqual([m.state, m.when, m.note], [null, "<2026-10-30 Fri 09:30>", "list"]);
+    assert.deepEqual([m.state, m.sched, m.note], [" ", "<2026-10-30 Fri 09:30>", "list"]);
+    // a name no note has keeps the form open; Esc closes the list first, then the form
+    await ev(() => orgCapture({ head: "Nowhere" }));
+    await H.page.fill(".cap-note", "zzzqqq");
+    await H.page.click(".ag-cap .is-primary");
+    await tick(100);
+    assert.equal(await ev(() => !!document.querySelector(".ag-cap")), true);
+    assert.match(await H.page.textContent(".ag-cap"), /No note by that name/);
+    await H.page.fill(".cap-note", "lis");
+    await H.page.keyboard.press("Escape");
+    assert.deepEqual(await ev(() => [!!document.querySelector(".ag-cap"), document.querySelector(".cap-note-list").hidden]), [true, true]);
+    await H.page.keyboard.press("Escape");
+    assert.equal(await ev(() => !!document.querySelector(".ag-cap")), false);
+    // opened for a note, the field already names it
+    await ev(() => orgCapture({ head: "Prefilled", link: "cards/List.md" }));
+    assert.equal(await H.page.inputValue(".cap-note"), "List");
+    await H.page.keyboard.press("Escape");
   });
 
   test("the calendar export and the reminders read the tasks file", async () => {
@@ -260,6 +281,6 @@ describe("the agenda and the notes' boxes", () => {
     assert.match(ics, /SUMMARY:Buy stamps/);
     assert.match(ics, /SUMMARY:Standup/);
     const rem = await ev(() => upcomingReminders(orgAll(), Date.now()).map((r) => r.title));
-    assert.deepEqual(rem, ["Buy stamps"], "a task with a time reminds; an event does not");
+    assert.deepEqual(rem.sort(), ["Buy stamps", "Standup"], "a task with a time reminds");
   });
 });

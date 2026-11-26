@@ -16,10 +16,10 @@ describe("quick capture from anywhere", () => {
     await open();
     await page().waitForFunction(() => vault.notes.size > 0);
     assert.deepEqual(await handed(), ["CommandOrControl+Alt+N"]);
-    assert.equal(await ev(() => !!document.querySelector(".cap-tpl")), false);
+    assert.equal(await ev(() => !!document.querySelector(".ag-cap")), false);
     await ev(() => window.__tauriEmit("quick-capture", null));
     await settle();
-    assert.equal(await ev(() => !!document.querySelector(".cap-tpl")), true);
+    assert.equal(await ev(() => !!document.querySelector(".ag-cap")), true);
     noErrors();
   });
 

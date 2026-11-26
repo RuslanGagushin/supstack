@@ -2,16 +2,14 @@
    The agenda view (Org-agenda style): day / week agenda, task list, tag match, search, and Capture.
    ========================================================= */
 import { LANG, t, tt } from "../core/i18n.js";
-import { baseName, debounce, norm, hueOf } from "../core/util.js";
-import { oaddMonths, oFmt, ohm, oisoWeek, onow, orgRelDay, orgDayEntries, orgNowTs, orgPriRank, orgReadDate, orgSkip, orgStats, orgTsStr, orgWithGrid, oymd, TASK_STATES } from "../core/org.js";
+import { baseName, debounce, dirName, norm, hueOf } from "../core/util.js";
+import { oaddMonths, oFmt, ohm, oisoWeek, onow, orgRelDay, orgDayEntries, orgPriRank, orgReadDate, orgSkip, orgStats, orgTsStr, orgWithGrid, oymd, TASK_STATES } from "../core/org.js";
 import { lsGet, lsSet } from "../services/storage.js";
 import { board, vault } from "../services/state.js";
-import { persistBoard } from "../services/vault.js";
-import { txn, writeRaw } from "../services/save.js";
-import { dailyNotePath } from "../services/daily-notes.js";
+import { cardIcon, persistBoard } from "../services/vault.js";
 import { addTask, archiveClosed, orgAll, reloadTasks } from "../services/tasks.js";
 import { $, $$, edgeFades, h, ic, iconBtn, isMod, keyText } from "./dom.js";
-import { echo, Menu, openLayer, promptModal } from "./ui.js";
+import { echo, fuzzyScore, Menu, openLayer, promptModal } from "./ui.js";
 import { renderMarkdown, wireRendered } from "./markdown.js";
 import { goBack, leaveTagView, navEntry, renderBoard } from "./board.js";
 import { renderTree } from "./tree.js";
@@ -533,43 +531,72 @@ function orgAgendaKey(ev) {
 let orgAgPrefix = false;
 
 /* ---------- capture */
-// tasks and meetings go to tasks.jsonl, linked to a note or to none (`link`); a note line and a journal line are written into a note (`to`)
-const CAP = Object.assign({ tpl: "t", to: "daily", link: "none" }, lsGet("sn-capture", {}));
-async function orgNotePath(where) {
-  if (where === "daily") { const path = dailyNotePath(); if (!vault.notes.has(path)) await writeRaw(path, ""); return path; }
-  if (where === "inbox") { const path = `${tt("capInbox")}.md`; if (!vault.notes.has(path)) await writeRaw(path, ""); return path; }
-  if (where.startsWith("card:")) return vault.notes.has(where.slice(5)) ? where.slice(5) : null;
+// a task goes to tasks.jsonl, linked to a note or to none: the note is picked by typing its name
+/** The notes whose names match `q`, best first. */
+function capNoteMatches(q, limit = 8) {
+  const all = [...vault.notes.keys()];
+  if (!q.trim()) return [];
+  return all.map((p) => ({ p, s: fuzzyScore(q, baseName(p)) })).filter((x) => x.s > 0)
+    .sort((a, b) => b.s - a.s || baseName(a.p).localeCompare(baseName(b.p), undefined, { numeric: true })).slice(0, limit).map((x) => x.p);
+}
+/** The note named exactly `name` (case and accents aside), or null. */
+function capNoteNamed(name) {
+  const n = norm(name.trim());
+  if (!n) return null;
+  for (const p of vault.notes.keys()) if (norm(baseName(p)) === n) return p;
   return null;
 }
-/** Capture (c, the sidebar's +, Ctrl+Alt+N from anywhere): a task, a meeting, a line in a note or the journal.
- *  `pre`: { tpl, head, link } — `link` a note's path to link the task to. */
+/** Capture (c, the sidebar's +, Ctrl+Alt+N from anywhere): a task, linked to a note or to none.
+ *  `pre`: { head, link } — `link` a note's path to link the task to. */
 export function orgCapture(pre = {}) {
-  const tpls = [["t", "capTodo", "list-todo"], ["n", "capNote", "sticky-note"], ["m", "capMeeting", "users"], ["j", "capJournal", "book-open"]];
-  let tpl = pre.tpl || CAP.tpl;
-  if (!tpls.some((x) => x[0] === tpl)) tpl = "t";
   const panel = h("div", { cls: "modal ag-cap", role: "dialog", "aria-label": tt("capTitle") });
-  const close = openLayer(panel);
-  const tplRow = h("div", { cls: "cap-tpl" });
-  const head = h("input", { type: "text", cls: "cap-head", placeholder: LANG === "ru" ? "Что это?" : "What is it?", autocomplete: "off" });
+  const close = openLayer(panel, () => window.removeEventListener("keydown", onEsc, true));
+  const head = h("input", { type: "text", cls: "cap-head", placeholder: LANG === "ru" ? "Что сделать?" : "What to do?", autocomplete: "off" });
   head.value = pre.head || "";
   const when = h("input", { type: "text", cls: "cap-when", placeholder: tt("dateEg"), autocomplete: "off" }); // the whole syntax is in the hint under it, which a narrow field would cut
   const hint = h("span", { cls: "cap-hint" });
-  const notes = h("textarea", { cls: "cap-notes", rows: "3", placeholder: tt("capNotes") });
-  // the note the open list or note is about, as a third choice
-  const here = pre.link || (board.target && vault.notes.has(board.target) ? board.target : null);
-  const noteTargets = [["daily", tt("capDaily")], ["inbox", `${tt("capInbox")}.md`]];
-  if (here) noteTargets.push(["card:" + here, baseName(here)]);
-  const linkTargets = [["none", tt("capNoNote")], ...noteTargets];
-  if (pre.link) CAP.link = "card:" + pre.link;
-  const to = h("select", { cls: "cap-to" });
-  const fillTo = () => {
-    const isTask = tpl === "t" || tpl === "m", list = isTask ? linkTargets : noteTargets;
-    let cur = isTask ? CAP.link : CAP.to;
-    if (!list.some(([v]) => v === cur)) cur = list[0][0];
-    to.replaceChildren(...list.map(([v, l]) => h("option", { value: v, text: l, selected: v === cur })));
-    to.value = cur;
+  // the note: a name typed into a field, with the notes that match it in a list under it
+  let notePath = pre.link && vault.notes.has(pre.link) ? pre.link : null;
+  const note = h("input", { type: "text", cls: "cap-note", placeholder: tt("capNoteFind"), autocomplete: "off", spellcheck: "false", role: "combobox", "aria-expanded": "false", "aria-autocomplete": "list" });
+  note.value = notePath ? baseName(notePath) : "";
+  const list = h("div", { cls: "cap-note-list", role: "listbox", hidden: true });
+  const noteHint = h("span", { cls: "cap-hint" });
+  let shown = [], sel = 0;
+  const listOpen = () => !list.hidden;
+  const hideList = () => { list.hidden = true; note.setAttribute("aria-expanded", "false"); updNote(); };
+  const mark = () => [...list.children].forEach((r, i) => { r.classList.toggle("is-selected", i === sel); if (i === sel) r.scrollIntoView({ block: "nearest" }); });
+  const drawList = () => {
+    shown = capNoteMatches(note.value);
+    sel = 0;
+    const dirsDiffer = shown.some((p) => dirName(p) !== dirName(shown[0])); // a folder every match shares tells nothing
+    list.replaceChildren(...shown.map((p, i) => {
+      const row = h("div", { cls: "suggestion-item", role: "option" }, ic("suggestion-icon", cardIcon(p) || "file-text"), h("span", { cls: "suggestion-title", text: baseName(p) }), dirsDiffer && dirName(p) ? h("span", { cls: "suggestion-note", text: dirName(p) }) : null);
+      row.addEventListener("mousemove", () => { if (sel !== i) { sel = i; mark(); } });
+      row.addEventListener("mousedown", (e) => { e.preventDefault(); pick(p); }); // before the field's blur
+      return row;
+    }));
+    list.hidden = !shown.length || (shown.length === 1 && shown[0] === notePath);
+    note.setAttribute("aria-expanded", String(!list.hidden));
+    mark(); updNote();
   };
-  to.addEventListener("change", () => { if (tpl === "t" || tpl === "m") CAP.link = to.value; else CAP.to = to.value; });
+  const updNote = () => {
+    const v = note.value.trim(), bad = !!v && !notePath && !listOpen(); // while the list is open, a name is still being typed
+    noteHint.textContent = !v ? tt("capNoNoteHint") : bad ? tt("capNoSuchNote") : "";
+    noteHint.classList.toggle("is-bad", bad);
+  };
+  const pick = (p) => { notePath = p; note.value = baseName(p); hideList(); updNote(); when.focus(); };
+  note.addEventListener("input", () => { notePath = capNoteNamed(note.value); drawList(); updNote(); });
+  note.addEventListener("focus", () => { if (note.value.trim() && !notePath) drawList(); });
+  note.addEventListener("blur", () => setTimeout(hideList, 0));
+  note.addEventListener("keydown", (e) => {
+    if (!listOpen()) return;
+    if (e.key === "ArrowDown") { e.preventDefault(); sel = Math.min(shown.length - 1, sel + 1); mark(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); sel = Math.max(0, sel - 1); mark(); }
+    else if (e.key === "Enter" && !isMod(e)) { e.preventDefault(); e.stopPropagation(); pick(shown[sel]); }
+  });
+  // Esc with the list open closes the list, not the form (the form's own Esc listens on the document)
+  const onEsc = (e) => { if (e.key === "Escape" && listOpen()) { e.preventDefault(); e.stopPropagation(); hideList(); } };
+  window.addEventListener("keydown", onEsc, true);
   const calBtn = h("button", { type: "button", cls: "cap-cal-btn", title: LANG === "ru" ? "Календарь" : "Calendar", "aria-label": LANG === "ru" ? "Календарь" : "Calendar", "aria-expanded": "false" }, ic("", "calendar-days"));
   let capCal = null;
   calBtn.addEventListener("click", () => {
@@ -583,62 +610,36 @@ export function orgCapture(pre = {}) {
     if (e.shiftKey && /^Arrow(Left|Right|Up|Down)$/.test(e.key)) { e.preventDefault(); if (!capCal) calBtn.click(); capCal.move({ ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key]); }
   });
   const whenWrap = h("div", { cls: "cap-field" }, h("span", { text: tt("capWhen") }), h("div", { cls: "cap-when-row" }, when, calBtn), hint);
-  const notesWrap = h("label", { cls: "cap-field" }, h("span", { text: tt("capNotes") }), notes);
-  const toLabel = h("span", { text: tt("capTo") });
-  const toWrap = h("label", { cls: "cap-field" }, toLabel, to);
+  const noteWrap = h("div", { cls: "cap-field" }, h("span", { text: tt("capLink") }), h("div", { cls: "cap-note-box" }, note, list), noteHint);
   const upd = () => {
-    for (const b of tplRow.children) b.setAttribute("aria-pressed", String(b.dataset.tpl === tpl));
-    whenWrap.hidden = tpl === "n" || tpl === "j";
-    notesWrap.hidden = tpl === "t" || tpl === "m"; // a task is its title; what more there is to say goes in its note
-    toWrap.hidden = tpl === "j";
-    toLabel.textContent = tpl === "t" || tpl === "m" ? tt("capLink") : tt("capTo");
-    fillTo();
     const v = when.value.trim();
     const r = v ? orgReadDate(v) : null;
-    hint.textContent = v ? (r ? (tpl === "m" ? "" : "SCHEDULED: ") + orgTsStr({ active: true, dn: r.dn, time: r.time, end: r.end, rep: r.rep, warn: r.warn }) : tt("cantRead")) : tpl === "m" ? tt("capNeedDate") : tt("dateHelp");
+    hint.textContent = v ? (r ? "SCHEDULED: " + orgTsStr({ active: true, dn: r.dn, time: r.time, end: r.end, rep: r.rep, warn: r.warn }) : tt("cantRead")) : tt("dateHelp");
     hint.classList.toggle("is-bad", !!v && !r);
   };
-  for (const [k, label, icon] of tpls) {
-    // the template's name, and its key as a key beside it (spec UI-19)
-    const b = h("button", { type: "button", cls: "cap-tpl-btn", dataset: { tpl: k }, title: `${tt(label)} (${k})` }, ic("", icon), h("span", { cls: "cap-tpl-name" }, h("b", { text: tt(label) }), h("kbd", { text: k })));
-    b.addEventListener("click", () => { tpl = k; upd(); head.focus(); });
-    tplRow.append(b);
-  }
   const finish = async () => {
     const title = head.value.trim();
     if (!title) { head.focus(); echo(tt("capNeedHead")); return; }
+    if (note.value.trim() && !notePath) { note.focus(); drawList(); echo(tt("capNoSuchNote")); return; }
     const dv = when.value.trim();
-    const r = dv && !whenWrap.hidden ? orgReadDate(dv) : null;
-    if (dv && !whenWrap.hidden && !r) { when.focus(); return; }
-    if (tpl === "m" && !r) { when.focus(); echo(tt("capNeedDate")); return; }
-    const where = to.value;
-    CAP.tpl = tpl; lsSet("sn-capture", CAP);
+    const r = dv ? orgReadDate(dv) : null;
+    if (dv && !r) { when.focus(); return; }
+    const linked = notePath && vault.notes.has(notePath) ? notePath : null;
     close();
     const ts = r ? orgTsStr({ active: true, dn: r.dn, time: r.time, end: r.end, rep: r.rep, warn: r.warn }) : null;
-    if (tpl === "t" || tpl === "m") {
-      const notePath = where === "none" ? null : await orgNotePath(where);
-      const fields = tpl === "t" ? { state: " ", title, sched: ts } : { state: null, title, when: ts, tags: ["meeting"] };
-      await addTask(fields, { notePath, label: (notePath ? tt("capFiled", { note: baseName(notePath), head: title }) : tt("taskAdded", { title })).slice(0, 90) });
-      return;
-    }
-    const extra = notes.value.replace(/\s+$/, "").split("\n").filter((l, i, a) => a.join("").trim()).map((l) => "  " + l);
-    const out = tpl === "n" ? [`- ${title} ${orgNowTs()}`, ...extra] : [`- ${ohm(onow().min)} ${title}`, ...extra];
-    const path = (await orgNotePath(tpl === "j" ? "daily" : where)) || (await orgNotePath("daily"));
-    const raw = vault.notes.get(path)?.raw ?? "";
-    const next = (raw && !raw.endsWith("\n") ? raw + "\n" : raw) + out.join("\n") + "\n";
-    await txn(tt("capFiled", { note: baseName(path), head: title }).slice(0, 90), () => writeRaw(path, next));
+    await addTask({ state: " ", title, sched: ts }, { notePath: linked, label: (linked ? tt("capFiled", { note: baseName(linked), head: title }) : tt("taskAdded", { title })).slice(0, 90) });
   };
-  panel.append(iconBtn("x", t("close"), () => close(), "modal-close"), h("div", { cls: "modal-title", text: tt("capTitle") }), tplRow,
-    h("label", { cls: "cap-field" }, h("span", { text: tt("capHead") }), head), whenWrap, notesWrap, toWrap,
+  panel.append(iconBtn("x", t("close"), () => close(), "modal-close"), h("div", { cls: "modal-title", text: tt("capTitle") }),
+    h("label", { cls: "cap-field" }, h("span", { text: tt("capHead") }), head), noteWrap, whenWrap,
     h("div", { cls: "modal-buttons" }, h("span", { cls: "cap-keys", text: tt("capHint") }), h("button", { type: "button", text: tt("capAbort"), onClick: () => close() }), h("button", { type: "button", cls: "is-primary", text: tt("capOk"), onClick: finish })));
   when.addEventListener("input", upd);
   panel.addEventListener("keydown", (e) => {
     if (isMod(e) && e.key === "Enter") { e.preventDefault(); finish(); return; }
-    if (e.key === "Enter" && e.target === head) { e.preventDefault(); whenWrap.hidden ? finish() : when.focus(); return; }
+    if (e.key === "Enter" && e.target === head) { e.preventDefault(); (notePath ? when : note).focus(); return; }
+    if (e.key === "Enter" && e.target === note) { e.preventDefault(); when.focus(); return; }
     if (e.key === "Enter" && e.target === when) { e.preventDefault(); finish(); return; }
-    if (e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA" && e.target.tagName !== "SELECT" && !e.ctrlKey && !e.metaKey) { const tp = tpls.find((x) => x[0] === e.key); if (tp) { e.preventDefault(); tpl = tp[0]; upd(); head.focus(); } }
   });
-  upd();
+  upd(); updNote();
   setTimeout(() => head.focus(), 0);
 }
 /** Move the tasks closed before today to the archive (the agenda's filter menu, the command list). */

@@ -170,17 +170,16 @@ describe("the task list and the capture form (UI-18, UI-19)", () => {
     assert.deepEqual(r, { inMain: true, text: "Gym", after: true, areas: '"main lab"', quiet: true });
   });
 
-  test("the capture form says Save and Cancel, and shows each template's letter as a key", async () => {
+  test("the capture form says Save and Cancel, and makes only tasks", async () => {
     for (const [lang, ok, cancel] of [["en", "Save", "Cancel"], ["ru", "Сохранить", "Отмена"]]) {
       await openVault({ demo: false, lang, notes: NOTES });
       await ev(() => orgCapture());
       const r = await ev(() => ({
         buttons: [...document.querySelectorAll(".ag-cap .modal-buttons button")].map((b) => b.textContent),
-        tpls: [...document.querySelectorAll(".cap-tpl-btn")].map((b) => [b.querySelector("b").textContent, b.querySelector("kbd").textContent]),
+        tpls: document.querySelectorAll(".cap-tpl-btn").length, notes: !!document.querySelector(".cap-notes"), note: !!document.querySelector("input.cap-note"),
       }));
       assert.deepEqual(r.buttons, [cancel, ok], lang);
-      assert.deepEqual(r.tpls.map(([, k]) => k), ["t", "n", "m", "j"]);
-      assert.ok(r.tpls.every(([name]) => !/\[/.test(name)), JSON.stringify(r.tpls));
+      assert.deepEqual([r.tpls, r.notes, r.note], [0, false, true]);
       await page().keyboard.press("Escape");
     }
   });
