@@ -80,10 +80,30 @@ export function dayRange(a, b, T) {
   if (A.y === B.y && A.m === B.m) return `${A.d}–${oFmt(b, "D MMMM")}${year(B)}`;
   return `${oFmt(a, "D MMMM")}${A.y !== B.y ? year(A) : ""} – ${oFmt(b, "D MMMM")}${year(B)}`;
 }
-/** A view's head (restyle RS-58, RS-59): what it shows, in the accent over its title; the agenda's days have ‹ and › beside it. */
+/**
+ * A view's head (restyle RS-58, RS-59): what it shows, in the accent over its title. The agenda's days and month have
+ * all their navigation beside the title: the title opens "Go to…", then Day · Week · Month, then ‹ Today ›.
+ */
 function agHead(icon, kind, title, nav) {
   const row = h("div", { cls: "ag-title-row" }, title);
-  if (nav) row.append(iconBtn("chevron-left", tt("earlier"), () => orgNav(-1), "ag-nav"), iconBtn("chevron-right", tt("later"), () => orgNav(1), "ag-nav"));
+  if (nav) {
+    const b = title.querySelector("b");
+    if (b) {
+      const jump = h("button", { cls: "ag-jump", type: "button", title: tt("goTo") + " (j)", onClick: () => orgNav("jump") });
+      b.replaceWith(jump);
+      jump.append(b, ic("ag-jump-chev", "chevron-down"));
+    }
+    const span = h("div", { cls: "sn-seg ag-span" });
+    for (const [v, k, key] of [["day", "day", "d"], ["week", "week", "w"], ["month", "month", "M"]]) {
+      span.append(h("button", { cls: "clickable-icon" + (AG.span === v ? " is-active" : ""), type: "button", text: tt(k), title: `${tt(k)} (${key})`, "aria-pressed": String(AG.span === v),
+        onClick: () => { AG.span = v; saveAG(); renderBoard(); } }));
+    }
+    const steps = h("div", { cls: "ag-steps", role: "group" },
+      iconBtn("chevron-left", tt("earlier"), () => orgNav(-1), "ag-nav"),
+      h("button", { cls: "sn-btn ag-today", type: "button", text: tt("today"), title: tt("today") + " (.)", onClick: () => orgNav(0) }),
+      iconBtn("chevron-right", tt("later"), () => orgNav(1), "ag-nav"));
+    row.append(h("div", { cls: "ag-ctl" }, span, steps));
+  }
   return h("div", { cls: "ag-head" + (nav ? " is-page" : "") }, h("div", { cls: "ag-kind" }, ic("", icon), h("span", { text: kind })), row);
 }
 function renderMonth(body, all, T, pass) {
@@ -127,6 +147,12 @@ export function renderTasksView(root) {
   bar.append(h("div", { cls: "sn-nav" }, sideToggle(), back));
   // no breadcrumbs, as above the list of notes: the view's title says where it is, ← and the sidebar go back
   bar.append(h("div", { cls: "sn-crumbs" }));
+  // the tags to filter by: the 30 most used by open tasks, and any already in the filter
+  const tagCount = new Map();
+  for (const e of all) if (!e.done && !orgSkip(e)) for (const x of e.alltags) tagCount.set(x.toLowerCase(), (tagCount.get(x.toLowerCase()) || 0) + 1);
+  const tags = [...tagCount.entries()].sort((a, b) => b[1] - a[1]).slice(0, 30).map((x) => x[0]).sort();
+  for (const k of Object.keys(AG.filter)) if (!tags.includes(k)) tags.push(k);
+  const cycle = (tg) => { const v = AG.filter[tg]; if (v === 1) AG.filter[tg] = -1; else if (v === -1) delete AG.filter[tg]; else AG.filter[tg] = 1; renderBoard(); };
   const tools = h("div", { cls: "sn-tools" });
   const seg = h("div", { cls: "sn-seg ag-views", role: "tablist" });
   for (const [v, k, key] of [["agenda", "vAgenda", "a"], ["todo", "vTodo", "t"], ["search", "vSearch", "s"]]) {
@@ -134,20 +160,32 @@ export function renderTasksView(root) {
     b.addEventListener("click", () => orgSetView(v));
     seg.append(b);
   }
-  tools.append(seg, h("button", { cls: "sn-btn ag-capture", type: "button", title: tt("capture") + " (c)", onClick: () => orgCapture() }, ic("", "plus"), h("span", { cls: "wb-label", text: tt("capture") })));
+  tools.append(seg);
+  // one button for the tag filters (and, in the agenda, archiving what is closed), at every width: the chips no longer
+  // take a row of their own; how many tags filter is on the button
+  if (AG.view === "agenda" || tags.length) {
+    const n = Object.keys(AG.filter).length;
+    tools.append(h("button", { cls: "sn-btn ag-filters" + (n ? " is-active" : ""), type: "button", title: tt("filters"), "aria-label": tt("filters") + (n ? ` · ${n}` : ""), "aria-haspopup": "menu",
+      onClick: (e) => {
+        const m = new Menu();
+        if (AG.view === "agenda") m.add(tt("archiveClosed"), "archive", archiveClosedTasks);
+        if (tags.length) {
+          if (AG.view === "agenda") m.sep();
+          m.label(tt("filterTags"));
+          for (const tg of tags) { const v = AG.filter[tg]; m.add((v === 1 ? "+" : v === -1 ? "−" : "") + tg, v === -1 ? "minus" : "tag", () => cycle(tg), { checked: v === 1 }); }
+        }
+        m.showBelow(e.currentTarget);
+      } }, ic("", "sliders-horizontal"), h("span", { cls: "wb-label", text: tt("filters") }), n ? h("span", { cls: "ag-filter-n", text: String(n) }) : null));
+  }
+  tools.append(h("button", { cls: "sn-btn ag-capture", type: "button", title: tt("capture") + " (c)", onClick: () => orgCapture() }, ic("", "plus"), h("span", { cls: "wb-label", text: tt("capture") })));
   bar.append(tools);
   root.append(bar);
 
-  // agenda bar
+  // the view's own bar: the task list's states or the search line, then the tags filtering (a click includes a tag,
+  // a second excludes it, a third lets it go). The agenda's days have theirs beside the title, so it often has none.
   const agbar = h("div", { cls: "agbar" });
-  const btn = (text, title, fn, pressed, cls = "") => { const b = h("button", { cls: "sn-btn ag-btn " + cls, type: "button", text, title, "aria-pressed": pressed == null ? null : String(!!pressed) }); b.addEventListener("click", fn); return b; };
-  if (AG.view === "agenda") {
-    const sp = h("div", { cls: "sn-seg" });
-    for (const [v, k, key] of [["day", "day", "d"], ["week", "week", "w"], ["month", "month", "M"]]) { const b = h("button", { cls: "clickable-icon" + (AG.span === v ? " is-active" : ""), type: "button", text: tt(k), title: `${tt(k)} (${key})` }); b.addEventListener("click", () => { AG.span = v; saveAG(); renderBoard(); }); sp.append(b); }
-    agbar.append(sp, btn(tt("today"), tt("today") + " (.)", () => orgNav(0)),
-      btn(tt("goTo"), tt("goTo") + " (j)", () => orgNav("jump"), null, "ag-wide-only"),
-      iconBtn("archive", tt("archiveClosed"), archiveClosedTasks, "ag-wide-only ag-archive"));
-  } else if (AG.view === "todo") {
+  const btn = (text, title, fn) => { const b = h("button", { cls: "sn-btn ag-btn", type: "button", text, title }); b.addEventListener("click", fn); return b; };
+  if (AG.view === "todo") {
     const sp = h("div", { cls: "sn-seg" });
     for (const k of TODO_FILTERS) {
       const st = TASK_STATES.find((x) => x.id === k), name = st ? tt("st_" + k) : tt("stAll");
@@ -156,7 +194,7 @@ export function renderTasksView(root) {
       sp.append(b);
     }
     agbar.append(sp);
-  } else {
+  } else if (AG.view === "search") {
     const inp = h("input", { type: "text", cls: "ag-input", spellcheck: "false", placeholder: LANG === "ru" ? "слова для поиска" : "words to find", "aria-label": tt("vSearch"), dataset: { agInput: "search" } });
     inp.value = AG.search;
     const run = () => { AG.search = inp.value; renderBoard(); };
@@ -164,41 +202,16 @@ export function renderTasksView(root) {
     inp.addEventListener("input", debounce(run, 200));
     agbar.append(inp, btn(tt("vSearch"), "Enter", run));
   }
-  const tagCount = new Map();
-  for (const e of all) if (!e.done && !orgSkip(e)) for (const x of e.alltags) tagCount.set(x.toLowerCase(), (tagCount.get(x.toLowerCase()) || 0) + 1);
-  const tags = [...tagCount.entries()].sort((a, b) => b[1] - a[1]).slice(0, 30).map((x) => x[0]).sort();
-  for (const k of Object.keys(AG.filter)) if (!tags.includes(k)) tags.push(k);
-  if (tags.length) {
-    // the chips say what they are: a click includes a tag, a second excludes it, a third lets it go
+  const on = Object.keys(AG.filter);
+  if (on.length) {
     const chips = h("div", { cls: "ag-chips", role: "group", "aria-label": tt("filterTags") }, h("span", { cls: "ag-chips-label", "aria-hidden": "true" }, ic("", "tag"), tt("filterByTag")));
-    for (const tg of tags) {
+    for (const tg of on) {
       const v = AG.filter[tg];
-      const c = h("button", { cls: "sn-chip" + (v === 1 ? " is-accent" : v === -1 ? " is-danger is-struck" : ""), type: "button", text: (v === 1 ? "+" : v === -1 ? "−" : "") + tg, title: "include · exclude · off (/)" });
-      c.addEventListener("click", () => { if (v === 1) AG.filter[tg] = -1; else if (v === -1) delete AG.filter[tg]; else AG.filter[tg] = 1; renderBoard(); });
-      chips.append(c);
+      chips.append(h("button", { cls: "sn-chip" + (v === 1 ? " is-accent" : " is-danger is-struck"), type: "button", text: (v === 1 ? "+" : "−") + tg, title: "include · exclude · off", onClick: () => cycle(tg) }));
     }
     agbar.append(chips);
   }
-  // on a phone the log and the tag filters go under one button, so the controls take two rows, not four
-  // (the week strip below has the date picker, so "Go to…" goes too)
-  const narrowItems = AG.view === "agenda" || tags.length;
-  if (narrowItems) {
-    const active = Object.keys(AG.filter).length > 0;
-    const fb = iconBtn("sliders-horizontal", tt("filters"), (e) => {
-      const m = new Menu();
-      if (AG.view === "agenda") m.add(tt("archiveClosed"), "archive", archiveClosedTasks);
-      if (tags.length) {
-        m.sep(); m.label(tt("filterTags"));
-        for (const tg of tags) {
-          const v = AG.filter[tg];
-          m.add((v === 1 ? "+" : v === -1 ? "−" : "") + tg, v === -1 ? "minus" : "tag", () => { if (v === 1) AG.filter[tg] = -1; else if (v === -1) delete AG.filter[tg]; else AG.filter[tg] = 1; renderBoard(); }, { checked: v === 1 });
-        }
-      }
-      m.showBelow(e.currentTarget);
-    }, "ag-filters ag-narrow-only" + (active ? " is-active" : ""));
-    agbar.append(fb);
-  }
-  root.append(agbar);
+  if (agbar.childElementCount) root.append(agbar);
   for (const s of agbar.querySelectorAll(":scope > .sn-seg")) edgeFades(s);
 
   // body
@@ -220,8 +233,9 @@ export function renderTasksView(root) {
     const week0 = AG.anchor - ((oymd(AG.anchor).w + 6) % 7);
     const strip = h("div", { cls: "ag-strip", role: "toolbar", "aria-label": tt("week") });
     for (let i = 0; i < 7; i++) {
-      const dn = week0 + i, has = orgDayEntries(dn, all, T, { log: true, carried: true }).some((x) => !x.grid && pass(x.e));
-      const b = h("button", { type: "button", cls: "ag-strip-day" + (dn === T ? " is-today" : "") + (AG.span === "day" && dn === AG.anchor ? " is-selected" : ""), "aria-label": oFmt(dn, "dddd D MMMM") },
+      // the dot says something is on; the name says how much, for a screen reader
+      const dn = week0 + i, n = orgDayEntries(dn, all, T, { log: true, carried: true }).filter((x) => !x.grid && pass(x.e)).length, has = n > 0;
+      const b = h("button", { type: "button", cls: "ag-strip-day" + (dn === T ? " is-today" : "") + (AG.span === "day" && dn === AG.anchor ? " is-selected" : ""), "aria-label": oFmt(dn, "dddd D MMMM") + (n ? " · " + tt("sumEntries", { n }) : "") },
         h("span", { cls: "wd", text: oFmt(dn, "ddd") }), h("span", { cls: "dn", text: String(oymd(dn).d) }), h("span", { cls: "dot" + (has ? " has" : "") }));
       b.addEventListener("click", () => { AG.span = "day"; AG.anchor = dn; saveAG(); renderBoard(); });
       strip.append(b);
@@ -243,11 +257,12 @@ export function renderTasksView(root) {
       let ents = orgDayEntries(dn, all, T, { log: true, carried: days.includes(T) }).filter((x) => pass(x.e));
       if (dn === T) ents = ents.filter((x) => !x.overdue);
       const sum = daySummary(ents);
-      // a day's head over a card of its rows (restyle RS-62 to RS-64); today says so in place of its date
+      // a day's head over a card of its rows (restyle RS-62 to RS-64): every day its date, today a plate after it
       const card = h("section", { cls: "ag-card is-day" + (dn === T ? " is-today" : "") + (ents.length ? "" : " is-empty") });
       card.append(h("div", { cls: "ag-day" + (dn === T ? " today" : "") + (o.w === 0 || o.w === 6 ? " weekend" : "") },
         h("span", { text: oFmt(dn, "dddd") }),
-        dn === T ? h("span", { cls: "today-pill", text: tt("today") }) : h("span", { cls: "num", text: oFmt(dn, "D MMMM YYYY") }),
+        h("span", { cls: "num", text: oFmt(dn, "D MMMM YYYY") }),
+        dn === T ? h("span", { cls: "today-pill", text: tt("today") }) : null,
         sum ? h("span", { cls: "ag-sum", text: sum }) : null));
       if (dn === T) ents = orgWithGrid(ents);
       if (ents.length) { const rows = h("div", { cls: "ag-rows" }); for (const x of ents) rows.append(orgRow(x)); card.append(rows); }
@@ -283,6 +298,7 @@ export function renderTasksView(root) {
     const i = +row.dataset.i;
     const b = e.target.closest("button[data-act]");
     if (b) { e.stopPropagation(); orgAct(AGROWS[i], b.dataset.act); return; }
+    if (e.target.closest("a.ag-cat")) { e.preventDefault(); orgAct(AGROWS[i], "goto"); return; }
     if (e.target.closest("a")) return;
     orgSelect(i);
     body.focus({ preventScroll: true });
@@ -335,6 +351,9 @@ function orgRow(x) {
   // a row under its own day needs no "Scheduled" chip: the day already says so (late and deadline chips stay)
   if (x.kind === "sched" && !x.overdue && label === tt("lScheduled")) label = "";
   const time = x.time != null ? ohm(x.time) + (x.end != null ? "–" + ohm(x.end) : "") : "";
+  // a late task whose deadline is still ahead says when, beside its late date: the same task under that day is no surprise
+  const T = onow().dn, ahead = x.overdue && x.kind === "sched" && !e.done && e.dead?.active && e.dead.dn >= T ? e.dead.dn : null;
+  const dueChip = () => (ahead == null ? null : dateChip("dead", tt("deadline") + " " + relDay(ahead), ahead === T ? "due" : ahead === T + 1 ? "soon" : ""));
   const row = h("div", { cls: `ag-row k-${kindCls}` + (x.overdue ? " overdue" : "") + (e.done ? " is-done" : "") + (x.time != null ? " has-time" : ""), role: "option", dataset: { i: String(i), id: e.id, path: e.path || "" } });
   const main = h("span", { cls: "ag-main" });
   // a task's priority colours its box; only the top one also gets a letter, so it does not rest on colour alone
@@ -353,16 +372,17 @@ function orgRow(x) {
   const sub = h("span", { cls: "ag-sub" });
   // a phone shows an untimed row's date chip on this line, before its tags (the desktop keeps it in its own column);
   // only one of the two copies is ever displayed, so a screen reader reads it once
-  if (!time && label) sub.append(h("span", { cls: "ag-lab ag-lab-sub" }, labelChip(kindCls, label, tone)));
-  if (shown.length) sub.append(h("span", { cls: "tags" }, shown.map((tg) => h("span", { cls: "sn-chip is-s" + (e.inherited.includes(tg) ? " is-outline" : " hue-" + hueOf(tg)), text: tg }))));
-  // the note it belongs to; a task without one, or whose note is gone, says so quietly
-  sub.append(h("span", { cls: "ag-cat" + (e.path ? "" : " is-none"), title: e.path || e.category, text: e.category }));
+  if (!time && label) sub.append(h("span", { cls: "ag-lab ag-lab-sub" }, labelChip(kindCls, label, tone), dueChip()));
+  if (shown.length) sub.append(h("span", { cls: "tags" }, shown.map((tg) => h("span", { cls: "sn-chip is-s hue-" + hueOf(tg) + (e.inherited.includes(tg) ? " is-outline" : ""), title: e.inherited.includes(tg) ? tt("tagInherited") : null, text: tg }))));
+  // the note it belongs to, a click opens it; a task without one, or whose note is gone, says so quietly
+  sub.append(e.path ? h("a", { cls: "ag-cat", href: "#", title: e.path, text: e.category, tabindex: "-1" })
+    : h("span", { cls: "ag-cat is-none", title: e.category, text: e.category }));
   main.append(sub);
   const act = h("span", { cls: "ag-act" });
   if (e.kind !== "event") act.append(h("button", { type: "button", dataset: { act: "state" }, text: tt("actState"), title: "T" }));
   if (x.kind === "sched" || x.kind === "dead" || x.kind === "ts") act.append(h("button", { type: "button", dataset: { act: "later" }, text: tt("actLater"), title: "Shift+→" }));
   if (e.path) act.append(h("button", { type: "button", dataset: { act: "goto" }, text: tt("actOpen"), title: "Enter" }));
-  row.append(h("span", { cls: "ag-meta" }, h("span", { cls: "ag-time", text: time }), h("span", { cls: "ag-lab" }, labelChip(kindCls, label, tone))), main, act);
+  row.append(h("span", { cls: "ag-meta" }, h("span", { cls: "ag-time", text: time }), h("span", { cls: "ag-lab" + (ahead == null ? "" : " has-two") }, labelChip(kindCls, label, tone), dueChip())), main, act);
   return row;
 }
 function renderInline(text, path) {

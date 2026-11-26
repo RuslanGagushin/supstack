@@ -382,10 +382,10 @@ button.sn-row-enter svg { width: var(--icon-m); height: var(--icon-m); }
   button.sn-table-ins::after { content: ""; position: absolute; inset: -6px; }
   .sn-chip::after { content: ""; position: absolute; inset: -8px -2px; }
   /* buttons a finger can hit: 40px at least, the drawing inside them as it was (spec UI-9) */
-  #app :is(.sn-topbar, .sn-editor-head, .agbar, .sn-ed-toolbar) :is(button, a[href]),
+  #app :is(.sn-topbar, .sn-editor-head, .agbar, .ag-head, .sn-ed-toolbar) :is(button, a[href]),
   #app button.ag-over-head { min-height: var(--ctl-touch); }
   #app .sn-board button.clickable-icon.ag-nav { width: var(--ctl-touch); height: var(--ctl-touch); }
-  #app :is(.sn-topbar, .sn-editor-head, .agbar, .sn-ed-toolbar) :is(button.clickable-icon, button.sn-tb-btn, button.sn-tb-insert, button.sn-mode-btn, button.ag-btn, button.ag-capture) { min-width: 40px; }
+  #app :is(.sn-topbar, .sn-editor-head, .agbar, .sn-ed-toolbar) :is(button.clickable-icon, button.sn-tb-btn, button.sn-tb-insert, button.sn-mode-btn, button.ag-btn, button.ag-capture, button.ag-filters) { min-width: 40px; }
   /* the same icons a finger reads: 20px in a 40px hit area, no frame of their own */
   #app :is(.sn-topbar, .sn-editor-head, .sn-ed-toolbar) :is(button.clickable-icon, button.sn-tb-btn, button.sn-tb-insert, button.sn-mode-btn) svg { width: var(--icon-xl); height: var(--icon-xl); }
   #app .sn-editor-head :is(button.clickable-icon, button.sn-mode-btn) { width: var(--ctl-touch); height: var(--ctl-touch); padding: 0; justify-content: center; }

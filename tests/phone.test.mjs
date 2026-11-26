@@ -87,7 +87,7 @@ describe("keyboard hints (UI-11)", () => {
 });
 
 describe("the task list's state filters (UI-12)", () => {
-  test("on 412px they stay on one line beside the filters button, scroll sideways, and their names don't wrap", async () => {
+  test("on 412px they stay on one line within the screen, scroll sideways when they must, and their names don't wrap; the filters are in the top bar", async () => {
     for (const lang of ["en", "ru"]) {
       await openVault({ ...PHONE, lang });
       await ev(() => openTasksView(true, "todo"));
@@ -95,14 +95,15 @@ describe("the task list's state filters (UI-12)", () => {
       const r = await ev(() => {
         const seg = document.querySelector(".agbar > .sn-seg"), btns = [...seg.querySelectorAll("button")];
         const lineH = parseFloat(getComputedStyle(btns[0]).lineHeight) || 20;
-        const f = document.querySelector(".agbar .ag-filters").getBoundingClientRect(), s = seg.getBoundingClientRect();
+        const s = seg.getBoundingClientRect();
         return {
           oneLine: btns.every((b) => Math.abs(b.getBoundingClientRect().top - btns[0].getBoundingClientRect().top) < 1),
           noWrap: btns.every((b) => { const sp = b.querySelector("span:last-child") || b; return sp.getBoundingClientRect().height < lineH * 1.5; }),
-          scrolls: seg.scrollWidth > seg.clientWidth, besideFilters: Math.abs(f.top + f.height / 2 - (s.top + s.height / 2)) < 4 && f.left >= s.right,
+          onScreen: s.right <= innerWidth + 0.5 && (seg.scrollWidth <= seg.clientWidth || getComputedStyle(seg).overflowX === "auto"),
+          filtersInTopBar: !!document.querySelector(".sn-topbar .ag-filters")?.getClientRects().length,
         };
       });
-      assert.deepEqual(r, { oneLine: true, noWrap: true, scrolls: true, besideFilters: true }, lang);
+      assert.deepEqual(r, { oneLine: true, noWrap: true, onScreen: true, filtersInTopBar: true }, lang);
     }
     noErrors();
   });

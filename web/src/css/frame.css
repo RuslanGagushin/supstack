@@ -85,6 +85,13 @@ button.clickable-icon.wb-icon { padding: 0; }
 .ic-yellow { color: var(--hue-yellow-fg); }
 .ic-purple { color: var(--hue-purple-fg); }
 :is(.sn-chip, .markdown-rendered a.tag).is-outline { background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
+/* an outlined tag keeps its hue: the same tag is the same colour, plate or outline (a tag a task takes from its note) */
+:is(.sn-chip, .markdown-rendered a.tag).is-outline.hue-green { background: transparent; color: var(--hue-green-fg); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue-green-fg) 40%, transparent); }
+:is(.sn-chip, .markdown-rendered a.tag).is-outline.hue-blue { background: transparent; color: var(--hue-blue-fg); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue-blue-fg) 40%, transparent); }
+:is(.sn-chip, .markdown-rendered a.tag).is-outline.hue-orange { background: transparent; color: var(--hue-orange-fg); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue-orange-fg) 40%, transparent); }
+:is(.sn-chip, .markdown-rendered a.tag).is-outline.hue-pink { background: transparent; color: var(--hue-pink-fg); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue-pink-fg) 40%, transparent); }
+:is(.sn-chip, .markdown-rendered a.tag).is-outline.hue-yellow { background: transparent; color: var(--hue-yellow-fg); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue-yellow-fg) 40%, transparent); }
+:is(.sn-chip, .markdown-rendered a.tag).is-outline.hue-purple { background: transparent; color: var(--hue-purple-fg); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue-purple-fg) 40%, transparent); }
 :is(.sn-chip, .markdown-rendered a.tag).is-struck { text-decoration: line-through; }
 /* a parent that is not in the vault: drawn dashed, and not a link */
 :is(.sn-chip, .markdown-rendered a.tag).is-missing { background: transparent; outline: 1px dashed var(--faint); outline-offset: -1px; color: var(--muted); cursor: default; }

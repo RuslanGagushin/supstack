@@ -117,6 +117,27 @@ describe("the agenda's week (UI-13 to UI-17)", () => {
     await ev(() => { AG.span = "week"; renderBoard(); });
   });
 
+  test("the days' navigation is beside the title: it opens Go to…, then Day · Week · Month, then ‹ Today ›; the bar above has none", async () => {
+    const head = () => ev(() => ({
+      row: [...document.querySelectorAll(".ag-head .ag-title-row button")].map((b) => b.getAttribute("aria-label") || b.textContent.trim()),
+      jump: document.querySelector(".ag-title button.ag-jump")?.title,
+      agbar: !!document.querySelector(".agbar"),
+      filters: document.querySelector(".sn-topbar .ag-filters")?.getAttribute("aria-label"),
+    }));
+    assert.deepEqual(await head(), { row: ["26 October – 1 November", "Day", "Week", "Month", "Earlier (b)", "Today", "Later (f)"], jump: "Go to… (j)", agbar: false, filters: "Filters" });
+    await page().click(".ag-head button.ag-today");
+    await page().click('.ag-head .ag-span button[title^="Day"]');
+    assert.equal(await ev(() => document.querySelector(".ag-title b").textContent), "Thursday, 29 October");
+    await page().click('.ag-head .ag-span button[title^="Week"]');
+    // a tag in the filter: counted on the button, and its chip in the bar under it, where a click lets it go
+    await ev(() => { AG.filter = { work: 1 }; renderBoard(); });
+    assert.deepEqual(await ev(() => [document.querySelector(".sn-topbar .ag-filters").getAttribute("aria-label"), [...document.querySelectorAll(".agbar .ag-chips .sn-chip")].map((c) => c.textContent)]), ["Filters · 1", ["+work"]]);
+    await page().click(".agbar .ag-chips .sn-chip");
+    await page().click(".agbar .ag-chips .sn-chip");
+    assert.deepEqual(await head().then((x) => [x.agbar, x.filters]), [false, "Filters"], "include, exclude, then off");
+    noErrors();
+  });
+
   test("labels are words, not abbreviations, in both languages", async () => {
     const labels = await ev(() => ["en", "ru"].flatMap((lang) => { setLang(lang); const out = [1, 2, 5].flatMap((n) => ["lIn", "lAgo", "lSchedLate", "relIn", "relAgo"].map((k) => tt(k, { n }))); setLang("en"); return out; }));
     const bad = labels.filter((l) => /\b(d|дн)\.|\d+\s*[x×]|Sched\./.test(l));
@@ -167,5 +188,43 @@ describe("the time column in the week (#24)", () => {
     })));
     assert.ok(at["Late one"] <= 20 && at["Untimed friday"] <= 20, `no empty column without times: ${JSON.stringify(at)}`);
     assert.ok(at["Timed today"] > 80 && at["Untimed today"] === at["Timed today"], `a day with a time keeps it for every row: ${JSON.stringify(at)}`);
+  });
+});
+
+describe("what the agenda's colours and labels mean (design review, phase 3)", () => {
+  test("every day shows its date, today a plate after it; red is only for what is due or late", async () => {
+    await openVault({ demo: false, time: NOW, viewport: { width: 1440, height: 900 }, notes: {
+      "cards/Trip.md": "---\ntags: [travel]\n---\n- [/] [#A] Book the tour #plans\n  SCHEDULED: <2026-10-28 Wed> DEADLINE: <2026-10-30 Fri>\n",
+      "cards/Home.md": "- [ ] Pack\n  SCHEDULED: <2026-10-29 Thu 11:00>\n",
+    } });
+    await ev(() => { AG.span = "week"; AG.view = "agenda"; AG.filter = {}; openTasksView(); });
+    await page().waitForTimeout(300);
+    const r = await ev(() => {
+      const today = document.querySelector(".ag-card.is-today > .ag-day");
+      const late = document.querySelector(".ag-overdue .ag-row");
+      const red = getComputedStyle(document.querySelector(".ag-over-head")).color;
+      const pri = getComputedStyle(late.querySelector(".pri.A"));
+      const chip = (t) => [...late.querySelectorAll(".ag-sub .sn-chip")].find((c) => c.textContent === t);
+      return {
+        today: [today.querySelector(".num")?.textContent, today.querySelector(".today-pill")?.textContent],
+        lab: [...late.querySelectorAll(".ag-meta .ag-lab .sn-chip")].map((c) => c.textContent),
+        priRed: pri.color === red || pri.backgroundColor === getComputedStyle(document.documentElement).getPropertyValue("--due-bg"),
+        nowRed: getComputedStyle(document.querySelector(".ag-now-pill")).backgroundColor === red,
+        inherited: [chip("travel").className.includes("hue-") && chip("travel").className.includes("is-outline"), chip("travel").title],
+        strip: document.querySelector('.ag-strip-day[aria-label^="Friday"]').getAttribute("aria-label"),
+      };
+    });
+    assert.deepEqual(r, {
+      today: ["29 October 2026", "Today"],
+      lab: ["Scheduled 1 day ago", "Deadline tomorrow"],
+      priRed: false, nowRed: false,
+      inherited: [true, "Taken from its note"],
+      strip: "Friday 30 October · 1 entry",
+    });
+    // the note's name opens the note
+    await page().click(".ag-overdue .ag-row a.ag-cat");
+    await page().waitForTimeout(300);
+    assert.equal(await ev(() => editor.path), "cards/Trip.md");
+    noErrors();
   });
 });
