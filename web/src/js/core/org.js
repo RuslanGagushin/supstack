@@ -412,14 +412,17 @@ export function orgDayEntries(dn, all, T, { log = false, carried = false } = {})
 /**
  * Today's entries with an hour grid among those that have a time (spec UI-14): the hours from the first one's to the
  * last one's end, one an hour, and a line for now. A day with nothing at a time has no grid.
+ * The line for now goes before what starts at that minute (it is on now, not past) and takes the place of an hour
+ * mark at the same minute; a run of empty hours shows only its first mark, not a rule for each hour.
  */
-export function orgWithGrid(ents) {
+export function orgWithGrid(ents, now = onow().min) {
   const timed = ents.filter((x) => x.time != null), untimed = ents.filter((x) => x.time == null);
   if (!timed.length) return untimed;
-  const rows = [...timed];
+  const rows = [...timed, { grid: true, now: true, time: now }];
   const from = Math.floor(Math.min(...timed.map((x) => x.time)) / 60), to = Math.ceil(Math.max(...timed.map((x) => x.end ?? x.time)) / 60);
-  for (let hr = from; hr <= to; hr++) if (!timed.some((x) => x.time === hr * 60)) rows.push({ grid: true, time: hr * 60 });
-  rows.push({ grid: true, now: true, time: onow().min });
-  rows.sort((a, b) => a.time - b.time || (a.grid ? 1 : 0) - (b.grid ? 1 : 0) || (a.now ? 1 : 0) - (b.now ? 1 : 0));
-  return [...rows, ...untimed];
+  for (let hr = from; hr <= to; hr++) if (hr * 60 !== now && !timed.some((x) => x.time === hr * 60)) rows.push({ grid: true, time: hr * 60 });
+  const rank = (x) => (x.now ? 0 : x.grid ? 2 : 1); // at one minute: now, then what starts then, then the hour
+  rows.sort((a, b) => a.time - b.time || rank(a) - rank(b));
+  const hour = (x) => x?.grid && !x.now;
+  return [...rows.filter((x, i) => !(hour(x) && hour(rows[i - 1]))), ...untimed];
 }

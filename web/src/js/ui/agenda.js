@@ -319,7 +319,10 @@ const relDay = orgRelDay;
 /** The label of a row as a chip (task-icons.js dateChip, which a note being read uses too). */
 const labelChip = (kind, text, tone) => (text ? dateChip(kind.split(" ")[0], text.replace(/:$/, ""), tone) : "");
 function orgRow(x) {
-  if (x.grid) return h("div", { cls: "ag-grid" + (x.now ? " now" : "") }, h("span", { cls: "ag-time", text: ohm(x.time) }), h("span", { cls: "dots", text: x.now ? (LANG === "ru" ? "сейчас " : "now ") : "" }));
+  // the line for now: its time on a plate at the line's start, not in the column of the times things start at
+  if (x.now) return h("div", { cls: "ag-grid now", title: tt("now") }, h("span", { cls: "ag-time" }),
+    h("span", { cls: "dots" }, h("span", { cls: "ag-now-pill" }, h("span", { cls: "ag-now-word", text: tt("now") + " " }), ohm(x.time))));
+  if (x.grid) return h("div", { cls: "ag-grid" }, h("span", { cls: "ag-time", text: ohm(x.time) }), h("span", { cls: "dots" }));
   const i = AGROWS.push(x) - 1;
   const e = x.e;
   let label = x.label;

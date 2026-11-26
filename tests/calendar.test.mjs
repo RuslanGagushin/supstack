@@ -86,9 +86,20 @@ describe("the agenda's week (UI-13 to UI-17)", () => {
 
   test("the hour grid runs only between today's first and last times, an hour apart; a day without times has none", async () => {
     const today = await ev(() => [...document.querySelectorAll(".ag-card.is-today .ag-grid")].map((g) => (g.classList.contains("now") ? "now " : "") + g.querySelector(".ag-time").textContent));
-    assert.deepEqual(today, ["now 10:00", "15:00"]);
+    assert.deepEqual(today, ["now ", "15:00"], "the line for now leaves the time column to the times things start at");
+    assert.equal(await ev(() => document.querySelector(".ag-card.is-today .ag-grid.now .ag-now-pill").textContent), "now 10:00", "its time is on its plate, the word for screen readers");
     assert.equal(await ev(() => document.querySelectorAll(".ag-card:not(.is-today) .ag-grid").length), 0);
     assert.deepEqual(await ev(() => orgWithGrid([{ time: null }])), [{ time: null }], "no times: no grid, no line for now");
+  });
+
+  test("now goes before what starts at its minute, takes an hour mark's place, and a run of empty hours is one mark", async () => {
+    /** The grid of these entries at this minute, as "10:00 task", "now 10:00" and "11:00 -" for an hour mark. */
+    const grid = (ents, now) => ev(([a, n]) => orgWithGrid(a, n).map((x) => (x.now ? "now " : "") + (x.time == null ? "" : String(x.time / 60).padStart(2, "0") + ":00") + (x.now ? "" : x.grid ? " -" : " " + x.t)), [ents, now]);
+    assert.deepEqual(await grid([{ time: 600, t: "task" }, { time: 780, end: 840, t: "lunch" }, { time: null, t: "untimed" }], 600),
+      ["now 10:00", "10:00 task", "11:00 -", "13:00 lunch", "14:00 -", " untimed"], "11:00 and 12:00 are one mark; an entry at now is not shown as past");
+    assert.deepEqual(await grid([{ time: 600, t: "task" }, { time: 840, t: "call" }], 660),
+      ["10:00 task", "now 11:00", "12:00 -", "14:00 call"], "now at 11:00 stands for the 11:00 mark; 12:00 and 13:00 are one");
+    assert.deepEqual(await grid([{ time: 600, t: "task" }], 480), ["now 08:00", "10:00 task"], "now before the first entry");
   });
 
   test("a day without entries is one quiet line, not a card", async () => {

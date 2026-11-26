@@ -175,7 +175,7 @@ export const TSTR = {
   en: {
     tasks: "Agenda", tasksHint: "Agenda & task list",
     vAgenda: "Agenda", vTodo: "Tasks", vSearch: "Search",
-    day: "Day", week: "Week", weekN: "Week {n}", today: "Today", earlier: "Earlier (b)", later: "Later (f)", goTo: "Go to…",
+    day: "Day", week: "Week", weekN: "Week {n}", today: "Today", now: "now", earlier: "Earlier (b)", later: "Later (f)", goTo: "Go to…",
     capture: "Capture", weekAgenda: "Week", dayAgenda: "Day", monthAgenda: "Month", sumEntries: ["{n} entry", "{n} entries"],
     todoTitle: "Open tasks:", searchTitle: "Search words:",
     typeSomething: "(type something)",
@@ -216,7 +216,7 @@ export const TSTR = {
   ru: {
     tasks: "Повестка", tasksHint: "Повестка и список задач",
     vAgenda: "Повестка", vTodo: "Задачи", vSearch: "Поиск",
-    day: "День", week: "Неделя", weekN: "Неделя {n}", today: "Сегодня", earlier: "Раньше (b)", later: "Позже (f)", goTo: "К дате…",
+    day: "День", week: "Неделя", weekN: "Неделя {n}", today: "Сегодня", now: "сейчас", earlier: "Раньше (b)", later: "Позже (f)", goTo: "К дате…",
     capture: "Записать", weekAgenda: "Неделя", dayAgenda: "День", monthAgenda: "Месяц", sumEntries: ["{n} запись", "{n} записи", "{n} записей"],
     todoTitle: "Открытые задачи:", searchTitle: "Поиск слов:",
     typeSomething: "(введите слова)",
