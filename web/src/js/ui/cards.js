@@ -2,7 +2,7 @@
    Card rendering: a note as a row of the list, its parent chip and menu
    ========================================================= */
 import { LANG, t, tt } from "../core/i18n.js";
-import { baseName, norm, plainText, hueOf } from "../core/util.js";
+import { baseName, norm, plainText, previewText, hueOf } from "../core/util.js";
 import { board, editor, graph, S, vault } from "../services/state.js";
 import { cardIcon, linkText, cardHue, makeComparator } from "../services/vault.js";
 import { filterActive } from "../core/board-model.js";
@@ -134,13 +134,15 @@ export function renderRow(path, via, folder = false) {
   if (prog) meta.append(h("span", { cls: "sn-task-prog" + (prog.done === prog.n ? " is-complete" : ""), title: tt("progress", prog), text: t("rowTasks", prog) }));
 
   const head = h("div", { cls: "sn-row-head" });
+  // every title starts in one column: a note without an icon of its own gets a quiet page in its place
   const iconName = cardIcon(path);
-  if (iconName) head.append(ic("sn-card-icon" + (cardHue(path) ? " ic-" + cardHue(path) : ""), iconName, "file-text"));
+  head.append(ic("sn-card-icon" + (iconName && cardHue(path) ? " ic-" + cardHue(path) : ""), iconName || "file-text", "file-text"));
   head.append(h("span", { cls: "sn-row-title", text: baseName(path) }));
   text.append(head);
 
-  let snippet = plainText(n?.body || "", 320);
-  if (board.filter.query.trim()) {
+  // the preview leaves out headings and empty labels; in a search it is the text the match is in. Compact rows have none
+  let snippet = board.compact ? "" : previewText(n?.body || "", 320);
+  if (!board.compact && board.filter.query.trim()) {
     // the match may be further in: start the preview a little before it
     const q = norm(board.filter.query).split(/\s+/).filter(Boolean)[0], full = plainText(n?.body || "", 20000), i = norm(full).indexOf(q);
     if (i > 120) snippet = "…" + full.slice(full.lastIndexOf(" ", i - 40) + 1, i + 280);

@@ -263,6 +263,14 @@ a.sn-facts-place svg { flex: none; width: var(--icon-s); height: var(--icon-s); 
 .sn-list-badge { display: inline-flex; color: var(--muted); }
 .sn-list-badge svg { width: var(--icon-l); height: var(--icon-l); }
 .sn-list-count { flex: none; color: var(--faint); font-size: var(--fs-ui); }
+/* the count, and at the line's end the list's order in words, which opens the sort and preview menu (board.js renderSortButton) */
+.sn-list-sub { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-8); min-width: 0; }
+.sn-list-sub .sn-list-count { flex: 1 1 auto; min-width: 0; } /* the count wraps in a narrow list; the order keeps its words */
+.sn-list-sort { flex: none; }
+.sn-list-count-part { white-space: nowrap; }
+.sn-list-head button.sn-btn.sn-list-sort { height: var(--ctl-s); gap: var(--sp-4); margin-inline-end: calc(var(--sp-6) * -1); padding: 0 var(--sp-6); font-size: var(--fs-ui); }
+.sn-list-sort svg { width: var(--icon-s); height: var(--icon-s); }
+.sn-list-sort .sn-list-sort-caret svg { width: var(--icon-xs); height: var(--icon-xs); }
 /* the notebook's own text, under its title: three lines that open it beside the list (board.js renderListDesc) */
 .sn-list-desc { margin: calc(var(--sp-6) * -1) 0 var(--sp-12); padding: var(--sp-6) var(--sp-8); border-radius: var(--r-s); color: var(--muted); line-height: var(--lh-ui); cursor: pointer; }
 .sn-list-desc-text { overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
@@ -271,7 +279,8 @@ a.sn-facts-place svg { flex: none; width: var(--icon-s); height: var(--icon-s); 
 .sn-list-desc:focus { outline: none; }
 .sn-list-desc:focus-visible { box-shadow: var(--ring); }
 .sn-board.is-notes .sn-composer { margin: 0 0 var(--sp-20); }
-.sn-board.is-notes .sn-composer textarea { height: 40px; min-height: 40px; padding: var(--sp-10) var(--sp-12); line-height: 20px; }
+.sn-board.is-notes .sn-composer textarea { height: 40px; min-height: 40px; padding: var(--sp-10) var(--sp-12) var(--sp-10) calc(var(--sp-12) + var(--icon-m) + var(--sp-8)); line-height: 20px; }
+.sn-board.is-notes .sn-composer-plus { top: var(--sp-12); inset-inline-start: var(--sp-12); }
 /* the notebooks' tiles in a grid, three to a row in a list of 360px; each note and the "Notes" label take a whole row (RS-25, RS-28).
    A tile is never narrower than its longest word needs (board.js fitTiles sets --tile-min, #23): fewer to a row instead */
 .sn-rows { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--tile-min, 96px), 1fr)); gap: var(--sp-8); }
@@ -332,15 +341,15 @@ button.sn-row-enter svg { width: var(--icon-m); height: var(--icon-m); }
 .sn-row-count { margin-top: calc(var(--sp-8) * -1); color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
 .sn-row-thumb { flex: none; width: 60px; height: 60px; margin-top: 19px; object-fit: cover; border-radius: var(--r-s); background: var(--panel); outline: 1px solid var(--img-edge); outline-offset: -1px; }
 @media (max-width: 820px) {
-  /* the phone's list (restyle RS-72 to RS-76): roomy sides, a 32px title, a 44px field, tiles with no count, larger rows */
+  /* the phone's list (restyle RS-72 to RS-76): roomy sides, a 32px title, a 44px field, tiles with their counts, larger rows */
   .sn-board.is-notes .sn-page { padding: var(--sp-8) var(--sp-20) var(--sp-48); }
   .sn-board.is-notes .sn-topbar .clickable-icon:where(:not(.sn-seg > *)) { width: 44px; height: 44px; color: var(--muted); }
   .sn-board.is-notes .sn-topbar .clickable-icon:where(:not(.sn-seg > *)) svg { width: var(--icon-xl); height: var(--icon-xl); }
   .sn-list-head { padding-bottom: var(--sp-16); }
   .sn-list-head .sn-list-title { font-size: var(--fs-title); letter-spacing: var(--ls-title); line-height: var(--lh-title); }
   .sn-board.is-notes .sn-composer { margin-bottom: var(--sp-16); }
-  .sn-board.is-notes .sn-composer textarea { height: 44px; min-height: 44px; padding: var(--sp-10) var(--sp-14); font-size: var(--fs-text); line-height: 24px; }
-  .sn-row.is-folder .sn-row-count { display: none; }
+  .sn-board.is-notes .sn-composer textarea { height: 44px; min-height: 44px; padding: var(--sp-10) var(--sp-14) var(--sp-10) calc(var(--sp-14) + var(--icon-m) + var(--sp-8)); font-size: var(--fs-text); line-height: 24px; }
+  .sn-board.is-notes .sn-composer-plus { top: var(--sp-14); inset-inline-start: var(--sp-14); }
   .sn-board .sn-card.sn-row:not(.is-folder) .sn-row-title { font-size: var(--fs-text); }
   .sn-row-snippet { font-size: var(--fs-md); }
   .sn-row-thumb { width: 52px; height: 52px; }
@@ -396,7 +405,7 @@ button.sn-row-enter svg { width: var(--icon-m); height: var(--icon-m); }
   .sn-chip::after { content: ""; position: absolute; inset: -8px -2px; }
   /* buttons a finger can hit: 40px at least, the drawing inside them as it was (spec UI-9) */
   #app :is(.sn-topbar, .sn-editor-head, .agbar, .ag-head, .sn-ed-toolbar) :is(button, a[href]),
-  #app button.ag-over-head { min-height: var(--ctl-touch); }
+  #app :is(button.ag-over-head, .sn-list-head button.sn-list-sort) { min-height: var(--ctl-touch); }
   #app .sn-board button.clickable-icon.ag-nav { width: var(--ctl-touch); height: var(--ctl-touch); }
   #app :is(.sn-topbar, .sn-editor-head, .agbar, .sn-ed-toolbar) :is(button.clickable-icon, button.sn-tb-btn, button.sn-tb-insert, button.sn-mode-btn, button.ag-btn, button.ag-capture, button.ag-filters) { min-width: 40px; }
   /* the same icons a finger reads: 20px in a 40px hit area, no frame of their own */

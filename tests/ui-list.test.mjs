@@ -33,6 +33,24 @@ describe("board", () => {
     noErrors();
   });
 
+  test("the list's head names the vault and its order; the order's menu sorts and turns previews off (critique 0.43)", async () => {
+    const head = () => ev(() => ({ kind: document.querySelector(".sn-list-kind").textContent, sort: document.querySelector(".sn-list-sort").textContent.trim(),
+      previews: document.querySelectorAll("#board .sn-row-snippet").length, iconless: [...document.querySelectorAll("#board .sn-row:not(.is-folder) .sn-row-head")].filter((x) => !x.querySelector(".sn-card-icon")).length,
+      placeholder: document.querySelector(".sn-composer textarea").placeholder, plus: !!document.querySelector(".sn-composer .sn-composer-plus"), oldSort: !!document.querySelector(".sn-topbar .sn-view-btn") }));
+    const before = await head();
+    assert.deepEqual({ ...before, previews: before.previews > 0 }, { kind: "Vault", sort: "Manual", previews: true, iconless: 0, placeholder: "New note…", plus: true, oldSort: false });
+    await page().click(".sn-list-sort");
+    await page().click(".menu .menu-item >> text=By name");
+    assert.equal((await head()).sort, "Name");
+    assert.equal(await ev(() => board.sort), "name");
+    await page().click(".sn-list-sort");
+    await page().click(".menu .menu-item >> text=Show previews");
+    assert.equal((await head()).previews, 0, "compact rows: no previews");
+    const kept = await ev(() => Object.keys(localStorage).map((k) => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }).find((v) => v?.sort === "name")?.compact);
+    assert.equal(kept, true, "kept with the list's order");
+    noErrors();
+  });
+
   test("the demo board shows the top-level notebooks, then the notes, each in manual order", async () => {
     const t = await titles();
     assert.deepEqual(t.slice(0, 4), ["History", "Architecture", "Knowledge", "This week"]);
@@ -162,7 +180,7 @@ describe("list of notes", () => {
     assert.equal(Math.round(r.list), 360);
     assert.ok(r.note > 500, "the note takes the rest of the width");
     assert.match(r.own, /^Everything about the past/);
-    assert.equal(r.count, "1 notebook · 1 note · 5 in all");
+    assert.equal(r.count, "1 notebook · 1 note here · 5 in all");
     assert.equal(await page().textContent("#tree .sn-tree-row.is-active .sn-tree-count"), "5", "the same number as History's row in the sidebar");
     assert.equal(r.snippet, "Some photo here");
     assert.equal(r.editing, "cards/History.md");
@@ -194,7 +212,7 @@ describe("list of notes", () => {
       "cards/D.md": "---\nparents: [\"[[A]]\"]\n---\nd", "cards/E.md": "---\nparents: [\"[[A]]\"]\n---\ne" } });
     const count = () => page().textContent(".sn-list-count");
     await ev(() => setTarget("cards/A.md"));
-    assert.equal(await count(), "1 notebook · 2 notes · 4 in all", "and, with notebooks in it, every note on all levels, as its row in the sidebar says");
+    assert.equal(await count(), "1 notebook · 2 notes here · 4 in all", "and, with notebooks in it, every note on all levels, as its row in the sidebar says; the notes at this level say \"here\"");
     assert.equal(await page().textContent("#tree .sn-tree-row.is-active .sn-tree-count"), "4");
     assert.equal(await ev(() => document.querySelectorAll(".sn-list-desc").length), 0);
     await ev(() => setTarget("cards/B.md"));

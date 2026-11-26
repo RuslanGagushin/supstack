@@ -209,11 +209,11 @@ export async function readVault(fs) {
   const moved = await gatherNotes();
   const saved = lsGet(boardKey(), null);
   Object.assign(board, {
-    target: null, sort: S.defaultSort,
+    target: null, sort: S.defaultSort, compact: false,
     filter: { query: "", tags: [] }, searchOpen: false, history: [], selection: new Set(), selectMode: false, rendered: 60,
   });
   if (saved) {
-    for (const k of ["target", "sort", "tagView", "view"]) if (saved[k] !== undefined) board[k] = saved[k];
+    for (const k of ["target", "sort", "compact", "tagView", "view"]) if (saved[k] !== undefined) board[k] = saved[k];
     if (saved.filter) board.filter = { query: saved.filter.query || "", tags: saved.filter.tags || [], scope: saved.filter.scope === "all" ? "all" : "here" };
     board.searchOpen = !!(board.filter.query || board.filter.tags.length);
     tree.expanded = new Set(saved.treeExpanded || []);
@@ -237,7 +237,7 @@ async function watchVault(fs) {
 const boardKey = () => "sn-board:" + (vault.fs?.kind || "") + ":" + (vault.fs?.name || "");
 export function persistBoard() {
   lsSet(boardKey(), {
-    target: board.target, sort: board.sort,
+    target: board.target, sort: board.sort, compact: !!board.compact,
     filter: board.filter, tagView: board.tagView || null, view: board.view || null, treeExpanded: [...tree.expanded],
   });
 }

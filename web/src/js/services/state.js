@@ -38,7 +38,7 @@ export function resetSettings(saved) {
 export let graph = new HierarchyGraph();
 export const setGraph = (g) => { graph = g; };
 export const board = {
-  target: null, sort: "manual",
+  target: null, sort: "manual", compact: false,
   filter: { query: "", tags: [] }, searchOpen: false,
   history: [], selection: new Set(), selectMode: false, rendered: 60,
 };

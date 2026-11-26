@@ -69,14 +69,15 @@ button.clickable-icon.wb-icon { padding: 0; }
 @media (hover: hover) { :is(.sn-chip, .markdown-rendered a.tag).is-danger:hover { background: var(--due-bg); color: var(--due-fg); font-weight: var(--fw-semibold); } }
 :is(.sn-chip, .markdown-rendered a.tag).is-warn { background: var(--hue-orange-bg); color: var(--hue-orange-fg); }
 @media (hover: hover) { :is(.sn-chip, .markdown-rendered a.tag).is-warn:hover { background: var(--hue-orange-bg); color: var(--hue-orange-fg); } }
-/* a tag's hue, the same wherever it shows (util.js hueOf); a chip that is a control dims under the pointer */
-:is(.sn-chip, .markdown-rendered a.tag).hue-green { background: var(--hue-green-bg); color: var(--hue-green-fg); }
-:is(.sn-chip, .markdown-rendered a.tag).hue-blue { background: var(--hue-blue-bg); color: var(--hue-blue-fg); }
-:is(.sn-chip, .markdown-rendered a.tag).hue-orange { background: var(--hue-orange-bg); color: var(--hue-orange-fg); }
-:is(.sn-chip, .markdown-rendered a.tag).hue-pink { background: var(--hue-pink-bg); color: var(--hue-pink-fg); }
-:is(.sn-chip, .markdown-rendered a.tag).hue-yellow { background: var(--hue-yellow-bg); color: var(--hue-yellow-fg); }
-:is(.sn-chip, .markdown-rendered a.tag).hue-purple { background: var(--hue-purple-bg); color: var(--hue-purple-fg); }
-@media (hover: hover) { :is(button.sn-chip, a.sn-chip, .sn-chip.is-link, .markdown-rendered a.tag)[class*="hue-"]:hover { opacity: .8; } }
+/* a tag's hue, the same wherever it shows (util.js hueOf): a dot on the chip's grey plate, as in the sidebar's tags.
+   The plate stays --panel and the text --tag, so every tag reads the same and the hue never carries the text's contrast */
+:is(.sn-chip, .markdown-rendered a.tag)[class*="hue-"]::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--dot); }
+:is(.sn-chip, .markdown-rendered a.tag).hue-green { --dot: var(--hue-green-fg); }
+:is(.sn-chip, .markdown-rendered a.tag).hue-blue { --dot: var(--hue-blue-fg); }
+:is(.sn-chip, .markdown-rendered a.tag).hue-orange { --dot: var(--hue-orange-fg); }
+:is(.sn-chip, .markdown-rendered a.tag).hue-pink { --dot: var(--hue-pink-fg); }
+:is(.sn-chip, .markdown-rendered a.tag).hue-yellow { --dot: var(--hue-yellow-fg); }
+:is(.sn-chip, .markdown-rendered a.tag).hue-purple { --dot: var(--hue-purple-fg); }
 /* a note's hue on its icon and its type label (vault.js cardHue) */
 .ic-green { color: var(--hue-green-fg); }
 .ic-blue { color: var(--hue-blue-fg); }
@@ -85,13 +86,7 @@ button.clickable-icon.wb-icon { padding: 0; }
 .ic-yellow { color: var(--hue-yellow-fg); }
 .ic-purple { color: var(--hue-purple-fg); }
 :is(.sn-chip, .markdown-rendered a.tag).is-outline { background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
-/* an outlined tag keeps its hue: the same tag is the same colour, plate or outline (a tag a task takes from its note) */
-:is(.sn-chip, .markdown-rendered a.tag).is-outline.hue-green { background: transparent; color: var(--hue-green-fg); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue-green-fg) 40%, transparent); }
-:is(.sn-chip, .markdown-rendered a.tag).is-outline.hue-blue { background: transparent; color: var(--hue-blue-fg); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue-blue-fg) 40%, transparent); }
-:is(.sn-chip, .markdown-rendered a.tag).is-outline.hue-orange { background: transparent; color: var(--hue-orange-fg); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue-orange-fg) 40%, transparent); }
-:is(.sn-chip, .markdown-rendered a.tag).is-outline.hue-pink { background: transparent; color: var(--hue-pink-fg); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue-pink-fg) 40%, transparent); }
-:is(.sn-chip, .markdown-rendered a.tag).is-outline.hue-yellow { background: transparent; color: var(--hue-yellow-fg); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue-yellow-fg) 40%, transparent); }
-:is(.sn-chip, .markdown-rendered a.tag).is-outline.hue-purple { background: transparent; color: var(--hue-purple-fg); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hue-purple-fg) 40%, transparent); }
+/* an outlined tag keeps its dot: the same tag has the same colour, plate or outline (a tag a task takes from its note) */
 :is(.sn-chip, .markdown-rendered a.tag).is-struck { text-decoration: line-through; }
 /* a parent that is not in the vault: drawn dashed, and not a link */
 :is(.sn-chip, .markdown-rendered a.tag).is-missing { background: transparent; outline: 1px dashed var(--faint); outline-offset: -1px; color: var(--muted); cursor: default; }

@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.43.0
+
+- The list of notes reads more clearly: a note's preview leaves out headings and empty labels, so a template no longer previews as "Author: Read: Notes"; the list's order is named at the end of its count (Manual ▾), and its menu sorts the list and turns the previews off for compact rows, the same on a desktop and a phone; the count says "4 notes here · 16 in all"; the top of the vault says Vault, not Notebook; the field for a new note starts with a + and says "New note…"; every note has an icon, so the titles line up; tags everywhere are grey chips with a dot in their colour, as in the sidebar; and a phone's notebook tiles show how many notes they hold.
+
 ## 0.42.0
 
 - The sidebar reads more clearly: Capture has its own inbox icon instead of a second +, and its tooltip says what it does; a notebook's tile in the list counts every note inside it, as its row in the sidebar does, and a list with notebooks in it adds how many notes it holds in all; the open notebook or place is marked by an accent bar; Notebooks, Recent and Tags have the same headings, and each folds from the keyboard too; tags are quiet grey chips with a coloured dot; Recent sits above Tags; and Files has a files icon instead of the paperclip.

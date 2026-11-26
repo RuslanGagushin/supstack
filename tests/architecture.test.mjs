@@ -185,7 +185,7 @@ test("retired class names stay retired (docs/design-system.md has the ones that 
 
 test("one layer of styles: no body.sn-app prefix; !important only on the hide utilities and for reduced motion", () => {
   const CSS = fileURLToPath(new URL("../web/src/css/", import.meta.url));
-  const hide = [".markdown-rendered .org-hidden", ".sn-board .sn-tools > .sn-wide-only", ".sn-hide-narrow"];
+  const hide = [".markdown-rendered .org-hidden", ".sn-hide-narrow"];
   const bad = [];
   for (const f of readdirSync(CSS).filter((f) => f.endsWith(".css"))) {
     const bare = readFileSync(join(CSS, f), "utf8").replace(/\/\*[\s\S]*?\*\//g, " ");

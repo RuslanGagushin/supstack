@@ -80,7 +80,7 @@ export function demoVault() {
   ])), d(0.01));
   note("Cycle A", `parents:\n  - "[[Cycle B]]"\ncolor: red\nicon: refresh-cw`, `Notebooks A and B are inside each other. Their lists and a search must not hang.`, 10);
   note("Cycle B", `parents:\n  - "[[Cycle A]]"\nicon: refresh-ccw`, `The other half of the cycle.`, 10);
-  note("Orphan", `parents:\n  - "[[A note that doesn't exist]]"\ncolor: grey`, `Its parent is missing — the chip is shown dashed.`, 15);
+  note("Orphan", `parents:\n  - "[[A note that doesn't exist]]"\ncolor: grey`, `Its parent is missing: in the note's Properties its chip is dashed.`, 15);
   note("Draft thoughts", `order: 4\nicon: pencil-line`, `Ideas that don't belong anywhere yet.\n\n1. A notebook per project\n2. Weekly review note\n\n\`\`\`js\n// code is rendered too\nconst cards = vault.filter(isCard);\n\`\`\``, 0.3);
   fs.add("cards/Templates/Book.md", `---\nicon: book\ncolor: purple\ntags: [book]\n---\n**Author:** \n**Read:** {{date}}\n\n## Notes\n`, d(40));
   return fs;

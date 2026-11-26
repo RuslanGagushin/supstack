@@ -40,3 +40,11 @@ export function plainText(md, max = 300) {
     .replace(new RegExp(`([.!?:;…])?[ ${BLOCK}]*${BLOCK}[ ${BLOCK}]*`, "g"), (m, end) => end ? end + " " : " · ")
     .replace(/[ ·]+$/, "").trim().slice(0, max);
 }
+/** A list row's preview: the note's words without the lines that only name something, a heading or a label with nothing
+    after it ("**Author:**", "Read:: {{date}}"), so a template or a note of headings previews as nothing, not as its labels. */
+export function previewText(md, max = 300) {
+  // a heading; a bold label ("**Author:**", "**Author**:"); a field ("Read::"). A plain "The boxes:" is a sentence and stays
+  const named = /^(?:#{1,6}(?:[ \t].*)?|(\*\*|__)[^:*_\n]{1,40}(?::\1|\1:)|[^:\n]{1,40}::)$/;
+  const lines = String(md).split("\n").filter((l) => !named.test(l.replace(/\{\{[^{}\n]*\}\}/g, "").trim()));
+  return plainText(lines.join("\n"), max);
+}

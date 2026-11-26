@@ -230,12 +230,37 @@ function fitTiles(box) {
 function renderListHead(model) {
   const target = board.target, tv = board.tagView;
   // what kind of list it is, its name, then how much it holds (restyle RS-20 to RS-22)
-  const kind = tv ? t("listKindTag") : model.active ? t("listKindSearch") : t("listKindNotebook");
+  // the root of the vault is not a notebook: it says Vault
+  const kind = tv ? t("listKindTag") : model.active ? t("listKindSearch") : target ? t("listKindNotebook") : t("listKindVault");
   const head = h("div", { cls: "sn-list-head" });
   head.append(h("div", { cls: "sn-list-kind", text: kind }));
   head.append(h("h1", { cls: "sn-list-title" }, h("span", { text: tv ? tv : target ? baseName(target) : t("allCards") })));
-  head.append(h("span", { cls: "sn-list-count", text: countText(model) }));
+  // the count, and beside it the order the list is in, named: the one control for sorting and previews, desktop and phone alike
+  head.append(h("div", { cls: "sn-list-sub" }, countLine(model), renderSortButton()));
   return head;
+}
+/** The count as its parts, each kept on one line: a narrow list wraps between "4 notes here" and "16 in all", never inside one. */
+function countLine(model) {
+  const el = h("span", { cls: "sn-list-count" });
+  countText(model).split(" · ").forEach((part, i) => { if (i) el.append(" · "); el.append(h("span", { cls: "sn-list-count-part", text: part })); });
+  return el;
+}
+const SORTS = () => [["manual", t("sortManual"), "list-ordered", t("sortShortManual")], ["name", t("sortName"), "arrow-down-a-z", t("sortShortName")],
+  ["modified", t("sortModified"), "clock", t("sortShortModified")], ["created", t("sortCreated"), "calendar-plus", t("sortShortCreated")]];
+/** "⇅ Manual ▾": the list's order in words; its menu picks another and turns the rows' previews off or on. */
+function renderSortButton() {
+  const sorts = SORTS(), cur = sorts.find(([v]) => v === board.sort) || sorts[0];
+  const b = h("button", { cls: "sn-btn sn-list-sort", type: "button", title: t("sorting"), "aria-haspopup": "menu" },
+    ic("", cur[2]), h("span", { text: cur[3] }), ic("sn-list-sort-caret", "chevron-down"));
+  b.addEventListener("click", (e) => {
+    const m = new Menu();
+    m.label(t("sorting"));
+    for (const [v, label, icn] of sorts) m.add(label, icn, () => { board.sort = v; persistBoard(); renderBoard(); }, { checked: v === board.sort });
+    m.sep();
+    m.add(t("showPreviews"), "align-left", () => { board.compact = !board.compact; persistBoard(); renderBoard(); }, { checked: !board.compact });
+    m.showBelow(e.currentTarget);
+  });
+  return b;
 }
 /** The notebook's own text, three lines of it: a click opens it beside the list, a double click (or Enter) to edit. */
 function renderListDesc(path) {
@@ -260,14 +285,16 @@ function countText(model) {
     const books = model.shown.filter((c) => c.folder).length, notes = shown - books;
     // with notebooks in it, the notes on all levels too: the number its row in the sidebar shows
     const deep = books ? graph.collect(board.target || null, 0, makeComparator("manual")).cards.length : 0;
-    return [books ? t("notebooksCount", { n: books }) : "", notes || !books ? t("cardsCount", { n: notes }) : "", deep > shown ? t("countInAll", { n: deep }) : ""].filter(Boolean).join(" · ");
+    // "4 notes here · 16 in all": with the total beside it, the notes at this level say they are only these
+    const here = deep > shown ? t("cardsHere", { n: notes }) : t("cardsCount", { n: notes });
+    return [books ? t("notebooksCount", { n: books }) : "", notes || !books ? here : "", deep > shown ? t("countInAll", { n: deep }) : ""].filter(Boolean).join(" · ");
   }
   const count = total === shown && !model.active ? t("cardsCount", { n: total }) : t("cardsOf", { shown, n: total });
   return model.active ? t("filteredSuffix", { count }) : count;
 }
 
 function boardSig(model) {
-  return JSON.stringify([board.target, board.sort, board.searchOpen, board.selectMode, board.filter, board.lang = LANG,
+  return JSON.stringify([board.target, board.sort, !!board.compact, board.searchOpen, board.selectMode, board.filter, board.lang = LANG,
     model.shown.map((c) => `${c.path}|${c.via ?? ""}|${c.folder ? 1 : 0}`), hasText(board.target || ""), model.total, model.all.skippedRepeats, model.truncated, graph.ancestry(board.target || "", makeComparator("manual"))]);
 }
 export function cardSig(path) {
@@ -332,21 +359,7 @@ function renderToolbar() {
   if (board.selectMode) sel.classList.add("is-active");
   tools.append(sel);
   tools.append(iconBtn("bookmark-plus", t("saveView"), () => saveCurrentView(), "sn-hide-narrow"));
-  // sort and grouping are plain icons, not another grey pill; grouping shows only where it can work
-  const opts = tools;
-  const sortOpts = [["manual", t("sortManual"), "list-ordered"], ["name", t("sortName"), "arrow-down-a-z"], ["modified", t("sortModified"), "clock"], ["created", t("sortCreated"), "calendar-plus"]];
-  opts.append(iconBtn(sortOpts.find(([v]) => v === board.sort)?.[2] || "arrow-up-down", t("sorting"), (e) => {
-    const m = new Menu();
-    for (const [v, label, icn] of sortOpts) m.add(label, icn, () => { board.sort = v; persistBoard(); renderBoard(); }, { checked: v === board.sort });
-    m.showBelow(e.currentTarget);
-  }, "sn-wide-only"));
-  // on a phone the sort is one "View" button (search stays in the bar)
-  tools.append(iconBtn("sliders-horizontal", t("viewMenu"), (e) => {
-    const m = new Menu();
-    m.label(t("sorting"));
-    for (const [v, label, icn] of sortOpts) m.add(label, icn, () => { board.sort = v; persistBoard(); renderBoard(); }, { checked: v === board.sort });
-    m.showBelow(e.currentTarget);
-  }, "sn-narrow-only sn-view-btn"));
+  // the order and the previews are named in the list's head (renderSortButton), not an unlabeled icon here
   bar.append(tools);
   return bar;
 }
@@ -418,7 +431,7 @@ let composerTarget = null;
 function renderComposer() {
   const box = h("div", { cls: "sn-composer" });
   const ta = h("textarea", { rows: "1", placeholder: t("composerPlaceholder") });
-  box.append(ta, h("div", { cls: "sn-composer-hint", text: t("composerHint") }));
+  box.append(ic("sn-composer-plus", "plus"), ta, h("div", { cls: "sn-composer-hint", text: t("composerHint") }));
   const grow = () => { ta.style.height = ""; if (ta.value) { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; } };
   ta.addEventListener("input", grow);
   ta.addEventListener("keydown", (e) => {

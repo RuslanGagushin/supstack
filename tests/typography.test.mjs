@@ -63,11 +63,15 @@ describe("a row of the list (UI-22, UI-23)", () => {
     const rows = await ev(() => [...document.querySelectorAll("#board .sn-row:not(.is-folder)")].map((r) => {
       const top = (s) => r.querySelector(s)?.getBoundingClientRect().top ?? null;
       const meta = r.querySelector(".sn-row-meta");
-      return { title: r.querySelector(".sn-row-title").textContent, order: [top(".sn-row-title") < top(".sn-row-snippet"), top(".sn-row-snippet") < top(".sn-row-meta")],
+      // a note with nothing but headings and empty labels (the Book template) has no preview: its title sits over the line
+      const order = r.querySelector(".sn-row-snippet") ? [top(".sn-row-title") < top(".sn-row-snippet"), top(".sn-row-snippet") < top(".sn-row-meta")] : [top(".sn-row-title") < top(".sn-row-meta"), true];
+      return { title: r.querySelector(".sn-row-title").textContent, order, snippet: r.querySelector(".sn-row-snippet")?.textContent ?? null,
         line: [...meta.children].map((c) => c.className.split(" ").pop()), oneLine: meta.scrollHeight <= meta.clientHeight + 1 };
     }));
     for (const r of rows) assert.deepEqual([r.order, r.oneLine], [[true, true], true], JSON.stringify(r));
     assert.deepEqual(rows.find((r) => r.title === "This week").line, ["sn-row-date", "sn-task-prog", "sn-row-tags"]);
+    assert.equal(rows.find((r) => r.title === "Book").snippet, null, "a template's empty labels and heading are not a preview");
+    assert.doesNotMatch(rows.find((r) => r.title === "This week").snippet, /Packing/, "headings are left out of a preview");
   });
 
   test("a row picked has the padding and the height it had", async () => {

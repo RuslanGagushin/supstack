@@ -35,12 +35,6 @@
 .sn-crumb-icon svg { width: var(--icon-xs); height: var(--icon-xs); }
 .sn-crumb-sep { flex: 0 0 auto; padding: 0 var(--sp-2); color: var(--faint); }
 
-/* the phone's bar: the sort and grouping fold into one "View" button (board.js) */
-.sn-board .sn-tools > .sn-narrow-only { display: none; }
-@media (max-width: 820px) {
-  .sn-board .sn-tools > .sn-wide-only { display: none !important; }
-  .sn-board .sn-tools > .sn-narrow-only { display: flex; }
-}
 /* at the top the crumbs are empty: they only push the tools right, and need no room of their own */
 .sn-crumbs:empty { min-width: 0; }
 @container (max-width: 640px) { .sn-hide-narrow { display: none !important; } }
@@ -49,10 +43,14 @@
 .sn-scroll { flex: 1 1 auto; overflow-y: auto; }
 
 /* ---------- Quick-create field */
-.sn-composer { transition: box-shadow var(--dur-1) var(--ease); border-radius: var(--r-m); background: var(--win); box-shadow: 0 0 0 1px var(--line); }
+.sn-composer { position: relative; transition: box-shadow var(--dur-1) var(--ease); border-radius: var(--r-m); background: var(--win); box-shadow: 0 0 0 1px var(--line); }
 @media (hover: hover) { .sn-composer:hover { box-shadow: 0 0 0 1px var(--line-hover); } }
 .sn-composer:focus-within { box-shadow: var(--ring); }
-.sn-board .sn-composer textarea { display: block; width: 100%; resize: none; overflow: hidden; border: 0; background: transparent; line-height: var(--lh-text); font-size: var(--fs-md); height: 44px; min-height: 44px; padding: var(--sp-12) var(--sp-16); }
+/* a + in front says the field makes a note; it is not the search (board.js renderComposer) */
+.sn-composer-plus { position: absolute; inset-inline-start: var(--sp-14); top: var(--sp-12); display: inline-flex; color: var(--faint); pointer-events: none; }
+.sn-composer-plus svg { width: var(--icon-m); height: var(--icon-m); }
+.sn-composer:focus-within .sn-composer-plus { color: var(--accent); }
+.sn-board .sn-composer textarea { display: block; width: 100%; resize: none; overflow: hidden; border: 0; background: transparent; line-height: var(--lh-text); font-size: var(--fs-md); height: 44px; min-height: 44px; padding: var(--sp-12) var(--sp-16) var(--sp-12) calc(var(--sp-14) + var(--icon-m) + var(--sp-8)); }
 /* the composer box draws the focus ring; the field's own ring would double it */
 .sn-board .sn-composer textarea:focus { box-shadow: none; outline: none; }
 .sn-board .sn-composer textarea::placeholder { color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

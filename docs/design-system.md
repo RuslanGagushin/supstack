@@ -165,7 +165,8 @@ Tags, task dates, filters, notebooks. One plate: `--panel`, `--tag` text, `--fs-
 | Tone | `.is-accent` | on, included: the accent plate, `--accent-ink` text; a chip that toggles also shows a check and has `aria-pressed` |
 | | `.is-danger` | due, excluded: `--panel-strong`, ink, semibold |
 | | `.is-warn` | soon: ink on the plain plate |
-| | `.is-outline` | inherited (a task's tag from its heading) |
+| | `.is-outline` | inherited (a task's tag from its heading or its note) |
+| Hue | `.hue-*` | a tag: the grey plate with a 6px dot in the tag's hue before its name (`util.js hueOf`), the same in the list, the agenda, a note's text and the sidebar's tags; the plate and the text never take the hue |
 | | `.is-struck` | excluded filter, with `.is-danger` |
 | Kind | `.is-link` | a `span` chip that opens something (a tag in a list row) |
 | | `.is-missing` | a parent not in the vault: dashed, not a link |
@@ -181,11 +182,11 @@ A modifier repeats the base's `:is(.sn-chip, .markdown-rendered a.tag)`; the bas
 
 ### List row and card — `.sn-card`
 
-A note in the list is `.sn-card.sn-row` with `role="option"` in a `role="listbox"`; the open note is `aria-selected`, picked notes `.is-picked`. Title first, then the text, then one line with the date, "2/8 tasks" and the tags (spec UI-22). A note is a white card with a hairline (an inset shadow, so the row keeps its size); the open one sits on `--bg` with `--line-strong`.
+A note in the list is `.sn-card.sn-row` with `role="option"` in a `role="listbox"`; the open note is `aria-selected`, picked notes `.is-picked`. Its icon and title first (a note with no icon of its own gets a quiet `file-text`, so every title starts in one column), then the text, then one line with the date, "2/8 tasks" and the tags (spec UI-22). The text is `util.js previewText`: the note's words without headings and empty labels (`**Author:**`, `Read::`), so a template previews as nothing; with **Show previews** off in the order's menu (`board.compact`, kept with the list's order) no row has one. A note is a white card with a hairline (an inset shadow, so the row keeps its size); the open one sits on `--sel` with `--line-strong`.
 
 A notebook in the list is a tile, `.sn-row.is-folder`: its icon, its name on up to two lines (broken between words, never inside one; a longer name ends in an ellipsis, the whole name is its tooltip) and how many notes it holds, on `--hover-bg`. The tiles share a grid with the notes (`.sn-rows`), three to a row in a list of 360px; a tile is never narrower than its longest word (`board.js fitTiles` sets `--tile-min`, 96–200px, measured again once the page's font has loaded; a tile's sides are 10px, so three fit a 360px list), so a long word gives fewer tiles to a row rather than a broken one; a faint `.sn-list-label` ("Notes", `aria-hidden`) heads the notes under them. ↑ and ↓ walk the list in order; → goes into a notebook and ← back out; Enter opens.
 
-The list's head, `.sn-list-head`: a faint kind (`.sn-list-kind`: Notebook, Tag or Search), the title at 24px bold, the count under it. A notebook with its own text shows that text beside its children's list (on a desktop) rather than opening the first child.
+The list's head, `.sn-list-head`: a faint kind (`.sn-list-kind`: Vault at the top, Notebook, Tag or Search), the title at 24px bold, and under it `.sn-list-sub`: the count ("3 notebooks · 4 notes here · 16 in all") and at the line's end the list's order in words (`.sn-list-sort`, "Manual ▾"), whose menu sorts the list and turns the previews off or on. It is the one sort control, on a desktop and a phone alike; the top bar has none. The field under the head (`.sn-composer`) starts with a + and says "New note…", so it does not read as a search. A notebook with its own text shows that text beside its children's list (on a desktop) rather than opening the first child.
 
 **Search bar** — `.sn-filterbar`: the field, the filter buttons and a close button on one line. It is a container: below 560px the field and the close button keep the first line and the filters wrap under them.
 
