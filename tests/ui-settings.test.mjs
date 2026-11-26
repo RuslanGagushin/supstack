@@ -80,16 +80,21 @@ describe("palettes, settings, language and themes", () => {
   test("the Russian interface", async () => {
     await openVault({ lang: "ru" });
     assert.match(await page().textContent(".sn-list-title"), /Все заметки/);
-    assert.match(await page().textContent("#files-btn"), /Файлы/);
+    assert.match(await page().getAttribute("#files-btn", "aria-label"), /Файлы/);
+    assert.match(await page().textContent("#capture-btn"), /Записать/);
     noErrors();
   });
 });
 
 describe("no top bar", () => {
-  test("the agenda, Files and settings are in the sidebar; a view's own bar opens the sidebar when it is closed", async () => {
+  test("the agenda, Capture, Files and settings are in the sidebar; a view's own bar opens the sidebar when it is closed", async () => {
     await openVault({ viewport: { width: 1280, height: 800 } });
     assert.equal(await ev(() => !!$(".wb-top")), false, "no top bar");
-    assert.deepEqual(await ev(() => ["#tasks-btn", "#files-btn"].map((s) => !!$(s)?.closest(".sn-side .sb-nav"))), [true, true]);
+    assert.deepEqual(await ev(() => ["#tasks-btn", "#capture-btn"].map((s) => !!$(s)?.closest(".sn-side .sb-nav"))), [true, true]);
+    assert.equal(await ev(() => !!$("#files-btn")?.closest(".sn-side .sb-foot")), true, "Files at the sidebar's foot");
+    await page().click("#capture-btn");
+    assert.equal(await ev(() => !!$(".ag-cap")), true, "Capture opens the capture form");
+    await page().keyboard.press("Escape");
     assert.equal(await ev(() => !!$(".sn-side .sb-foot [aria-label='" + t("settings") + "']")), true, "settings at the sidebar's foot");
     const toggleShown = () => ev(() => { const b = $(".sn-board .sn-side-toggle"); return !!b && getComputedStyle(b).display !== "none"; });
     assert.equal(await toggleShown(), false, "no opener while the sidebar is open");

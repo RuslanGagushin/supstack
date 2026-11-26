@@ -323,7 +323,6 @@ export function renderTasksView(root) {
   body.classList.toggle("one-cat", new Set(AGROWS.map((x) => x.e.category)).size <= 1);
   // a list where nothing has a time (the task list, a search) has no column for it
   body.classList.toggle("no-time", !AGROWS.some((x) => x.time != null));
-  body.append(h("div", { cls: "ag-help ag-keys", text: tt("keysAgenda") }));
   body.addEventListener("keydown", orgAgendaKey);
   body.addEventListener("click", (e) => {
     const row = e.target.closest(".ag-row");

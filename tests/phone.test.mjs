@@ -64,13 +64,10 @@ describe("the formatting bar (UI-10)", () => {
 });
 
 describe("keyboard hints (UI-11)", () => {
-  test("a device without hover shows none: under the agenda, in the palette, in the capture form", async () => {
+  test("a device without hover shows none: in the palette, in the capture form", async () => {
     await openVault(PHONE);
     assert.equal(await ev(() => matchMedia("(hover: none)").matches), true);
     const shown = (sel) => ev((sel) => [...document.querySelectorAll(sel)].some((e) => getComputedStyle(e).display !== "none" && e.getBoundingClientRect().height > 0), sel);
-    await ev(() => openTasksView(true, "agenda"));
-    await settle();
-    assert.equal(await shown(".ag-keys"), false, "the line under the agenda");
     await ev(() => { commandPalette(); });
     await settle();
     assert.equal(await shown(".prompt .suggestion-item"), true);
@@ -84,11 +81,11 @@ describe("keyboard hints (UI-11)", () => {
     assert.equal(await shown(".mod-settings .suggestion-keys"), true, "Settings › Keyboard shortcuts still lists them");
   });
 
-  test("with a mouse they are there", async () => {
+  test("the agenda has no line of keys under it (? shows them)", async () => {
     await openVault({ viewport: { width: 1280, height: 800 } });
     await ev(() => openTasksView(true, "agenda"));
     await settle();
-    assert.equal(await ev(() => getComputedStyle(document.querySelector(".ag-keys")).display !== "none"), true);
+    assert.equal(await ev(() => !!document.querySelector(".ag-keys")), false);
   });
 });
 

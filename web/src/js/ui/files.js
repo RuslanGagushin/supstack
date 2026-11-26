@@ -18,7 +18,7 @@ import { attachLongPress, formatDate } from "./cards.js";
 import { goBack, leaveTagView, navEntry, renderBoard } from "./board.js";
 import { renderTree } from "./tree.js";
 import { openEditor, saveEditor } from "./editor.js";
-import { refresh, setSide, sideToggle, wbBtn } from "./shell.js";
+import { refresh, setSide, sideToggle } from "./shell.js";
 
 export const FV = Object.assign({ kind: "all", sort: "name", unused: false }, lsGet("sn-files", {}), { query: "", sel: null, refs: null, shown: true });
 const saveFV = () => lsSet("sn-files", { kind: FV.kind, sort: FV.sort, unused: FV.unused });
@@ -172,7 +172,8 @@ export function openFilesView(push = true) {
   setTimeout(() => $(".fv-list")?.focus({ preventScroll: true }), 0);
 }
 export function filesButton() {
-  const b = wbBtn("paperclip", fvt("files"), () => (board.view === "files" ? goBack() : openFilesView()), "wb-files");
+  // used now and then, so an icon at the sidebar's foot beside sync and the settings
+  const b = iconBtn("paperclip", fvt("files"), () => (board.view === "files" ? goBack() : openFilesView()), "sb-foot-btn wb-files");
   b.id = "files-btn";
   b.title = keyText(fvt("filesHint") + " · Ctrl+Shift+E");
   b.classList.toggle("is-active", board.view === "files");
