@@ -183,20 +183,49 @@ button.ag-over-head, button.ag-over-head:not(.clickable-icon) { gap: var(--sp-8)
 /* capture */
 /* one label column for the whole dialog, as wide as its longest label (a translation can be longer than the English):
    the fields are subgrids of the dialog's grid, so every field starts on the same edge */
-.modal.ag-cap { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: var(--sp-10); align-content: start; }
-.modal.ag-cap > * { grid-column: 1 / -1; }
-.cap-field { display: grid; grid-template-columns: subgrid; align-items: baseline; gap: var(--sp-4) var(--sp-10); margin-bottom: var(--sp-10); font-size: var(--fs-sm); color: var(--muted); }
-.cap-field[hidden] { display: none; }
-.cap-field input, .cap-field textarea, .cap-field select { width: 100%; }
-.cap-field textarea { resize: vertical; min-height: 60px; }
-.cap-hint { grid-column: 2; min-height: 1.2em; color: var(--muted); }
-.cap-hint.is-bad { color: var(--todo); }
-.cap-keys { margin-right: auto; align-self: center; color: var(--faint); font-size: var(--fs-sm); }
-@media (max-width: 520px) { .cap-keys { display: none; } }
-/* the note field: the notes matching what is typed, in a list right under it (in the form's flow: the dialog clips what overflows it) */
-.cap-note-box { min-width: 0; }
-.cap-note-list { max-height: 216px; overflow-y: auto; overscroll-behavior: contain; margin-top: var(--sp-4); padding: var(--sp-4); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--bg); color: var(--ink); font-size: var(--fs-md); }
-.cap-note-list[hidden] { display: none; }
+/* capture: one line, as a quick add; the words read as a date, a tag or a note are marked in it */
+.modal.ag-cap.is-quick { top: 16vh; transform: translateX(-50%); width: min(640px, calc(100vw - 32px)); padding: var(--sp-12) var(--sp-14); overflow: visible; }
+.cap-box { position: relative; }
+.cap-line { position: relative; }
+/* the line: one row of text, scrolling sideways when it is long; the placeholder when it is empty */
+.cap-input { box-sizing: border-box; min-height: 36px; padding: var(--sp-6) var(--sp-2); outline: none; color: var(--ink); font-size: var(--fs-md); line-height: var(--lh-ui); white-space: pre; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; cursor: text; }
+.cap-input::-webkit-scrollbar { display: none; }
+.cap-input:empty::before { content: attr(data-placeholder); color: var(--faint); pointer-events: none; }
+/* a mark is the chip's plate (.sn-chip): --panel and --tag, a tag in its hue, a note in its own, with room around its letters */
+.cap-mark { --mk: var(--panel); padding: var(--sp-2) var(--sp-4); border-radius: var(--r-xs); background: var(--mk); color: var(--tag); }
+.cap-mark.hue-green { --mk: var(--hue-green-bg); color: var(--hue-green-fg); }
+.cap-mark.hue-blue { --mk: var(--hue-blue-bg); color: var(--hue-blue-fg); }
+.cap-mark.hue-orange { --mk: var(--hue-orange-bg); color: var(--hue-orange-fg); }
+.cap-mark.hue-pink { --mk: var(--hue-pink-bg); color: var(--hue-pink-fg); }
+.cap-mark.hue-yellow { --mk: var(--hue-yellow-bg); color: var(--hue-yellow-fg); }
+.cap-mark.hue-purple { --mk: var(--hue-purple-bg); color: var(--hue-purple-fg); }
+.cap-mark.is-bad { --mk: transparent; color: var(--due-fg); text-decoration: underline wavy var(--todo); }
+.cap-list { position: absolute; z-index: var(--z-popup); left: 0; top: calc(100% + var(--sp-4)); width: min(360px, 100%); max-height: 264px; overflow-y: auto; overscroll-behavior: contain; padding: var(--sp-4); border: 1px solid var(--line); border-radius: var(--r-m); background: var(--win); box-shadow: var(--shadow-4); color: var(--ink); font-size: var(--fs-md); }
+.cap-list[hidden] { display: none; }
+/* the + menu and the priority menu open over the form */
+.modal.ag-cap ~ .menu { z-index: var(--z-popup); }
+.cap-bar { display: flex; align-items: center; gap: var(--sp-8); margin-top: var(--sp-8); }
+.cap-chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-6); flex: 1 1 auto; min-width: 0; }
+.cap-acts { display: flex; align-items: center; gap: var(--sp-6); flex: none; align-self: flex-start; }
+button.cap-chip, button.cap-chip:not(.clickable-icon) { display: inline-flex; align-items: center; gap: var(--sp-4); height: 28px; max-width: 220px; padding: 0 var(--sp-8); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); color: var(--muted); font-size: var(--fs-sm); box-shadow: none; }
+button.cap-chip svg { flex: none; width: var(--icon-s); height: var(--icon-s); }
+.cap-chip-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (hover: hover) { button.cap-chip:hover { background: var(--hover-bg); color: var(--ink); } }
+button.cap-chip.cap-more { width: 28px; padding: 0; justify-content: center; }
+button.cap-chip.is-open { border-color: var(--accent); color: var(--accent); }
+.cap-chip-wrap { display: inline-flex; align-items: center; height: 28px; border: 1px solid var(--line); border-radius: var(--r-s); }
+.cap-chip-wrap button.cap-chip, .cap-chip-wrap button.cap-chip:not(.clickable-icon) { height: 26px; border: 0; color: var(--ink); background: transparent; padding-right: var(--sp-2); }
+.cap-chip-wrap.is-open { border-color: var(--accent); }
+.cap-chip-wrap.is-bad, .cap-chip-wrap.is-bad button.cap-chip { color: var(--todo); border-color: var(--todo); }
+.cap-chip-wrap.is-bad button.cap-chip { border: 0; }
+button.clickable-icon.cap-chip-x { width: 22px; height: 22px; padding: 0; margin-right: var(--sp-2); color: var(--faint); }
+button.clickable-icon.cap-chip-x svg { width: 12px; height: 12px; }
+button.clickable-icon.cap-cancel { width: 32px; height: 32px; color: var(--muted); }
+button.cap-send { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border-radius: var(--r-s); }
+button.cap-send svg { width: var(--icon-m); height: var(--icon-m); }
+.cap-cal { margin-top: var(--sp-10); }
+.cap-cal[hidden] { display: none; }
+.cap-cal .org-cal { width: 100%; max-width: 320px; box-shadow: none; }
 @media (max-width: 480px) { .wb-brand { display: none; } }
 
 /* calendar popup (date prompts and Capture), in the app's own look: the month as a title, days as soft round buttons,
@@ -252,12 +281,6 @@ body.theme-dark .org-cal button.cal-day.is-selected { color: var(--bg); }
 .org-cal button.cal-ok, .org-cal button.cal-ok:not(.clickable-icon) { margin-left: auto; height: var(--ctl-l); padding: 0 var(--sp-20); border: 0; border-radius: var(--r-s); background: var(--cta); box-shadow: none; color: var(--on-accent); font-size: var(--fs-ui); font-weight: var(--fw-semibold); }
 @media (hover: hover) { .org-cal button.cal-ok:hover { background: var(--cta-hover); } }
 .org-cal button.cal-ok:disabled { opacity: var(--disabled); cursor: default; }
-.cap-when-row { display: flex; gap: var(--sp-6); align-items: center; }
-.cap-when-row input { flex: 1; min-width: 0; }
-button.cap-cal-btn, button.cap-cal-btn:not(.clickable-icon) { flex: 0 0 auto; width: 32px; height: var(--ctl-l); padding: 0; border: 1px solid var(--line); background: var(--bg); color: var(--muted); cursor: pointer; }
-button.cap-cal-btn[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
-button.cap-cal-btn svg { width: var(--icon-s); height: var(--icon-s); }
-.cap-field .org-cal { grid-column: 2; width: 100%; max-width: 320px; box-shadow: none; margin-top: var(--sp-2); }
 
 /* folding headings and tasks like Org's TAB */
 .markdown-rendered .org-hidden { display: none !important; }

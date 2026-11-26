@@ -231,7 +231,7 @@ button.clickable-icon.wb-icon { padding: 0; }
 /* keyboard hints are for keyboards: a device without hover (a phone, a tablet) doesn't show them (spec UI-11) — the line
    under the agenda, the palette's foot and the keys in its rows, the capture form's keys. Settings › Keyboard shortcuts stays. */
 @media (hover: none) {
-  .prompt-instructions, .suggestion-item .suggestion-keys, .cap-keys { display: none; }
+  .prompt-instructions, .suggestion-item .suggestion-keys { display: none; }
 }
 .suggestion-item.is-selected { background: var(--sel); }
 .icon-grid .suggestion-item { flex-direction: column; gap: var(--sp-6); padding: var(--sp-12) var(--sp-6); color: var(--muted); text-align: center; font-size: var(--fs-sm); }

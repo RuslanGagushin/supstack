@@ -3,10 +3,10 @@
    ========================================================= */
 import { LANG, t, tt } from "../core/i18n.js";
 import { baseName, debounce, dirName, norm, hueOf } from "../core/util.js";
-import { oaddMonths, oFmt, ohm, oisoWeek, onow, orgRelDay, orgDayEntries, orgPriRank, orgReadDate, orgSkip, orgStats, orgTsStr, orgWithGrid, oymd, TASK_STATES } from "../core/org.js";
+import { oaddMonths, oFmt, ohm, oisoWeek, onow, orgRelDay, orgDayEntries, orgPriRank, orgSkip, orgStats, orgTsStr, orgWithGrid, oymd, TASK_STATES } from "../core/org.js";
 import { lsGet, lsSet } from "../services/storage.js";
 import { board, vault } from "../services/state.js";
-import { cardIcon, persistBoard } from "../services/vault.js";
+import { cardHue, cardIcon, persistBoard } from "../services/vault.js";
 import { addTask, archiveClosed, orgAll, reloadTasks } from "../services/tasks.js";
 import { $, $$, edgeFades, h, ic, iconBtn, isMod, keyText } from "./dom.js";
 import { echo, fuzzyScore, Menu, openLayer, promptModal } from "./ui.js";
@@ -15,7 +15,9 @@ import { goBack, leaveTagView, navEntry, renderBoard } from "./board.js";
 import { renderTree } from "./tree.js";
 import { setSide, sideToggle } from "./shell.js";
 import { orgCycle, orgDeleteEntry, orgLinkEntry, orgOpenEntry, orgPickPriority, orgPickState, orgPlanEntry, orgPri, orgRefocus, orgRenameEntry, orgShiftEntry, orgTagsEntry, orgWhenEntry } from "./org-commands.js";
-import { orgAskDate, orgCalendar, orgDateText } from "./org-editing.js";
+import { orgAskDate, orgCalendar, orgDateText, orgTsShort } from "./org-editing.js";
+import { vaultTags } from "./actions.js";
+import { parseQuickAdd, quickAddQuery } from "../core/quick-add.js";
 import { dateChip, taskBox, taskIcon } from "./task-icons.js";
 import { tasksToIcs } from "../core/ics.js";
 import { downloadText } from "./format-bar.js";
@@ -530,116 +532,239 @@ function orgAgendaKey(ev) {
 let orgAgPrefix = false;
 
 /* ---------- capture */
-// a task goes to tasks.jsonl, linked to a note or to none: the note is picked by typing its name
-/** The notes whose names match `q`, best first. */
+// one line, as Todoist's quick add: the date is read from the words ("fri 14:00", "завтра в 10:00"), #tag tags the task,
+// @Note links it to a note (a list of notes comes up after the @ and narrows as the name is typed). The chips under the
+// line show what was read; the + adds what the line can't say (a priority, a deadline). The task goes to tasks.jsonl.
+/** The notes whose names match `q`, best first; with no `q`, the last changed. */
 function capNoteMatches(q, limit = 8) {
   const all = [...vault.notes.keys()];
-  if (!q.trim()) return [];
+  if (!q.trim()) return all.sort((a, b) => (vault.notes.get(b)?.mtime || 0) - (vault.notes.get(a)?.mtime || 0)).slice(0, limit);
   return all.map((p) => ({ p, s: fuzzyScore(q, baseName(p)) })).filter((x) => x.s > 0)
     .sort((a, b) => b.s - a.s || baseName(a.p).localeCompare(baseName(b.p), undefined, { numeric: true })).slice(0, limit).map((x) => x.p);
 }
-/** The note named exactly `name` (case and accents aside), or null. */
-function capNoteNamed(name) {
-  const n = norm(name.trim());
-  if (!n) return null;
-  for (const p of vault.notes.keys()) if (norm(baseName(p)) === n) return p;
-  return null;
+/** The tags that match `q` (the vault's, most used first; those that start with it before those that contain it). */
+function capTagMatches(q, limit = 8) {
+  const n = norm(q);
+  return vaultTags().map((x) => x.name).filter((name) => !n || norm(name).includes(n))
+    .sort((a, b) => Number(norm(b).startsWith(n)) - Number(norm(a).startsWith(n))).slice(0, limit);
 }
-/** Capture (c, the sidebar's +, Ctrl+Alt+N from anywhere): a task, linked to a note or to none.
+/** An editable one-line block (`el`) with an input's `value`, `selectionStart` and `setSelectionRange`, counted in its text. */
+function capLine(el) {
+  const offsetIn = (node, off) => { const r = document.createRange(); r.setStart(el, 0); r.setEnd(node, off); return r.toString().length; };
+  Object.defineProperties(el, {
+    value: {
+      get: () => el.textContent.replace(/\n/g, " "),
+      set: (v) => { el.textContent = v; if (document.activeElement === el) el.setSelectionRange(v.length); },
+    },
+    selectionStart: {
+      get: () => {
+        const s = getSelection();
+        return s && s.rangeCount && el.contains(s.focusNode) ? offsetIn(s.focusNode, s.focusOffset) : null;
+      },
+    },
+  });
+  el.setSelectionRange = (at) => {
+    const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    let node, left = at, last = null;
+    const r = document.createRange();
+    while ((node = walk.nextNode())) {
+      last = node;
+      if (left <= node.length) { r.setStart(node, left); break; }
+      left -= node.length;
+    }
+    if (!node) { if (last) r.setStart(last, last.length); else r.setStart(el, 0); }
+    r.collapse(true);
+    const s = getSelection();
+    s.removeAllRanges(); s.addRange(r);
+  };
+  return el;
+}
+/** " hue-blue" for a tag's or a note's hue, "" for none (a notebook). */
+const capHue = (hue) => (hue ? " hue-" + hue : "");
+const capTs = (r) => (r ? orgTsStr({ active: true, dn: r.dn, time: r.time, end: r.end, rep: r.rep, warn: r.warn }) : null);
+/** Capture (c, the sidebar's Capture, Ctrl+Alt+N from anywhere): a task in one line.
  *  `pre`: { head, link } — `link` a note's path to link the task to. */
 export function orgCapture(pre = {}) {
-  const panel = h("div", { cls: "modal ag-cap", role: "dialog", "aria-label": tt("capTitle") });
+  const notes = [...vault.notes.keys()].map((p) => ({ name: baseName(p), path: p }));
+  const keepDate = []; // phrases the date chip's × said are words
+  let pri = null, dead = null, cal = null, parsed = null;
+  const panel = h("div", { cls: "modal ag-cap is-quick", role: "dialog", "aria-label": tt("capTitle") });
   const close = openLayer(panel, () => window.removeEventListener("keydown", onEsc, true));
-  const head = h("input", { type: "text", cls: "cap-head", placeholder: LANG === "ru" ? "Что сделать?" : "What to do?", autocomplete: "off" });
-  head.value = pre.head || "";
-  const when = h("input", { type: "text", cls: "cap-when", placeholder: tt("dateEg"), autocomplete: "off" }); // the whole syntax is in the hint under it, which a narrow field would cut
-  const hint = h("span", { cls: "cap-hint" });
-  // the note: a name typed into a field, with the notes that match it in a list under it
-  let notePath = pre.link && vault.notes.has(pre.link) ? pre.link : null;
-  const note = h("input", { type: "text", cls: "cap-note", placeholder: tt("capNoteFind"), autocomplete: "off", spellcheck: "false", role: "combobox", "aria-expanded": "false", "aria-autocomplete": "list" });
-  note.value = notePath ? baseName(notePath) : "";
-  const list = h("div", { cls: "cap-note-list", role: "listbox", hidden: true });
-  const noteHint = h("span", { cls: "cap-hint" });
-  let shown = [], sel = 0;
+  // the line is an editable block, not an <input>, so the words read as a date, a tag or a note can be marked in it, plates
+  // with room around their letters (in a field a plate could only lie under the text, flush with it); capLine gives it
+  // an input's value, selectionStart and setSelectionRange, so the rest reads as it would for a field
+  const input = capLine(h("div", { cls: "cap-input", contenteditable: "plaintext-only", spellcheck: "false", "data-placeholder": tt("capPlaceholder"),
+    role: "combobox", "aria-expanded": "false", "aria-autocomplete": "list", "aria-label": tt("capTitle") }));
+  const linked = pre.link && vault.notes.has(pre.link) ? baseName(pre.link) : "";
+  input.value = [pre.head || "", linked ? "@" + linked : ""].filter(Boolean).join(" ") + (pre.head || linked ? " " : "");
+  const field = h("div", { cls: "cap-line" }, input);
+  const list = h("div", { cls: "cap-list", role: "listbox", hidden: true });
+  const chips = h("div", { cls: "cap-chips" });
+  const calBox = h("div", { cls: "cap-cal", hidden: true });
+
+  /* suggestions after @ and # */
+  let shown = [], sel = 0, query = null;
   const listOpen = () => !list.hidden;
-  const hideList = () => { list.hidden = true; note.setAttribute("aria-expanded", "false"); updNote(); };
+  const hideList = () => { list.hidden = true; query = null; input.setAttribute("aria-expanded", "false"); };
   const mark = () => [...list.children].forEach((r, i) => { r.classList.toggle("is-selected", i === sel); if (i === sel) r.scrollIntoView({ block: "nearest" }); });
-  const drawList = () => {
-    shown = capNoteMatches(note.value);
+  const suggest = () => {
+    const q = quickAddQuery(input.value, input.selectionStart ?? input.value.length);
+    // a note already named in full, with more typed after it, is done with
+    if (!q || (q.kind === "note" && parsed?.note?.path && parsed.note.start === q.start && parsed.note.end < q.start + 1 + q.query.length)) { hideList(); return; }
+    query = q;
+    shown = q.kind === "note" ? capNoteMatches(q.query).map((p) => ({ p, name: baseName(p) })) : capTagMatches(q.query).map((name) => ({ p: null, name }));
+    if (!shown.length || (shown.length === 1 && norm(shown[0].name) === norm(q.query))) { hideList(); return; }
     sel = 0;
-    const dirsDiffer = shown.some((p) => dirName(p) !== dirName(shown[0])); // a folder every match shares tells nothing
-    list.replaceChildren(...shown.map((p, i) => {
-      const row = h("div", { cls: "suggestion-item", role: "option" }, ic("suggestion-icon", cardIcon(p) || "file-text"), h("span", { cls: "suggestion-title", text: baseName(p) }), dirsDiffer && dirName(p) ? h("span", { cls: "suggestion-note", text: dirName(p) }) : null);
+    const dirsDiffer = shown.some((x) => x.p && dirName(x.p) !== dirName(shown[0].p));
+    list.replaceChildren(...shown.map((x, i) => {
+      const row = h("div", { cls: "suggestion-item", role: "option" },
+        ic("suggestion-icon", x.p ? cardIcon(x.p) || "file-text" : "hash"), h("span", { cls: "suggestion-title", text: x.name }),
+        dirsDiffer && x.p && dirName(x.p) ? h("span", { cls: "suggestion-note", text: dirName(x.p) }) : null);
       row.addEventListener("mousemove", () => { if (sel !== i) { sel = i; mark(); } });
-      row.addEventListener("mousedown", (e) => { e.preventDefault(); pick(p); }); // before the field's blur
+      row.addEventListener("mousedown", (e) => { e.preventDefault(); pick(x); }); // before the field's blur
       return row;
     }));
-    list.hidden = !shown.length || (shown.length === 1 && shown[0] === notePath);
-    note.setAttribute("aria-expanded", String(!list.hidden));
-    mark(); updNote();
+    list.hidden = false;
+    input.setAttribute("aria-expanded", "true");
+    mark();
   };
-  const updNote = () => {
-    const v = note.value.trim(), bad = !!v && !notePath && !listOpen(); // while the list is open, a name is still being typed
-    noteHint.textContent = !v ? tt("capNoNoteHint") : bad ? tt("capNoSuchNote") : "";
-    noteHint.classList.toggle("is-bad", bad);
+  const pick = (x) => {
+    if (!query) return;
+    const caret = input.selectionStart ?? input.value.length;
+    const ins = (query.kind === "note" ? "@" : "#") + x.name + " ";
+    const rest = input.value.slice(caret).replace(/^ /, "");
+    input.value = input.value.slice(0, query.start) + ins + rest;
+    const at = query.start + ins.length;
+    input.setSelectionRange(at, at);
+    hideList(); render(); input.focus();
   };
-  const pick = (p) => { notePath = p; note.value = baseName(p); hideList(); updNote(); when.focus(); };
-  note.addEventListener("input", () => { notePath = capNoteNamed(note.value); drawList(); updNote(); });
-  note.addEventListener("focus", () => { if (note.value.trim() && !notePath) drawList(); });
-  note.addEventListener("blur", () => setTimeout(hideList, 0));
-  note.addEventListener("keydown", (e) => {
-    if (!listOpen()) return;
-    if (e.key === "ArrowDown") { e.preventDefault(); sel = Math.min(shown.length - 1, sel + 1); mark(); }
-    else if (e.key === "ArrowUp") { e.preventDefault(); sel = Math.max(0, sel - 1); mark(); }
-    else if (e.key === "Enter" && !isMod(e)) { e.preventDefault(); e.stopPropagation(); pick(shown[sel]); }
-  });
-  // Esc with the list open closes the list, not the form (the form's own Esc listens on the document)
-  const onEsc = (e) => { if (e.key === "Escape" && listOpen()) { e.preventDefault(); e.stopPropagation(); hideList(); } };
-  window.addEventListener("keydown", onEsc, true);
-  const calBtn = h("button", { type: "button", cls: "cap-cal-btn", title: LANG === "ru" ? "Календарь" : "Calendar", "aria-label": LANG === "ru" ? "Календарь" : "Calendar", "aria-expanded": "false" }, ic("", "calendar-days"));
-  let capCal = null;
-  calBtn.addEventListener("click", () => {
-    if (capCal) { capCal.el.remove(); capCal = null; calBtn.setAttribute("aria-expanded", "false"); when.focus(); return; }
-    capCal = orgCalendar({ value: orgReadDate(when.value || "x") || null, onChange: (r) => { when.value = orgDateText(r); upd(); } });
-    calBtn.setAttribute("aria-expanded", "true");
-    whenWrap.append(capCal.el);
-  });
-  when.addEventListener("input", () => { const r = orgReadDate(when.value); if (capCal && r && when.value.trim()) capCal.set(r); });
-  when.addEventListener("keydown", (e) => {
-    if (e.shiftKey && /^Arrow(Left|Right|Up|Down)$/.test(e.key)) { e.preventDefault(); if (!capCal) calBtn.click(); capCal.move({ ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key]); }
-  });
-  const whenWrap = h("div", { cls: "cap-field" }, h("span", { text: tt("capWhen") }), h("div", { cls: "cap-when-row" }, when, calBtn), hint);
-  const noteWrap = h("div", { cls: "cap-field" }, h("span", { text: tt("capLink") }), h("div", { cls: "cap-note-box" }, note, list), noteHint);
-  const upd = () => {
-    const v = when.value.trim();
-    const r = v ? orgReadDate(v) : null;
-    hint.textContent = v ? (r ? "SCHEDULED: " + orgTsStr({ active: true, dn: r.dn, time: r.time, end: r.end, rep: r.rep, warn: r.warn }) : tt("cantRead")) : tt("dateHelp");
-    hint.classList.toggle("is-bad", !!v && !r);
+
+  /* the text: what it says, marked, and the chips */
+  const cut = (a, b) => {
+    const v = input.value;
+    input.value = (v.slice(0, a).replace(/ $/, "") + " " + v.slice(b).replace(/^ /, "")).replace(/^ /, "");
+    render(); input.focus();
   };
+  const insert = (s) => {
+    const v = input.value;
+    input.value = v + (v && !/\s$/.test(v) ? " " : "") + s;
+    input.setSelectionRange(input.value.length, input.value.length);
+    input.focus(); render(); suggest();
+  };
+  const chip = (icon, text, { onClick = null, onRemove = null, cls = "", title = "" } = {}) => {
+    const b = h("button", { type: "button", cls: "cap-chip " + cls, title: title || text }, ic("", icon), h("span", { cls: "cap-chip-text", text }));
+    if (onClick) b.addEventListener("click", onClick);
+    if (!onRemove) return b;
+    const x = iconBtn("x", tt("capRemove"), (e) => { e.stopPropagation(); onRemove(); }, "cap-chip-x");
+    return h("span", { cls: "cap-chip-wrap " + cls }, b, x);
+  };
+  const setDate = (kind, r) => {
+    if (!r) return;
+    if (kind === "dead") { dead = r; renderChips(); return; }
+    const d = parsed?.date, txt = orgDateText(r);
+    if (d) input.value = input.value.slice(0, d.start) + txt + input.value.slice(d.end);
+    else input.value = input.value + (input.value && !/\s$/.test(input.value) ? " " : "") + txt;
+    render();
+  };
+  const toggleCal = (kind) => {
+    if (cal && cal.kind === kind) { calBox.hidden = true; cal = null; input.focus(); renderChips(); return; }
+    const cur = kind === "dead" ? dead : parsed?.date?.r;
+    const c = orgCalendar({
+      value: cur || { dn: onow().dn }, dateOnly: kind === "dead",
+      onChange: (r) => setDate(kind, r),
+      onAccept: (r) => { setDate(kind, r); toggleCal(kind); },
+    });
+    cal = { kind, c };
+    calBox.replaceChildren(c.el);
+    calBox.hidden = false;
+    renderChips();
+  };
+  const priMenu = (el) => {
+    const m = new Menu();
+    for (const p of ["A", "B", "C"]) m.add(tt("priority") + " " + p, "flag", () => { pri = p; renderChips(); input.focus(); }, { checked: pri === p });
+    if (pri) { m.sep(); m.add(tt("priRemoved"), "x", () => { pri = null; renderChips(); input.focus(); }); }
+    m.showBelow(el);
+  };
+  const moreMenu = (el) => {
+    const m = new Menu();
+    m.add(tt("capNoteItem") + "  @", "file-text", () => insert("@"));
+    m.add(tt("capTagItem") + "  #", "hash", () => insert("#"));
+    m.add(tt("capDate"), "calendar-days", () => toggleCal("sched"));
+    m.sep();
+    m.add(tt("priority"), "flag", () => priMenu(el));
+    m.add(tt("deadline"), "alarm-clock", () => toggleCal("dead"));
+    m.showBelow(el);
+  };
+  const renderChips = () => {
+    const p = parsed;
+    const out = [h("button", { type: "button", cls: "cap-chip cap-more", title: tt("capMore"), "aria-label": tt("capMore"), onClick: (e) => moreMenu(e.currentTarget) }, ic("", "plus"))];
+    if (p.note) out.push(chip(p.note.path ? cardIcon(p.note.path) || "file-text" : "file-question", p.note.path ? p.note.name : "@" + p.note.name,
+      { cls: p.note.path ? "is-set is-note" : "is-bad", title: p.note.path ? p.note.name : tt("capNoMatchNote"), onRemove: () => cut(p.note.start, p.note.end) }));
+    else out.push(chip("inbox", tt("capNoNote"), { cls: "is-note-pick", onClick: () => insert("@") }));
+    if (p.date) out.push(chip("calendar-days", orgTsShort(capTs(p.date.r)) + (p.date.r.rep ? " ↻" : ""),
+      { cls: "is-set is-date" + (cal?.kind === "sched" ? " is-open" : ""), title: p.date.text, onClick: () => toggleCal("sched"), onRemove: () => { keepDate.push(p.date.text.toLowerCase()); render(); input.focus(); } }));
+    else out.push(chip("calendar-days", tt("capDate"), { cls: "is-date-pick" + (cal?.kind === "sched" ? " is-open" : ""), onClick: () => toggleCal("sched") }));
+    for (const tg of p.tags) out.push(chip("hash", tg.name, { cls: "is-set is-tag", onRemove: () => cut(tg.start, tg.end) }));
+    if (pri) out.push(chip("flag", tt("priority") + " " + pri, { cls: "is-set is-pri", onClick: (e) => priMenu(e.currentTarget), onRemove: () => { pri = null; renderChips(); } }));
+    if (dead) out.push(chip("alarm-clock", tt("deadline") + " " + orgTsShort(capTs(dead)), { cls: "is-set is-dead" + (cal?.kind === "dead" ? " is-open" : ""), onClick: () => toggleCal("dead"), onRemove: () => { dead = null; if (cal?.kind === "dead") toggleCal("dead"); renderChips(); } }));
+    chips.replaceChildren(...out);
+  };
+  const render = () => {
+    const v = input.value;
+    parsed = parseQuickAdd(v, { notes, keepDate });
+    const spans = [
+      ...(parsed.date ? [[parsed.date.start, parsed.date.end, "is-date"]] : []),
+      ...parsed.tags.map((x) => [x.start, x.end, "is-tag" + capHue(hueOf(x.name))]),
+      ...(parsed.note ? [[parsed.note.start, parsed.note.end, parsed.note.path ? "is-note" + capHue(cardHue(parsed.note.path)) : "is-bad"]] : []),
+    ].sort((a, b) => a[0] - b[0]);
+    const parts = [];
+    let at = 0;
+    for (const [a, b, cls] of spans) { if (a < at) continue; parts.push(v.slice(at, a), h("span", { cls: "cap-mark " + cls, text: v.slice(a, b) })); at = b; }
+    parts.push(v.slice(at));
+    // the marks are drawn anew from the text; the caret keeps its place in it
+    const caret = input.selectionStart;
+    input.replaceChildren(...parts.filter((x) => x !== ""));
+    if (caret != null) input.setSelectionRange(caret, caret);
+    renderChips();
+  };
+
   const finish = async () => {
-    const title = head.value.trim();
-    if (!title) { head.focus(); echo(tt("capNeedHead")); return; }
-    if (note.value.trim() && !notePath) { note.focus(); drawList(); echo(tt("capNoSuchNote")); return; }
-    const dv = when.value.trim();
-    const r = dv ? orgReadDate(dv) : null;
-    if (dv && !r) { when.focus(); return; }
-    const linked = notePath && vault.notes.has(notePath) ? notePath : null;
+    const p = parseQuickAdd(input.value, { notes, keepDate });
+    if (!p.title) { input.focus(); echo(tt("capNeedHead")); return; }
+    if (p.note && !p.note.path) { input.focus(); input.setSelectionRange(p.note.end, p.note.end); suggest(); echo(tt("capNoMatchNote")); return; }
+    const notePath = p.note?.path && vault.notes.has(p.note.path) ? p.note.path : null;
+    const tags = [...new Set(p.tags.map((x) => x.name))];
     close();
-    const ts = r ? orgTsStr({ active: true, dn: r.dn, time: r.time, end: r.end, rep: r.rep, warn: r.warn }) : null;
-    await addTask({ state: " ", title, sched: ts }, { notePath: linked, label: (linked ? tt("capFiled", { note: baseName(linked), head: title }) : tt("taskAdded", { title })).slice(0, 90) });
+    await addTask({ state: " ", title: p.title, pri, tags, sched: capTs(p.date?.r), dead: capTs(dead) },
+      { notePath, label: (notePath ? tt("capFiled", { note: baseName(notePath), head: p.title }) : tt("taskAdded", { title: p.title })).slice(0, 90) });
   };
-  panel.append(iconBtn("x", t("close"), () => close(), "modal-close"), h("div", { cls: "modal-title", text: tt("capTitle") }),
-    h("label", { cls: "cap-field" }, h("span", { text: tt("capHead") }), head), noteWrap, whenWrap,
-    h("div", { cls: "modal-buttons" }, h("span", { cls: "cap-keys", text: tt("capHint") }), h("button", { type: "button", text: tt("capAbort"), onClick: () => close() }), h("button", { type: "button", cls: "is-primary", text: tt("capOk"), onClick: finish })));
-  when.addEventListener("input", upd);
-  panel.addEventListener("keydown", (e) => {
-    if (isMod(e) && e.key === "Enter") { e.preventDefault(); finish(); return; }
-    if (e.key === "Enter" && e.target === head) { e.preventDefault(); (notePath ? when : note).focus(); return; }
-    if (e.key === "Enter" && e.target === note) { e.preventDefault(); when.focus(); return; }
-    if (e.key === "Enter" && e.target === when) { e.preventDefault(); finish(); return; }
+  // Esc closes the list, then the calendar, then the form (the form's own Esc listens on the document, after this)
+  const onEsc = (e) => {
+    if (e.key !== "Escape") return;
+    if (listOpen()) { e.preventDefault(); e.stopPropagation(); hideList(); }
+    else if (cal) { e.preventDefault(); e.stopPropagation(); toggleCal(cal.kind); }
+  };
+  window.addEventListener("keydown", onEsc, true);
+  // while a word is being composed (an IME, a dead key) the text is left alone; it is read when the word is done
+  input.addEventListener("input", (e) => { if (e.isComposing) return; render(); suggest(); });
+  input.addEventListener("compositionend", () => { render(); suggest(); });
+  input.addEventListener("click", suggest);
+  input.addEventListener("keyup", (e) => { if (/^(Arrow(Left|Right)|Home|End)$/.test(e.key)) suggest(); });
+  input.addEventListener("blur", () => setTimeout(() => { if (document.activeElement !== input) hideList(); }, 0));
+  input.addEventListener("keydown", (e) => {
+    if (listOpen()) {
+      if (e.key === "ArrowDown") { e.preventDefault(); sel = Math.min(shown.length - 1, sel + 1); mark(); return; }
+      if (e.key === "ArrowUp") { e.preventDefault(); sel = Math.max(0, sel - 1); mark(); return; }
+      if ((e.key === "Enter" && !isMod(e)) || e.key === "Tab") { e.preventDefault(); e.stopPropagation(); pick(shown[sel]); return; }
+    }
+    if (e.key === "Enter") { e.preventDefault(); finish(); }
   });
-  upd(); updNote();
-  setTimeout(() => head.focus(), 0);
+  const send = h("button", { type: "button", cls: "is-primary cap-send", title: tt("capOk") + " (Enter)", "aria-label": tt("capOk"), onClick: finish }, ic("", "arrow-up"));
+  const cancel = iconBtn("x", tt("capAbort"), () => close(), "cap-cancel");
+  panel.append(h("div", { cls: "cap-box" }, field, list), h("div", { cls: "cap-bar" }, chips, h("div", { cls: "cap-acts" }, cancel, send)), calBox);
+  render();
+  const toEnd = () => { input.focus(); input.setSelectionRange(input.value.length, input.value.length); };
+  toEnd(); setTimeout(() => { if (document.activeElement !== input) toEnd(); }, 0);
 }
 /** Move the tasks closed before today to the archive (the agenda's filter menu, the command list). */
 export async function archiveClosedTasks() { await archiveClosed(1); }

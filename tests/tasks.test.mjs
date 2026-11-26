@@ -238,42 +238,69 @@ describe("the agenda and the notes' boxes", () => {
     assert.equal(await H.page.locator(".ag-row .ag-cat").first().textContent(), "List");
   });
 
-  test("capture makes a task with no note, or one linked to a note found by its name", async () => {
-    await ev(() => orgCapture({ head: "Buy stamps" }));
-    await H.page.fill(".cap-when", "fri 11:00");
-    await H.page.click(".ag-cap .is-primary");
+  test("capture reads one line: the date, #tags and an @note picked from a list that narrows as the name is typed", async () => {
+    await ev(() => orgCapture());
+    await H.page.keyboard.type("Buy stamps fri 11:00 #errands");
+    assert.deepEqual(await ev(() => [...document.querySelectorAll(".cap-mark")].map((m) => [m.className.replace("cap-mark ", ""), m.textContent])),
+      [["is-date", "fri 11:00"], ["is-tag hue-" + await ev(() => hueOf("errands")), "#errands"]], "marked in the line");
+    assert.match(await H.page.textContent(".cap-chips"), /errands/);
+    assert.deepEqual(await ev(() => { const m = getComputedStyle(document.querySelector(".cap-mark")); return [m.paddingLeft, m.paddingTop]; }), ["4px", "2px"], "a plate with room at its sides, as above and below");
+    await H.page.keyboard.press("Enter");
     await tick(200);
     const rec = (await records()).find((x) => x.title === "Buy stamps");
-    assert.equal(rec.sched, "<2026-10-30 Fri 11:00>");
-    assert.equal(rec.note, undefined);
-    // typing part of a name lists the matching notes; Enter takes the first, then the date
-    await ev(() => orgCapture({ head: "Standup" }));
-    await H.page.fill(".cap-note", "lis");
-    assert.deepEqual(await ev(() => [...document.querySelectorAll(".cap-note-list .suggestion-title")].map((x) => x.textContent)).then((a) => a.includes("List")), true);
-    await H.page.press(".cap-note", "Enter");
-    assert.equal(await H.page.inputValue(".cap-note"), "List");
-    assert.equal(await ev(() => document.activeElement.classList.contains("cap-when")), true, "on to the date");
-    await H.page.fill(".cap-when", "fri 9:30");
-    await H.page.click(".ag-cap .is-primary");
+    assert.deepEqual([rec.sched, rec.tags, rec.note], ["<2026-10-30 Fri 11:00>", ["errands"], undefined]);
+    // @ lists the notes; typing narrows it; Enter takes the one picked and the line goes on
+    await ev(() => orgCapture());
+    await H.page.keyboard.type("Standup @");
+    assert.equal(await ev(() => document.querySelector(".cap-list").hidden), false, "the list comes up after the @");
+    await H.page.keyboard.type("lis");
+    assert.equal(await ev(() => [...document.querySelectorAll(".cap-list .suggestion-title")].map((x) => x.textContent).includes("List")), true);
+    await H.page.keyboard.press("Enter");
+    assert.equal(await H.page.textContent(".cap-input"), "Standup @List ");
+    assert.equal(await ev(() => document.querySelector(".cap-list").hidden), true);
+    await H.page.keyboard.type("fri 9:30");
+    await H.page.keyboard.press("Enter");
     await tick(200);
     const m = (await records()).find((x) => x.title === "Standup");
     assert.deepEqual([m.state, m.sched, m.note], [" ", "<2026-10-30 Fri 09:30>", "list"]);
-    // a name no note has keeps the form open; Esc closes the list first, then the form
-    await ev(() => orgCapture({ head: "Nowhere" }));
-    await H.page.fill(".cap-note", "zzzqqq");
-    await H.page.click(".ag-cap .is-primary");
+    // an @name no note has keeps the form open; Esc closes the list first, then the form
+    await ev(() => orgCapture());
+    await H.page.keyboard.type("Nowhere @zzzqqq");
+    await H.page.click(".ag-cap .cap-send");
     await tick(100);
     assert.equal(await ev(() => !!document.querySelector(".ag-cap")), true);
-    assert.match(await H.page.textContent(".ag-cap"), /No note by that name/);
-    await H.page.fill(".cap-note", "lis");
+    assert.equal(await ev(() => !!document.querySelector(".cap-chip-wrap.is-bad")), true);
+    await H.page.fill(".cap-input", "Nowhere @li");
+    await H.page.press(".cap-input", "End");
+    await H.page.keyboard.type("s");
+    assert.equal(await ev(() => document.querySelector(".cap-list").hidden), false);
     await H.page.keyboard.press("Escape");
-    assert.deepEqual(await ev(() => [!!document.querySelector(".ag-cap"), document.querySelector(".cap-note-list").hidden]), [true, true]);
+    assert.deepEqual(await ev(() => [!!document.querySelector(".ag-cap"), document.querySelector(".cap-list").hidden]), [true, true]);
     await H.page.keyboard.press("Escape");
     assert.equal(await ev(() => !!document.querySelector(".ag-cap")), false);
-    // opened for a note, the field already names it
+    // opened for a note, the line already names it
     await ev(() => orgCapture({ head: "Prefilled", link: "cards/List.md" }));
-    assert.equal(await H.page.inputValue(".cap-note"), "List");
+    assert.equal(await H.page.textContent(".cap-input"), "Prefilled @List ");
+    assert.match(await H.page.textContent(".cap-chips"), /List/);
     await H.page.keyboard.press("Escape");
+  });
+
+  test("capture: the date chip's × keeps the words; + adds a priority and a deadline", async () => {
+    await ev(() => orgCapture());
+    await H.page.keyboard.type("Plan the friday party");
+    await H.page.click(".cap-chip-wrap.is-date .cap-chip-x");
+    assert.equal(await ev(() => document.querySelectorAll(".cap-mark").length), 0);
+    await H.page.click(".cap-more");
+    await H.page.click(".menu .menu-item:has-text('Priority')");
+    await H.page.click(".menu .menu-item:has-text('Priority B')");
+    await H.page.click(".cap-more");
+    await H.page.click(".menu .menu-item:has-text('Deadline')");
+    assert.equal(await ev(() => document.querySelector(".cap-cal").hidden), false, "the calendar opens under the line");
+    await H.page.click(".cap-cal .cal-ok");
+    await H.page.press(".cap-input", "Enter");
+    await tick(200);
+    const r = (await records()).find((x) => x.title === "Plan the friday party");
+    assert.deepEqual([r.sched, r.pri, r.dead], [undefined, "B", "<2026-10-29 Thu>"]);
   });
 
   test("the calendar export and the reminders read the tasks file", async () => {

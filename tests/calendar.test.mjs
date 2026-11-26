@@ -170,16 +170,16 @@ describe("the task list and the capture form (UI-18, UI-19)", () => {
     assert.deepEqual(r, { inMain: true, text: "Gym", after: true, areas: '"main lab"', quiet: true });
   });
 
-  test("the capture form says Save and Cancel, and makes only tasks", async () => {
-    for (const [lang, ok, cancel] of [["en", "Save", "Cancel"], ["ru", "Сохранить", "Отмена"]]) {
+  test("the capture form is one line with its chips, Cancel and Save, and makes only tasks", async () => {
+    for (const lang of ["en", "ru"]) {
       await openVault({ demo: false, lang, notes: NOTES });
       await ev(() => orgCapture());
       const r = await ev(() => ({
-        buttons: [...document.querySelectorAll(".ag-cap .modal-buttons button")].map((b) => b.textContent),
-        tpls: document.querySelectorAll(".cap-tpl-btn").length, notes: !!document.querySelector(".cap-notes"), note: !!document.querySelector("input.cap-note"),
+        input: document.activeElement?.classList.contains("cap-input"), fields: document.querySelectorAll(".ag-cap .cap-input[contenteditable]").length,
+        acts: [...document.querySelectorAll(".ag-cap .cap-acts button")].map((b) => b.getAttribute("aria-label")),
+        tpls: document.querySelectorAll(".cap-tpl-btn").length,
       }));
-      assert.deepEqual(r.buttons, [cancel, ok], lang);
-      assert.deepEqual([r.tpls, r.notes, r.note], [0, false, true]);
+      assert.deepEqual(r, { input: true, fields: 1, acts: lang === "en" ? ["Cancel", "Save"] : ["Отмена", "Сохранить"], tpls: 0 }, lang);
       await page().keyboard.press("Escape");
     }
   });

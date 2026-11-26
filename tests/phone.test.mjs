@@ -64,7 +64,7 @@ describe("the formatting bar (UI-10)", () => {
 });
 
 describe("keyboard hints (UI-11)", () => {
-  test("a device without hover shows none: in the palette, in the capture form", async () => {
+  test("a device without hover shows none in the palette", async () => {
     await openVault(PHONE);
     assert.equal(await ev(() => matchMedia("(hover: none)").matches), true);
     const shown = (sel) => ev((sel) => [...document.querySelectorAll(sel)].some((e) => getComputedStyle(e).display !== "none" && e.getBoundingClientRect().height > 0), sel);
@@ -73,9 +73,6 @@ describe("keyboard hints (UI-11)", () => {
     assert.equal(await shown(".prompt .suggestion-item"), true);
     assert.deepEqual([await shown(".prompt-instructions"), await shown(".prompt .suggestion-item .suggestion-keys")], [false, false], "the palette's foot and its rows' keys");
     await page().keyboard.press("Escape");
-    await ev(() => orgCapture());
-    await settle();
-    assert.equal(await shown(".cap-keys"), false, "the capture form's keys");
     await ev(() => settingsModal("keys"));
     await settle();
     assert.equal(await shown(".mod-settings .suggestion-keys"), true, "Settings › Keyboard shortcuts still lists them");

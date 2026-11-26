@@ -318,3 +318,49 @@ describe("the Russian interface's words (#30)", () => {
     assert.match(src, /tabAgenda: "Повестка"/);
   });
 });
+
+describe("quick add: one line → a task (core/quick-add.js)", async () => {
+  const { parseQuickAdd, quickAddQuery } = await import("../web/src/js/core/quick-add.js");
+  const notes = [{ name: "Project X", path: "cards/Project X.md" }, { name: "Project", path: "cards/Project.md" }];
+  const read = (s) => org.orgReadDate(s);
+
+  test("the date, the #tags and the @note come out of the title", () => {
+    const p = parseQuickAdd("Call Anna fri 14:00 #work @Project X", { notes });
+    assert.equal(p.title, "Call Anna");
+    assert.deepEqual([p.date.text, p.date.r.dn, p.date.r.time], ["fri 14:00", read("fri").dn, 840]);
+    assert.deepEqual(p.tags.map((x) => x.name), ["work"]);
+    assert.deepEqual([p.note.name, p.note.path], ["Project X", "cards/Project X.md"], "the longest name that fits");
+  });
+
+  test("Russian dates, with в/at gluing the words and dropped before them", () => {
+    let p = parseQuickAdd("Купить хлеб завтра в 10:00 #дом");
+    assert.deepEqual([p.title, p.date.text, p.date.r.dn, p.date.r.time], ["Купить хлеб", "завтра в 10:00", read("завтра").dn, 600]);
+    p = parseQuickAdd("Позвонить в пятницу");
+    assert.deepEqual([p.title, p.date.r.dn], ["Позвонить", read("fri").dn]);
+    p = parseQuickAdd("Meet at 2pm on monday");
+    assert.deepEqual([p.title, p.date.r.dn, p.date.r.time], ["Meet", read("mon").dn, 840]);
+    assert.deepEqual(parseQuickAdd("Report 5 ноября").date.r.dn, read("5 ноя").dn);
+    assert.deepEqual(parseQuickAdd("Pay 2026-12-01 +1m").date.r.rep, { type: "+", n: 1, u: "m" });
+  });
+
+  test("words that only look like dates stay in the title", () => {
+    for (const s of ["Buy 5 apples", "Read about C# today-ish", "Call Tom", "срочно ответить", "may be later"]) assert.equal(parseQuickAdd(s).date, null, s);
+    assert.equal(parseQuickAdd("C# notes").tags.length, 0, "# only after a space");
+    assert.equal(parseQuickAdd("#5 issue").tags.length, 0, "digits alone are not a tag");
+    const p = parseQuickAdd("Plan the friday party", { keepDate: ["friday"] });
+    assert.deepEqual([p.title, p.date], ["Plan the friday party", null], "the date chip's × keeps the words");
+  });
+
+  test("an @ no note is called is kept apart, with no path", () => {
+    const p = parseQuickAdd("Review @Nowhere, then mail", { notes });
+    assert.deepEqual([p.title, p.note.name, p.note.path], ["Review, then mail", "Nowhere", null]);
+  });
+
+  test("what is being typed after @ or #", () => {
+    assert.deepEqual(quickAddQuery("Call @Proj", 10), { kind: "note", start: 5, query: "Proj" });
+    assert.deepEqual(quickAddQuery("Call @Project X", 15), { kind: "note", start: 5, query: "Project X" }, "a note's name may have spaces");
+    assert.deepEqual(quickAddQuery("x #wo", 5), { kind: "tag", start: 2, query: "wo" });
+    assert.equal(quickAddQuery("x # a", 5), null);
+    assert.equal(quickAddQuery("mail@home", 9), null, "@ inside a word");
+  });
+});
