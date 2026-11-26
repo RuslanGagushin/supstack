@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.41.0
+
+- The agenda reads more clearly: the line for now sits before what starts at that minute, with its time on a plate, and empty hours are one mark; the days' navigation is beside the title (the title opens Go to…, then Day · Week · Month and ‹ Today ›); tag filters and Archive are under one Filters button that counts the tags in use, so the agenda usually has no second bar; every day shows its date; red is only for what is due or late (priority A is grey, the now line blue); a tag a task takes from its note keeps its colour; the note's name under a task opens it; and a late task whose deadline is still ahead says when.
+
 ## 0.40.0
 
 - Capture is one line, as a quick add: the date is read from the words (fri 14:00, завтра в 10:00, 24 nov), #tag tags the task and @ picks its note from a list that narrows as you type, each marked in the line in its colour; the + adds a priority or a deadline. Capture has its own button in the sidebar, Files moved to an icon at its foot, and the agenda lost Match, the Log switch (closed tasks always stay on their day), the calendar export and the grey line of keys.

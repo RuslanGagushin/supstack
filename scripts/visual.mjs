@@ -1,4 +1,4 @@
-// Visual check: six key screens of the demo vault, in headless Chrome, against the pictures in tests/visual/.
+// Visual check: eight key screens of the demo vault, in headless Chrome, against the pictures in tests/visual/.
 //   npm run visual              compares; exits 1 and writes <name>.diff.png (red = changed) next to the baseline when a screen moved
 //   npm run visual -- --update  takes the pictures again (do it when a change to the look is meant, and look at the result)
 // Not part of `npm test`: pixels depend on the machine's fonts, so the pictures are for the machine that made them and this is a local
@@ -25,7 +25,9 @@ const SCREENS = [
   { name: "board-dark", theme: "dark", opts: desktop },
   { name: "note-light", theme: "light", opts: desktop, go: () => openEditor("cards/This week.md", { focus: false, wide: true }) },
   { name: "agenda-light", theme: "light", opts: desktop, go: () => openTasksView() },
+  { name: "agenda-dark", theme: "dark", opts: desktop, go: () => openTasksView() },
   { name: "phone-board-light", theme: "light", opts: phone },
+  { name: "phone-agenda-light", theme: "light", opts: phone, go: () => openTasksView() },
   { name: "phone-note-dark", theme: "dark", opts: phone, go: () => openEditor("cards/Aqueducts.md") },
 ];
 
