@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.44.0
+
+- A note stays put when you switch between reading and editing: every line, box, bullet and tag stands where it was, a box's fold arrow hangs in the margin (shown on hover), a nested box or a line under one starts under its parent's text, and a long item wraps under its own text in both views; a #tag looks the same grey chip with a dot while editing. A note's boxes are a checklist again everywhere: only [ ] and [x] are boxes, and [/], [#A] or a SCHEDULED date in a note's text show as written (tasks with states and dates live in the agenda). Also: the waiting state's icon is an hourglass, the note's text column holds about 80 characters a line, and the Checklist panel shows its count once.
+
 ## 0.43.0
 
 - The list of notes reads more clearly: a note's preview leaves out headings and empty labels, so a template no longer previews as "Author: Read: Notes"; the list's order is named at the end of its count (Manual ▾), and its menu sorts the list and turns the previews off for compact rows, the same on a desktop and a phone; the count says "4 notes here · 16 in all"; the top of the vault says Vault, not Notebook; the field for a new note starts with a + and says "New note…"; every note has an icon, so the titles line up; tags everywhere are grey chips with a dot in their colour, as in the sidebar; and a phone's notebook tiles show how many notes they hold.
