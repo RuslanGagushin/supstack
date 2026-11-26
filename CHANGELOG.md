@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.42.0
+
+- The sidebar reads more clearly: Capture has its own inbox icon instead of a second +, and its tooltip says what it does; a notebook's tile in the list counts every note inside it, as its row in the sidebar does, and a list with notebooks in it adds how many notes it holds in all; the open notebook or place is marked by an accent bar; Notebooks, Recent and Tags have the same headings, and each folds from the keyboard too; tags are quiet grey chips with a coloured dot; Recent sits above Tags; and Files has a files icon instead of the paperclip.
+
 ## 0.41.0
 
 - The agenda reads more clearly: the line for now sits before what starts at that minute, with its time on a plate, and empty hours are one mark; the days' navigation is beside the title (the title opens Go to…, then Day · Week · Month and ‹ Today ›); tag filters and Archive are under one Filters button that counts the tags in use, so the agenda usually has no second bar; every day shows its date; red is only for what is due or late (priority A is grey, the now line blue); a tag a task takes from its note keeps its colour; the note's name under a task opens it; and a late task whose deadline is still ahead says when.

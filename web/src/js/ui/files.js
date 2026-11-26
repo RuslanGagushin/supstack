@@ -173,7 +173,7 @@ export function openFilesView(push = true) {
 }
 export function filesButton() {
   // used now and then, so an icon at the sidebar's foot beside sync and the settings
-  const b = iconBtn("paperclip", fvt("files"), () => (board.view === "files" ? goBack() : openFilesView()), "sb-foot-btn wb-files");
+  const b = iconBtn("files", fvt("files"), () => (board.view === "files" ? goBack() : openFilesView()), "sb-foot-btn wb-files");
   b.id = "files-btn";
   b.title = keyText(fvt("filesHint") + " · Ctrl+Shift+E");
   b.classList.toggle("is-active", board.view === "files");
@@ -245,7 +245,7 @@ export function renderFilesView(root) {
     for (const [v, k] of [["name", "sName"], ["modified", "sModified"], ["size", "sSize"], ["type", "sType"], ["folder", "sFolder"]]) m.add(fvt(k), null, () => { FV.sort = v; saveFV(); fvRenderList(); }, { checked: FV.sort === v });
     m.showBelow(e.currentTarget);
   }, "fv-sort");
-  head.append(h("div", { cls: "fv-title" }, ic("sn-list-badge", "paperclip"), h("b", { text: fvt("files") }), h("span", { cls: "fv-count" }), h("span", { cls: "fv-total" })),
+  head.append(h("div", { cls: "fv-title" }, ic("sn-list-badge", "files"), h("b", { text: fvt("files") }), h("span", { cls: "fv-count" }), h("span", { cls: "fv-total" })),
     h("div", { cls: "fv-search-row" }, h("div", { cls: "fv-search-wrap" }, ic("fv-search-icon", "search"), search), sortBtn), h("div", { cls: "fv-filters" }, seg, unused));
   const list = h("div", { cls: "fv-list", tabindex: "0", role: "listbox", "aria-label": fvt("files") });
   list.addEventListener("keydown", fvListKey);
@@ -334,7 +334,7 @@ function fvRenderPreview() {
   if (!pane) return;
   const p = FV.sel;
   pane.replaceChildren();
-  if (!p || !vault.allPaths.has(p)) { pane.append(h("div", { cls: "fv-placeholder" }, ic("", "paperclip"), h("span", { text: fvt("select") }))); return; }
+  if (!p || !vault.allPaths.has(p)) { pane.append(h("div", { cls: "fv-placeholder" }, ic("", "files"), h("span", { text: fvt("select") }))); return; }
   const refs = FV.refs?.get(p) || [];
   const close = iconBtn("arrow-left", t("back"), () => { FV.sel = null; $(".fv")?.classList.remove("has-sel"); $$(".fv-row.is-selected").forEach((r) => r.classList.remove("is-selected")); }, "fv-close");
   const crumb = h("div", { cls: "fv-crumb" }, h("span", { cls: "fv-crumb-folder", text: dirName(p) || fvt("root") }), h("span", { cls: "sn-crumb-sep", text: "/" }),

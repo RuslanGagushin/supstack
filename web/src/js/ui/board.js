@@ -258,7 +258,9 @@ function countText(model) {
   if (onlyTag) return t("cardsCount", { n: shown });
   if (!model.active && !tv && !model.truncated) {
     const books = model.shown.filter((c) => c.folder).length, notes = shown - books;
-    return [books ? t("notebooksCount", { n: books }) : "", notes || !books ? t("cardsCount", { n: notes }) : ""].filter(Boolean).join(" · ");
+    // with notebooks in it, the notes on all levels too: the number its row in the sidebar shows
+    const deep = books ? graph.collect(board.target || null, 0, makeComparator("manual")).cards.length : 0;
+    return [books ? t("notebooksCount", { n: books }) : "", notes || !books ? t("cardsCount", { n: notes }) : "", deep > shown ? t("countInAll", { n: deep }) : ""].filter(Boolean).join(" · ");
   }
   const count = total === shown && !model.active ? t("cardsCount", { n: total }) : t("cardsOf", { shown, n: total });
   return model.active ? t("filteredSuffix", { count }) : count;

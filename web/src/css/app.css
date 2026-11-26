@@ -104,6 +104,19 @@ button.sb-account .wb-caret svg { width: var(--icon-s); height: var(--icon-s); c
 .sn-outline .tree-item-self.sn-tree-row.is-active .sn-tree-label { font-weight: var(--fw-semibold); }
 /* the notebook the open note sits in, when the list beside it shows another place (and the open note's Recent row): a quiet mark, not a second selection */
 .sn-outline .sn-tree-row:is(.is-holding, .is-editing):not(.is-active) :is(.sn-tree-label, .sn-tree-icon) { color: var(--ink); }
+/* the current place shows by an accent bar at the row's left edge as well as the grey and the weight:
+   in light mode the grey alone is barely apart from the sidebar's (the tree's rows and the places above them alike) */
+.sb-nav button.sn-btn { position: relative; }
+:is(.sn-outline .tree-item-self.sn-tree-row, .sb-nav button.sn-btn).is-active::before {
+  content: ""; position: absolute; inset-inline-start: 0; top: 50%; width: 3px; height: 16px; margin-top: -8px; border-radius: 0 2px 2px 0; background: var(--accent);
+}
+/* a section's heading: the caret and the name are one button that folds it; the tools sit beside it (Notebooks) */
+.sn-sec-btn { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: var(--sp-4); min-height: 24px; border-radius: var(--r-xs); outline: none; }
+.sn-sec-btn:focus-visible { box-shadow: var(--ring); }
+/* the sidebar's tags: quiet grey chips, the tag's colour a dot (restyle of the tag cloud) */
+.sn-tag-dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--dot, var(--faint)); }
+.sn-tag-dot.hue-green { --dot: var(--hue-green-fg); } .sn-tag-dot.hue-blue { --dot: var(--hue-blue-fg); } .sn-tag-dot.hue-orange { --dot: var(--hue-orange-fg); }
+.sn-tag-dot.hue-pink { --dot: var(--hue-pink-fg); } .sn-tag-dot.hue-yellow { --dot: var(--hue-yellow-fg); } .sn-tag-dot.hue-purple { --dot: var(--hue-purple-fg); }
 .sn-tree-row .sn-tree-label { font-weight: var(--fw-medium); }
 .sn-tree-icon svg { width: var(--icon-m); height: var(--icon-m); }
 .tree-item-flair { font-size: var(--fs-sm); color: var(--faint); }

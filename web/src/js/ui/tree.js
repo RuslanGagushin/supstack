@@ -43,7 +43,8 @@ export function renderTree() {
     pins.forEach((p, i) => pinTree.append(treeNode(p, [p], cmp, { pinIndex: i, pinCount: pins.length, keyPrefix: "pin" })));
     box.append(pinTree);
   }
-  box.append(h("div", { cls: "sn-tree-section has-tools" }, h("span", { text: t("tree") }), header));
+  const nbOpen = UI.notebooksOpen !== false;
+  box.append(sectionHead(t("tree"), nbOpen, () => { UI.notebooksOpen = !nbOpen; saveUI(); renderTree(); }, header));
   const allRow = h("div", { cls: "tree-item-self is-clickable sn-tree-row" + (!board.target && !board.tagView ? " is-active" : "") }, h("span", { cls: "sn-tree-toggle is-leaf" }), ic("sn-tree-icon", "home"), h("div", { cls: "tree-item-inner sn-tree-label", text: t("allCards") }),
     h("div", { cls: "tree-item-flair-outer" }, (() => { const n = graph.collect(null, 0, cmp).cards.length; return h("span", { cls: "tree-item-flair sn-tree-count", text: String(n), title: t("treeCountAll", { n }) }); })())); // the cards the board reaches, as its "of N" says
   allRow.addEventListener("click", () => setTarget(null));
@@ -51,9 +52,11 @@ export function renderTree() {
   const nbTree = h("div", { cls: "sn-aria-tree", role: "tree", "aria-label": t("tree") });
   nbTree.append(treeItem(h("div", { cls: "tree-item" }, allRow), allRow, { key: "all", level: 1, active: !board.target && !board.tagView }));
   const roots = graph.sortedChildren(null, cmp);
-  if (!roots.length) box.append(h("div", { cls: "sn-tree-empty", text: t("noCards") }));
-  for (const r of roots.filter(isNotebook)) nbTree.append(treeNode(r, [r], cmp, {}));
-  box.append(nbTree);
+  if (nbOpen) {
+    if (!roots.length) box.append(h("div", { cls: "sn-tree-empty", text: t("noCards") }));
+    for (const r of roots.filter(isNotebook)) nbTree.append(treeNode(r, [r], cmp, {}));
+    box.append(nbTree);
+  }
   if (S.savedViews.length) {
     box.append(h("div", { cls: "sn-tree-section", text: t("views") }));
     for (const v of S.savedViews) {
@@ -68,8 +71,9 @@ export function renderTree() {
       box.append(h("div", { cls: "tree-item" }, row));
     }
   }
-  tagsSection(box);
+  // Recent before Tags: the notes changed last are a quicker way back than a tag
   recentSection(box);
+  tagsSection(box);
   for (const tr of box.querySelectorAll("[role=tree]")) tr.addEventListener("keydown", treeKeys);
   host.append(box);
   box.scrollTop = scroll;
@@ -80,6 +84,16 @@ export function renderTree() {
     (items.find((x) => x.getAttribute("aria-selected") === "true") || items[0])?.setAttribute("tabindex", "0");
   }
   if (focusKey) box.querySelector(`[role=treeitem][data-key="${CSS.escape(focusKey)}"]`)?.focus({ preventScroll: false });
+}
+/**
+ * A sidebar section's heading (Notebooks, Recent, Tags), all alike: a caret and the name that fold the section, as one
+ * button for the keyboard and screen readers; the tools, if any, sit beside it at the right, outside the button.
+ */
+export function sectionHead(label, open, onToggle, tools = null) {
+  const btn = h("span", { cls: "sn-sec-btn", role: "button", tabindex: "0", "aria-expanded": String(open) }, ic("sn-sec-caret", "chevron-down"), h("span", { text: label }));
+  btn.addEventListener("click", onToggle);
+  btn.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onToggle(); } });
+  return h("div", { cls: "sn-tree-section is-toggle" + (open ? " is-open" : "") + (tools ? " has-tools" : "") }, btn, tools);
 }
 let labelIds = 0;
 /**
@@ -125,9 +139,7 @@ function recentSection(box) {
   const recent = [...graph.nodes].sort((a, b) => (vault.notes.get(b)?.mtime || 0) - (vault.notes.get(a)?.mtime || 0)).slice(0, 5);
   if (recent.length <= 3) return;
   const open = UI.recentOpen === true;
-  const head = h("div", { cls: "sn-tree-section is-toggle" + (open ? " is-open" : "") }, ic("sn-sec-caret", "chevron-down"), h("span", { text: t("recent") }));
-  head.addEventListener("click", () => { UI.recentOpen = !open; saveUI(); renderTree(); });
-  box.append(head);
+  box.append(sectionHead(t("recent"), open, () => { UI.recentOpen = !open; saveUI(); renderTree(); }));
   if (!open) return;
   for (const p of recent) {
     const row = h("div", { cls: "tree-item-self is-clickable sn-tree-row is-recent" + (board.target === p ? " is-active" : "") });

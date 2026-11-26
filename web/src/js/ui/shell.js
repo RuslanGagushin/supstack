@@ -86,12 +86,12 @@ function commandList() {
   add(t("allCards"), "home", () => setTarget(null));
   if (board.target) add(t("toParent"), "arrow-up", () => { const ps = graph.parentsOf(board.target).filter((p) => graph.has(p)); setTarget(ps[0] ?? null); }, "Alt+↑");
   add(t("back"), "arrow-left", goBack, "Alt+←");
-  add(fvt("files"), "paperclip", () => openFilesView(), "Ctrl+Shift+E");
+  add(fvt("files"), "files", () => openFilesView(), "Ctrl+Shift+E");
   section(t("cmdGroupTasks"));
   add(tt("tasksHint"), "calendar-check", () => openTasksView(true, "agenda"), "Ctrl+Shift+K");
   add(`${tt("tasks")}: ${tt("vTodo")}`, "list-todo", () => openTasksView(true, "todo"));
   add(`${tt("tasks")}: ${tt("vSearch")}`, "search", () => openTasksView(true, "search"));
-  add(tt("capTitle") + "…", "plus-circle", () => orgCapture());
+  add(tt("capTitle") + "…", "inbox", () => orgCapture());
   add(tt("archiveClosed"), "archive", archiveClosedTasks);
   if (movableTasks().tasks) add(tt("moveTasksCmd"), "list-checks", () => offerTaskMove(true));
   if (editor.path) section(t("cmdGroupNote"));
@@ -194,9 +194,9 @@ function renderAll() {
       // today's note, by name; the command palette is Ctrl+P and the vault's menu above
       wbBtn("calendar-days", t("todayShort"), () => openToday(), "sb-today")));
   // the agenda and a quick task; Files, used now and then, is an icon at the foot
-  const capture = wbBtn("plus", tt("capture"), () => orgCapture(), "sb-capture");
+  const capture = wbBtn("inbox", tt("capture"), () => orgCapture(), "sb-capture");
   capture.id = "capture-btn";
-  capture.title = tt("capTitle");
+  capture.title = tt("capSideHint");
   const sideNav = h("nav", { cls: "sb-nav", "aria-label": t("tabbar") }, tasksButton(), capture);
   const status = h("div", { cls: "sb-status" + (note ? " is-unsaved" : "") }, note ? h("span", { cls: "sb-dot", "aria-hidden": "true" }) : null, note ? h("span", { cls: "sb-status-text", text: note }) : null);
   const foot = h("div", { cls: "sb-foot" }, status, filesButton(), syncButton(),
@@ -236,7 +236,7 @@ function tabBar() {
       setTimeout(() => $(".ag-day.today")?.scrollIntoView({ block: "start", behavior: "smooth" }), 0);
     }),
     tab("search", "search", t("tabSearch"), () => quickOpen()),
-    tab("capture", "plus", t("tabCapture"), () => orgCapture()));
+    tab("capture", "inbox", t("tabCapture"), () => orgCapture()));
   const last = new WeakMap();
   document.addEventListener("scroll", (e) => {
     const el = e.target === document ? document.scrollingElement : e.target;

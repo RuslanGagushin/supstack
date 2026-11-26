@@ -19,7 +19,7 @@ import { renderMarkdown, wireRendered } from "./markdown.js";
 import { cleanTag, createCard, sanitizeTitle, vaultTags } from "./actions.js";
 import { goBack, openTagView } from "./board.js";
 import { dnd } from "./dnd.js";
-import { renderTree } from "./tree.js";
+import { renderTree, sectionHead } from "./tree.js";
 import { openEditor, renderEditor } from "./editor.js";
 import { liveActivate, liveTa, liveText } from "./live-preview.js";
 import { edInsert } from "./editor-toolbar.js";
@@ -415,15 +415,14 @@ export function tagsSection(box) {
   for (const p of graph.nodes) for (const tg of cardTags(p)) counts.set(tg, (counts.get(tg) || 0) + 1);
   if (!counts.size) return;
   const open = UI.tagsOpen !== false;
-  const head = h("div", { cls: "sn-tree-section is-toggle" + (open ? " is-open" : "") }, ic("sn-sec-caret", "chevron-down"), h("span", { text: wt("tagsSection") }), h("span", { cls: "sn-sec-count", text: String(counts.size) }));
-  head.addEventListener("click", () => { UI.tagsOpen = !open; saveUI(); renderTree(); });
-  box.append(head);
+  box.append(sectionHead(wt("tagsSection"), open, () => { UI.tagsOpen = !open; saveUI(); renderTree(); }));
   if (!open) return;
   const wrap = h("div", { cls: "sn-tag-cloud" });
   for (const [tg, n] of [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 40)) {
     const on = board.tagView === tg;
-    // the open tag shows by a check as well as the accent plate, so the state is never colour alone
-    const b = h("button", { cls: "sn-chip" + (on ? " is-accent" : " hue-" + hueOf(tg)), type: "button", "aria-pressed": String(on), title: `${tg} · ${n}` }, on && ic("", "check"), h("span", { text: tg }), h("span", { cls: "n", text: "· " + n }));
+    // the open tag shows by a check as well as the accent plate, so the state is never colour alone;
+    // the others are quiet grey chips with the tag's colour as a dot, so the cloud doesn't outshout the notebooks
+    const b = h("button", { cls: "sn-chip" + (on ? " is-accent" : ""), type: "button", "aria-pressed": String(on), title: `${tg} · ${n}` }, on ? ic("", "check") : h("span", { cls: "sn-tag-dot hue-" + hueOf(tg), "aria-hidden": "true" }), h("span", { text: tg }), h("span", { cls: "n", text: n }));
     b.addEventListener("click", () => { if (on) goBack(); else openTagView(tg); });
     wrap.append(b);
   }

@@ -4,7 +4,7 @@
 import { LANG, t, tt } from "../core/i18n.js";
 import { baseName, norm, plainText, hueOf } from "../core/util.js";
 import { board, editor, graph, S, vault } from "../services/state.js";
-import { cardIcon, linkText, cardHue } from "../services/vault.js";
+import { cardIcon, linkText, cardHue, makeComparator } from "../services/vault.js";
 import { filterActive } from "../core/board-model.js";
 import { cardTaskProgress } from "../services/tasks.js";
 import { attachmentUrl, firstImage } from "../services/attachments.js";
@@ -84,10 +84,10 @@ function renderFolderRow(path, via) {
   if (board.selection.has(path)) row.classList.add("is-picked");
   asOption(row, path);
   if (editor.path === path) row.classList.add("is-editing");
-  // a tile: its icon, its name, how many notes and notebooks are right inside it (restyle RS-26)
-  const kids = graph.childrenOf(path).length;
+  // a tile: its icon, its name and every note on all levels inside it, the same number as its row in the sidebar (restyle RS-26)
+  const total = graph.collect(path, 0, makeComparator("manual")).cards.length;
   row.append(ic("sn-row-folder-icon", cardIcon(path) || "folder", "folder"), h("span", { cls: "sn-row-title", text: baseName(path), title: baseName(path) }),
-    h("span", { cls: "sn-row-count", title: t("rowEnter", { n: kids }), text: t("cardsCount", { n: kids }) }));
+    h("span", { cls: "sn-row-count", title: t("treeCountAll", { n: total }), text: t("cardsCount", { n: total }) }));
   row.addEventListener("click", (e) => {
     if (e.shiftKey || board.selectMode) { e.preventDefault(); toggleSelect(path); return; }
     enterRow(path);

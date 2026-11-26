@@ -162,7 +162,8 @@ describe("list of notes", () => {
     assert.equal(Math.round(r.list), 360);
     assert.ok(r.note > 500, "the note takes the rest of the width");
     assert.match(r.own, /^Everything about the past/);
-    assert.equal(r.count, "1 notebook · 1 note");
+    assert.equal(r.count, "1 notebook · 1 note · 5 in all");
+    assert.equal(await page().textContent("#tree .sn-tree-row.is-active .sn-tree-count"), "5", "the same number as History's row in the sidebar");
     assert.equal(r.snippet, "Some photo here");
     assert.equal(r.editing, "cards/History.md");
     noErrors();
@@ -193,12 +194,13 @@ describe("list of notes", () => {
       "cards/D.md": "---\nparents: [\"[[A]]\"]\n---\nd", "cards/E.md": "---\nparents: [\"[[A]]\"]\n---\ne" } });
     const count = () => page().textContent(".sn-list-count");
     await ev(() => setTarget("cards/A.md"));
-    assert.equal(await count(), "1 notebook · 2 notes");
+    assert.equal(await count(), "1 notebook · 2 notes · 4 in all", "and, with notebooks in it, every note on all levels, as its row in the sidebar says");
+    assert.equal(await page().textContent("#tree .sn-tree-row.is-active .sn-tree-count"), "4");
     assert.equal(await ev(() => document.querySelectorAll(".sn-list-desc").length), 0);
     await ev(() => setTarget("cards/B.md"));
     assert.equal(await count(), "1 note");
     await ev(() => setTarget(null));
-    assert.equal(await count(), "1 notebook", "only notebooks: no \"0 notes\"");
+    assert.equal(await count(), "1 notebook · 5 in all", "only notebooks: no \"0 notes\"; all of them, as All notes counts them");
     noErrors();
   });
 
@@ -307,7 +309,7 @@ describe("list of notes", () => {
     }));
     assert.equal(r.gap, "8px");
     assert.deepEqual(r.folders, ["cards/Roman Empire.md"]);
-    assert.equal(r.row, "Roman Empire2 notes", "its name and how many notes it holds");
+    assert.equal(r.row, "Roman Empire3 notes", "its name and every note on all levels inside it, as its row in the sidebar counts them");
     assert.equal(r.snippet, false);
     await page().click('.sn-row[data-path="cards/Roman Empire.md"]');
     assert.equal(await ev(() => board.target), "cards/Roman Empire.md");
@@ -348,12 +350,13 @@ describe("sidebar", () => {
     noErrors();
   });
 
-  test("the notebooks come first in the sidebar, and Recent is last and folded", async () => {
+  test("the notebooks come first in the sidebar, then Recent (folded), then Tags; each heading folds alike", async () => {
     await openVault();
-    const sections = () => ev(() => [...document.querySelectorAll("#tree .sn-tree-section")].map((s) => (s.querySelector(":scope > span:not(.sn-sec-caret):not(.sn-sec-count)") || s).textContent));
-    assert.deepEqual(await sections(), ["Notebooks", "Tags", "Recent"]);
+    const sections = () => ev(() => [...document.querySelectorAll("#tree .sn-tree-section")].map((s) => (s.querySelector(".sn-sec-btn") || s).textContent));
+    assert.deepEqual(await sections(), ["Notebooks", "Recent", "Tags"]);
+    assert.equal(await ev(() => document.querySelectorAll("#tree .sn-tree-section .sn-sec-btn[role=button][aria-expanded]").length), 3, "every heading is a button that says whether it is open");
     assert.equal(await ev(() => document.querySelectorAll("#tree .sn-tree-row.is-recent").length), 0, "Recent starts folded");
-    await page().click("#tree .sn-tree-section.is-toggle:last-of-type");
+    await page().click("#tree .sn-tree-section:nth-child(2 of .sn-tree-section) .sn-sec-btn");
     assert.equal(await ev(() => document.querySelectorAll("#tree .sn-tree-row.is-recent").length), 5, "and opens on a click");
     assert.equal(await ev(() => UI.recentOpen), true);
     noErrors();
