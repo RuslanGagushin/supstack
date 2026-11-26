@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.40.0
+
+- Capture is one line, as a quick add: the date is read from the words (fri 14:00, завтра в 10:00, 24 nov), #tag tags the task and @ picks its note from a list that narrows as you type, each marked in the line in its colour; the + adds a priority or a deadline. Capture has its own button in the sidebar, Files moved to an icon at its foot, and the agenda lost Match, the Log switch (closed tasks always stay on their day), the calendar export and the grey line of keys.
+
 ## 0.39.0
 
 - Capture makes only tasks: the note, meeting and journal templates are gone. The note a task belongs to is found by typing its name and picking it from the matches; left empty, the task belongs to no note.
