@@ -183,21 +183,6 @@ describe("agenda", () => {
     assert.ok(r[1].includes("Run"), "its own first day");
   });
 
-  test("match queries: tags, properties, task states", async () => {
-    // the agenda's tasks are the ones that moved to tasks.jsonl; the plain boxes stayed in the note as its checklist
-    const m = (q) => ev((q) => orgAll().filter(orgMatcher(q)).map((e) => e.title).sort(), q);
-    assert.deepEqual(await m("+work -shop/!"), ["Call Bob", "Write report"], "a heading's tags moved with its tasks");
-    assert.deepEqual(await m("+work-shop"), [], "a hyphen is part of the tag name here (Markdown #tags), unlike Org's +work-boss");
-    assert.deepEqual(await m("PRIORITY=A"), ["Write report"]);
-    assert.deepEqual(await m("/wait|DOING"), ["Call Bob", "Parts"]);
-    assert.deepEqual(await m("/done"), ["Old thing"]);
-    assert.deepEqual(await m("errand|shop"), ["Parts"]);
-    assert.deepEqual(await m("+home/!"), ["Call Bob", "Parts", "Write report"], "the note's tags are the task's, inherited");
-    assert.deepEqual(await m("STATE=todo+urgent"), ["Write report"]);
-    assert.deepEqual(await m("TODO=cancel"), ["Dropped idea"], "TODO= still names the state");
-    assert.deepEqual(await m("CATEGORY=gym"), ["Run"]);
-  });
-
   test("the agenda view lists today, t steps a task's state and a click on its box ticks it", async () => {
     const page = H.page;
     await ev(() => openTasksView(true, "agenda"));

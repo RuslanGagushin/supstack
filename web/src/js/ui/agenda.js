@@ -19,16 +19,16 @@ import { orgAskDate, orgCalendar, orgDateText, orgTsShort } from "./org-editing.
 import { vaultTags } from "./actions.js";
 import { parseQuickAdd, quickAddQuery } from "../core/quick-add.js";
 import { dateChip, taskBox, taskIcon } from "./task-icons.js";
-import { tasksToIcs } from "../core/ics.js";
-import { downloadText } from "./format-bar.js";
 
 /* ---------- agenda state */
-// log is on by default: a task closed on a day stays on that day, struck through
-export const AG = Object.assign({ view: "agenda", span: "week", log: true, overOpen: true, todoKw: "ALL", match: "", search: "" }, lsGet("sn-agenda", {}), { anchor: null, filter: {}, sel: null });
+// a task closed on a day always stays on that day, struck through (there is no log to turn off)
+export const AG = Object.assign({ view: "agenda", span: "week", overOpen: true, todoKw: "ALL", search: "" }, lsGet("sn-agenda", {}), { anchor: null, filter: {}, sel: null });
+delete AG.log; delete AG.match;
+if (!["agenda", "todo", "search"].includes(AG.view)) AG.view = "agenda"; // Match is gone
 /** The task list's state filter: all open tasks, or one open state. */
 const TODO_FILTERS = ["ALL", ...TASK_STATES.filter((x) => x.open).map((x) => x.id)];
 if (!TODO_FILTERS.includes(AG.todoKw)) AG.todoKw = "ALL";
-const saveAG = () => lsSet("sn-agenda", { view: AG.view, span: AG.span, log: AG.log, overOpen: AG.overOpen, todoKw: AG.todoKw, match: AG.match });
+const saveAG = () => lsSet("sn-agenda", { view: AG.view, span: AG.span, overOpen: AG.overOpen, todoKw: AG.todoKw });
 export let AGROWS = [];
 export function openTasksView(push = true, view) {
   if (view) { AG.view = view; saveAG(); }
@@ -68,37 +68,6 @@ function orgTagPass(e) {
   }
   return true;
 }
-export function orgMatcher(q) {
-  q = String(q || "").trim();
-  let todoPart = null;
-  const sl = q.indexOf("/");
-  if (sl >= 0) { todoPart = q.slice(sl + 1).trim(); q = q.slice(0, sl).trim(); }
-  const ors = q.split("|").map((s) => s.trim()).filter(Boolean).map((part) => {
-    const terms = [], re = /([+-]?)(?:([\p{L}_][\p{L}\p{N}_-]*)\s*(<=|>=|<>|=|<|>)\s*("[^"]*"|[^\s+&|]+)|([\p{L}\p{N}_@#%{}.\/-]+))/gu;
-    let m;
-    const src = part.replace(/&/g, "+");
-    while ((m = re.exec(src))) { if (!m[0]) break; terms.push({ neg: m[1] === "-", key: m[2], op: m[3], val: m[4] != null ? m[4].replace(/^"|"$/g, "") : null, tag: m[5]?.replace(/^#/, "") }); }
-    return terms;
-  });
-  const todoFn = todoPart == null ? () => true : todoPart === "!" ? (e) => e.isTodo && !e.done : (e) => todoPart.replace(/^!/, "").split("|").map((s) => s.trim().toLowerCase()).filter(Boolean).includes(e.kw);
-  const cmp = (a, op, b) => {
-    const num = /^-?[\d.]+$/.test(b) && /^-?[\d.]+$/.test(a);
-    const x = num ? parseFloat(a) : String(a).toLowerCase(), y = num ? parseFloat(b) : String(b).toLowerCase();
-    return op === "=" ? x == y : op === "<>" ? x != y : op === "<" ? x < y : op === ">" ? x > y : op === "<=" ? x <= y : x >= y;
-  };
-  return (e) => todoFn(e) && (!ors.length || ors.some((terms) => terms.every((tm) => {
-    let r;
-    if (tm.tag != null) r = e.alltags.some((x) => x.toLowerCase() === tm.tag.toLowerCase());
-    else {
-      const k = tm.key.toUpperCase();
-      const fm = vault.notes.get(e.path)?.fm || {};
-      const fk = Object.keys(fm).find((x) => x.toUpperCase() === k);
-      const v = k === "STATE" || k === "TODO" ? e.kw || "" : k === "PRIORITY" ? e.pri || "B" : k === "LEVEL" ? String(e.level) : k === "CATEGORY" ? e.category : fk ? String(fm[fk]) : "";
-      r = cmp(v, tm.op, tm.val);
-    }
-    return tm.neg ? !r : r;
-  })));
-}
 
 /* ---------- the agenda view */
 /**
@@ -129,7 +98,7 @@ function renderMonth(body, all, T, pass) {
     const row = h("div", { cls: "ag-month-row", role: "row" });
     for (let i = 0; i < 7; i++) {
       const dn = start + w * 7 + i, o = oymd(dn);
-      const n = orgDayEntries(dn, all, T, { log: AG.log }).filter((x) => !x.overdue && pass(x.e)).length;
+      const n = orgDayEntries(dn, all, T, { log: true }).filter((x) => !x.overdue && pass(x.e)).length;
       const b = h("button", {
         type: "button", role: "gridcell", cls: "ag-mday" + (dn === T ? " is-today" : "") + (dn < first || dn >= next ? " is-out" : "") + (o.w === 0 || o.w === 6 ? " weekend" : "") + (n ? " has" : ""),
         "aria-label": oFmt(dn, "dddd D MMMM") + (n ? " · " + tt("sumEntries", { n }) : ""), dataset: { dn: String(dn) },
@@ -140,13 +109,6 @@ function renderMonth(body, all, T, pass) {
     grid.append(row);
   }
   body.append(grid);
-}
-/** Save the dated tasks and events as a calendar file (TASK-7) for a calendar app to import. */
-export function exportCalendar() {
-  const { text, events } = tasksToIcs(orgAll(), { labels: { deadline: tt("lDeadline").replace(/:$/, "") } });
-  if (!events) { echo(tt("icsNone")); return; }
-  downloadText("Supstack tasks.ics", text, "text/calendar");
-  echo(tt("icsDone", { n: events }));
 }
 export function renderTasksView(root) {
   const body0 = root.querySelector(".ag-body");
@@ -167,7 +129,7 @@ export function renderTasksView(root) {
   bar.append(h("div", { cls: "sn-crumbs" }));
   const tools = h("div", { cls: "sn-tools" });
   const seg = h("div", { cls: "sn-seg ag-views", role: "tablist" });
-  for (const [v, k, key] of [["agenda", "vAgenda", "a"], ["todo", "vTodo", "t"], ["match", "vMatch", "m"], ["search", "vSearch", "s"]]) {
+  for (const [v, k, key] of [["agenda", "vAgenda", "a"], ["todo", "vTodo", "t"], ["search", "vSearch", "s"]]) {
     const b = h("button", { cls: "clickable-icon" + (AG.view === v ? " is-active" : ""), type: "button", text: tt(k), title: `${tt(k)} (${key})`, role: "tab", "aria-selected": String(AG.view === v) });
     b.addEventListener("click", () => orgSetView(v));
     seg.append(b);
@@ -183,8 +145,7 @@ export function renderTasksView(root) {
     const sp = h("div", { cls: "sn-seg" });
     for (const [v, k, key] of [["day", "day", "d"], ["week", "week", "w"], ["month", "month", "M"]]) { const b = h("button", { cls: "clickable-icon" + (AG.span === v ? " is-active" : ""), type: "button", text: tt(k), title: `${tt(k)} (${key})` }); b.addEventListener("click", () => { AG.span = v; saveAG(); renderBoard(); }); sp.append(b); }
     agbar.append(sp, btn(tt("today"), tt("today") + " (.)", () => orgNav(0)),
-      btn(tt("goTo"), tt("goTo") + " (j)", () => orgNav("jump"), null, "ag-wide-only"), btn(tt("log"), tt("log") + " (l)", () => { AG.log = !AG.log; saveAG(); renderBoard(); }, AG.log, "ag-wide-only"),
-      iconBtn("calendar-arrow-down", tt("icsExport"), exportCalendar, "ag-wide-only ag-ics"),
+      btn(tt("goTo"), tt("goTo") + " (j)", () => orgNav("jump"), null, "ag-wide-only"),
       iconBtn("archive", tt("archiveClosed"), archiveClosedTasks, "ag-wide-only ag-archive"));
   } else if (AG.view === "todo") {
     const sp = h("div", { cls: "sn-seg" });
@@ -196,13 +157,12 @@ export function renderTasksView(root) {
     }
     agbar.append(sp);
   } else {
-    const isM = AG.view === "match";
-    const inp = h("input", { type: "text", cls: "ag-input", spellcheck: "false", placeholder: isM ? "+work-home|PRIORITY=A/doing" : LANG === "ru" ? "слова для поиска" : "words to find", "aria-label": tt(isM ? "vMatch" : "vSearch"), dataset: { agInput: AG.view } });
-    inp.value = isM ? AG.match : AG.search;
-    const run = () => { if (isM) { AG.match = inp.value; saveAG(); } else AG.search = inp.value; renderBoard(); };
+    const inp = h("input", { type: "text", cls: "ag-input", spellcheck: "false", placeholder: LANG === "ru" ? "слова для поиска" : "words to find", "aria-label": tt("vSearch"), dataset: { agInput: "search" } });
+    inp.value = AG.search;
+    const run = () => { AG.search = inp.value; renderBoard(); };
     inp.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); run(); } else if (e.key === "ArrowDown") { e.preventDefault(); $(".ag-body")?.focus(); orgSelect(0, true); } else if (e.key === "Escape" && inp.value) { e.stopPropagation(); inp.value = ""; run(); } });
-    if (!isM) inp.addEventListener("input", debounce(run, 200));
-    agbar.append(inp, btn(tt(isM ? "vMatch" : "vSearch"), "Enter", run));
+    inp.addEventListener("input", debounce(run, 200));
+    agbar.append(inp, btn(tt("vSearch"), "Enter", run));
   }
   const tagCount = new Map();
   for (const e of all) if (!e.done && !orgSkip(e)) for (const x of e.alltags) tagCount.set(x.toLowerCase(), (tagCount.get(x.toLowerCase()) || 0) + 1);
@@ -223,11 +183,9 @@ export function renderTasksView(root) {
   // (the week strip below has the date picker, so "Go to…" goes too)
   const narrowItems = AG.view === "agenda" || tags.length;
   if (narrowItems) {
-    const active = (AG.view === "agenda" && AG.log) || Object.keys(AG.filter).length > 0;
+    const active = Object.keys(AG.filter).length > 0;
     const fb = iconBtn("sliders-horizontal", tt("filters"), (e) => {
       const m = new Menu();
-      if (AG.view === "agenda") m.add(tt("log"), "history", () => { AG.log = !AG.log; saveAG(); renderBoard(); }, { checked: !!AG.log });
-      if (AG.view === "agenda") m.add(tt("icsExport"), "calendar-arrow-down", exportCalendar);
       if (AG.view === "agenda") m.add(tt("archiveClosed"), "archive", archiveClosedTasks);
       if (tags.length) {
         m.sep(); m.label(tt("filterTags"));
@@ -262,7 +220,7 @@ export function renderTasksView(root) {
     const week0 = AG.anchor - ((oymd(AG.anchor).w + 6) % 7);
     const strip = h("div", { cls: "ag-strip", role: "toolbar", "aria-label": tt("week") });
     for (let i = 0; i < 7; i++) {
-      const dn = week0 + i, has = orgDayEntries(dn, all, T, { log: AG.log, carried: true }).some((x) => !x.grid && pass(x.e));
+      const dn = week0 + i, has = orgDayEntries(dn, all, T, { log: true, carried: true }).some((x) => !x.grid && pass(x.e));
       const b = h("button", { type: "button", cls: "ag-strip-day" + (dn === T ? " is-today" : "") + (AG.span === "day" && dn === AG.anchor ? " is-selected" : ""), "aria-label": oFmt(dn, "dddd D MMMM") },
         h("span", { cls: "wd", text: oFmt(dn, "ddd") }), h("span", { cls: "dn", text: String(oymd(dn).d) }), h("span", { cls: "dot" + (has ? " has" : "") }));
       b.addEventListener("click", () => { AG.span = "day"; AG.anchor = dn; saveAG(); renderBoard(); });
@@ -272,7 +230,7 @@ export function renderTasksView(root) {
     body.append(strip);
     // what is overdue is carried into today (as Org does) and gathered in a section of its own, above the days
     // (in a week, above Monday rather than between two days)
-    const late = days.includes(T) ? orgDayEntries(T, all, T, { log: AG.log }).filter((x) => pass(x.e) && x.overdue) : [];
+    const late = days.includes(T) ? orgDayEntries(T, all, T, { log: true }).filter((x) => pass(x.e) && x.overdue) : [];
     if (late.length) {
       const head = h("button", { cls: "ag-over-head", type: "button", "aria-expanded": String(!!AG.overOpen) }, ic("ag-over-chev", "chevron-down"), h("span", { text: tt("overdue") }), h("span", { cls: "ag-over-n", text: String(late.length) }));
       head.addEventListener("click", () => { AG.overOpen = !AG.overOpen; saveAG(); renderBoard(); });
@@ -282,7 +240,7 @@ export function renderTasksView(root) {
     }
     for (const dn of days) {
       const o = oymd(dn);
-      let ents = orgDayEntries(dn, all, T, { log: AG.log, carried: days.includes(T) }).filter((x) => pass(x.e));
+      let ents = orgDayEntries(dn, all, T, { log: true, carried: days.includes(T) }).filter((x) => pass(x.e));
       if (dn === T) ents = ents.filter((x) => !x.overdue);
       const sum = daySummary(ents);
       // a day's head over a card of its rows (restyle RS-62 to RS-64); today says so in place of its date
@@ -301,13 +259,6 @@ export function renderTasksView(root) {
     body.append(agHead("list-todo", tt("vTodo"), h("div", { cls: "ag-title" }, tt("todoTitle") + " ", h("b", { text: AG.todoKw === "ALL" ? tt("stAll") : tt("st_" + AG.todoKw) }), ` · ${items.length}`)));
     if (items.length) body.append(h("section", { cls: "ag-card" }, items.map((e) => orgRow({ e, kind: "todo", label: "", time: null, dn: null }))));
     if (!items.length) body.append(h("div", { cls: "ag-help", text: tt("noTodo") }));
-  } else if (AG.view === "match") {
-    const fn = orgMatcher(AG.match);
-    const items = all.filter((e) => !orgSkip(e) && e.kind !== "event" && fn(e) && pass(e));
-    body.append(agHead("filter", tt("vMatch"), h("div", { cls: "ag-title" }, tt("matchTitle") + " ", h("b", { text: AG.match || tt("everything") }), ` · ${items.length}`)));
-    if (items.length) body.append(h("section", { cls: "ag-card" }, items.map((e) => orgRow({ e, kind: "match", label: "", time: null, dn: null }))));
-    if (!items.length) body.append(h("div", { cls: "ag-help", text: tt("noMatch") }));
-    body.append(h("div", { cls: "ag-help", text: tt("matchHelp") }));
   } else {
     const words = norm(AG.search).split(/\s+/).filter(Boolean);
     body.append(agHead("search", tt("vSearch"), h("div", { cls: "ag-title" }, tt("searchTitle") + " ", h("b", { text: AG.search || tt("typeSomething") }))));
@@ -456,7 +407,7 @@ function orgSetView(v) {
   AG.sel = null;
   saveAG();
   renderBoard();
-  setTimeout(() => { const el = v === "match" || v === "search" ? $(`[data-ag-input="${v}"]`) : $(".ag-body"); el?.focus({ preventScroll: true }); }, 0);
+  setTimeout(() => { const el = v === "search" ? $(`[data-ag-input="${v}"]`) : $(".ag-body"); el?.focus({ preventScroll: true }); }, 0);
 }
 async function orgNav(d) {
   const T = onow().dn;
@@ -515,7 +466,6 @@ function orgAgendaKey(ev) {
   if (k === "b" || k === "ArrowLeft") { stop(); orgNav(-1); return; }
   if (k === ".") { stop(); orgNav(0); return; }
   if (k === "j") { stop(); orgNav("jump"); return; }
-  if (k === "l") { stop(); AG.log = !AG.log; saveAG(); renderBoard(); echo(`${tt("log")}: ${AG.log ? "on" : "off"}`); return; }
   if (k === "r" || k === "g") { stop(); reloadTasks().then(() => { renderBoard(); echo(LANG === "ru" ? "Повестка обновлена" : "Agenda refreshed"); }); return; }
   if (k === "F2") { stop(); if (row) orgRenameEntry(row.e); return; }
   if (k === "Delete") { stop(); if (row) orgDeleteEntry(row.e); return; }
@@ -524,7 +474,6 @@ function orgAgendaKey(ev) {
   if (k === "\\") { stop(); AG.filter = {}; renderBoard(); return; }
   if (k === "c") { stop(); orgCapture(); return; }
   if (k === "a" || k === "A") { stop(); orgSetView("agenda"); return; }
-  if (k === "m") { stop(); orgSetView("match"); return; }
   if (k === "S") { stop(); orgSetView("search"); return; }
   if (k === "q" || k === "Escape") { stop(); goBack(); return; }
   if (k === "?") { stop(); echo(tt("keysAgenda"), { hint: true }); return; }

@@ -12,7 +12,6 @@ import * as m7 from "./core/org.js";
 import * as m8 from "./core/tables.js";
 import * as m50 from "./core/embed.js";
 import * as m51 from "./core/search.js";
-import * as m52 from "./core/ics.js";
 import * as m53 from "./core/reminders.js";
 import * as m54 from "./services/reminders.js";
 import * as m9 from "./services/storage.js";
@@ -63,7 +62,7 @@ import * as m59 from "./core/tasks.js";
 import * as m60 from "./core/quick-add.js";
 
 export function exposeGlobals() {
-  for (const ns of [m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16, m17, m18, m19, m20, m21, m22, m23, m24, m25, m27, m28, m29, m30, m31, m32, m33, m34, m35, m36, m37, m38, m39, m40, m41, m42, m43, m44, m45, m46, m47, m48, m49, m50, m51, m52, m53, m54, m55, m56, m57, m58, m59, m60]) {
+  for (const ns of [m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16, m17, m18, m19, m20, m21, m22, m23, m24, m25, m27, m28, m29, m30, m31, m32, m33, m34, m35, m36, m37, m38, m39, m40, m41, m42, m43, m44, m45, m46, m47, m48, m49, m50, m51, m53, m54, m55, m56, m57, m58, m59, m60]) {
     for (const k of Object.keys(ns)) {
       try { Object.defineProperty(globalThis, k, { get: () => ns[k], configurable: true }); } catch { /* a browser global of that name (top, name…) stays */ }
     }

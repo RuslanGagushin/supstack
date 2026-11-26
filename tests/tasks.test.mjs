@@ -303,10 +303,7 @@ describe("the agenda and the notes' boxes", () => {
     assert.deepEqual([r.sched, r.pri, r.dead], [undefined, "B", "<2026-10-29 Thu>"]);
   });
 
-  test("the calendar export and the reminders read the tasks file", async () => {
-    const ics = await ev(() => tasksToIcs(orgAll(), { now: new Date("2026-10-29T10:00:00Z") }).text);
-    assert.match(ics, /SUMMARY:Buy stamps/);
-    assert.match(ics, /SUMMARY:Standup/);
+  test("the reminders read the tasks file", async () => {
     const rem = await ev(() => upcomingReminders(orgAll(), Date.now()).map((r) => r.title));
     assert.deepEqual(rem.sort(), ["Buy stamps", "Standup"], "a task with a time reminds");
   });
