@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.39.0
+
+- Capture makes only tasks: the note, meeting and journal templates are gone. The note a task belongs to is found by typing its name and picking it from the matches; left empty, the task belongs to no note.
+
 ## 0.38.1
 
 - After updating on Android, sync copies tasks to the phone if it has never had them, instead of treating their absence as a deletion and removing them from other devices.
