@@ -40,9 +40,10 @@ describe("opening a note", () => {
     await settle();
     const r = await ev(() => {
       const line = document.querySelector("#editor .sn-insp [data-sec=tasks] .sn-insp-line"), bar = line.firstElementChild, fill = bar.firstElementChild;
-      return { share: Math.round((fill.getBoundingClientRect().width / bar.getBoundingClientRect().width) * 100), words: line.lastElementChild.textContent };
+      return { share: Math.round((fill.getBoundingClientRect().width / bar.getBoundingClientRect().width) * 100), count: line.closest("[data-sec]").querySelector(".sn-insp-count")?.textContent, words: bar.getAttribute("aria-label"), lines: line.childElementCount };
     });
-    assert.deepEqual(r, { share: 25, words: "1 из 4 выполнено" });
+    // the count once, in the head; the words are the bar's name for a screen reader, not a second line beside it
+    assert.deepEqual(r, { share: 25, count: "1/4", words: "1 из 4 выполнено", lines: 1 });
     noErrors();
   });
 
@@ -294,10 +295,10 @@ describe("live preview", () => {
     noErrors();
   });
 
-  test("every state shows its icon; Ctrl+Enter ticks a box or unticks it, a plain line becomes one; no state menu", async () => {
+  test("only [ ] and [x] are boxes, the other states are text; Ctrl+Enter ticks a box or unticks it, a plain line becomes one; no state menu", async () => {
     await ev(() => { const t = $(".sn-editor-text.is-live"); t.cmView.dispatch({ changes: { from: 0, to: t.value.length, insert: "- [/] b\n- [<] c\n- [-] f\n- [>] g\n- [x] d\nplain" } }); t.blur(); });
-    assert.deepEqual(await ev(() => $$("#editor .task-box").map((b) => b.className.replace("task-box s-", ""))), ["doing", "wait", "cancel", "fwd", "done"]);
-    assert.ok(await ev(() => !!$("#editor .cm-sn-task.s-cancel")), "a cancelled task's text is struck through");
+    assert.deepEqual(await ev(() => $$("#editor .task-box").map((b) => b.className.replace("task-box s-", ""))), ["done"], "[/] [<] [-] [>] are the agenda's states: text in a note");
+    assert.ok(await ev(() => !!$("#editor .cm-sn-task.s-done")), "a ticked box's text is muted");
     await caretAt((await value()).length);
     await page().keyboard.press("Control+Enter");
     assert.match(await value(), /\n- \[ \] plain$/);
@@ -307,9 +308,9 @@ describe("live preview", () => {
     assert.match(await value(), /\n- \[ \] plain$/);
     assert.doesNotMatch(await value(), /CLOSED/, "and gets no CLOSED: line");
     await ev(() => $(".sn-editor-text.is-live").blur());
-    await ev(() => $$("#editor .task-box")[4].dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true })));
+    await ev(() => $$("#editor .task-box")[0].dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true })));
     assert.equal(await page().locator(".prompt .suggestion-item").count(), 0);
-    await ev(() => $$("#editor .task-box")[4].dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true })));
+    await ev(() => $$("#editor .task-box")[0].dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true })));
     await page().waitForFunction(() => $(".sn-editor-text.is-live").value.includes("- [ ] d\n"), null, { timeout: 5000 });
     noErrors();
   });

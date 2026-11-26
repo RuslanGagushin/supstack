@@ -287,7 +287,7 @@ export function renderEditor() {
   }
   if (editor.mode === "read") {
     const rd = h("div", { cls: "sn-reading markdown-rendered" });
-    renderMarkdown(n.body, path, { into: rd, pdf: true, shortDates: true }); // tasks read as in the agenda; editing keeps the Markdown
+    renderMarkdown(n.body, path, { into: rd, pdf: true });
     wireRendered(rd, path);
     rd.addEventListener("dblclick", (e) => { if (!e.target.closest("a, input")) { editor.mode = "edit"; renderEditor(); $(".sn-editor-text")?.focus(); } });
     page.append(rd);
@@ -410,7 +410,7 @@ function refreshEmbeds(path) {
   const n = vault.notes.get(editor.path);
   if (!n) return;
   const rd = editor.mode === "read" && $("#editor .sn-reading:not(.sn-live)");
-  if (rd) renderMarkdown(n.body, editor.path, { into: rd, pdf: true, shortDates: true });
+  if (rd) renderMarkdown(n.body, editor.path, { into: rd, pdf: true });
   else if (editor.mode === "edit") refreshLiveEmbeds();
 }
 on("written", (path) => refreshEmbeds(path));

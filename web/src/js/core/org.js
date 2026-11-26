@@ -137,7 +137,10 @@ const OHEAD_RE = /^(#{1,6})([ \t]+)(.*)$/;
 const OITEM_RE = /^([ \t]*)([-*+]|\d+[.)])([ \t]+)(?:\[([ xX\/<>-])\](?:[ \t]+|$))?(.*)$/;
 /** The boxes of a note's text in order, also in quotes and callouts (the reading view numbers its boxes the same way). */
 export const TASK_LINE_RE = /^((?:[ \t]*>)*[ \t]*(?:[-*+]|\d+[.)])[ \t]+\[)([ xX\/<>-])(\])(?=[ \t]|$)/gm;
-export const OPLAN_RE = /^[ \t]*(SCHEDULED|DEADLINE|CLOSED):/;
+/** A box in a note's text: a checklist's, open or done ([ ], [x]). The other states are the agenda's tasks (tasks.jsonl);
+ *  in a note they read as text. Boxes are numbered in this pattern's order (ui/markdown.js setTaskState). */
+export const BOX_LINE_RE = /^((?:[ \t]*>)*[ \t]*(?:[-*+]|\d+[.)])[ \t]+\[)([ xX])(\])(?=[ \t]|$)/gm;
+export const OPLAN_RE =/^[ \t]*(SCHEDULED|DEADLINE|CLOSED):/;
 export const oIndentW = (s) => s.replace(/\t/g, "    ").length;
 export function orgLine(line) {
   if (line == null) return null;

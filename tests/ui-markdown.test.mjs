@@ -1,7 +1,7 @@
 // A note's contents: rendered Markdown, tables (shown and edited), planning lines under tasks, and pasted or dropped files.
 import { beforeEach, describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { openVault, ev, raw } from "./harness.mjs";
+import { openVault, ev, raw, settle } from "./harness.mjs";
 import * as H from "./harness.mjs";
 
 const page = () => H.page;
@@ -63,24 +63,25 @@ describe("rendering", () => {
     assert.deepEqual(await ev(() => [window.x, window.y]), [undefined, undefined]);
   });
 
-  test("every state renders as its icon, numbered in the order of the text", async () => {
-    await render("- [ ] a\n- [/] b\n- [<] c\n- [x] d\n- [X] e\n- [-] f\n- [>] g\n- [?] h\n- plain\n\n> - [/] quoted\n\n```\n- [ ] code\n```\n\n- [/] [#A] pri");
+  test("a note's boxes are open or done, numbered in the order of the text; other states and priorities stay text", async () => {
+    await render("- [ ] a\n- [/] b\n- [<] c\n- [x] d\n- [X] e\n- [-] f\n- [>] g\n- [?] h\n- plain\n\n> - [ ] quoted\n\n```\n- [ ] code\n```\n\n- [ ] [#A] pri");
     const r = await ev(() => [...document.body.lastChild.querySelectorAll(".task-box")].map((b) => `${b.dataset.task}${b.className.replace("task-box s-", ":")}:${b.nextSibling.textContent.trim()}`));
-    assert.deepEqual(r, ["0:todo:a", "1:doing:b", "2:wait:c", "3:done:d", "4:done:e", "5:cancel:f", "6:fwd:g", "7:doing:quoted", "8:doing:"]);
-    assert.equal(await ev(() => document.body.lastChild.querySelector(".task-box.s-doing ~ .pri.A")?.textContent), "[#A]", "the priority after the box is a pill");
-    assert.equal(await ev(() => document.body.lastChild.querySelectorAll("li.is-checked").length), 4, "done, cancelled and forwarded tasks are closed");
+    assert.deepEqual(r, ["0:todo:a", "1:done:d", "2:done:e", "3:todo:quoted", "4:todo:[#A] pri"]);
+    assert.equal(await ev(() => document.body.lastChild.querySelectorAll(".pri").length), 0, "no priority badge: [#A] is text");
+    assert.match(await ev(() => document.body.lastChild.textContent), /\[\/\] b[\s\S]*\[-\] f/, "[/] and [-] are text");
+    assert.equal(await ev(() => document.body.lastChild.querySelectorAll("li.is-checked").length), 2, "the two ticked boxes");
   });
 
   test("clicking a rendered box ticks it in the file and nothing more: a box in a note is a checklist's", async () => {
-    await ev(async () => { await writeRaw("cards/A.md", "- [ ] one\n- [/] two\n> - [ ] quoted\n"); openEditor("cards/A.md"); editor.mode = "read"; renderEditor(); });
+    await ev(async () => { await writeRaw("cards/A.md", "- [ ] one\n- [x] two\n> - [ ] quoted\n"); openEditor("cards/A.md"); editor.mode = "read"; renderEditor(); });
     // a native click in the page (Playwright's actionability wait is flaky here)
     await H.page.waitForFunction(() => document.querySelectorAll(".sn-reading .task-box").length === 3);
     await ev(() => document.querySelectorAll(".sn-reading .task-box")[1].click());
-    await H.page.waitForFunction(() => vault.notes.get("cards/A.md").raw === "- [ ] one\n- [x] two\n> - [ ] quoted\n", null, { timeout: 5000 });
+    await H.page.waitForFunction(() => vault.notes.get("cards/A.md").raw === "- [ ] one\n- [ ] two\n> - [ ] quoted\n", null, { timeout: 5000 });
     await ev(() => document.querySelectorAll(".sn-reading .task-box")[2].click());
     await H.page.waitForFunction(() => /\n> - \[x\] quoted\n$/.test(vault.notes.get("cards/A.md").raw));
     await ev(() => document.querySelectorAll(".sn-reading .task-box")[1].click());
-    await H.page.waitForFunction(() => vault.notes.get("cards/A.md").raw.startsWith("- [ ] one\n- [ ] two\n"));
+    await H.page.waitForFunction(() => vault.notes.get("cards/A.md").raw.startsWith("- [ ] one\n- [x] two\n"));
     // no state menu: right-click is the browser's own
     await ev(() => document.querySelectorAll(".sn-reading .task-box")[0].dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true })));
     assert.equal(await H.page.locator(".prompt .suggestion-item").count(), 0);
@@ -448,64 +449,20 @@ describe("selecting in a table", () => {
   });
 });
 
-describe("planning lines", () => {
-  const NOTE = "- [ ] Book the tour\n  DEADLINE: <2026-11-07 Sat> SCHEDULED: <2026-11-05 Thu>\n\nIntro\n\n- [x] Set up\n  CLOSED: [2026-11-03 Tue 18:20]\n";
-  // a vault with a tasks file keeps the tasks left in a note where they are: this is how a note shows them
-  beforeEach(async () => { await openVault({ demo: false, time: "2026-11-06T09:00:00", notes: { "cards/P.md": NOTE, ".supstack/tasks.jsonl": "" } }); await ev(() => openEditor("cards/P.md", { focus: false })); });
-  const shown = (sel) => ev((s) => [...document.querySelectorAll(s)].map((x) => x.innerText.trim()), sel);
+describe("dates in a note", () => {
+  // a note's boxes are a checklist: a date, a planning word or a priority in its text is the agenda's business (tasks.jsonl), not the note's
+  const NOTE = "- [ ] [#A] Book the tour\n  DEADLINE: <2026-11-07 Sat> SCHEDULED: <2026-11-05 Thu>\n\nLunch <2026-11-06 Fri 13:00-14:00>\n";
+  beforeEach(async () => { await openVault({ demo: false, time: "2026-11-06T09:00:00", openNotes: "read", notes: { "cards/P.md": NOTE, ".supstack/tasks.jsonl": "" } }); });
 
-  test("while editing, away from the caret, each planning word and its date are one chip, as while reading", async () => {
-    assert.deepEqual(await shown("#editor .sn-live .org-date"), ["Tomorrow", "Yesterday", "3 Nov"]);
-    assert.equal((await shown("#editor .sn-live .org-plan, #editor .sn-live .org-ts")).length, 0, "no words or timestamps left");
+  test("are its text, reading and editing: no date chips, planning pills or priority badge", async () => {
+    for (const edit of [false, true]) {
+      await ev((edit) => openEditor("cards/P.md", { focus: false, edit }), edit);
+      await settle();
+      const r = await ev(() => ({ marks: document.querySelectorAll("#editor .sn-reading :is(.org-date, .org-plan, .org-ts, .pri)").length, text: document.querySelector("#editor .sn-reading").innerText }));
+      assert.equal(r.marks, 0, edit ? "editing" : "reading");
+      assert.match(r.text, /DEADLINE: <2026-11-07 Sat>/, edit ? "editing" : "reading");
+    }
     assert.equal(await raw("cards/P.md"), NOTE, "the note's text is unchanged");
-    noErrors();
-  });
-
-  test("while reading, each date is one chip said as in the agenda, and the priority one letter", async () => {
-    const note = "- [ ] [#A] Book the tour\n  DEADLINE: <2026-11-07 Sat> SCHEDULED: <2026-11-05 Thu>\n- [ ] Plan\n  DEADLINE: <2026-11-30 Mon>\n"
-      + "- [ ] Weekly review\n  SCHEDULED: <2026-11-09 Mon 10:00 +1w>\n- [x] Set up\n  CLOSED: [2026-11-03 Tue 18:20]\n- [x] Old\n  DEADLINE: <2026-11-01 Sun>\n\nLunch <2026-11-06 Fri 13:00-14:00>\n";
-    await openVault({ demo: false, time: "2026-11-06T09:00:00", openNotes: "read", notes: { "cards/R.md": note, ".supstack/tasks.jsonl": "" } });
-    await ev(() => openEditor("cards/R.md", { focus: false }));
-    const chips = await ev(() => [...document.querySelectorAll("#editor .sn-reading .org-date")].map((c) => [c.className.replace(/\b(sn-chip|is-s|org-date)\b/g, "").replace(/\s+/g, " ").trim(), c.innerText.trim(), !!c.querySelector(".org-date-rep")]));
-    assert.deepEqual(chips, [
-      ["k-dead is-warn", "Tomorrow", false], ["k-sched", "Yesterday", false],
-      ["k-dead", "30 Nov", false], // past its warning days: no colour yet
-      ["k-sched", "In 3 days, 10:00", true],
-      ["k-closed", "3 Nov", false],
-      ["k-dead", "5 days ago", false], // overdue, but the task is done: no red
-      ["k-event", "Today, 13:00–14:00", false],
-    ]);
-    const r = await ev(() => ({
-      words: document.querySelectorAll("#editor .sn-reading .org-plan, #editor .sn-reading .org-ts").length,
-      tip: document.querySelector("#editor .sn-reading .org-date").title, pri: document.querySelector("#editor .sn-reading .pri.A")?.textContent,
-    }));
-    assert.equal(r.words, 0, "no Markdown words or timestamps left");
-    assert.equal(r.tip, "DEADLINE: <2026-11-07 Sat>", "the Markdown in the tooltip");
-    assert.equal(r.pri, "A");
-    // the tones are drawn, not only named: closed green with its tick, the warning days orange, plain otherwise
-    const tones = await ev(() => {
-      const probe = (v) => { const s = document.createElement("span"); s.style.color = `var(${v})`; document.body.append(s); const c = getComputedStyle(s).color; s.remove(); return c; };
-      const color = (sel) => getComputedStyle(document.querySelector(`#editor .sn-reading .org-date${sel}`)).color;
-      return { closed: color(".k-closed") === probe("--hue-green-fg") && !!document.querySelector("#editor .sn-reading .org-date.k-closed svg"), soon: color(".is-warn") === probe("--hue-orange-fg") && color(".is-warn") !== color(".k-sched"), plain: color(".k-sched") === probe("--tag") };
-    });
-    assert.deepEqual(tones, { closed: true, soon: true, plain: true });
-    await ev(() => openEditor("cards/R.md", { focus: false, edit: true }));
-    const editing = await ev(() => ({ chips: [...document.querySelectorAll("#editor .sn-live .org-date")].map((c) => c.innerText.trim()), pri: document.querySelector("#editor .sn-live .pri.A")?.textContent }));
-    assert.deepEqual(editing, { chips: chips.map((c) => c[1]), pri: "A" }, "editing, away from the caret, shows the same chips and badge");
-    assert.equal(await raw("cards/R.md"), note, "the note's text is unchanged");
-    noErrors();
-  });
-
-  test("the caret in a date shows its brackets, the caret in a label its colon, as for the rest of the Markdown", async () => {
-    const caret = (find, off) => ev(([f, o]) => { const ta = $(".sn-editor-text"); ta.focus(); ta.setSelectionRange(ta.value.indexOf(f) + o); }, [find, off]);
-    await caret("2026-11-07", 3);
-    await page().waitForTimeout(50);
-    assert.deepEqual(await shown("#editor .sn-live .org-ts"), ["<2026-11-07 Sat>"], "the date the caret is in, as written");
-    assert.deepEqual(await shown("#editor .sn-live .org-date"), ["Yesterday", "3 Nov"], "the others stay chips");
-    await caret("DEADLINE", 3);
-    await page().waitForTimeout(50);
-    assert.ok((await ev(() => document.querySelector("#editor .sn-live .cm-line:nth-child(2)").innerText)).includes("DEADLINE:"));
-    assert.deepEqual((await shown("#editor .sn-live .org-ts")).slice(0, 1), ["2026-11-07 Sat"]);
     noErrors();
   });
 

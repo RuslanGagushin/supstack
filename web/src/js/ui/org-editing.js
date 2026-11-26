@@ -1,7 +1,7 @@
 import { ct, ft, LANG, t, tt } from "../core/i18n.js";
 import { debounce, hueOf } from "../core/util.js";
 import { splitNote } from "../core/frontmatter.js";
-import { oaddMonths, odn, oFmt, ohm, oIndentW, oisoWeek, onow, opad, OPLAN_RE, orgLine, orgReadDate, orgRelDay, orgWarnDays, orgSkip, orgTsParse, orgTsStr, oymd, taskState } from "../core/org.js";
+import { oaddMonths, odn, oFmt, ohm, oIndentW, oisoWeek, onow, opad, OPLAN_RE, orgLine, orgReadDate, orgSkip, orgTsStr, oymd, taskState } from "../core/org.js";
 import { lsGet, lsSet } from "../services/storage.js";
 import { editor, vault } from "../services/state.js";
 import { addTask, orgAll } from "../services/tasks.js";
@@ -11,7 +11,6 @@ import { openEditor } from "./editor.js";
 import { liveActivate, liveText } from "./live-preview.js";
 import { edInsert, updateEdToolbar } from "./editor-toolbar.js";
 import { caretRect } from "./completion.js";
-import { dateChip } from "./task-icons.js";
 import { openTasksView, orgCapture } from "./agenda.js";
 
 /* ---------- calendar popup (date + time + repeat), used by every date prompt and by Capture */
@@ -331,7 +330,7 @@ export function openEditorAtLine(path, lineIndex) {
   }, 30);
 }
 
-/* ---------- reading view: show priorities, tags and dates like Org does */
+/* ---------- dates as the agenda writes them; a note's reading view: its :tags: and folds */
 /** A timestamp as its pill shows it: without the < > or [ ] around it, a range as "from – to". */
 export const orgTsLabel = (s) => s.replace(/>--</, " – ").replace(/^[<[]|[>\]]$/g, "");
 /** A timestamp as a card's face shows it: "11 Nov", "10 Nov, 10:00", a range as "9 Nov – 11 Nov"; the year only when it
@@ -345,35 +344,10 @@ export function orgTsShort(s) {
     return m[4] ? `${day}, ${m[4]}` : day;
   }).join(" – ");
 }
-export const ORG_DECOR_RE = /(SCHEDULED:|DEADLINE:|CLOSED:)|(<\d{4}-\d{2}-\d{2}[^>\n]*>(?:--<\d{4}-\d{2}-\d{2}[^>\n]*>)?)|(\[\d{4}-\d{2}-\d{2}[^\]\n]*\])/g;
-const PLAN_KIND = { DEADLINE: "dead", SCHEDULED: "sched", CLOSED: "closed" };
-/** A planning word and its timestamp as one chip, the way the agenda says it: "Tomorrow", "In 3 d.", "12 Nov"; the full
- *  Markdown in its tooltip. A deadline goes red on its day and after, amber in its warning days, unless the task is done. */
-export function planChip(word, stamp, li) {
-  const ts = orgTsParse(stamp);
-  if (!ts) return null;
-  const kind = word ? PLAN_KIND[word] : ts.active ? "event" : "closed";
-  const open = !li || !/\bis-state-(done|cancel)\b/.test(li.className);
-  let text = kind === "closed" ? oFmt(ts.dn, "D MMM") : orgRelDay(ts.dn); // when it was done: the day, as the agenda writes a far one
-  text = text.charAt(0).toUpperCase() + text.slice(1);
-  if (ts.time != null && kind !== "closed") text += ", " + ohm(ts.time) + (ts.end != null ? "–" + ohm(ts.end) : "");
-  const days = ts.dn - onow().dn;
-  const tone = kind === "dead" && open ? (days <= 0 ? "due" : days <= orgWarnDays(ts) ? "soon" : "") : "";
-  const chip = dateChip(kind, text, tone, (word ? word + ": " : "") + stamp);
-  chip.classList.add("org-date");
-  if (ts.rep) chip.append(ic("org-date-rep", "repeat"));
-  return chip;
-}
-/** The reading view's task markup. `short` (a note being read): the priority as one letter and each date as a chip,
- *  as in the agenda; otherwise (previews) the words and timestamps as written, in pills. */
-export function orgDecorate(el, path, { short = false } = {}) {
-  for (const blk of el.querySelectorAll("li.task-list-item")) {
-    blk.classList.add("org-entry");
-    const host = blk.firstElementChild?.tagName === "P" ? blk.firstElementChild : blk;
-    const n = host.querySelector(":scope > .task-box")?.nextSibling;
-    const pm = n?.nodeType === 3 && /^(\s*)\[#([A-Z0-9])\](?=\s|$)/.exec(n.data);
-    if (pm) n.replaceWith(pm[1], h("span", { cls: `pri ${pm[2]}`, text: short ? pm[2] : `[#${pm[2]}]`, title: short ? `${tt("priority")} ${pm[2]}` : null }), n.data.slice(pm[0].length));
-  }
+/** The reading view's markup for a note's boxes and :tags: at a line's end; then its folds. A note's boxes are a checklist:
+ *  no priorities, states or dates (those are the agenda's tasks, tasks.jsonl), so their text is shown as written. */
+export function orgDecorate(el, path) {
+  for (const blk of el.querySelectorAll("li.task-list-item")) blk.classList.add("org-entry");
   for (const blk of el.querySelectorAll("h1, h2, h3, h4, h5, h6, li, p")) {
     for (const n of [...blk.childNodes]) {
       if (n.nodeType !== 3) continue;
@@ -386,38 +360,10 @@ export function orgDecorate(el, path, { short = false } = {}) {
       n.replaceWith(n.data.slice(0, m.index) + m[1], tags);
     }
   }
-  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: (x) => (x.parentElement.closest("code, pre, a, .org-ts, .org-date") ?NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT) });
-  const nodes = [];
-  while (walker.nextNode()) if (/SCHEDULED:|DEADLINE:|CLOSED:|[<\[]\d{4}-\d{2}-\d{2}/.test(walker.currentNode.data)) nodes.push(walker.currentNode);
-  for (const n of nodes) {
-    const frag = document.createDocumentFragment();
-    let last = 0, m;
-    const re = new RegExp(ORG_DECOR_RE.source, "g");
-    const li = n.parentElement?.closest("li");
-    while ((m = re.exec(n.data))) {
-      frag.append(n.data.slice(last, m.index));
-      if (short) {
-        // a planning word takes the timestamp right after it into the same chip
-        const after = m[1] ? /^\s*([<[]\d{4}-\d{2}-\d{2}[^>\]\n]*[>\]](?:--<\d{4}-\d{2}-\d{2}[^>\n]*>)?)/.exec(n.data.slice(re.lastIndex)) : null;
-        const chip = m[1] ? (after ? planChip(m[1].slice(0, -1), after[1], li) : null) : planChip("", m[0], li);
-        if (chip) {
-          frag.append(chip);
-          last = m.index + m[0].length + (after ? after[0].length : 0);
-          re.lastIndex = last;
-          continue;
-        }
-      }
-      if (m[1]) frag.append(h("span", { cls: "org-plan k-" + m[1].slice(0, -1).toLowerCase(), text: m[1].slice(0, -1) }));
-      else frag.append(h("span", { cls: "org-ts" + (m[3] ? " is-inactive" : ""), title: m[0], text: orgTsLabel(m[0]), "data-short": orgTsShort(m[0]) })); // cards show data-short (writing.css)
-      last = m.index + m[0].length;
-    }
-    frag.append(n.data.slice(last));
-    n.replaceWith(frag);
-  }
   orgFoldSetup(el, path);
 }
 
-/* ---------- folding headings and tasks in the reading view and card previews (like Org's TAB) */
+/* ---------- folding headings and boxes in the reading view and card previews (like Org's TAB) */
 const ORG_FOLD = new Map(Object.entries(lsGet("sn-fold", {})));
 const saveFold = debounce(() => { const o = {}; [...ORG_FOLD.entries()].slice(-600).forEach(([k, v]) => { if (v) o[k] = 1; }); lsSet("sn-fold", o); }, 300);
 const HLEVEL = (x) => (x?.nodeType === 1 && /^H[1-6]$/.test(x.tagName) ? +x.tagName[1] : 0);

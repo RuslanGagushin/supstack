@@ -171,7 +171,7 @@ Tags, task dates, filters, notebooks. One plate: `--panel`, `--tag` text, `--fs-
 | Kind | `.is-link` | a `span` chip that opens something (a tag in a list row) |
 | | `.is-missing` | a parent not in the vault: dashed, not a link |
 
-A chip that is a `button` or an `a` gets hover by itself. `#tags` in a note's text are `a.tag` (clicks find them by that) and share the chip's look; the tag being edited in Markdown (`.cm-sn-tag`) is a mark inside the editor's text and is drawn on its own.
+A chip that is a `button` or an `a` gets hover by itself. `#tags` in a note's text are `a.tag` (clicks find them by that) and share the chip's look, in the editing view too (`a.tag.cm-sn-tag`, a widget); only with the caret in it does a tag show its Markdown, `#travel` (`span.cm-sn-tag`, a mark drawn on its own).
 
 ```js
 h("span", { cls: "sn-chip is-s is-link", text: tag, onClick: () => openTagView(tag) })
@@ -200,7 +200,7 @@ A note opens with its title at `--fs-title` and nothing over it: whether it is a
 
 ### The note's panel — `.sn-insp`
 
-Everything about the open note beside its text ([`ui/inspector.js`](../web/src/js/ui/inspector.js)), on `--bg` with a hairline at its left, `--insp-w` wide. Its sections (`.sn-insp-sec`, a head that folds it with `.is-collapsed`, kept per device in `UI.inspFold`): **Properties** (the editing view's `.sn-prop` rows, editable while reading too), **Tasks** (done of all, a chip per state, the nearest date still open; only with tasks), **Outline** (the headings; only with headings), **Links** (the notes that link here and the unlinked mentions) and **Info** (words, characters, created, modified, the file). The note's pane is a row: `.sn-editor-col` (header, toolbar, text: the container the toolbar's queries measure) and the panel.
+Everything about the open note beside its text ([`ui/inspector.js`](../web/src/js/ui/inspector.js)), on `--bg` with a hairline at its left, `--insp-w` wide. Its sections (`.sn-insp-sec`, a head that folds it with `.is-collapsed`, kept per device in `UI.inspFold`): **Properties** (the editing view's `.sn-prop` rows, editable while reading too), **Checklist** (the note's boxes: done of all in its head, once, and a bar; only with boxes), **Outline** (the headings; only with headings), **Links** (the notes that link here and the unlinked mentions) and **Info** (words, characters, created, modified, the file). The note's pane is a row: `.sn-editor-col` (header, toolbar, text: the container the toolbar's queries measure) and the panel.
 
 Where it goes: a column from a pane of 760px (`INSP_DOCK`, a container query on `editor-pane`), shown or hidden by the header's `.sn-insp-btn` (kept in `UI.inspector`); the mentions under the text give way to it. A narrower pane gets it over the text (`.insp-peek`, no shadow), a phone as a sheet from the bottom (`--r-l` corners, a grab handle, the `--scrim` behind), both only while asked for. On a phone the mentions under the text are left out too: the sheet has them all. Esc, the scrim, ✕ or pulling the sheet down close it.
 
@@ -230,7 +230,11 @@ In live preview ([`ui/table-select.js`](../web/src/js/ui/table-select.js)): hand
 
 ### Fold buttons in a note
 
-A heading's fold arrow hangs in the margin left of it, shown on hover. On a touch screen or a page up to 820px wide there is no margin: it stands at the heading's right end, always shown, and the heading starts where the text does. In a list where some tasks fold, the others keep the fold's room too, so every box stands in one column; subtasks nest under their parent's text.
+A heading's or a checklist box's fold arrow hangs in the margin left of it, shown on hover (always when folded), so a box stands at the list's edge, where the editing view draws it. On a touch screen or a page up to 820px wide there is no margin: it stands at the line's right end, always shown. A box with lines or boxes under it folds; nested boxes stand under their parent's text.
+
+### Reading and editing stand in one place
+
+Switching a note between reading and editing moves nothing: every line stands within a pixel or two of where the other view draws it. The editing view draws a nested item's indentation as the reading view's (`.cm-sn-indent`: each list item it sits in adds a task's `--box-lead` or a bullet's 1.6em), a bullet or a number with its space as the list's 1.6em (`.cm-sn-marker`), a long item wrapping under its own text (`.cm-sn-li`), and a blank line between blocks as the reading view's gap there (`.cm-sn-gap`: a paragraph's 1em, under a heading .5em of its size; a heading's own line adds the rest of its 1.5em above). The reading view's list items have no margin of their own and a nested list none under it, as editing stacks them. The note's column holds about 80 characters of its text (`.sn-editor-page`, 40 × `--fs-note` wide).
 
 ### Properties — `.sn-prop`
 

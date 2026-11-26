@@ -173,8 +173,9 @@ input[type="checkbox"] { accent-color: var(--accent); }
 .markdown-rendered a.tag { text-decoration: none;
 }
 .markdown-rendered ul, .markdown-rendered ol { padding-inline-start: 1.6em; margin-block: 0 1em; }
-.markdown-rendered li { margin-block: .1em; }
-.markdown-rendered li.task-list-item { list-style: none; margin-inline-start: -1.4em; }
+.markdown-rendered li { margin-block: 0; } /* one line after another, as the editing view stacks them */
+.markdown-rendered li > :is(ul, ol) { margin-block-end: 0; } /* a nested list ends where its parent's next item starts */
+.markdown-rendered li.task-list-item { list-style: none; margin-inline-start: -1.6em; } /* the box stands where a bullet's text would: at the list's edge, as the editing view draws it */
 /* task boxes: [ ] [/] [<] [x] [-] [>] drawn as their state's icon (ui/task-icons.js).
    Open states are grey (to do, waiting, forwarded), progress is the accent (in progress, done);
    cancelled is the faintest and its text is struck through, so no two states share both colour and shape. */
@@ -189,8 +190,6 @@ button.task-box:focus-visible { outline: 2px solid var(--accent); outline-offset
 .task-box.s-todo:focus-visible { --task-c: var(--accent); }
 @media (hover: hover) { .task-box.s-todo:hover { --task-c: var(--accent); } }
 .markdown-rendered li.is-state-done { color: var(--faint); }
-.markdown-rendered li.is-state-fwd { color: var(--muted); }
-.markdown-rendered li.is-state-cancel { color: var(--faint); text-decoration: line-through; }
 .markdown-rendered h1, .markdown-rendered h2, .markdown-rendered h3, .markdown-rendered h4, .markdown-rendered h5, .markdown-rendered h6 { line-height: var(--lh-tight); margin: 1.5em 0 .5em; }
 .markdown-rendered h1 { font-size: var(--h1-size); } .markdown-rendered h2 { font-size: var(--h2-size); } .markdown-rendered h3 { font-size: var(--h3-size); }
 .markdown-rendered h4 { font-size: var(--h4-size); } .markdown-rendered h5 { font-size: var(--h5-size); } .markdown-rendered h6 { font-size: var(--h6-size); }

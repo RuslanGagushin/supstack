@@ -8,7 +8,7 @@ import { IS_NATIVE } from "../services/native.js";
 import { editor, graph, vault } from "../services/state.js";
 import { resolveAttachment, resolveFileLink, resolveLink } from "../services/vault.js";
 import { attachmentUrl, IMG_EXT, PDF_EXT } from "../services/attachments.js";
-import { TASK_LINE_RE, taskState } from "../core/org.js";
+import { BOX_LINE_RE, taskState } from "../core/org.js";
 import { EMBED_DEPTH, embedAllowed, embedSection } from "../core/embed.js";
 import { txn, writeRaw } from "../services/save.js";
 import { h, ic, isMod } from "./dom.js";
@@ -242,8 +242,8 @@ export function renderMarkdown(md, sourcePath, opts = {}) {
     bq.replaceWith(c);
   }
   for (const tb of el.querySelectorAll("table")) { const wrap = h("div", { cls: "sn-table-wrap" }); tb.replaceWith(wrap); wrap.append(tb); tableWide.observe(wrap); tableWide.observe(tb); }
-  // Tasks: a list item's box ([ ] and [x] come as checkboxes, [/] [<] [-] [>] as text) becomes its state's icon,
-  // numbered in the order TASK_LINE_RE finds the boxes in the text
+  // Boxes: a list item's [ ] or [x] (a checklist's: open or done) becomes its icon, numbered in the order BOX_LINE_RE finds
+  // the boxes in the text. [/] [<] [-] [>] are the agenda's states, not a note's: they stay text
   let ti = 0;
   for (const li of el.querySelectorAll("li")) {
     const host = li.firstElementChild?.tagName === "P" && !li.firstChild.textContent.trim() ? li.firstElementChild : li;
@@ -252,14 +252,14 @@ export function renderMarkdown(md, sourcePath, opts = {}) {
     let ch = null;
     if (first?.nodeType === 1 && first.tagName === "INPUT" && first.type === "checkbox") { ch = first.checked ? "x" : " "; first.replaceWith(); }
     else if (first?.nodeType === 3) {
-      const m = /^\s*\[([ xX\/<>-])\](?=\s|$)/.exec(first.data);
+      const m = /^\s*\[([ xX])\](?=\s|$)/.exec(first.data);
       if (m) { ch = m[1]; first.data = first.data.slice(m[0].length); }
     }
     const st = ch != null && taskState(ch);
     if (!st) continue;
     host.prepend(taskBox(st.ch, { dataset: { task: String(ti++) } }));
     li.classList.add("task-list-item", "is-state-" + st.id);
-    li.dataset.task = st.ch; // the state's character, as Obsidian themes and snippets expect (li[data-task="/"])
+    li.dataset.task = st.ch; // the box's character, as Obsidian themes and snippets expect (li[data-task="x"])
     if (!st.open) li.classList.add("is-checked");
   }
   for (const a of el.querySelectorAll("a[href]")) {
@@ -289,7 +289,7 @@ export function renderMarkdown(md, sourcePath, opts = {}) {
     const path = resolveAttachment(name, sourcePath);
     if (path) attachmentUrl(path).then((u) => { img.src = u; }).catch(() => {});
   }
-  try { orgDecorate(el, sourcePath, { short: !!opts.shortDates }); } catch (err) { console.warn(err); }
+  try { orgDecorate(el, sourcePath); } catch (err) { console.warn(err); }
   decorateCodeBlocks(el);
   embedNotes(el, sourcePath, opts);
   return el;
@@ -297,7 +297,7 @@ export function renderMarkdown(md, sourcePath, opts = {}) {
 /**
  * ![[Note]] and ![[Note#Heading]] show that note, or its section, in place (spec LINK-1), drawn by renderMarkdown in
  * turn. Embeds inside embeds go EMBED_DEPTH levels deep; a deeper one, or one that would go round a cycle, stays a
- * link (LINK-2). Tasks in an embed are shown, not ticked: a click there would count boxes in the wrong note.
+ * link (LINK-2). Boxes in an embed are shown, not ticked: a click there would count boxes in the wrong note.
  */
 function embedNotes(el, sourcePath, opts) {
   const depth = opts.embedDepth || 0, chain = opts.embedChain || [sourcePath];
@@ -318,7 +318,7 @@ function embedNotes(el, sourcePath, opts) {
     const box = h("div", { cls: "internal-embed sn-note-embed", dataset: { embedPath: path } });
     const head = h("div", { cls: "sn-embed-head" }, h("a", { cls: "internal-link", dataset: { href: target }, text: name.trim() + (heading ? " › " + heading.trim() : "") }));
     const body = h("div", { cls: "sn-embed-body" });
-    renderMarkdown(section, path, { into: body, embedDepth: depth + 1, embedChain: [...chain, path], shortDates: opts.shortDates });
+    renderMarkdown(section, path, { into: body, embedDepth: depth + 1, embedChain: [...chain, path] });
     for (const tb of body.querySelectorAll(".task-box[data-task]")) delete tb.dataset.task;
     box.append(head, body);
     // a block can't sit in a paragraph: one that holds only the embed gives way to it, a longer one is split around it
@@ -358,7 +358,7 @@ export function wireRendered(el, sourcePath) {
 }
 /** A click on a box: tick it, or untick a ticked one. */
 export const toggleTask = (path, index) => setTaskState(path, index, (cur) => (taskState(cur)?.open ? "x" : " "));
-/** Put the note's index-th box (in TASK_LINE_RE's order) into state `ch` (or `ch(current)`), as one undoable edit. */
+/** Put the note's index-th box (in BOX_LINE_RE's order) into state `ch` (or `ch(current)`), as one undoable edit. */
 export async function setTaskState(path, index, ch) {
   if (!vault.notes.has(path)) return;
   if (editor.path === path && editor.dirty) await saveEditor();
@@ -366,14 +366,14 @@ export async function setTaskState(path, index, ch) {
   if (raw == null) return;
   const { fm, body } = splitNote(raw);
   const masked = body.replace(CODE_RE, (m) => m.replace(/\[/g, "\u0001"));
-  const re = new RegExp(TASK_LINE_RE.source, "gm");
+  const re = new RegExp(BOX_LINE_RE.source, "gm");
   let m, i = -1;
   while ((m = re.exec(masked)) && ++i < index);
   if (!m) return;
   const to = typeof ch === "function" ? ch(m[2]) : ch;
   const lines = raw.split("\n"), li = (fm + body.slice(0, m.index)).split("\n").length - 1;
   // a box in a note is a checklist's: only its character changes (no CLOSED:, no repeating — those are the agenda's tasks)
-  lines[li] = lines[li].replace(/\[[ xX\/<>-]\]/, `[${to}]`);
+  lines[li] = lines[li].replace(/\[[ xX]\]/, `[${to}]`);
   const msg = taskState(to)?.open ? tt("boxOff") : tt("boxOn");
   await txn(msg, () => writeRaw(path, lines.join("\n")));
   refresh();

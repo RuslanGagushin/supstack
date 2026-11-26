@@ -145,9 +145,6 @@ button.clickable-icon.wb-icon { width: 34px; height: var(--ctl-l); border-radius
 .sn-card.is-picked { box-shadow: var(--ring); background: color-mix(in srgb, var(--accent-soft) 60%, var(--win)); }
 /* the head's markers: children (a board inside, "layers") and several parents ("copy", like a mirror) — shapes, no new colour */
 /* card faces: full, compact (a few lines), title only */
-/* A task's dates on a card's face: one short line, an icon for each kind (a flag for the deadline, a calendar for the
-   plan, a tick for closed) and the date as "11 Nov"; the note keeps the full words and timestamps (org-editing.js data-short) */
-/* the date is an inline-block centred on the line like the icon beside it (its own text is hidden, so it has no baseline to share) */
 .sn-filterbar { padding: var(--sp-8) var(--sp-24); }
 .sn-board .sn-filter-btn, .sn-board .sn-filterbar > .clickable-icon { height: var(--ctl-l); border-radius: var(--r-s); }
 
@@ -390,11 +387,8 @@ button.sn-row-enter svg { width: var(--icon-m); height: var(--icon-m); }
   /* (the table + buttons are already absolute, under and beside the table: making them relative piled them up in a corner) */
   :is(button.task-box, .sn-chip) { position: relative; }
   :is(button.task-box)::after { content: ""; position: absolute; inset: -10px; }
-  /* a fold chevron and the box after it share the 8px between them (agenda.css --fold-gap): each hit area stops halfway, the fold's grows
-     into the margin on its left instead, so a tap meant for one never lands on the other */
-  .markdown-rendered button.org-fold { position: relative; }
-  .markdown-rendered button.org-fold::after { content: ""; position: absolute; inset: -11px -4px -11px -18px; } /* 40×40 (spec UI-9) */
-  .markdown-rendered button.org-fold + button.task-box::after { left: -4px; right: -14px; } /* the width it gives up on the left, taken on the right: still 32px+ */
+  /* a fold chevron stands at its line's right end here (agenda.css), away from the box: its hit area grows evenly to 40×40 (spec UI-9) */
+  .markdown-rendered button.org-fold::after { content: ""; position: absolute; inset: -11px; }
   /* …but only away from the table: grown over the last row or column, a tap meant for its cells added a new one */
   .sn-table-add-row::after { content: ""; position: absolute; inset: 0 -14px -14px; }
   .sn-table-add-col::after { content: ""; position: absolute; inset: -14px -14px -14px 0; }
@@ -505,5 +499,5 @@ html button.is-primary:active:not([disabled]) { background: var(--cta-hover); }
 
 /* ---------- Forced colours (Windows high contrast): box-shadows are dropped there, so the surfaces whose only edge is a shadow ring get a real one */
 @media (forced-colors: active) {
-  .sn-composer, .sn-card, :is(.sn-chip, .markdown-rendered a.tag).is-outline, .markdown-rendered .org-ts.is-inactive, .org-cal button.cal-day.is-today { border: 1px solid CanvasText; }
+  .sn-composer, .sn-card, :is(.sn-chip, .markdown-rendered a.tag).is-outline, .org-cal button.cal-day.is-today { border: 1px solid CanvasText; }
 }

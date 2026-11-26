@@ -1,6 +1,6 @@
 import { hueOf } from "../core/util.js";
 import { CODE_RE, extractLinkpath } from "../core/frontmatter.js";
-import { TASK_LINE_RE, taskState } from "../core/org.js";
+import { BOX_LINE_RE, taskState } from "../core/org.js";
 import { findTables, tableSpans } from "../core/tables.js";
 import { editor, graph } from "../services/state.js";
 import { resolveFileLink, resolveLink } from "../services/vault.js";
@@ -12,7 +12,6 @@ import { edDom, editorTextarea, openEditor } from "./editor.js";
 import { liveCellOpen, liveTableAt, liveTableButtons, liveTableOp, tableMenu } from "./table-editor.js";
 import { tableCellDown, tableCellDrag, tableHover, tableHoverEnd, tableSelMenuAt } from "./table-select.js";
 import { updateEdToolbar } from "./editor-toolbar.js";
-import { ORG_DECOR_RE, planChip } from "./org-editing.js";
 import { openAttachment } from "./files.js";
 import { taskBox } from "./task-icons.js";
 
@@ -98,7 +97,7 @@ const lpTableGuard = CM.EditorState.transactionFilter.of((tr) => {
   return { changes: { from: pos, insert: edge.before + text + edge.after }, selection: { anchor: pos + edge.before.length + text.length }, scrollIntoView: true, userEvent: tr.annotation(CM.Transaction.userEvent) };
 });
 function liveTaskCount(text) {
-  return (text.replace(CODE_RE, (m) => m.replace(/\[/g, "\u0001")).match(new RegExp(TASK_LINE_RE.source, "gm")) || []).length;
+  return (text.replace(CODE_RE, (m) => m.replace(/\[/g, "\u0001")).match(new RegExp(BOX_LINE_RE.source, "gm")) || []).length;
 }
 /** Where a click in rendered Markdown falls in its source: match the rendered text before the point against the source. */
 function liveClickOffset(el, e, src) {
@@ -156,39 +155,37 @@ class LpTags extends CM.WidgetType {
   eq(o) { return o.tags.join(":") === this.tags.join(":"); }
   toDOM() { return h("span", { cls: "tags org-tags" }, this.tags.map((x) => h("span", { cls: "sn-chip is-s hue-" + hueOf(x), text: x }))); }
 }
-class LpRule extends CM.WidgetType { eq() { return true; } toDOM() { return h("hr", { cls: "lp-hr" }); } }
-/** A planning word and its date, or a lone timestamp, as the reading view's chip ("Tomorrow", "In 3 days"): the caret brings the
- *  Markdown back. A click lands the caret in it (ignoreEvent false), so the date is one click from editing. */
-class LpPlan extends CM.WidgetType {
-  constructor(word, stamp, state) { super(); this.word = word; this.stamp = stamp; this.state = state; }
-  eq(o) { return o.word === this.word && o.stamp === this.stamp && o.state === this.state; }
-  toDOM() { return planChip(this.word, this.stamp, { className: "is-state-" + this.state }) || h("span", { text: (this.word ? this.word + ": " : "") + this.stamp }); }
+/** A #tag away from the caret: the reading view's chip (the grey plate, a dot in its hue, no #), so a tag looks the same in
+ *  both views. A click opens the tag's notes (the mousedown handler below), as in the reading view. */
+class LpTag extends CM.WidgetType {
+  constructor(tag) { super(); this.tag = tag; }
+  eq(o) { return o.tag === this.tag; }
+  toDOM() { return h("a", { cls: "tag cm-sn-tag hue-" + hueOf(this.tag), text: this.tag, dataset: { tag: this.tag } }); }
   ignoreEvent() { return false; }
 }
-/** The indentation of a line under a task (its dates, its note), drawn as the task's own indentation and the room its box and the
- *  space after it take (--box-lead, agenda.css), so the line starts where the task's text does, as in the reading view. */
-class LpLead extends CM.WidgetType {
-  constructor(indent) { super(); this.indent = indent; }
-  eq(o) { return o.indent === this.indent; }
-  toDOM() { return h("span", { cls: "cm-sn-lead" }, this.indent ? h("span", { cls: "cm-sn-lead-indent", text: this.indent }) : null, h("span", { cls: "cm-sn-lead-box" })); }
+class LpRule extends CM.WidgetType { eq() { return true; } toDOM() { return h("hr", { cls: "lp-hr" }); } }
+/** The indentation of a nested list line, as wide as the reading view makes it: each list item it sits in moves it right by that
+ *  item's lead (a task's box and gap, --box-lead; a bullet's or a number's 1.6em, base.css), so a line stays put between the views. */
+class LpIndent extends CM.WidgetType {
+  constructor(path) { super(); this.path = path; }
+  eq(o) { return o.path === this.path; }
+  toDOM() { return lpIndentEl(this.path); }
 }
-/** The task a line belongs to when it is indented under one (dates, a note): its indentation and state, else null. */
-function lpTaskOwner(state, l) {
-  const ind = /^[ \t]*/.exec(l.text)[0];
-  if (!ind || !l.text.trim() || /^[ \t]*(?:[-*+]|\d+[.)])[ \t]/.test(l.text)) return null;
-  for (let n = l.number - 1, i = 0; n >= 1 && i < 40; n--, i++) {
-    const t = state.doc.line(n).text;
-    if (!t.trim()) return null;
-    const m = /^([ \t]*)(?:[-*+]|\d+[.)])[ \t]+\[([ xX\/<>-])\][ \t]/.exec(t);
-    if (m) return m[1].length < ind.length ? { indent: m[1], state: taskState(m[2])?.id || "todo" } : null;
-    if (!/^[ \t]/.test(t) || /^[ \t]*(?:[-*+]|\d+[.)])[ \t]/.test(t)) return null; // past the task's other lines: not under a task
-  }
-  return null;
+const lpIndentEl = (path) => {
+  const tasks = [...path].filter((k) => k === "t").length;
+  return h("span", { cls: "cm-sn-indent", style: `--tasks: ${tasks}; --items: ${path.length - tasks}` });
+};
+const LP_TASK_LINE = /^[ \t]*(?:[-*+]|\d+[.)])[ \t]+\[[ xX]\](?=[ \t]|$)/;
+/** The list items around position `pos`, outermost first, as one letter each: "t" a box, "b" any other item. */
+function lpListPath(state, pos) {
+  let path = "";
+  for (let n = CM.syntaxTree(state).resolveInner(pos, 1); n; n = n.parent) if (n.name === "ListItem") path = (LP_TASK_LINE.test(state.doc.lineAt(n.from).text) ? "t" : "b") + path;
+  return path;
 }
-/** Set the state of the task on the line at `pos`: `pick(current)` gives the new box character (undefined leaves it). */
+/** Tick or untick the box on the line at `pos`: `pick(current)` gives the new box character (undefined leaves it). */
 function lpSetState(view, pos, pick) {
   const l = view.state.doc.lineAt(pos);
-  const m = /^((?:[ \t]*>)*[ \t]*(?:[-*+]|\d+[.)])[ \t]+\[)([ xX\/<>-])\]/.exec(l.text);
+  const m = /^((?:[ \t]*>)*[ \t]*(?:[-*+]|\d+[.)])[ \t]+\[)([ xX])\]/.exec(l.text);
   if (!m) return;
   const to = pick(m[2]);
   if (to === undefined) return;
@@ -271,7 +268,9 @@ function lpInline(view) {
       if (name === "Blockquote" && /^\s*>\s*\[!/.test(state.doc.lineAt(n.from).text)) { skip.push([n.from, n.to]); return false; }
       const hm = /^ATXHeading(\d)$/.exec(name);
       if (hm) {
-        line(n.from, `cm-sn-h cm-sn-h${hm[1]}`);
+        // a heading with no blank line under it keeps the reading view's gap there itself; the note's first line has none above (writing.css)
+        const hl = state.doc.lineAt(n.from), next = hl.number < state.doc.lines ? state.doc.line(hl.number + 1).text : "";
+        line(n.from, `cm-sn-h cm-sn-h${hm[1]}` + (next.trim() ? " cm-sn-h-tight" : "") + (hl.number === 1 ? " cm-sn-h-first" : ""));
         const m = n.node.getChild("HeaderMark");
         if (m && !lpNearLine(state, n.from)) hide(m.from, Math.min(n.to, m.to + 1));
         return;
@@ -304,19 +303,26 @@ function lpInline(view) {
       }
       if (name === "URL" && n.node.parent?.name !== "Link") { mark(n.from, n.to, "cm-sn-link", { "data-url": state.sliceDoc(n.from, n.to) }); return; }
       if (name === "ListMark") {
-        const item = n.node.parent, lineTo = state.doc.lineAt(n.from).to;
-        const bm = /^([ \t]+)\[([ xX\/<>-])\](?=[ \t]|$)/.exec(state.sliceDoc(n.to, Math.min(lineTo, n.to + 12)));
+        const item = n.node.parent, ln = state.doc.lineAt(n.from), lineTo = ln.to, path = lpListPath(state, n.from);
+        // a nested item's indentation is drawn as wide as the reading view's (LpIndent); the caret in it brings the spaces back
+        if (n.from > ln.from && /^[ \t]+$/.test(state.sliceDoc(ln.from, n.from)) && !lpNear(state, ln.from, n.from)) add(ln.from, n.from, CM.Decoration.replace({ widget: new LpIndent(path.slice(0, -1)) }));
+        // a long item wraps under its own text, past its indentation and its box or bullet, as in the reading view (writing.css)
+        const tasks = [...path].filter((k) => k === "t").length;
+        line(n.from, "cm-sn-li", { style: `--tasks: ${tasks}; --items: ${path.length - tasks}` });
+        const bm = /^([ \t]+)\[([ xX])\](?=[ \t]|$)/.exec(state.sliceDoc(n.to, Math.min(lineTo, n.to + 12)));
         const st = bm && taskState(bm[2]);
         if (st) {
-          // the line carries its state as data-task, the attribute themes and snippets for Obsidian use ("x", "/", "<"…)
+          // the line carries its box as data-task, the attribute themes and snippets for Obsidian use (" ", "x")
           line(n.from, "cm-sn-taskline", { "data-task": st.ch });
           const boxTo = n.to + bm[0].length;
           if (st.id !== "todo" && boxTo < lineTo) mark(boxTo, lineTo, "cm-sn-task s-" + st.id);
           if (!lpNear(state, n.from, boxTo)) add(n.from, boxTo, CM.Decoration.replace({ widget: new LpBox(st.ch) }));
           return;
         }
-        if (item?.parent?.name === "BulletList") { if (!lpNear(state, n.from, n.to)) add(n.from, n.to, CM.Decoration.replace({ widget: new LpText("•", "cm-sn-bullet") })); }
-        else mark(n.from, n.to, "cm-sn-olmark");
+        // a bullet or a number and the space after it take the reading view's 1.6em (writing.css), so the item's text starts where it does there
+        const sp = state.sliceDoc(n.to, n.to + 1) === " " ? 1 : 0;
+        if (lpNear(state, n.from, n.to + sp)) { if (item?.parent?.name !== "BulletList") mark(n.from, n.to, "cm-sn-olmark"); }
+        else add(n.from, n.to + sp, CM.Decoration.replace({ widget: item?.parent?.name === "BulletList" ? new LpText("•", "cm-sn-bullet cm-sn-marker") : new LpText(state.sliceDoc(n.from, n.to), "cm-sn-olmark cm-sn-marker") }));
         return;
       }
       if (name === "HorizontalRule") { if (!lpNearLine(state, n.from)) add(n.from, n.to, CM.Decoration.replace({ widget: new LpRule() })); return; }
@@ -331,6 +337,12 @@ function lpInline(view) {
     for (let pos = from; pos <= to; ) {
       const l = state.doc.lineAt(pos), text = l.text, at = (i) => l.from + i;
       pos = l.to + 1;
+      // a blank line between blocks is the reading view's gap there, not a line of text: a paragraph's 1em, or under a heading its .5em
+      if (!text.trim() && tree.resolveInner(l.from, 1).name === "Document") {
+        const hm = l.number > 1 && /^(#{1,6})[ \t]/.exec(state.doc.line(l.number - 1).text);
+        line(l.from, "cm-sn-gap" + (hm ? " cm-sn-gap-h" + hm[1].length : ""));
+        continue;
+      }
       for (const m of text.matchAll(/(!?)\[\[([^\]\n]+)\]\]/g)) {
         const a = at(m.index), b = a + m[0].length;
         if (inSkip(a, b)) continue;
@@ -352,52 +364,27 @@ function lpInline(view) {
       }
       for (const m of text.matchAll(/(^|[\s,;])#([\p{L}\p{N}_/-]*[\p{L}_/-][\p{L}\p{N}_/-]*)/gu)) {
         const a = at(m.index + m[1].length), b = at(m.index + m[0].length);
-        if (!inSkip(a, b) && !/^#+\s/.test(text)) mark(a, b, "cm-sn-tag", { "data-tag": m[2] });
+        if (inSkip(a, b) || /^#+\s/.test(text)) continue;
+        // with the caret in it the tag is its Markdown (#travel); away from it, the reading view's chip
+        if (lpNear(state, a, b)) mark(a, b, "cm-sn-tag", { "data-tag": m[2] });
+        else add(a, b, CM.Decoration.replace({ widget: new LpTag(m[2]) }));
       }
-      const om = /^([ \t]*(?:[-*+]|\d+[.)])[ \t]+\[[ xX\/<>-]\][ \t]+)\[#([A-Z0-9])\](?=\s|$)/.exec(text);
-      if (om) {
-        // away from the caret the priority reads as the reading view's badge: the letter alone ([# and ] hidden)
-        const a = at(om[1].length), b = a + 4;
-        if (lpNear(state, a, b)) mark(a, b, `pri ${om[2]}`);
-        else { hide(a, a + 2); mark(a + 2, a + 3, `pri ${om[2]}`); hide(a + 3, b); }
+      // a list item's line that is not its first (a note under a box, a bullet's second paragraph) starts where the item's text does,
+      // past every item it sits in, and wraps there too; with the caret on it, its indentation is plain spaces again
+      const ind = /^[ \t]*/.exec(text)[0].length;
+      if (ind && text.trim() && !/^[ \t]*(?:[-*+]|\d+[.)])[ \t]/.test(text) && !inSkip(l.from, l.to)) {
+        const path = lpListPath(state, l.from + ind);
+        if (path) {
+          const tasks = [...path].filter((k) => k === "t").length;
+          line(l.from, "cm-sn-li", { style: `--tasks: ${tasks}; --items: ${path.length - tasks}` });
+          if (!lpNearLine(state, l.from)) add(l.from, l.from + ind, CM.Decoration.replace({ widget: new LpIndent(path) }));
+        }
       }
-      const owner = lpTaskOwner(state, l);
-      // a line under a task starts where the task's text does; with the caret on it, its indentation is plain spaces again
-      if (owner && !lpNearLine(state, l.from)) add(l.from, l.from + /^[ \t]*/.exec(text)[0].length, CM.Decoration.replace({ widget: new LpLead(owner.indent) }));
       // Org tags at the end of a heading or list item (:work:urgent:) show as tag pills away from the caret
       const tm = /^\s*(?:#{1,6}\s|[-*+]\s|\d+[.)]\s).*?(\s):((?:[\p{L}\p{N}_@#%-]+:)+)\s*$/u.exec(text);
       if (tm) {
         const b = l.to, a = b - (text.length - text.lastIndexOf(":" + tm[2]));
         if (!inSkip(a, b)) { if (lpNearLine(state, a)) mark(a, b, "cm-sn-fmt"); else add(a, b, CM.Decoration.replace({ widget: new LpTags(tm[2].split(":").filter(Boolean)) })); }
-      }
-      // SCHEDULED: / DEADLINE: / CLOSED: read as pills like the priorities, and dates as pills without their < > or [ ]
-      // (the colon and the brackets come back where the caret is, so the text stays plain Org)
-      for (const m of text.matchAll(new RegExp(ORG_DECOR_RE.source, "g"))) {
-        const a = at(m.index), b = a + m[0].length;
-        if (inSkip(a, b)) continue;
-        const nr = lpNear(state, a, b);
-        if (m[1]) {
-          // away from the caret a planning word and its date are one chip, as in the reading view
-          const dm = /^\s*([<[]\d{4}-\d{2}-\d{2}[^>\]\n]*[>\]](?:--<\d{4}-\d{2}-\d{2}[^>\n]*>)?)/.exec(text.slice(m.index + m[0].length));
-          const end = dm ? b + dm[0].length : b;
-          if (dm && !lpNear(state, a, end) && !inSkip(a, end)) {
-            add(a, end, CM.Decoration.replace({ widget: new LpPlan(m[1].slice(0, -1), dm[1], owner?.state || "todo") }));
-            skip.push([a, end]);
-            continue;
-          }
-          mark(a, b - 1, "org-plan k-" + m[1].slice(0, -1).toLowerCase() + (nr ? " is-near" : "")); fmt(b - 1, b, nr);
-          // the word and its date wrap as one: a narrow screen never leaves "scheduled" at a line's end (spec UI-6)
-          const date = /^\s*[<[]\d{4}-\d{2}-\d{2}[^>\]\n]*[>\]]/.exec(text.slice(m.index + m[0].length));
-          if (date) mark(a, b + date[0].length, "org-pair");
-          continue;
-        }
-        // a date on its own (an event, or when it was done) is a chip away from the caret; one after a planning word got here because
-        // the caret is on that pair, so it stays the Markdown, as the word beside it does
-        if (!nr && !/(?:SCHEDULED|DEADLINE|CLOSED):[ \t]*$/.test(text.slice(0, m.index))) { add(a, b, CM.Decoration.replace({ widget: new LpPlan("", m[0], owner?.state || "todo") })); continue; }
-        mark(a, b, "org-ts" + (m[3] ? " is-inactive" : ""));
-        fmt(a, a + 1, nr); fmt(b - 1, b, nr);
-        const mid = m[0].indexOf(">--<");
-        if (mid > 0) { fmt(a + mid, a + mid + 1, nr); fmt(a + mid + 3, a + mid + 4, nr); }
       }
     }
   }

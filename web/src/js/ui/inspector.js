@@ -122,7 +122,7 @@ export function renderInspector() {
     s.count.textContent = `${prog.done}/${prog.n}`;
     const bar = h("span", { cls: "sn-facts-bar sn-insp-bar", role: "progressbar", "aria-valuemin": "0", "aria-valuemax": String(prog.n), "aria-valuenow": String(prog.done), "aria-label": t("factDone", prog) }, h("span", {}));
     bar.firstChild.style.width = Math.round((prog.done / prog.n) * 100) + "%";
-    s.body.replaceChildren(h("div", { cls: "sn-insp-line" }, bar, h("span", { text: t("factDone", prog) })));
+    s.body.replaceChildren(h("div", { cls: "sn-insp-line" }, bar)); // the count is in the head (2/6); the bar says it in words to a screen reader
     want.push(s.el);
   }
 
