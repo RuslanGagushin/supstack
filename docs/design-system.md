@@ -70,7 +70,7 @@ Six sizes and no more (spec UI-20); `tests/typography.test.mjs` measures them on
 | Group | Variables | Rule |
 |---|---|---|
 | Spacing | `--sp-2`, `-4`, `-6`, `-8`, `-10`, `-12`, `-14`, `-16`, `-20`, `-24`, `-32`, `-40`, `-48` | named by their size in pixels; every `padding`, `margin` and `gap`. Negative: `calc(var(--sp-8) * -1)`. In a note's text, `em` follows the font size and stays |
-| Corners | `--r-xs` 6, `--r-s` 8, `--r-m` 10, `--r-l` 16, `--r-pill` | xs: chips, tags, keys, inline code, a priority, and the items of a menu, popup or floating bar (4px inside an m corner, so the corners are concentric); s: buttons, fields, rows; m: cards, tiles, menus; l: dialogs; pill: only counts, the switch and the tasks bar. Circles are `50%` |
+| Corners | `--r-xs` 6, `--r-s` 8, `--r-m` 12, `--r-l` 16, `--r-pill` | xs: chips, tags, keys, inline code, a priority; s: fields, rows, small buttons, and the items of a menu or floating bar (4px inside an m corner: 8 + 4 = 12, so the corners are concentric); m: cards, tiles, menus, labelled buttons (`.sn-btn`, a dialog's buttons); l: dialogs; pill: only counts, the switch and the tasks bar. Circles are `50%` (since 0.46, after Capacities: m was 10) |
 | Control heights | `--ctl-xs` 20, `--ctl-s` 24, `--ctl-m` 28, `--ctl-l` 32, `--ctl-field` 34, `--ctl-touch` 40 | xs: small chips; s: chips, icons in a row; m: fields, buttons in bars; l: sidebar buttons, menu rows; field: the search fields; touch: the least a finger gets (spec UI-9) |
 | Icons | `--icon-xs` 12, `--icon-s` 14, `--icon-m` 16, `--icon-l` 18; `--icon-stroke` 1.75px | Lucide icons; one stroke |
 | Tiles | `--tile-min` 96px (set per list, up to 200px) | the narrowest a notebook's tile gets; `fitTiles` widens it to the longest word in the names |
@@ -80,7 +80,7 @@ Six sizes and no more (spec UI-20); `tests/typography.test.mjs` measures them on
 
 | Group | Variables | Use |
 |---|---|---|
-| Shadows | `--shadow-1` | a raised segment, the switch's knob, the edge of a page or image |
+| Shadows | `--shadow-1` | a raised segment, the switch's knob, the edge of a page or image. Every step is two or three layers, a tight one under wide faint ones (since 0.46, after Capacities), so a thing lifts without a visible smudge; whatever floats keeps its hairline for its edge. `--sh-k` scales them: 1 in the light theme, 2.5 in the dark |
 | | `--shadow-2` | a card of the board under the pointer |
 | | `--shadow-3` | menus, popups, the toast, bars that float |
 | | `--shadow-4` | dialogs; the sidebar over the note |
@@ -117,7 +117,7 @@ A labelled button, usually with an icon.
 
 | Variant | Class | Use |
 |---|---|---|
-| Default | `.sn-btn` | transparent, `--muted` text, `--ctl-l` high |
+| Default | `.sn-btn` | transparent, `--muted` text, `--ctl-l` high, `--r-m` corners |
 | Primary | `.is-primary` | the one main action in a place: `--cta` fill, `--on-accent` text |
 | Danger | `.is-danger` | an action that destroys something: `--todo` fill |
 | Small | `.is-s` | inside a row of text |
@@ -209,7 +209,7 @@ The notebooks: `role="tree"` and `role="treeitem"` with `aria-level` and `aria-e
 
 ### Menu — `.menu`
 
-`role="menu"` of `.menu-item` (`role="menuitem"`): icon, title, an optional check. 4px padding and `--r-m` around `--r-xs` items. `.is-warn` for an item that destroys, `.is-disabled` for one that can't be used now. `--shadow-3`, `--z-menu`.
+`role="menu"` of `.menu-item` (`role="menuitem"`): icon, title, an optional check. 4px padding and `--r-m` around `--r-s` items. `.is-warn` for an item that destroys, `.is-disabled` for one that can't be used now. `--shadow-3`, `--z-menu`.
 
 ### Dialog — `.modal`
 
@@ -221,7 +221,7 @@ Over `.modal-bg` (`--scrim`), `--r-l`, `--shadow-4`, `--z-modal`; Escape closes 
 
 ### Format bar and table bar — `.sn-fmtbar`, `.sn-table-bar`
 
-A floating bar over a selection: `--win`, a hairline, `--r-m` around `--r-xs` buttons (concentric), `--shadow-3`. `.sn-fmtbar` sits over selected text at `--z-popup`; `.sn-table-bar` over a selection in a table, just under the menus (`calc(var(--z-menu) - 1)`), with `.is-warn` on Delete.
+A floating bar over a selection: `--win`, a hairline, `--r-m` around `--r-s` buttons (concentric), `--shadow-3`. `.sn-fmtbar` sits over selected text at `--z-popup`; `.sn-table-bar` over a selection in a table, just under the menus (`calc(var(--z-menu) - 1)`), with `.is-warn` on Delete.
 
 ### Table selection — `.sn-table-host`
 

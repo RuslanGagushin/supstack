@@ -146,7 +146,7 @@
   box-shadow: 0 0 0 2px var(--win);
 }
 @media (hover: hover) { .sn-board .sn-tools > .sn-desktop-optional:not(.is-active) { opacity: 0.6; } }
-.sn-board .sn-selbar-btn { padding: var(--sp-6) var(--sp-8); border-radius: var(--r-xs); }
+.sn-board .sn-selbar-btn { padding: var(--sp-6) var(--sp-8); border-radius: var(--r-s); }
 @media (hover: hover) { .sn-board .sn-selbar-btn:hover { color: var(--fg); } }
 .sn-board .sn-selbar-btn.is-warn { color: var(--todo); }
 .sn-board .sn-selbar-btn svg { width: var(--icon-xs); height: var(--icon-xs); }

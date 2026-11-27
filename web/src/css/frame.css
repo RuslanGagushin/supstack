@@ -204,7 +204,7 @@ button.clickable-icon.wb-icon { padding: 0; }
 
 /* ---------- Menus, panels, pickers */
 .menu { position: fixed; z-index: var(--z-menu); min-width: 210px; max-width: 320px; max-height: calc(100vh - 16px); overflow-y: auto; overscroll-behavior: contain; user-select: none; background: var(--win); border: 1px solid var(--line); border-radius: var(--r-m); padding: var(--sp-4); box-shadow: var(--shadow-3); }
-.menu-item { display: flex; align-items: center; cursor: default; white-space: nowrap; gap: var(--sp-8); padding: var(--sp-6) var(--sp-10); border-radius: var(--r-xs); }
+.menu-item { display: flex; align-items: center; cursor: default; white-space: nowrap; gap: var(--sp-8); padding: var(--sp-6) var(--sp-10); border-radius: var(--r-s); }
 .menu-item.is-selected { background: var(--sel); }
 @media (hover: hover) { .menu-item:hover { background: var(--sel); } }
 .menu-item-icon svg, .menu-item-check svg { width: var(--icon-s); height: var(--icon-s); }
@@ -216,7 +216,7 @@ button.clickable-icon.wb-icon { padding: 0; }
 .modal-title { margin: 0 0 var(--sp-12); padding: var(--sp-12) 44px var(--sp-12) var(--sp-14); font-weight: var(--fw-semibold); font-size: var(--fs-lg); border-bottom: 0; }
 .modal-close { position: absolute; top: 8px; right: 8px; }
 .modal-text { line-height: var(--lh-text); margin: 0 0 var(--sp-16); color: var(--muted); }
-.modal-buttons button, .modal-buttons button:not(.clickable-icon) { border: 1px solid var(--line); background: var(--win); height: 34px; padding: 0 var(--sp-16); border-radius: var(--r-s); font-weight: var(--fw-semibold); }
+.modal-buttons button, .modal-buttons button:not(.clickable-icon) { border: 1px solid var(--line); background: var(--win); height: 34px; padding: 0 var(--sp-16); border-radius: var(--r-m); font-weight: var(--fw-semibold); }
 @media (hover: hover) { .modal-buttons button:hover { border-color: var(--faint); } }
 .modal-buttons button.is-danger { background: var(--danger-fill); color: var(--on-accent); border-color: var(--danger-fill); }
 .setting-heading { font-size: var(--fs-sm); letter-spacing: 0; color: var(--muted); margin-top: var(--sp-14); text-transform: none; font-weight: var(--fw-semibold); }

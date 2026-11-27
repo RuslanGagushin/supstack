@@ -99,7 +99,7 @@ button.sn-table-ins-col { top: 0; }
 .sn-table-bar.is-hidden { display: none; }
 .sn-table-bar button.is-warn { color: var(--todo); }
 :is(.sn-fmtbar, .sn-table-bar) .sn-tb-sep { margin: 0 var(--sp-4); }
-:is(.sn-fmtbar, .sn-table-bar) button.sn-tb-btn { border-radius: var(--r-xs); } /* concentric: the bar's corner (m) is the button's (xs) plus its 4px padding */
+:is(.sn-fmtbar, .sn-table-bar) button.sn-tb-btn { border-radius: var(--r-s); } /* concentric: the bar's corner (m, 12) is the button's (s, 8) plus its 4px padding */
 
 /* Inline completion at the caret */
 .ac-pop {

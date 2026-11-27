@@ -68,7 +68,7 @@ button.sn-btn.sb-new, :where(.sn-welcome-actions) button.sn-btn.is-primary {
 button.sn-btn.sb-new { flex: 1 1 auto; min-width: 0; justify-content: center; }
 @media (hover: hover) { button.sn-btn.sb-new:hover, :where(.sn-welcome-actions) button.sn-btn.is-primary:hover { background: var(--cta-hover); opacity: 1; } }
 button.sn-btn.sb-new svg { width: var(--icon-m); height: var(--icon-m); }
-button.sn-btn.sb-today { flex: none; height: var(--ctl-field); padding: 0 var(--sp-12); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--win); color: var(--ink); font-size: var(--fs-md); font-weight: var(--fw-medium); }
+button.sn-btn.sb-today { flex: none; height: var(--ctl-field); padding: 0 var(--sp-12); border: 1px solid var(--line); border-radius: var(--r-m); background: var(--win); color: var(--ink); font-size: var(--fs-md); font-weight: var(--fw-medium); }
 @media (hover: hover) { button.sn-btn.sb-today:hover { background: var(--hover-bg); } }
 button.sn-btn.sb-today svg { width: var(--icon-m); height: var(--icon-m); color: var(--muted); }
 .sb-today .wb-label { display: inline; }
@@ -134,7 +134,7 @@ button.sb-account .wb-caret svg { width: var(--icon-s); height: var(--icon-s); c
 .sb-new .wb-label { display: inline; } /* the sidebar's button keeps its label on phones */
 
 /* ---------- Top bar: quiet ghost buttons; search, new card, brand and vault are in the sidebar */
-button.sn-btn { height: var(--ctl-l); padding: 0 var(--sp-10); border: 0; border-radius: var(--r-s); background: transparent; color: var(--muted); }
+button.sn-btn { height: var(--ctl-l); padding: 0 var(--sp-10); border: 0; border-radius: var(--r-m); background: transparent; color: var(--muted); }
 @media (hover: hover) { button.sn-btn:hover { background: var(--hover-bg); color: var(--fg); } }
 button.sn-btn.is-active { background: var(--panel); color: var(--ink); }
 button.clickable-icon.wb-icon { width: 34px; height: var(--ctl-l); border-radius: var(--r-s); }

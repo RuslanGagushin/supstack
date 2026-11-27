@@ -5,7 +5,7 @@ html, body { margin: 0; height: 100%; }
 html.is-android { --safe-top: var(--sn-inset-top, max(env(safe-area-inset-top, 0px), 44px)); --safe-bottom: var(--sn-inset-bottom, max(env(safe-area-inset-bottom, 0px), 24px)); -webkit-tap-highlight-color: transparent; }
 * { box-sizing: border-box; }
 body.theme-dark {
-  --shade: #000;
+  --shade: #000; --sh-k: 2.5;
   --bg:#17181a; --win:#1c1d1f; --panel:#2a2c30; --fg:#dcdde0; --muted:#a9acb2; --faint:#8e9198; --line:#2e3034;
   --accent:#7c8eff; --accent-soft:#1f2547; --sel:#303236; --sel-nav:#303236; --flash:#4a3f12; --code-bg:#25272a;
   --ink:#f2f3f4; --cta:#4d64ff; --cta-hover:#3245bb; --hover-bg:#25272a;
@@ -57,9 +57,10 @@ body {
   --sp-2: 2px; --sp-4: 4px; --sp-6: 6px; --sp-8: 8px; --sp-10: 10px; --sp-12: 12px; --sp-14: 14px; --sp-16: 16px;
   --sp-20: 20px; --sp-24: 24px; --sp-32: 32px; --sp-40: 40px; --sp-48: 48px;
   /* The corner scale, the only radii in the styles (besides circles, 50%, and 1–2px hairlines):
-     xs for tiny inline things (kbd, inline code), s for controls (buttons, fields, rows, menu items),
-     m for surfaces (cards, menus, popups, the note's sheet), l for dialogs, pill for tags, badges and pill buttons. */
-  --r-xs: 6px; --r-s: 8px; --r-m: 10px; --r-l: 16px; --r-pill: 999px;
+     xs for tiny inline things (kbd, inline code), s for small controls (fields, rows, menu items, a floating bar's buttons),
+     m for surfaces (cards, menus, popups, the note's sheet) and labelled buttons, l for dialogs, pill for counts and the switch.
+     An item 4px inside an m surface is s (12 = 8 + 4), so the corners stay concentric. */
+  --r-xs: 6px; --r-s: 8px; --r-m: 12px; --r-l: 16px; --r-pill: 999px;
 
 
   --icon-xs: 12px; --icon-s: 14px; --icon-m: 16px; --icon-l: 18px; --icon-xl: 20px; --icon-xxl: 22px;
@@ -76,13 +77,16 @@ body {
   --accent-hover: color-mix(in srgb, var(--accent) 85%, var(--fg));
   --line-hover: color-mix(in srgb, var(--faint) 55%, var(--line));
   --scrim: color-mix(in srgb, var(--shade) 28%, transparent);
-  /* elevation, four steps, all from --shade: 1 a raised segment, a switch knob, the edge of a page or image;
-     2 a card under the pointer, the note's sheet, the welcome card; 3 menus, popups, the toast and the bars that float;
-     4 dialogs and the side panel over the note */
-  --shadow-1: 0 1px 2px color-mix(in srgb, var(--shade) 14%, transparent);
-  --shadow-2: 0 4px 14px color-mix(in srgb, var(--shade) 7%, transparent);
-  --shadow-3: 0 10px 30px color-mix(in srgb, var(--shade) 14%, transparent);
-  --shadow-4: 0 20px 50px color-mix(in srgb, var(--shade) 25%, transparent);
+  /* elevation, four steps, all from --shade, each in layers (a tight one under a wide, faint one, after Capacities):
+     the object lifts without a visible smudge, and what floats keeps its hairline for its edge.
+     1 a raised segment, a switch knob, the edge of a page or image; 2 a card under the pointer, the note's sheet,
+     the welcome card; 3 menus, popups, the toast and the bars that float; 4 dialogs and the side panel over the note.
+     --sh-k scales them: dark themes need them stronger to read on a dark page */
+  --sh-k: 1;
+  --shadow-1: 0 1px 2px color-mix(in srgb, var(--shade) calc(8% * var(--sh-k)), transparent), 0 2px 4px color-mix(in srgb, var(--shade) calc(2% * var(--sh-k)), transparent);
+  --shadow-2: 0 4px 7px color-mix(in srgb, var(--shade) calc(2.4% * var(--sh-k)), transparent), 0 7px 14px color-mix(in srgb, var(--shade) calc(4.8% * var(--sh-k)), transparent), 0 14px 20px color-mix(in srgb, var(--shade) calc(2.4% * var(--sh-k)), transparent);
+  --shadow-3: 0 8px 14px color-mix(in srgb, var(--shade) calc(4% * var(--sh-k)), transparent), 0 14px 28px color-mix(in srgb, var(--shade) calc(8% * var(--sh-k)), transparent), 0 28px 40px color-mix(in srgb, var(--shade) calc(4% * var(--sh-k)), transparent);
+  --shadow-4: 0 16px 28px color-mix(in srgb, var(--shade) calc(6% * var(--sh-k)), transparent), 0 28px 56px color-mix(in srgb, var(--shade) calc(12% * var(--sh-k)), transparent), 0 56px 80px color-mix(in srgb, var(--shade) calc(6% * var(--sh-k)), transparent);
   /* keyboard focus and the chosen item: a ring outside a control, or inside the edge of a row or a pane */
   --ring: 0 0 0 2px var(--accent); --ring-inset: inset 0 0 0 2px var(--accent);
   /* motion: --dur-1 for hover, folding and small changes, --dur-2 for panels, bars and popups */
