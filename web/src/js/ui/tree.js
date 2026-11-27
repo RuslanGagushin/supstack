@@ -13,77 +13,140 @@ import { setTarget } from "./board.js";
 import { dnd } from "./dnd.js";
 import { openEditor } from "./editor.js";
 import { setSide } from "./shell.js";
-import { tagsSection } from "./completion.js";
+import { tagCloud, tagsSection } from "./completion.js";
 
 const SEP = "\u0000";
+/**
+ * The sidebar below Agenda and Capture, in parts: pins, Notebooks, saved views, Recent and Tags. Each part is drawn from a
+ * plain description of what it shows; a part whose description has not changed keeps its rows, so a save or a click on a
+ * notebook (which run this) redraws only what moved. Which row is the open list is not in the descriptions: markTree sets
+ * it on the rows that are there. In a big vault with every branch open, a call that changes nothing no longer rebuilds
+ * some 14,000 elements and lays them out again.
+ */
+const parts = new Map(); // name → { sig, nodes }: the description each part was drawn from, and its nodes in the box
+let treeBox = null;
 export function renderTree() {
   const host = $("#tree");
   if (!host || !vault.fs) return;
-  const scroll = host.querySelector(".sn-tree")?.scrollTop || 0;
-  const focusKey = host.contains(document.activeElement) ? document.activeElement.closest?.("[role=treeitem]")?.dataset.key : null;
-  host.replaceChildren();
+  const active = document.activeElement;
+  const focusKey = host.contains(active) ? active.closest?.("[role=treeitem]")?.dataset.key : null;
+  if (!treeBox || treeBox.parentNode !== host) { // a new sidebar (renderAll): start over
+    host.replaceChildren((treeBox = h("div", { cls: "sn-tree" })));
+    parts.clear();
+  }
+  const cmp = makeComparator(S.outlineSort);
+  const pins = S.pinned.filter((p) => graph.has(p));
+  const pinModel = pins.map((p, i) => nodeModel(p, [p], cmp, { pinIndex: i, pinCount: pins.length, keyPrefix: "pin" }));
+  const nbOpen = UI.notebooksOpen !== false;
+  const roots = graph.sortedChildren(null, cmp);
+  const nbModel = { nbOpen, sort: S.outlineSort, all: graph.countBelow(null), empty: !roots.length, roots: nbOpen ? roots.filter(isNotebook).map((r) => nodeModel(r, [r], cmp, {})) : [] };
+  const views = S.savedViews.map((v) => [v.id, v.name]);
+  const recent = recentModel();
+  const tags = tagCloud();
+  // the notebooks come first, right under Agenda and Files: they are where every note lives; the rest folds below them
+  const order = [
+    ["pins", pinModel, () => (pinModel.length ? pinPart(pinModel) : [])],
+    ["notebooks", nbModel, () => notebooksPart(nbModel)],
+    ["views", views, () => (views.length ? viewsPart() : [])],
+    // Recent before Tags: the notes changed last are a quicker way back than a tag
+    ["recent", recent, () => (recent ? recentPart(recent) : [])],
+    ["tags", tags, () => { const f = document.createDocumentFragment(); tagsSection(f, tags); return [...f.childNodes]; }],
+  ];
+  let changed = false;
+  for (let i = 0; i < order.length; i++) {
+    const [name, model, build] = order[i];
+    const sig = LANG + "\n" + JSON.stringify(model);
+    const was = parts.get(name);
+    if (was?.sig === sig) continue;
+    changed = true;
+    const nodes = build();
+    for (const tr of nodes) if (tr instanceof Element && tr.matches("[role=tree]")) wireTree(tr);
+    // in place of the part's old nodes, or before the first node of a part after it
+    const firstOf = (n) => parts.get(n)?.nodes.find((x) => x.parentNode === treeBox);
+    const anchor = was?.nodes.find((n) => n.parentNode === treeBox) || order.slice(i + 1).map(([n]) => firstOf(n)).find(Boolean) || null;
+    for (const n of nodes) treeBox.insertBefore(n, anchor);
+    for (const n of was?.nodes || []) n.remove();
+    parts.set(name, { sig, nodes });
+  }
+  markTree();
+  if (changed && focusKey && !treeBox.contains(document.activeElement)) treeBox.querySelector(`[role=treeitem][data-key="${CSS.escape(focusKey)}"]`)?.focus({ preventScroll: true });
+}
+/** Keys, the menu key and the Tab stop of one tree. */
+function wireTree(tr) {
+  tr.addEventListener("keydown", treeKeys);
+  tr.addEventListener("contextmenu", treeMenuKey);
+  // the item focused last (by a click, or on the way back from its menu) is the tree's Tab stop
+  tr.addEventListener("focusin", (e) => { if (e.target.matches?.("[role=treeitem]")) for (const x of tr.querySelectorAll("[role=treeitem]")) x.setAttribute("tabindex", x === e.target ? "0" : "-1"); });
+}
+/**
+ * The open list on the rows that show: its row is marked (a pinned row too, though only the other trees say it is
+ * selected); each tree's Tab stop is the item with focus, else the open list, else its first item; then the open note.
+ */
+function markTree() {
+  if (!treeBox) return;
+  const home = !board.target && !board.tagView;
+  for (const item of treeBox.querySelectorAll("[role=treeitem]")) {
+    const row = item.querySelector(":scope > .sn-tree-row"), key = item.dataset.key || "";
+    const cut = key.indexOf(SEP), kind = cut < 0 ? key : key.slice(0, cut);
+    let on, said;
+    if (key === "all") on = said = home;
+    else if (kind === "view") on = said = false;
+    else if (kind === "recent") on = said = board.target === key.slice(cut + 1);
+    else if (kind === "pin") { on = board.target === row?.dataset.path; said = false; }
+    else on = said = board.target === row?.dataset.path;
+    row?.classList.toggle("is-active", on);
+    item.setAttribute("aria-selected", String(said));
+  }
+  for (const tr of treeBox.querySelectorAll("[role=tree]")) {
+    const items = [...tr.querySelectorAll("[role=treeitem]")];
+    const stop = items.find((x) => x === document.activeElement) || items.find((x) => x.getAttribute("aria-selected") === "true") || items[0];
+    for (const x of items) x.setAttribute("tabindex", x === stop ? "0" : "-1");
+  }
+  markOpenInTree();
+}
+function pinPart(model) {
+  const pinTree = h("div", { cls: "sn-aria-tree", role: "tree", "aria-label": t("pinned") });
+  for (const m of model) pinTree.append(buildNode(m));
+  return [h("div", { cls: "sn-tree-section", text: t("pinned") }), pinTree];
+}
+function notebooksPart(m) {
   // the tree's tools sit on its own heading ("Notebooks"), shown with the pointer over it; "New card" is the blue button above
   const header = h("div", { cls: "sn-sec-tools" });
   const sortOpts = [["manual", t("sortManual"), "list-ordered"], ["name", t("sortName"), "arrow-down-a-z"], ["modified", t("sortModified"), "clock"], ["created", t("sortCreated"), "calendar-plus"]];
-  header.append(iconBtn(sortOpts.find(([v]) => v === S.outlineSort)?.[2] || "arrow-up-down", t("treeSort"), (e) => {
-    const m = new Menu();
-    for (const [v, label, icn] of sortOpts) m.add(label, icn, () => { S.outlineSort = v; saveSettings(); renderTree(); }, { checked: v === S.outlineSort });
-    m.showBelow(e.currentTarget);
+  header.append(iconBtn(sortOpts.find(([v]) => v === m.sort)?.[2] || "arrow-up-down", t("treeSort"), (e) => {
+    const menu = new Menu();
+    for (const [v, label, icn] of sortOpts) menu.add(label, icn, () => { S.outlineSort = v; saveSettings(); renderTree(); }, { checked: v === S.outlineSort });
+    menu.showBelow(e.currentTarget);
   }));
   header.append(iconBtn("crosshair", t("revealCurrent"), () => revealInTree(board.target)));
   header.append(iconBtn("chevrons-down-up", t("collapseAll"), () => { tree.expanded.clear(); persistBoard(); renderTree(); }));
-  const box = h("div", { cls: "sn-tree" });
-  const cmp = makeComparator(S.outlineSort);
-
-  // the notebooks come first, right under Agenda and Files: they are where every note lives; the rest folds below them
-  if (S.pinned.some((p) => graph.has(p))) {
-    box.append(h("div", { cls: "sn-tree-section", text: t("pinned") }));
-    const pins = S.pinned.filter((p) => graph.has(p));
-    const pinTree = h("div", { cls: "sn-aria-tree", role: "tree", "aria-label": t("pinned") });
-    pins.forEach((p, i) => pinTree.append(treeNode(p, [p], cmp, { pinIndex: i, pinCount: pins.length, keyPrefix: "pin" })));
-    box.append(pinTree);
-  }
-  const nbOpen = UI.notebooksOpen !== false;
-  box.append(sectionHead(t("tree"), nbOpen, () => { UI.notebooksOpen = !nbOpen; saveUI(); renderTree(); }, header));
-  const allRow = h("div", { cls: "tree-item-self is-clickable sn-tree-row" + (!board.target && !board.tagView ? " is-active" : "") }, h("span", { cls: "sn-tree-toggle is-leaf" }), ic("sn-tree-icon", "home"), h("div", { cls: "tree-item-inner sn-tree-label", text: t("allCards") }),
-    h("div", { cls: "tree-item-flair-outer" }, (() => { const n = graph.countBelow(null); return h("span", { cls: "tree-item-flair sn-tree-count", text: String(n), title: t("treeCountAll", { n }) }); })())); // the cards the board reaches, as its "of N" says
+  const out = [sectionHead(t("tree"), m.nbOpen, () => { UI.notebooksOpen = !m.nbOpen; saveUI(); renderTree(); }, header)];
+  if (!m.nbOpen) return out;
+  const allRow = h("div", { cls: "tree-item-self is-clickable sn-tree-row" }, h("span", { cls: "sn-tree-toggle is-leaf" }), ic("sn-tree-icon", "home"), h("div", { cls: "tree-item-inner sn-tree-label", text: t("allCards") }),
+    h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair sn-tree-count", text: String(m.all), title: t("treeCountAll", { n: m.all }) }))); // the cards the board reaches, as its "of N" says
   allRow.addEventListener("click", () => setTarget(null));
   dnd.dropTarget(allRow, () => ({ path: null, parent: null, zones: ["inside"], root: true }));
   const nbTree = h("div", { cls: "sn-aria-tree", role: "tree", "aria-label": t("tree") });
-  nbTree.append(treeItem(h("div", { cls: "tree-item" }, allRow), allRow, { key: "all", level: 1, active: !board.target && !board.tagView }));
-  const roots = graph.sortedChildren(null, cmp);
-  if (nbOpen) {
-    if (!roots.length) box.append(h("div", { cls: "sn-tree-empty", text: t("noCards") }));
-    for (const r of roots.filter(isNotebook)) nbTree.append(treeNode(r, [r], cmp, {}));
-    box.append(nbTree);
+  nbTree.append(treeItem(h("div", { cls: "tree-item" }, allRow), allRow, { key: "all", level: 1 }));
+  for (const r of m.roots) nbTree.append(buildNode(r));
+  if (m.empty) out.push(h("div", { cls: "sn-tree-empty", text: t("noCards") }));
+  out.push(nbTree);
+  return out;
+}
+function viewsPart() {
+  const viewTree = h("div", { cls: "sn-aria-tree", role: "tree", "aria-label": t("views") });
+  for (const v of S.savedViews) {
+    const row = h("div", { cls: "tree-item-self is-clickable sn-tree-row" }, h("span", { cls: "sn-tree-toggle is-leaf" }), ic("sn-tree-icon", "bookmark"), h("div", { cls: "tree-item-inner sn-tree-label", text: v.name }));
+    row.addEventListener("click", () => applyView(v));
+    row.addEventListener("contextmenu", (e) => {
+      const m = new Menu();
+      m.add(t("rename"), "pencil", async () => { const n = await promptModal(t("viewName"), v.name); if (n) { S.savedViews = S.savedViews.map((x) => (x.id === v.id ? { ...x, name: n } : x)); await saveSettings(); renderTree(); } });
+      m.add(t("deleteView"), "trash-2", async () => { S.savedViews = S.savedViews.filter((x) => x.id !== v.id); await saveSettings(); renderTree(); }, { warning: true });
+      m.showAtEvent(e);
+    });
+    viewTree.append(treeItem(h("div", { cls: "tree-item" }, row), row, { key: "view" + SEP + v.id, level: 1 }));
   }
-  if (S.savedViews.length) {
-    box.append(h("div", { cls: "sn-tree-section", text: t("views") }));
-    for (const v of S.savedViews) {
-      const row = h("div", { cls: "tree-item-self is-clickable sn-tree-row" }, h("span", { cls: "sn-tree-toggle is-leaf" }), ic("sn-tree-icon", "bookmark"), h("div", { cls: "tree-item-inner sn-tree-label", text: v.name }));
-      row.addEventListener("click", () => applyView(v));
-      row.addEventListener("contextmenu", (e) => {
-        const m = new Menu();
-        m.add(t("rename"), "pencil", async () => { const n = await promptModal(t("viewName"), v.name); if (n) { S.savedViews = S.savedViews.map((x) => (x.id === v.id ? { ...x, name: n } : x)); await saveSettings(); renderTree(); } });
-        m.add(t("deleteView"), "trash-2", async () => { S.savedViews = S.savedViews.filter((x) => x.id !== v.id); await saveSettings(); renderTree(); }, { warning: true });
-        m.showAtEvent(e);
-      });
-      box.append(h("div", { cls: "tree-item" }, row));
-    }
-  }
-  // Recent before Tags: the notes changed last are a quicker way back than a tag
-  recentSection(box);
-  tagsSection(box);
-  for (const tr of box.querySelectorAll("[role=tree]")) tr.addEventListener("keydown", treeKeys);
-  host.append(box);
-  box.scrollTop = scroll;
-  markOpenInTree();
-  // one stop for Tab in each tree: the open notebook, or its first item; the arrow keys move within it (treeKeys)
-  for (const tr of box.querySelectorAll("[role=tree]")) {
-    const items = [...tr.querySelectorAll("[role=treeitem]")];
-    (items.find((x) => x.getAttribute("aria-selected") === "true") || items[0])?.setAttribute("tabindex", "0");
-  }
-  if (focusKey) box.querySelector(`[role=treeitem][data-key="${CSS.escape(focusKey)}"]`)?.focus({ preventScroll: false });
+  return [h("div", { cls: "sn-tree-section", text: t("views") }), viewTree];
 }
 /**
  * A sidebar section's heading (Notebooks, Recent, Tags), all alike: a caret and the name that fold the section, as one
@@ -134,23 +197,42 @@ function treeKeys(e) {
   else if (k === "ArrowLeft") { if (cur.getAttribute("aria-expanded") === "true") cur._toggle(); else go(cur.parentElement?.closest("[role=treeitem]")); }
   else cur._open();
 }
-/** The five notes changed last. The list of All notes sorted by date shows the same, so it starts folded, last in the sidebar. */
-function recentSection(box) {
+/**
+ * The context-menu key (or Shift+F10) on a focused tree item: the browser aims it at the item, but each row holds its own
+ * menu, so it goes on to the row, the menu opening under the row's name as it would at the pointer.
+ */
+function treeMenuKey(e) {
+  if (!e.target.matches?.("[role=treeitem]")) return;
+  const row = e.target.querySelector(":scope > .sn-tree-row");
+  if (!row) return;
+  e.preventDefault();
+  const r = row.getBoundingClientRect();
+  row.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: r.left + 32, clientY: r.bottom }));
+}
+/** The five notes changed last, or null with fewer than four notes. The list of All notes sorted by date shows the same,
+   so it starts folded, last in the sidebar; folded, its rows are left out of the description (their ages move). */
+function recentModel() {
   const recent = [...graph.nodes].sort((a, b) => (vault.notes.get(b)?.mtime || 0) - (vault.notes.get(a)?.mtime || 0)).slice(0, 5);
-  if (recent.length <= 3) return;
+  if (recent.length <= 3) return null;
   const open = UI.recentOpen === true;
-  box.append(sectionHead(t("recent"), open, () => { UI.recentOpen = !open; saveUI(); renderTree(); }));
-  if (!open) return;
-  for (const p of recent) {
-    const row = h("div", { cls: "tree-item-self is-clickable sn-tree-row is-recent" + (board.target === p ? " is-active" : "") });
+  return { open, rows: open ? recent.map((p) => ({ p, icon: cardIcon(p) || "file-text", label: baseName(p), ago: shortAgo(vault.notes.get(p)?.mtime || 0) })) : [] };
+}
+function recentPart(m) {
+  const out = [sectionHead(t("recent"), m.open, () => { UI.recentOpen = !m.open; saveUI(); renderTree(); })];
+  if (!m.open) return out;
+  const recentTree = h("div", { cls: "sn-aria-tree", role: "tree", "aria-label": t("recent") });
+  for (const { p, icon, label, ago } of m.rows) {
+    const row = h("div", { cls: "tree-item-self is-clickable sn-tree-row is-recent" });
     row.dataset.recent = p;
-    row.append(h("span", { cls: "sn-tree-toggle is-leaf" }), ic("sn-tree-icon", cardIcon(p) || "file-text", "file-text"), h("div", { cls: "tree-item-inner sn-tree-label", text: baseName(p) }),
-      h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair", text: shortAgo(vault.notes.get(p)?.mtime || 0) })));
+    row.append(h("span", { cls: "sn-tree-toggle is-leaf" }), ic("sn-tree-icon", icon, "file-text"), h("div", { cls: "tree-item-inner sn-tree-label", text: label }),
+      h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair", text: ago })));
     row.addEventListener("click", (e) => { if (isMod(e) || editor.path) openEditor(p); else setTarget(p); });
     row.addEventListener("dblclick", () => openEditor(p, { focus: true, edit: true }));
     row.addEventListener("contextmenu", (e) => cardMenu(p, null).showAtEvent(e));
-    box.append(h("div", { cls: "tree-item" }, row));
+    recentTree.append(treeItem(h("div", { cls: "tree-item" }, row), row, { key: "recent" + SEP + p, level: 1 }));
   }
+  out.push(recentTree);
+  return out;
 }
 /** Where the open note sits, when that is not the list beside it: its notebooks' rows (or its own, for a notebook's text)
    and its Recent row are marked. Called on render and whenever a note opens or closes, without redrawing the tree. */
@@ -192,44 +274,55 @@ function shortAgo(ms) {
   return new Date(ms).toLocaleDateString(LANG, { day: "numeric", month: "short" });
 }
 const isNotebook = (path) => graph.childrenOf(path).length > 0;
-/** A notebook in the tree: it opens as the list; only the notebooks inside it are its branches, the count is every card on all levels inside. */
-function treeNode(path, chain, cmp, o) {
+/**
+ * A notebook in the tree, as a description (what renderTree compares) and then as rows (buildNode): it opens as the list;
+ * only the notebooks inside it are its branches, the count is every card on all levels inside.
+ */
+function nodeModel(path, chain, cmp, o) {
   const key = (o.keyPrefix ? o.keyPrefix + SEP : "") + chain.join(SEP);
   const isCycle = chain.indexOf(path) !== chain.length - 1;
   const all = isCycle ? [] : graph.childrenOf(path);
   const kids = isCycle ? [] : graph.sortedChildren(path, cmp).filter(isNotebook);
   const open = !isCycle && tree.expanded.has(key) && kids.length > 0;
+  return {
+    path, chain, key, isCycle, branch: kids.length > 0, open, keyPrefix: o.keyPrefix, pinIndex: o.pinIndex, pinCount: o.pinCount,
+    icon: cardIcon(path) || (all.length ? "folder" : "file-text"), label: baseName(path),
+    // every card on all levels below, as All notes counts them: a notebook of notebooks does not read as nearly empty
+    total: all.length ? graph.countBelow(path) : 0,
+    kids: open ? kids.map((k) => nodeModel(k, [...chain, k], cmp, { keyPrefix: o.keyPrefix })) : [],
+  };
+}
+function buildNode(m) {
+  const { path, chain, key } = m;
   const item = h("div", { cls: "tree-item" });
-  const row = h("div", { cls: "tree-item-self is-clickable sn-tree-row" + (open ? " is-open" : "") + (board.target === path ? " is-active" : "") + (isCycle ? " is-cycle" : "") });
+  const row = h("div", { cls: "tree-item-self is-clickable sn-tree-row" + (m.open ? " is-open" : "") + (m.isCycle ? " is-cycle" : "") });
   row.dataset.path = path;
-  const toggle = h("span", { cls: "sn-tree-toggle" + (kids.length ? "" : " is-leaf") });
+  const toggle = h("span", { cls: "sn-tree-toggle" + (m.branch ? "" : " is-leaf") });
   setIcon(toggle, "chevron-down");
   toggle.addEventListener("click", (e) => { e.stopPropagation(); if (tree.expanded.has(key)) tree.expanded.delete(key); else tree.expanded.add(key); persistBoard(); renderTree(); });
-  row.append(toggle, ic("sn-tree-icon", cardIcon(path) || (all.length ? "folder" : "file-text"), "file-text"), h("div", { cls: "tree-item-inner sn-tree-label", text: baseName(path), title: isCycle ? "↻" : path }));
-  // every card on all levels below, as All notes counts them: a notebook of notebooks does not read as nearly empty
-  const total = all.length ? graph.countBelow(path) : 0;
-  if (total) row.append(h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair sn-tree-count", text: String(total), title: t("treeCountAll", { n: total }) })));
+  row.append(toggle, ic("sn-tree-icon", m.icon, "file-text"), h("div", { cls: "tree-item-inner sn-tree-label", text: m.label, title: m.isCycle ? "↻" : path }));
+  if (m.total) row.append(h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair sn-tree-count", text: String(m.total), title: t("treeCountAll", { n: m.total }) })));
   row.addEventListener("click", (e) => { if (isMod(e)) openEditor(path); else setTarget(path); });
   row.addEventListener("dblclick", () => openEditor(path));
   row.addEventListener("contextmenu", (e) => {
-    const m = cardMenu(path, chain.length > 1 ? chain[chain.length - 2] : null);
-    if (o.pinIndex !== undefined) {
-      m.sep();
-      if (o.pinIndex > 0) m.add(t("moveUp"), "arrow-up", () => movePin(path, -1));
-      if (o.pinIndex < o.pinCount - 1) m.add(t("moveDown"), "arrow-down", () => movePin(path, 1));
+    const menu = cardMenu(path, chain.length > 1 ? chain[chain.length - 2] : null);
+    if (m.pinIndex !== undefined) {
+      menu.sep();
+      if (m.pinIndex > 0) menu.add(t("moveUp"), "arrow-up", () => movePin(path, -1));
+      if (m.pinIndex < m.pinCount - 1) menu.add(t("moveDown"), "arrow-down", () => movePin(path, 1));
     }
-    m.showAtEvent(e);
+    menu.showAtEvent(e);
   });
-  const parent = o.keyPrefix ? null : chain.length > 1 ? chain[chain.length - 2] : null;
-  if (!o.keyPrefix) {
+  const parent = m.keyPrefix ? null : chain.length > 1 ? chain[chain.length - 2] : null;
+  if (!m.keyPrefix) {
     dnd.draggable(row, () => ({ child: path, from: parent }));
     dnd.dropTarget(row, () => ({ path, parent }));
   }
   item.append(row);
-  treeItem(item, row, { key, level: chain.length, expanded: kids.length ? open : null, active: board.target === path && !o.keyPrefix });
-  if (open) {
+  treeItem(item, row, { key, level: chain.length, expanded: m.branch ? m.open : null });
+  if (m.open) {
     const ch = h("div", { cls: "tree-item-children sn-tree-children", role: "group" });
-    for (const k of kids) ch.append(treeNode(k, [...chain, k], cmp, { keyPrefix: o.keyPrefix }));
+    for (const k of m.kids) ch.append(buildNode(k));
     item.append(ch);
   }
   return item;

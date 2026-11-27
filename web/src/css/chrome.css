@@ -5,13 +5,6 @@
 }
 #app.side-closed .sn-side, #app.side-closed .sn-resizer.is-side { display: none; }
 @media (min-width: 821px) { #app.side-closed .sn-editor { max-width: calc(100vw - 440px); } }
-.sn-side-head { flex: 0 0 auto; display: flex; align-items: center; gap: var(--sp-4); height: var(--header-height); padding: 0 var(--sp-8) 0 var(--sp-12); border-bottom: 1px solid var(--line); }
-.sn-vault-name { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--sp-6); font-size: var(--fs-ui); font-weight: var(--fw-semibold); color: var(--fg); padding: var(--sp-4) var(--sp-6); border-radius: var(--r-xs); cursor: default; }
-@media (hover: hover) { .sn-vault-name:hover { background: var(--panel); } }
-.sn-vault-name > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sn-vault-name svg { width: var(--icon-s); height: var(--icon-s); color: var(--muted); flex: 0 0 auto; }
-.sn-side-foot { flex: 0 0 auto; display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-6) var(--sp-8); border-top: 1px solid var(--line); font-size: var(--fs-sm); color: var(--faint); }
-.sn-side-foot .sn-status { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-inline-start: var(--sp-4); }
 .sn-banner { flex: 0 0 auto; display: flex; align-items: center; gap: var(--sp-8); padding: var(--sp-6) var(--sp-16); font-size: var(--fs-sm); color: var(--muted); border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--accent) 10%, var(--win)); }
 .sn-banner svg { width: var(--icon-xs); height: var(--icon-xs); color: var(--accent); }
 .sn-board-host { flex: 1 1 auto; min-height: 0; }

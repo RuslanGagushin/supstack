@@ -39,7 +39,7 @@ button.clickable-icon.sb-foot-btn { flex: none; width: var(--ctl-m); height: var
 .sb-nav button.sn-btn.is-active svg { color: var(--ink); }
 /* the sidebar's buttons keep their labels at every width (outweighing .sn-btn .wb-label in frame.css) */
 .sb-nav button.sn-btn .wb-label { display: inline; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.sb-nav .wb-count { margin-left: auto; }
+.sb-nav .wb-counts { margin-inline-start: auto; }
 button.clickable-icon.sb-foot-btn.is-active { background: var(--sel); color: var(--ink); }
 .sb-foot .wb-sync[hidden] { display: none; }
 button.clickable-icon.sb-foot-btn.wb-sync:disabled { opacity: 1; cursor: default; }
@@ -122,6 +122,13 @@ button.sb-account .wb-caret svg { width: var(--icon-s); height: var(--icon-s); c
 .tree-item-flair { font-size: var(--fs-sm); color: var(--faint); }
 /* on a hovered or current row's grey, the counts and times step up to --muted to stay readable */
 @media (hover: hover) { .sn-tree-row:is(:hover, .is-active) .tree-item-flair { color: var(--muted); } }
+/* a finger folds a notebook by its arrow without opening it: the arrow's hit area fills the row's height and the gutter
+   to its left, and stops at the notebook's icon, so a tap on the icon or the name still opens the list. Any touch screen,
+   not only phones: the sidebar stays beside the list on a tablet. A leaf's hidden arrow takes no taps (visibility). */
+@media (pointer: coarse) {
+  .sn-outline .sn-tree-toggle { position: relative; }
+  .sn-outline .sn-tree-toggle::after { content: ""; position: absolute; inset: -8px -8px -8px -12px; }
+}
 .sb-new .wb-label { display: inline; } /* the sidebar's button keeps its label on phones */
 
 /* ---------- Top bar: quiet ghost buttons; search, new card, brand and vault are in the sidebar */
@@ -220,6 +227,10 @@ a.sn-facts-place svg { flex: none; width: var(--icon-s); height: var(--icon-s); 
 
 /* ---------- Menus, dialogs, pickers */
 .menu-item.is-selected { background: var(--hover-bg); }
+/* the keyboard's place in a menu moves at once: only the pointer's hover eases (base.css), so ↓ leaves no fading ring behind */
+.menu-item { transition: background-color var(--dur-1) var(--ease), color var(--dur-1) var(--ease); }
+.menu-item:focus { outline: none; }
+.menu-item:focus-visible { background: var(--hover-bg); box-shadow: var(--ring-inset); }
 @media (hover: hover) { .menu-item:hover { background: var(--hover-bg); } }
 .modal input[type="text"] { height: 36px; border-radius: var(--r-s); font-size: var(--fs-md); }
 .modal-buttons button.is-primary, .setting-item-control .sn-btn.is-primary, button.is-primary { background: var(--cta); color: var(--on-accent); border-color: var(--cta); }

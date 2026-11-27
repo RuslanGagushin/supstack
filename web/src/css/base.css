@@ -63,7 +63,6 @@ body {
   --icon-xs: 12px; --icon-s: 14px; --icon-m: 16px; --icon-l: 18px; --icon-xl: 20px; --icon-xxl: 22px;
   --icon-stroke: 1.75px;
 
-  --header-height: 40px;
   /* the note's panel (ui/inspector.js): its width beside the note */
   --insp-w: 280px;
   /* control heights: small (chips, icons in a row), medium (fields, buttons in bars), large (sidebar buttons, menu rows), touch */

@@ -1,11 +1,12 @@
 /* ==========================================================
    Agenda and tasks
    ========================================================= */
-/* a count: one quiet plate whatever it counts; today's and overdue tasks differ in its title, not its colour */
 /* a closed date: green, with its tick */
 .k-closed :is(.sn-chip, .markdown-rendered a.tag), :is(.sn-chip, .markdown-rendered a.tag).k-closed { background: var(--hue-green-bg); color: var(--hue-green-fg); }
-/* overdue is red, today's tasks orange */
-.wb-tasks .wb-count.is-overdue, .ag-over-n { background: var(--due-bg); color: var(--due-fg); }
+/* overdue is red, today's tasks orange; in the sidebar overdue is a solid plate beside today's tint, so they differ by more than hue */
+.ag-over-n { background: var(--due-bg); color: var(--due-fg); }
+.wb-tasks .wb-count.is-overdue { background: var(--due-fg); color: var(--win); }
+.wb-counts { display: inline-flex; gap: var(--sp-4); }
 .wb-tasks .wb-count.is-today { background: var(--hue-orange-bg); color: var(--hue-orange-fg); }
 .wb-tasks .wb-count, .ag-over-n { min-width: 18px; height: 18px; padding: 0 var(--sp-6); border-radius: var(--r-pill); background: var(--panel-strong); color: var(--ink); font-size: var(--fs-sm); font-weight: var(--fw-semibold); line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; }
 button.sn-btn.wb-tasks.is-active { border-color: var(--accent); }

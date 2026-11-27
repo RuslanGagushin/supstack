@@ -410,15 +410,21 @@ export async function linkMention(source, target) {
 }
 
 /* ---------- tags in the sidebar */
-export function tagsSection(box) {
+/** What the sidebar's Tags section shows, as plain data the tree compares between draws: null with no tags in the vault. */
+export function tagCloud() {
   const counts = new Map();
   for (const p of graph.nodes) for (const tg of cardTags(p)) counts.set(tg, (counts.get(tg) || 0) + 1);
-  if (!counts.size) return;
+  if (!counts.size) return null;
   const open = UI.tagsOpen !== false;
+  return { open, on: board.tagView || null, tags: open ? [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 40) : [] };
+}
+export function tagsSection(box, cloud = tagCloud()) {
+  if (!cloud) return;
+  const { open } = cloud;
   box.append(sectionHead(wt("tagsSection"), open, () => { UI.tagsOpen = !open; saveUI(); renderTree(); }));
   if (!open) return;
   const wrap = h("div", { cls: "sn-tag-cloud" });
-  for (const [tg, n] of [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 40)) {
+  for (const [tg, n] of cloud.tags) {
     const on = board.tagView === tg;
     // the open tag shows by a check as well as the accent plate, so the state is never colour alone;
     // the others are quiet grey chips with the tag's colour as a dot, so the cloud doesn't outshout the notebooks

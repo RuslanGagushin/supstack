@@ -9,15 +9,38 @@ import { undo } from "../services/save.js";
 import { $, $$, allIconNames, h, ic, keyName, keyText } from "./dom.js";
 
 export let openMenuEl = null;
-export function closeMenu() { openMenuEl?.remove(); openMenuEl = null; }
+let menuOpener = null;
+/** Closes the open menu; when the keyboard was in it, focus goes back to what opened it (if that is still there). */
+export function closeMenu() {
+  const back = openMenuEl?.contains(document.activeElement) && menuOpener?.isConnected ? menuOpener : null;
+  openMenuEl?.remove(); openMenuEl = null; menuOpener = null;
+  back?.focus({ preventScroll: true });
+}
+/** The keyboard in a menu: ↑ ↓ Home End move between the items, Enter or Space runs one, Escape or Tab closes it. */
+function menuKeys(e) {
+  const m = e.currentTarget;
+  const items = [...m.querySelectorAll(".menu-item:not(.is-disabled)")];
+  const i = items.indexOf(document.activeElement), k = e.key;
+  const go = (el) => el?.focus();
+  if (k === "ArrowDown") go(items[(i + 1) % items.length]);
+  else if (k === "ArrowUp") go(items[(i - 1 + items.length) % items.length]);
+  else if (k === "Home") go(items[0]);
+  else if (k === "End") go(items[items.length - 1]);
+  else if (k === "Enter" || k === " ") { if (i >= 0) items[i].click(); }
+  else if (k === "Escape" || k === "Tab") closeMenu();
+  else return;
+  e.preventDefault(); e.stopPropagation();
+}
 export class Menu {
   constructor() { this.items = []; }
   add(title, iconName, onClick, o = {}) { this.items.push({ title, icon: iconName, onClick, ...o }); return this; }
   sep() { if (this.items.length && this.items[this.items.length - 1] !== "sep") this.items.push("sep"); return this; }
   label(text) { this.items.push({ label: text }); return this; }
   showAt(x, y) {
+    const opener = document.activeElement;
     closeMenu();
     const m = h("div", { cls: "menu", role: "menu" });
+    m.addEventListener("keydown", menuKeys);
     const items = this.items.filter((it, i, a) => !(it === "sep" && (i === 0 || i === a.length - 1)));
     for (const it of items) {
       if (it === "sep") { m.append(h("div", { cls: "menu-separator" })); continue; }
@@ -25,6 +48,10 @@ export class Menu {
       const row = h("div", { cls: "menu-item" + (it.warning ? " is-warn" : "") + (it.disabled ? " is-disabled" : ""), role: "menuitem" },
         it.icon ? ic("menu-item-icon", it.icon) : h("span", { cls: "menu-item-icon" }), h("span", { cls: "menu-item-title", text: it.title }),
         it.checked ? ic("menu-item-check", "check") : null);
+      row.tabIndex = -1;
+      if (it.disabled) row.setAttribute("aria-disabled", "true");
+      // an item with a check (a sort, a filter, a mode) says whether it is on, the others with it too
+      if (typeof it.checked === "boolean") { row.setAttribute("role", "menuitemcheckbox"); row.setAttribute("aria-checked", String(it.checked)); }
       row.addEventListener("click", (e) => { e.stopPropagation(); closeMenu(); it.onClick?.(e); });
       m.append(row);
     }
@@ -33,6 +60,10 @@ export class Menu {
     m.style.left = Math.max(8, Math.min(x, innerWidth - r.width - 8)) + "px";
     m.style.top = Math.max(8, y + r.height > innerHeight - 8 ? y - r.height : y) + "px";
     openMenuEl = m;
+    menuOpener = opener instanceof HTMLElement && opener !== document.body ? opener : null;
+    // with the keyboard in use (sn-kb, keyboard.js) the first item takes focus, so the arrow keys work at once;
+    // a menu opened by the pointer leaves focus where it was (a field or the note keeps its caret and selection)
+    if (document.body.classList.contains("sn-kb")) m.querySelector(".menu-item:not(.is-disabled)")?.focus({ preventScroll: true });
   }
   showAtEvent(e) {
     e.preventDefault?.(); e.stopPropagation?.();

@@ -73,7 +73,6 @@ Six sizes and no more (spec UI-20); `tests/typography.test.mjs` measures them on
 | Corners | `--r-xs` 6, `--r-s` 8, `--r-m` 10, `--r-l` 16, `--r-pill` | xs: chips, tags, keys, inline code, a priority, and the items of a menu, popup or floating bar (4px inside an m corner, so the corners are concentric); s: buttons, fields, rows; m: cards, tiles, menus; l: dialogs; pill: only counts, the switch and the tasks bar. Circles are `50%` |
 | Control heights | `--ctl-xs` 20, `--ctl-s` 24, `--ctl-m` 28, `--ctl-l` 32, `--ctl-field` 34, `--ctl-touch` 40 | xs: small chips; s: chips, icons in a row; m: fields, buttons in bars; l: sidebar buttons, menu rows; field: the search fields; touch: the least a finger gets (spec UI-9) |
 | Icons | `--icon-xs` 12, `--icon-s` 14, `--icon-m` 16, `--icon-l` 18; `--icon-stroke` 1.75px | Lucide icons; one stroke |
-| Bars | `--header-height` 40 | the sidebar's head |
 | Tiles | `--tile-min` 96px (set per list, up to 200px) | the narrowest a notebook's tile gets; `fitTiles` widens it to the longest word in the names |
 | Panels | `--insp-w` 280 | the note's panel beside the note |
 

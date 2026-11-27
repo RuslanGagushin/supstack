@@ -12,20 +12,18 @@
 
 .sn-board .clickable-icon,
 .sn-outline .clickable-icon,
-.sn-editor .clickable-icon,
-.sn-side-head .clickable-icon {
+.sn-editor .clickable-icon {
   gap: var(--sp-4);
   min-width: 0;
   font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
   line-height: 1;
 }
-@media (hover: hover) { .sn-board .clickable-icon:hover, .sn-outline .clickable-icon:hover, .sn-editor .clickable-icon:hover, .sn-side-head .clickable-icon:hover { background: var(--panel); color: var(--fg); } }
+@media (hover: hover) { .sn-board .clickable-icon:hover, .sn-outline .clickable-icon:hover, .sn-editor .clickable-icon:hover { background: var(--panel); color: var(--fg); } }
 .sn-board .clickable-icon[disabled] { opacity: var(--disabled); pointer-events: none; }
 .sn-board .clickable-icon svg,
 .sn-outline .clickable-icon svg,
-.sn-editor .clickable-icon svg,
-.sn-side-head .clickable-icon svg { width: var(--icon-s); height: var(--icon-s); stroke-width: var(--icon-stroke); }
+.sn-editor .clickable-icon svg { width: var(--icon-s); height: var(--icon-s); stroke-width: var(--icon-stroke); }
 
 /* ---------- Top bar */
 .sn-nav { display: flex; gap: var(--sp-2); }

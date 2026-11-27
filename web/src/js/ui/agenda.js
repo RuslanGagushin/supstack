@@ -55,9 +55,13 @@ export function renderTasksButton() {
   const st = orgStats(orgAll());
   b.classList.toggle("is-active", board.view === "tasks");
   b.title = keyText(tt("stats", st) + " · Ctrl+Shift+K");
-  const n = st.overdue + st.today;
-  b.replaceChildren(...[ic("", "calendar-check"), h("span", { cls: "wb-label", text: tt("tasks") }),
-    n ? h("span", { cls: "wb-count" + (st.overdue ? " is-overdue" : " is-today"), text: String(n) }) : null].filter(Boolean));
+  // overdue and today are counted apart: one sum in red said "overdue" of tasks that were only due today.
+  // Overdue is a solid plate, today a tint, so the two differ by more than colour; the button's name says both in words.
+  const counts = [["overdue", st.overdue, "countOverdue"], ["today", st.today, "countToday"]].filter(([, n]) => n)
+    .map(([kind, n, key]) => ({ kind, n, text: tt(key, { n }) }));
+  b.setAttribute("aria-label", [tt("tasks"), ...counts.map((c) => c.text)].join(", "));
+  b.replaceChildren(ic("", "calendar-check"), h("span", { cls: "wb-label", text: tt("tasks") }),
+    ...(counts.length ? [h("span", { cls: "wb-counts", "aria-hidden": "true" }, counts.map((c) => h("span", { cls: "wb-count is-" + c.kind, title: c.text, text: String(c.n) })))] : []));
 }
 
 /* ---------- agenda rows */

@@ -41,7 +41,8 @@ function spatialNext(from, dir) {
   return best;
 }
 // the keyboard is being used to get around: Tab marks it, the pointer clears it (the list's and agenda's focus rings follow it)
-document.addEventListener("keydown", (e) => { if (e.key === "Tab") document.body.classList.add("sn-kb"); }, true);
+// Tab, and the keys that open a context menu (its first item then takes focus, ui.js), mean the keyboard is in use
+document.addEventListener("keydown", (e) => { if (e.key === "Tab" || e.key === "ContextMenu" || (e.shiftKey && e.key === "F10")) document.body.classList.add("sn-kb"); }, true);
 document.addEventListener("pointerdown", () => document.body.classList.remove("sn-kb"), true);
 document.addEventListener("keydown", (e) => {
   if (!vault.fs || modalStack) return;
