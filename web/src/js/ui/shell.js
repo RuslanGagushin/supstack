@@ -10,7 +10,7 @@ import { movableTasks, moveTasksFromNotes, taskStore } from "../services/tasks.j
 import { runSync, stopSync, sync, syncAvailable, syncBoot } from "../services/sync.js";
 import { upd } from "../services/updates.js";
 import { lsGet, lsSet } from "../services/storage.js";
-import { $, h, ic, iconBtn, keyName, keyText } from "./dom.js";
+import { $, h, ic, iconBtn, keyName, keyText, scrollBehavior } from "./dom.js";
 import { confirmModal, defaultEcho, echo, Menu, notice, openLayer, promptModal, suggestModal } from "./ui.js";
 import { createCard, promptAddTag, quickOpen, saveCurrentView, tagTargets, togglePin } from "./actions.js";
 import { goBack, patchBoard, renderBoard, setTarget, toggleSearch } from "./board.js";
@@ -233,7 +233,7 @@ function tabBar() {
     tab("agenda", "calendar-check", t("tabAgenda"), () => {
       if (board.view !== "tasks") { closeEditor(); openTasksView(); return; }
       AG.view = "agenda"; AG.anchor = onow().dn; renderBoard();
-      setTimeout(() => $(".ag-day.today")?.scrollIntoView({ block: "start", behavior: "smooth" }), 0);
+      setTimeout(() => $(".ag-day.today")?.scrollIntoView({ block: "start", behavior: scrollBehavior() }), 0);
     }),
     tab("search", "search", t("tabSearch"), () => quickOpen()),
     tab("capture", "inbox", t("tabCapture"), () => orgCapture()));

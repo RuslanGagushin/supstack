@@ -74,6 +74,73 @@ describe("roles for assistive technology (A11Y-1)", () => {
 });
 
 describe("the keyboard (A11Y-2)", () => {
+  test("the list's options hold no controls of their own, and say where a note is, when it changed and what is inside", async () => {
+    await openVault();
+    await ev(() => { closeEditor(true); setTarget(null); });
+    await settle();
+    const r = await ev(() => {
+      const box = document.querySelector("#board [role=listbox]");
+      const nested = [...box.querySelectorAll("[role=option] :is(a[href], button, input, textarea, select, [tabindex]:not([tabindex='-1']))")].filter((e) => !e.closest("[aria-hidden=true]"));
+      const desc = (o) => (o.getAttribute("aria-describedby") || "").split(" ").filter(Boolean).map((id) => document.getElementById(id)).filter(Boolean);
+      const notes = [...box.querySelectorAll("[role=option]:not(.is-folder)")];
+      return { nested: nested.map((e) => e.outerHTML.slice(0, 80)), described: notes.every((o) => desc(o).length > 0), dated: notes.every((o) => desc(o)[0].textContent.trim().length > 0) };
+    });
+    assert.deepEqual(r.nested, []);
+    assert.equal(r.described, true);
+    assert.equal(r.dated, true);
+    // in a search a notebook is a full row: its way in is described, not a second control
+    await ev(() => { board.filter = { query: "roman", tags: [], scope: "here" }; board.searchOpen = true; renderBoard(); });
+    await settle();
+    const s = await ev(() => {
+      const enter = document.querySelector("#board [role=option] .sn-row-enter");
+      const o = enter?.closest("[role=option]");
+      return enter && { hidden: enter.getAttribute("aria-hidden"), tab: enter.tabIndex, inDesc: o.getAttribute("aria-describedby").includes(enter.id) };
+    });
+    assert.deepEqual(s, { hidden: "true", tab: -1, inDesc: true });
+    noErrors();
+  });
+
+  test("an open note: its title field sits in a level-one heading and its text is a named text box", async () => {
+    await openVault();
+    for (const edit of [false, true]) {
+      await ev((edit) => openEditor("cards/This week.md", { focus: false, wide: false, edit }), edit);
+      await settle();
+      const r = await ev(() => {
+        const t = document.querySelector("#editor .sn-inline-title"), hd = t.closest("h1");
+        const body = document.querySelector("#editor .cm-content");
+        return { heading: !!hd, value: t.value, body: body ? body.getAttribute("aria-label") : "read" };
+      });
+      assert.equal(r.heading, true);
+      assert.equal(r.value, "This week");
+      assert.equal(r.body, edit ? "Note text" : r.body);
+    }
+    noErrors();
+  });
+
+  test("reduced motion: spinners hold still and fade, the new note still flashes, chevrons and scrolls don't travel", async () => {
+    await openVault();
+    const look = () => ev(async () => {
+      document.querySelector(".sn-test-spin")?.remove();
+      document.body.append(Object.assign(document.createElement("div"), { className: "sn-loading sn-test-spin", innerHTML: '<span class="sn-spin"><svg></svg></span>' }));
+      const spin = { animationName: getComputedStyle(document.querySelector(".sn-test-spin svg")).animationName };
+      document.querySelector(".sn-test-spin").remove();
+      await createCard("Fresh note", null);
+      await new Promise((r) => setTimeout(r, 50));
+      const fresh = document.querySelector('.sn-card.is-new');
+      const chev = document.querySelector(".sn-insp-chev") || document.querySelector(".sn-props-head svg");
+      return { spin: spin.animationName, flash: fresh && getComputedStyle(fresh).animationName, chev: chev && getComputedStyle(chev).transitionProperty, scroll: scrollBehavior() };
+    });
+    const normal = await look();
+    assert.deepEqual([normal.spin, normal.flash, normal.scroll], ["sn-spin", "wb-card-new", "smooth"]);
+    await page().emulateMedia({ reducedMotion: "reduce" });
+    const reduced = await look();
+    assert.deepEqual([reduced.spin, reduced.flash, reduced.scroll], ["sn-busy", "wb-card-new", "auto"]);
+    assert.equal(normal.chev, "transform");
+    assert.equal(reduced.chev, "none");
+    await page().emulateMedia({ reducedMotion: null });
+    noErrors();
+  });
+
   test("the tree: one Tab stop, the arrows move, open and close branches, Enter opens a notebook's list", async () => {
     await openVault();
     await ev(() => closeEditor(true));

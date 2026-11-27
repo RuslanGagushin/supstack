@@ -276,7 +276,8 @@ export function renderEditor() {
     const commit = async () => { const v = title.value.replace(/\n/g, " ").trim(); if (v && v !== baseName(editor.path)) { const np = await renameCard(editor.path, v); title.value = baseName(np); renderEditor(); } else title.value = baseName(editor.path); };
     title.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); title.blur(); const lv = liveTa(); if (lv) liveOpenAt(lv.selectionStart); else $(".sn-editor-text")?.focus(); } if (e.key === "Escape") { e.stopPropagation(); title.value = baseName(editor.path); title.blur(); } });
     title.addEventListener("blur", commit);
-    page.append(title);
+    // the title field sits in the note's heading, so a screen reader that goes by headings finds the note by its name (spec A11Y-1)
+    page.append(h("h1", { cls: "sn-title-h" }, title));
     requestAnimationFrame(growT);
     // the pane can still be settling when the title is measured: a title that wrapped then kept a second, empty line,
     // so it measures again whenever its width changes
@@ -337,7 +338,7 @@ function cmEditor(value, o = {}) {
       wrap.of(CM.EditorView.lineWrapping),
       cmMarkdown,
       CM.placeholder(o.placeholder || ""),
-      CM.EditorView.contentAttributes.of({ class: "sn-editor-text" + (o.cls ? " " + o.cls : ""), spellcheck: "true", autocapitalize: "sentences" }),
+      CM.EditorView.contentAttributes.of({ class: "sn-editor-text" + (o.cls ? " " + o.cls : ""), spellcheck: "true", autocapitalize: "sentences", "aria-label": o.label || t("noteBody") }),
       CM.Prec.highest(CM.EditorView.domEventHandlers(Object.fromEntries(["keydown", "paste", "drop", "dragover", "dragleave"].map((type) => [type, (e) => { fire(type, e); return e.defaultPrevented; }])))),
       CM.keymap.of([...CM.historyKeymap, ...CM.defaultKeymap]),
       o.extensions || [],

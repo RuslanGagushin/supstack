@@ -86,7 +86,7 @@ Six sizes and no more (spec UI-20); `tests/typography.test.mjs` measures them on
 | | `--shadow-3` | menus, popups, the toast, bars that float |
 | | `--shadow-4` | dialogs; the sidebar over the note |
 | Focus | `--ring`, `--ring-inset` | a 2px accent ring outside a control, or inside the edge of a row or a pane. Buttons and links use `outline: 2px solid var(--accent)` |
-| Motion | `--dur-1` 120ms, `--dur-2` 200ms, `--ease` | hover, folding, small changes; panels, bars, popups. `prefers-reduced-motion` cuts all of it |
+| Motion | `--dur-1` 120ms, `--dur-2` 200ms, `--ease` | hover, folding, small changes; panels, bars, popups. With `prefers-reduced-motion` nothing slides, turns or spins: chevrons, the switch and the tab bar change at once, the toast and previews only fade, a spinner holds still and fades in and out (`--dur-pulse`), scrolls from script jump (`scrollBehavior()`); colour changes and the new note's flash stay |
 | Layers | `--z-raised` 1, `--z-resizer` 3, `--z-float` 5, `--z-tabbar` 28, `--z-side` 30, `--z-editor` 35, `--z-welcome` 40, `--z-loading` 45, `--z-menu` 60, `--z-modal` 70, `--z-popup` 74, `--z-toast` 80 | from the page up; a neighbour one step above or below is `calc(var(--z-modal) + 1)` |
 | Disabled | `--disabled` .4 | the opacity of anything that can't be used now |
 
@@ -267,10 +267,10 @@ In a note's text: `> [!type]` draws a frame with the type's icon and title; the 
 | every variable used is defined, and every variable defined is used | `architecture` |
 | no colour functions outside `base.css`; no hex colours outside it either (alpha masks and the language badges in `markdown.js` aside) | `architecture` |
 | pressing a button, an icon button or a row shows | `ui-list` |
-| no numbers in `z-index`, `font-weight`, `transition`, `animation` (the spinners, the new card's flash and reduced motion aside) | `architecture` |
+| no numbers in `z-index`, `font-weight`, `transition`, `animation` (the spinners and the new card's flash aside) | `architecture` |
 | corners are `--r-*`, `50%`, `0` or a 1–2px hairline | `architecture` |
 | `padding`, `margin` and `gap` use the spacing scale; the few measured offsets are listed in the test with their reasons | `architecture` |
-| one layer: no `body.sn-app`, and `!important` only on the hide utilities and for reduced motion | `architecture` |
+| one layer: no `body.sn-app`, and `!important` only on the hide utilities | `architecture` |
 | retired class names stay retired | `architecture` |
 | six font sizes, a page's title aside; a note's title 30px, headings 24, 22, 17px and text 14px | `typography` |
 | every text against its background, both themes: 4.5:1, 3:1 for large text | `a11y` |

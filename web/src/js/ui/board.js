@@ -284,7 +284,7 @@ function countText(model) {
   if (!model.active && !tv && !model.truncated) {
     const books = model.shown.filter((c) => c.folder).length, notes = shown - books;
     // with notebooks in it, the notes on all levels too: the number its row in the sidebar shows
-    const deep = books ? graph.collect(board.target || null, 0, makeComparator("manual")).cards.length : 0;
+    const deep = books ? graph.countBelow(board.target || null) : 0;
     // "4 notes here · 16 in all": with the total beside it, the notes at this level say they are only these
     const here = deep > shown ? t("cardsHere", { n: notes }) : t("cardsCount", { n: notes });
     return [books ? t("notebooksCount", { n: books }) : "", notes || !books ? here : "", deep > shown ? t("countInAll", { n: deep }) : ""].filter(Boolean).join(" · ");

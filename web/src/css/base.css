@@ -85,7 +85,7 @@ body {
   /* keyboard focus and the chosen item: a ring outside a control, or inside the edge of a row or a pane */
   --ring: 0 0 0 2px var(--accent); --ring-inset: inset 0 0 0 2px var(--accent);
   /* motion: --dur-1 for hover, folding and small changes, --dur-2 for panels, bars and popups */
-  --dur-1: 120ms; --dur-2: 200ms; --ease: ease-out; --dur-spin: 1.2s; /* one turn of a spinner */
+  --dur-1: 120ms; --dur-2: 200ms; --ease: ease-out; --dur-spin: 1.2s; /* one turn of a spinner */ --dur-pulse: 2.4s; /* a still spinner's slow fade, with reduced motion */
   /* stacking, from the page up */
   --z-raised: 1; --z-resizer: 3; --z-float: 5; --z-tabbar: 28; --z-side: 30; --z-editor: 35; --z-welcome: 40; --z-loading: 45;
   --z-menu: 60; --z-modal: 70; --z-popup: 74; --z-toast: 80;

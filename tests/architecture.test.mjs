@@ -98,8 +98,8 @@ test("shadows, layers, weights and motion come from base.css's variables", () =>
       if (f !== "base.css" && /\b(?:rgba?|hsla?)\(/.test(l)) bad.push(`${at} colour function`);
       if (/z-index:\s*-?\d/.test(l)) bad.push(`${at} z-index`);
       if (/font-weight:\s*\d/.test(l)) bad.push(`${at} font-weight`);
-      // spinners, the new card's flash and the reduced-motion override keep their own times
-      if (/transition[\w-]*:[^;}]*\d+m?s\b/.test(l) && !/!important/.test(l)) bad.push(`${at} transition`);
+      // spinners and the new card's flash keep their own times
+      if (/transition[\w-]*:[^;}]*\d+m?s\b/.test(l)) bad.push(`${at} transition`);
       if (/animation:[^;}]*\d+m?s\b/.test(l) && !/sn-spin|wb-card-new/.test(l)) bad.push(`${at} animation`);
     });
   }
@@ -183,7 +183,7 @@ test("retired class names stay retired (docs/design-system.md has the ones that 
   assert.deepEqual(bad, []);
 });
 
-test("one layer of styles: no body.sn-app prefix; !important only on the hide utilities and for reduced motion", () => {
+test("one layer of styles: no body.sn-app prefix; !important only on the hide utilities", () => {
   const CSS = fileURLToPath(new URL("../web/src/css/", import.meta.url));
   const hide = [".markdown-rendered .org-hidden", ".sn-hide-narrow"];
   const bad = [];
@@ -193,9 +193,8 @@ test("one layer of styles: no body.sn-app prefix; !important only on the hide ut
     for (const rule of bare.matchAll(/([^{}]*)\{([^{}]*)\}/g)) {
       if (!rule[2].includes("!important")) continue;
       const selector = rule[1].trim().replace(/\s+/g, " ");
-      const motion = selector === "*, *::before, *::after";
       const utility = hide.includes(selector) && /^\s*display:\s*none\s*!important;?\s*$/.test(rule[2]);
-      if (!motion && !utility) bad.push(`${f}: ${selector} { ${rule[2].trim().slice(0, 60)} }`);
+      if (!utility) bad.push(`${f}: ${selector} { ${rule[2].trim().slice(0, 60)} }`);
     }
   }
   assert.deepEqual(bad, []);

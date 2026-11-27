@@ -3,9 +3,10 @@
    ========================================================= */
 const INFINITE_DEPTH_CAP = 64;
 export class HierarchyGraph {
-  constructor() { this.parents = new Map(); this.children = new Map(); this.unresolved = new Map(); this.linksIn = new Map(); this.childOrder = new Map(); this.nodes = new Set(); }
+  constructor() { this.parents = new Map(); this.children = new Map(); this.unresolved = new Map(); this.linksIn = new Map(); this.childOrder = new Map(); this.nodes = new Set(); this.counts = new Map(); }
   has(p) { return this.nodes.has(p); }
   setNode(path, parents, unresolved, links, childOrder) {
+    this.counts.clear();
     this.nodes.add(path);
     if (childOrder.length) this.childOrder.set(path, childOrder);
     const ps = new Set(parents.filter((p) => p !== path));
@@ -39,6 +40,31 @@ export class HierarchyGraph {
     };
     walk(this.sortedChildren(target, cmp), 1, target);
     return { cards, skippedRepeats, truncated };
+  }
+  /**
+   * How many cards collect(target, 0) lists, without sorting them: the number beside a notebook in the sidebar and on its
+   * tile, and the "in all" of a list. Kept per graph: the vault builds a new graph when a note changes, so a count never goes stale.
+   * Breadth first, so a card counts at its shallowest level; collect's walk agrees except past INFINITE_DEPTH_CAP levels.
+   */
+  countBelow(target) {
+    const key = target ?? "";
+    const hit = this.counts.get(key);
+    if (hit !== undefined) return hit;
+    const seen = new Set();
+    if (target) seen.add(target);
+    let level = target ? this.childrenOf(target) : this.roots(), n = 0;
+    for (let d = 1; level.length && d <= INFINITE_DEPTH_CAP; d++) {
+      const next = [];
+      for (const p of level) {
+        if (seen.has(p)) continue;
+        seen.add(p);
+        n++;
+        if (d < INFINITE_DEPTH_CAP) for (const c of this.children.get(p) ?? []) if (this.nodes.has(c) && !seen.has(c)) next.push(c);
+      }
+      level = next;
+    }
+    this.counts.set(key, n);
+    return n;
   }
   ancestry(path, cmp) {
     const chain = [];

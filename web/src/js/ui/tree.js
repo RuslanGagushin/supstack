@@ -46,7 +46,7 @@ export function renderTree() {
   const nbOpen = UI.notebooksOpen !== false;
   box.append(sectionHead(t("tree"), nbOpen, () => { UI.notebooksOpen = !nbOpen; saveUI(); renderTree(); }, header));
   const allRow = h("div", { cls: "tree-item-self is-clickable sn-tree-row" + (!board.target && !board.tagView ? " is-active" : "") }, h("span", { cls: "sn-tree-toggle is-leaf" }), ic("sn-tree-icon", "home"), h("div", { cls: "tree-item-inner sn-tree-label", text: t("allCards") }),
-    h("div", { cls: "tree-item-flair-outer" }, (() => { const n = graph.collect(null, 0, cmp).cards.length; return h("span", { cls: "tree-item-flair sn-tree-count", text: String(n), title: t("treeCountAll", { n }) }); })())); // the cards the board reaches, as its "of N" says
+    h("div", { cls: "tree-item-flair-outer" }, (() => { const n = graph.countBelow(null); return h("span", { cls: "tree-item-flair sn-tree-count", text: String(n), title: t("treeCountAll", { n }) }); })())); // the cards the board reaches, as its "of N" says
   allRow.addEventListener("click", () => setTarget(null));
   dnd.dropTarget(allRow, () => ({ path: null, parent: null, zones: ["inside"], root: true }));
   const nbTree = h("div", { cls: "sn-aria-tree", role: "tree", "aria-label": t("tree") });
@@ -207,7 +207,7 @@ function treeNode(path, chain, cmp, o) {
   toggle.addEventListener("click", (e) => { e.stopPropagation(); if (tree.expanded.has(key)) tree.expanded.delete(key); else tree.expanded.add(key); persistBoard(); renderTree(); });
   row.append(toggle, ic("sn-tree-icon", cardIcon(path) || (all.length ? "folder" : "file-text"), "file-text"), h("div", { cls: "tree-item-inner sn-tree-label", text: baseName(path), title: isCycle ? "↻" : path }));
   // every card on all levels below, as All notes counts them: a notebook of notebooks does not read as nearly empty
-  const total = all.length ? graph.collect(path, 0, cmp).cards.length : 0;
+  const total = all.length ? graph.countBelow(path) : 0;
   if (total) row.append(h("div", { cls: "tree-item-flair-outer" }, h("span", { cls: "tree-item-flair sn-tree-count", text: String(total), title: t("treeCountAll", { n: total }) })));
   row.addEventListener("click", (e) => { if (isMod(e)) openEditor(path); else setTarget(path); });
   row.addEventListener("dblclick", () => openEditor(path));

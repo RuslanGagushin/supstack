@@ -30,6 +30,7 @@
 .sn-editor-scroll { flex: 1 1 auto; overflow-y: auto; }
 .sn-editor-page { margin: 0 auto; max-width: calc(var(--fs-note) * 40 + 2 * var(--sp-32)); padding: var(--sp-24) var(--sp-32) 40vh; } /* about 80 characters a line of the note's text: past that the eye loses its way back to the next line */
 #app.editor-wide .sn-editor-page { padding-top: var(--sp-32); }
+.sn-title-h { margin: 0; font-size: inherit; font-weight: inherit; line-height: inherit; } /* the heading around the title field: the field sets the type */
 .sn-inline-title { display: block; width: 100%; padding: 0; border: 0; background: transparent; resize: none; overflow: hidden; font-weight: var(--fw-bold); font-size: var(--fs-title); line-height: var(--lh-title); letter-spacing: var(--ls-title); color: var(--ink); margin: var(--sp-6) 0 var(--sp-20); }
 /* Properties: the note's frontmatter */
 .sn-props-head { display: flex; align-items: center; gap: var(--sp-6); margin-bottom: var(--sp-6); cursor: default; width: max-content; }
@@ -44,6 +45,11 @@
 @media (hover: hover) { .sn-prop-add:hover { background: var(--panel); color: var(--fg); } }
 .sn-prop-add svg { width: var(--icon-s); height: var(--icon-s); }
 .sn-prop-input { height: var(--ctl-s); min-width: 90px; flex: 1; border: 0; background: transparent; padding: 0; }
+/* the placeholder in the palette, not the browser's grey: --faint on the panel's own ground, --muted on a hovered row's plate */
+.sn-prop-input::placeholder { color: var(--faint); opacity: 1; }
+@media (hover: hover) { .sn-prop:hover .sn-prop-input::placeholder { color: var(--muted); } }
+/* the notes of child_order, first to last, wrapping like the other chips */
+.sn-prop-order { display: flex; flex-wrap: wrap; gap: var(--sp-4); min-width: 0; }
 @media (hover: hover) { .sn-icon-pick:hover { background: var(--panel); } }
 .sn-icon-pick svg { width: var(--icon-s); height: var(--icon-s); color: var(--muted); }
 .sn-icon-pick.is-empty { color: var(--faint); }

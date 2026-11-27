@@ -26,7 +26,7 @@ export function computeModel(graph, view, { cmp, tagsOf, textOf, maxCards, candi
   // While searching, look through every level below the target (or the whole vault)
   const scopeTarget = active && f.scope === "all" ? null : view.target;
   const all = graph.collect(scopeTarget, active ? 0 : 1, cmp);
-  const total = active ? all.cards.length : graph.collect(view.target, 0, cmp).cards.length;
+  const total = active ? all.cards.length : graph.countBelow(view.target);
   const q = parseQuery(f.query), tokens = q.words;
   const tagSet = new Set(f.tags);
   const cand = tokens.length && candidatesOf ? candidatesOf(tokens) : null;

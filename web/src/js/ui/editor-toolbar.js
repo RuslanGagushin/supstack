@@ -4,10 +4,10 @@
    ========================================================= */
 import { LANG, t, wt } from "../core/i18n.js";
 import { baseName, HUES, hueOf } from "../core/util.js";
-import { dumpYaml } from "../core/frontmatter.js";
+import { dumpYaml, parentLinkpaths } from "../core/frontmatter.js";
 import { formatTable } from "../core/tables.js";
 import { editor, graph, PARENTS_FIELD, UI, vault } from "../services/state.js";
-import { cardIcon } from "../services/vault.js";
+import { cardIcon, resolveLink } from "../services/vault.js";
 import { $, h, ic, isMod, setIcon } from "./dom.js";
 import { Menu } from "./ui.js";
 import { addTags, fmTagList, promptAddParent, promptIcon, removeParent, removeTag, templateFor } from "./actions.js";
@@ -49,6 +49,8 @@ export function renderEditorProps() {
 /** The note's properties as rows a person edits: its notebooks, icon, tags, child template and the rest of its
  *  frontmatter. Drawn into `host` (the editing view's Properties block, or the inspector's), keeping a tag being typed
  *  and the focus across the redraw that follows each change. */
+/** Keys whose name alone doesn't say what they do: their hover text (strings.js). */
+const KEY_HINTS = { child_order: "childOrderKey" };
 export function fillProps(host, path, n, o = {}) {
   const field = PARENTS_FIELD;
   const inputOf = () => (host.isConnected ? host : document.querySelector(o.selector || "#editor-props"))?.querySelector(".sn-prop-input");
@@ -62,7 +64,8 @@ export function fillProps(host, path, n, o = {}) {
     ph.addEventListener("click", () => { editor.propsCollapsed = !editor.propsCollapsed; props.classList.toggle("is-collapsed", editor.propsCollapsed); });
     props.append(ph);
   }
-  const row = (iconName, key, ...val) => h("div", { cls: "sn-prop" }, h("div", { cls: "sn-prop-key" }, ic("", iconName), h("span", { text: key })), h("div", { cls: "sn-prop-val" }, ...val));
+  // the key is the frontmatter's own name; cut short in the narrow column, it says itself in full (and, for some, what it does) on hover
+  const row = (iconName, key, ...val) => h("div", { cls: "sn-prop" }, h("div", { cls: "sn-prop-key", title: KEY_HINTS[key] ? t(KEY_HINTS[key]) : key }, ic("", iconName), h("span", { text: key })), h("div", { cls: "sn-prop-val" }, ...val));
   // parents
   const pv = [];
   for (const p of graph.parentsOf(path).filter((x) => graph.has(x))) pv.push(parentChip(p, () => removeParent(path, p)));
@@ -101,6 +104,17 @@ export function fillProps(host, path, n, o = {}) {
   const known = new Set([field, "icon", "tags", "tag", "child_template"]);
   const others = Object.entries(n.fm).filter(([k]) => !known.has(k));
   for (const [k, v] of others) {
+    // the order of a notebook's notes is a row of those notes, first to last, each opening the note; one that no longer
+    // exists is a dashed chip. It changes by dragging in the list, so the chips have no ×
+    if (k === "child_order" && Array.isArray(v)) {
+      const chips = parentLinkpaths(v).map((lp) => {
+        const p = resolveLink(lp, path);
+        if (!p || !graph.has(p)) return h("span", { cls: "sn-chip is-s is-missing", title: t("noteGone") }, ic("sn-chip-icon", "alert-triangle"), h("span", { text: lp }));
+        return h("a", { cls: "sn-chip is-s", href: "#", title: baseName(p), onClick: (e) => { e.preventDefault(); openEditor(p); } }, ic("sn-chip-icon", cardIcon(p) || "file-text", "file-text"), h("span", { text: baseName(p) }));
+      });
+      props.append(row("list-ordered", k, h("span", { cls: "sn-prop-order" }, ...chips)));
+      continue;
+    }
     // a list or a map reads as the YAML it is; a plain value in the panel's own type, like the values above it (#26)
     const yaml = typeof v === "object" && v !== null;
     const txt = yaml ? dumpYaml(v).trim() : String(v);

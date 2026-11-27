@@ -13,7 +13,7 @@ import { cardIcon, cardTags, linkText, resolveLink } from "../services/vault.js"
 import { IMG_EXT, saveAttachment } from "../services/attachments.js";
 import { txn, writeRaw } from "../services/save.js";
 import { dailyNotePath } from "../services/daily-notes.js";
-import { $, $$, h, ic } from "./dom.js";
+import { $, $$, h, ic, scrollBehavior } from "./dom.js";
 import { fuzzyScore, Menu, notice, openMenuEl, suggestModal } from "./ui.js";
 import { renderMarkdown, wireRendered } from "./markdown.js";
 import { cleanTag, createCard, sanitizeTitle, vaultTags } from "./actions.js";
@@ -357,7 +357,7 @@ export function noteOutline() {
       const sc = $(".sn-editor-scroll");
       if (sc) sc.scrollTop += r.top - sc.getBoundingClientRect().top - 60;
     } else {
-      $$("#editor .sn-reading :is(h1,h2,h3,h4,h5,h6)")[i]?.scrollIntoView({ block: "start", behavior: "smooth" });
+      $$("#editor .sn-reading :is(h1,h2,h3,h4,h5,h6)")[i]?.scrollIntoView({ block: "start", behavior: scrollBehavior() });
     }
   };
   return { hs, go };

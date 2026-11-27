@@ -155,7 +155,7 @@ button.clickable-icon.wb-icon { width: 34px; height: var(--ctl-l); border-radius
 .sn-editor-where { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--sp-2); }
 .sn-editor-where .sn-editor-path { flex: 0 1 auto; display: flex; align-items: baseline; min-width: 0; }
 .sn-editor-path > a { min-width: 1.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-a.sn-editor-crumb { color: var(--muted); text-decoration: none; }
+a.sn-editor-crumb { padding-block: var(--sp-4); margin-block: calc(var(--sp-4) * -1); color: var(--muted); text-decoration: none; } /* a 24px target on a 16px line, nothing moves */
 @media (hover: hover) { a.sn-editor-crumb:hover { color: var(--ink); text-decoration: underline; } }
 .sn-editor-crumb-sep { flex: none; display: inline-flex; align-self: center; padding: 0 var(--sp-4); color: var(--faint); }
 .sn-editor-crumb-sep svg { width: var(--icon-xs); height: var(--icon-xs); }
@@ -300,8 +300,8 @@ a.sn-facts-place svg { flex: none; width: var(--icon-s); height: var(--icon-s); 
 .sn-row-meta { display: flex; align-items: center; gap: var(--sp-8); min-width: 0; font-size: var(--fs-sm); line-height: 16px; color: var(--faint); white-space: nowrap; }
 .sn-row-meta-icon { display: inline-flex; color: var(--muted); }
 .sn-row-meta-icon svg { width: var(--icon-xs); height: var(--icon-xs); }
-a.sn-row-parent { min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--muted); font-weight: var(--fw-medium); text-decoration: none; }
-@media (hover: hover) { a.sn-row-parent:hover { color: var(--ink); text-decoration: underline; } }
+.sn-row-parent { min-width: 0; cursor: pointer; overflow: hidden; text-overflow: ellipsis; color: var(--muted); font-weight: var(--fw-medium); text-decoration: none; }
+@media (hover: hover) { .sn-row-parent:hover { color: var(--ink); text-decoration: underline; } }
 .sn-row-date { flex: none; }
 .sn-row-meta .sn-task-prog { display: inline-flex; align-items: center; gap: var(--sp-4); }
 .sn-row-meta .sn-task-prog svg { width: var(--icon-xs); height: var(--icon-xs); }
@@ -316,8 +316,8 @@ a.sn-row-parent { min-width: 0; overflow: hidden; text-overflow: ellipsis; color
 }
 /* the tags end the row's last line, after the date: one line, cut at the row's edge */
 .sn-row-meta { overflow: hidden; height: 18px; } /* as high with tags as without: rows of the same text are the same height */
-.sn-row-meta .sn-tags.sn-row-tags { display: inline-flex; flex-wrap: nowrap; gap: var(--sp-4); min-width: 0; margin: 0 0 0 var(--sp-2); overflow: hidden; }
-.sn-row-meta .sn-row-tags .sn-chip { height: 18px; padding: 0 var(--sp-6); } /* as high as the line it ends (RS-32) */
+.sn-row-meta .sn-tags.sn-row-tags { display: inline-flex; flex-wrap: wrap; gap: var(--sp-4); height: 18px; min-width: 0; margin: 0 0 0 var(--sp-2); overflow: hidden; } /* a chip that doesn't fit drops to a hidden second line rather than being cut */
+.sn-row-meta .sn-row-tags .sn-chip { min-width: 0; height: 18px; padding: 0 var(--sp-6); } /* as high as the line it ends (RS-32) */
 button.sn-row-enter {
   flex: none; align-self: center; gap: var(--sp-2); height: var(--ctl-l); padding: 0 var(--sp-6) 0 var(--sp-12);
   border: 0; border-radius: var(--r-s); background: var(--panel); color: var(--muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; cursor: pointer;
@@ -371,6 +371,7 @@ button.sn-row-enter svg { width: var(--icon-m); height: var(--icon-m); }
     transition: transform var(--dur-2) var(--ease);
   }
   .sn-tabbar.is-hidden { transform: translateY(100%); }
+  @media (prefers-reduced-motion: reduce) { .sn-tabbar { transition: none; } } /* it goes and comes back at once (writing.css) */
   /* the bar's Capture is the one way in: the agenda's own + would be a second (#29) */
   .sn-board.is-tasks .sn-topbar button.ag-capture { display: none; }
   button.sn-tab, button.sn-tab:not(.clickable-icon) {

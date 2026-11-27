@@ -79,4 +79,6 @@ export function edgeFades(el) {
   return el;
 }
 export const isMod = (e) => e.ctrlKey || e.metaKey;
+/** "smooth", or "auto" when the system asks for reduced motion: a scroll from script jumps there instead. */
+export const scrollBehavior = () => (matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
 

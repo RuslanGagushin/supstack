@@ -6,12 +6,14 @@
 .sn-editor-text::placeholder { color: var(--faint); }
 .sn-live { min-height: 40vh; cursor: text; }
 /* live preview (lpInline, lpBlocks): away from the caret the Markdown reads as in reading mode */
-.sn-live .cm-sn-h { font-weight: var(--fw-bold); color: var(--ink); line-height: var(--lh-tight); letter-spacing: -.01em; padding-top: max(0px, calc(1.5em - var(--fs-note))); }
+.sn-live .cm-sn-h { font-weight: var(--fw-bold); color: var(--ink); line-height: var(--lh-tight); letter-spacing: var(--ls-head); padding-top: max(0px, calc(1.5em - var(--fs-note))); }
 /* the gaps are the reading view's (base.css): over a heading its 1.5em (the blank line's 1em, then the rest above the heading), under it
    .5em of its own size; between other blocks a paragraph's 1em. A blank line is that gap, so a block stands where it does when read */
 .sn-live .cm-sn-h.cm-sn-h-tight { padding-bottom: .5em; }
 .sn-live .cm-sn-h.cm-sn-h-first { padding-top: 0; } /* the reading view's first block has no margin above it (chrome.css) */
 .sn-live .cm-line.cm-sn-gap { line-height: 1; }
+/* the empty image CodeMirror puts beside a hidden mark (##, a box) hangs from the top of the text: on the baseline it made a heading's line 1px taller than when read */
+.sn-live .cm-widgetBuffer { vertical-align: text-top; }
 .sn-live .cm-line.cm-sn-gap-h1 { font-size: var(--h1-size); line-height: .5; } .sn-live .cm-line.cm-sn-gap-h2 { font-size: var(--h2-size); line-height: .5; }
 .sn-live .cm-line.cm-sn-gap-h3 { font-size: var(--h3-size); line-height: .5; } .sn-live .cm-line:is(.cm-sn-gap-h4, .cm-sn-gap-h5, .cm-sn-gap-h6) { line-height: .5; }
 .sn-live .cm-sn-h1 { font-size: var(--h1-size); } .sn-live .cm-sn-h2 { font-size: var(--h2-size); } .sn-live .cm-sn-h3 { font-size: var(--h3-size); }
@@ -162,9 +164,20 @@ button.sn-table-ins-col { top: 0; }
 /* only once Tab has been pressed: the app focuses these itself, and a frame then would only be noise (ui/keyboard.js sets sn-kb) */
 body.sn-kb :is(.sn-board, .sn-reading):focus-visible { box-shadow: var(--ring-inset); }
 :is(.fv-list, .ag-body):focus-visible { outline: none; box-shadow: none; }
+/* Reduced motion: nothing slides, turns or spins; what fades, changes colour or flashes stays, because it says something.
+   Each moving thing has its own still version here, rather than one rule that stops every animation and transition:
+   that froze the spinners mid-turn and erased the new note's highlight. Smooth scrolling from script asks scrollBehavior() (dom.js). */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; scroll-behavior: auto !important; }
+  /* a spinner holds still and fades slowly in and out: still busy, without turning */
+  .sn-spin svg, .wb-sync.is-spin .wb-sync-icon svg, .sn-sync-status.is-spin svg { animation: sn-busy var(--dur-pulse) ease-in-out infinite; }
+  /* the toast and the link preview fade in where they stand, without the few pixels' slide */
+  @keyframes sn-in { from { opacity: 0; } }
+  @keyframes hp-in { from { opacity: 0; } }
+  /* chevrons and the switch's knob change at once instead of turning or sliding (the agenda's in agenda.css, the tab bar in app.css) */
+  .sn-outline .sn-tree-toggle svg, .sn-props-head svg, .checkbox-container::after, .sn-insp-chev, .markdown-rendered .callout-fold, .sn-sec-caret svg { transition: none; }
+  /* the new note's highlight (frame.css) only changes colour: it plays as it is */
 }
+@keyframes sn-busy { 50% { opacity: .35; } }
 /* Toolbar fits its pane: tighter spacing, then fewer labels, then fewer buttons — never sideways scrolling on desktop */
 .sn-editor { flex: 0 0 var(--editor-w, 540px); container-type: inline-size; container-name: editor-pane; grid-column: 5; grid-row: 2; }
 .sn-editor-col { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; container-type: inline-size; container-name: editor; }

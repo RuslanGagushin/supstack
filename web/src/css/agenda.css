@@ -301,6 +301,7 @@ body.theme-dark .org-cal button.cal-day.is-selected { color: var(--bg); }
 .markdown-rendered { --fold-w: 18px; --fold-gap: var(--sp-8); --fold-lead: calc(var(--fold-w) + var(--fold-gap) - var(--sp-2)); --box-lead: calc(max(var(--sp-14), var(--fs-ui) * 1.125) + var(--fs-ui) * .625 + .25em); }
 .markdown-rendered button.org-fold, .markdown-rendered button.org-fold:not(.clickable-icon) { width: var(--fold-w); height: var(--fold-w); margin: 0 var(--fold-gap) 0 calc(var(--sp-2) * -1); padding: 0; border: 0; border-radius: var(--r-xs); background: transparent; color: var(--faint); vertical-align: -3px; cursor: pointer; }
 .markdown-rendered button.org-fold svg { width: var(--icon-s); height: var(--icon-s); transition: transform var(--dur-1) var(--ease); }
+@media (prefers-reduced-motion: reduce) { .ag-over-chev svg, .markdown-rendered button.org-fold svg { transition: none; } } /* they turn at once (writing.css) */
 /* a task's lines start under its text: the dates and note under its title (spec UI-5), and the title's own next lines when it wraps.
    The row hangs by --lead: padding to the text, its first line pulled back over the fold and the box. */
 .markdown-rendered li.task-list-item { --lead: var(--box-lead); padding-inline-start: var(--lead); text-indent: calc(-1 * var(--lead)); }

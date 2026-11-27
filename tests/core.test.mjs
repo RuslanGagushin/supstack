@@ -102,6 +102,17 @@ describe("hierarchy graph", () => {
     assert.equal(g.collect("Home", 0, byName, 2).truncated, true);
   });
 
+  test("countBelow counts what collect lists, once per card, and keeps the count", () => {
+    for (const p of [null, "Home", "Garden", "Kitchen", "Shed"]) assert.equal(g.countBelow(p), g.collect(p, 0, byName).cards.length, String(p));
+    assert.equal(g.countBelow("Home"), 3, "Shed once although it has two parents");
+    assert.equal(g.counts.get("Home"), 3);
+    const c = new HierarchyGraph();
+    c.setNode("A", ["B"], [], [], []); c.setNode("B", ["A"], [], [], []); c.setNode("C", ["A"], [], [], []);
+    assert.equal(c.countBelow("A"), c.collect("A", 0, byName).cards.length, "a cycle ends");
+    c.setNode("D", ["C"], [], [], []);
+    assert.equal(c.countBelow("A"), 3, "a new card clears the kept counts");
+  });
+
   test("reorderBlock", () => {
     assert.deepEqual(reorderBlock(["a", "b", "c", "d"], ["d"], "b", "before"), ["a", "d", "b", "c"]);
     assert.deepEqual(reorderBlock(["a", "b", "c", "d"], ["a", "b"], "c", "after"), ["c", "a", "b", "d"]);
@@ -236,6 +247,12 @@ describe("plain text previews", () => {
   test("plainText keeps the words of a note and drops its Markdown", () => {
     const md = "## Rates\n\n| Format | Hours |\n| --- | :-: |\n| Call | 0.5–1 h |\n\n- [ ] **buy** [[Milk|milk]] at [the shop](http://x)\n> [!info]+ Tip\n> text `code`\n```js\nlet x = 1\n```\n![[a.png]] ![alt](b.jpg) end";
     assert.equal(plainText(md), "Rates · Format Hours Call 0.5–1 h · buy milk at the shop Tip text code · end");
+  });
+  test("plainText drops #tags that end a line or fill it (they show as chips); a tag in a sentence and #42 stay", () => {
+    assert.equal(plainText("An amphitheatre.\n\n- [ ] Visit at sunrise\n\n#travel"), "An amphitheatre. Visit at sunrise");
+    assert.equal(plainText("Plans #work #home\nI love #travel a lot"), "Plans I love #travel a lot");
+    assert.equal(plainText("Fixed issue #42"), "Fixed issue #42");
+    assert.equal(plainText("C# is a language"), "C# is a language");
   });
   test("plainText drops the markup of tasks: every box, priorities, planning lines and :tags: (SRCH-4)", () => {
     const md = "- [/] [#A] Book the tour :travel:\n  DEADLINE: <2026-11-13 Fri> SCHEDULED: <2026-11-11 Wed>\n  Call first.\n- [<] [#C] Order the book\n- [>] Plan the trip\n- [-] Renew the pass\n- [x] Set up\n  CLOSED: [2026-11-10 Tue 18:20]\n1. [ ] Numbered\n- Time 10:30: not a tag";

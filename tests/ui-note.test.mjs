@@ -34,7 +34,7 @@ describe("opening a note", () => {
     await openVault({ lang: "ru", openNotes: "read", demo: false, notes, viewport: { width: 1440, height: 900 } });
     for (const p of ["cards/Book.md", "cards/Child.md", "daily notes/2026-11-13.md"]) {
       await ev((p) => openEditor(p, { focus: false, wide: false }), p);
-      assert.equal(await ev(() => document.querySelector("#editor .sn-editor-page").firstElementChild.classList.contains("sn-inline-title")), true, p);
+      assert.equal(await ev(() => document.querySelector("#editor .sn-editor-page").firstElementChild.firstElementChild?.classList.contains("sn-inline-title")), true, p);
     }
     await ev(() => openEditor("cards/Child.md", { focus: false, wide: false }));
     await settle();
@@ -523,5 +523,26 @@ describe("the side panel's properties (#26)", () => {
     assert.equal(m.order, m.body, JSON.stringify(m));
     assert.notEqual(m.aliases, m.body, `a list stays as YAML: ${JSON.stringify(m)}`);
     assert.ok(m.swatch && m.noSwatch, JSON.stringify(m));
+  });
+
+  test("child_order is the notebook's notes in their order, each opening its note; a gone one is dashed; the key explains itself", async () => {
+    await openVault({ demo: false, viewport: { width: 1440, height: 900 }, notes: {
+      "cards/Book.md": "---\nchild_order:\n  - \"[[Two]]\"\n  - \"[[Gone]]\"\n  - \"[[One]]\"\n---\n",
+      "cards/One.md": "---\nparents: [\"[[Book]]\"]\n---\n", "cards/Two.md": "---\nparents: [\"[[Book]]\"]\nicon: star\n---\n",
+    } });
+    await ev(() => { openEditor("cards/Book.md"); if (!document.querySelector(".sn-insp")) toggleInspector(); });
+    await H.page.waitForTimeout(300);
+    const r = await ev(() => {
+      const row = [...document.querySelectorAll(".sn-insp .sn-prop")].find((x) => x.querySelector(".sn-prop-key").textContent === "child_order");
+      return { chips: [...row.querySelectorAll(".sn-chip")].map((c) => [c.textContent, c.classList.contains("is-missing")]), yaml: !!row.querySelector(".is-yaml"), hint: row.querySelector(".sn-prop-key").title,
+        placeholder: getComputedStyle(document.querySelector(".sn-insp .sn-prop-input"), "::placeholder").color, faint: getComputedStyle(document.body).getPropertyValue("--faint").trim() };
+    });
+    assert.deepEqual(r.chips, [["Two", false], ["Gone", true], ["One", false]]);
+    assert.equal(r.yaml, false);
+    assert.match(r.hint, /^child_order: .*Drag/);
+    assert.equal(r.placeholder, await ev((c) => { const d = document.createElement("i"); d.style.color = c; document.body.append(d); const v = getComputedStyle(d).color; d.remove(); return v; }, r.faint), "the placeholder in --faint, not the browser's grey");
+    await H.page.click('.sn-insp .sn-prop a.sn-chip[title="One"]');
+    assert.equal(await ev(() => editor.path), "cards/One.md");
+    noErrors();
   });
 });

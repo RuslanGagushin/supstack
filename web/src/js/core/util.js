@@ -30,6 +30,9 @@ export function plainText(md, max = 300) {
     .replace(/^[ \t]*(?:#{1,6}[ \t]+|[-*+][ \t]+(?:\[[ xX\/<>-]\][ \t]+)?|\d+[.)][ \t]+(?:\[[ xX\/<>-]\][ \t]+)?)/gm, BLOCK)
     .replace(new RegExp(`^(${BLOCK}?)\\[#[A-Za-z]\\][ \\t]*`, "gm"), "$1")
     .replace(/[ \t]+:(?:[\p{L}\p{N}_@#%]+:)+[ \t]*$/gmu, "")
+    // #tags that end a line, or make up the whole of it, show as chips beside the text; one inside a sentence stays,
+    // and so does "#42": a tag has a letter in it
+    .replace(/(?:^|[ \t]+)(?:#(?=[\p{N}_/-]*\p{L})[\p{L}\p{N}_/-]+[ \t]*)+$/gmu, "")
     .replace(/^[ \t]*(?:-{3,}|\*{3,}|_{3,})[ \t]*$/gm, " ")
     .replace(/\|/g, " ")
     .replace(/(\*\*|__|~~|==|\*|`)/g, "")

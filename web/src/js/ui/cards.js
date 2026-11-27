@@ -4,7 +4,7 @@
 import { LANG, t, tt } from "../core/i18n.js";
 import { baseName, norm, plainText, previewText, hueOf } from "../core/util.js";
 import { board, editor, graph, S, vault } from "../services/state.js";
-import { cardIcon, linkText, cardHue, makeComparator } from "../services/vault.js";
+import { cardIcon, linkText, cardHue } from "../services/vault.js";
 import { filterActive } from "../core/board-model.js";
 import { cardTaskProgress } from "../services/tasks.js";
 import { attachmentUrl, firstImage } from "../services/attachments.js";
@@ -54,6 +54,8 @@ function highlight(root, tokens) {
     node.replaceWith(frag);
   }
 }
+/** Ids that tie a row to its description (aria-describedby). */
+let rowIds = 0;
 /** Whether `path` is a notebook (has children): it is a row of the notebooks at the top of a list. */
 const isFolder = (path) => graph.childrenOf(path).length > 0;
 /** A drop before or after a row reorders within its group (notebooks or notes); onto a row of the other group it can only go inside. */
@@ -85,7 +87,7 @@ function renderFolderRow(path, via) {
   asOption(row, path);
   if (editor.path === path) row.classList.add("is-editing");
   // a tile: its icon, its name and every note on all levels inside it, the same number as its row in the sidebar (restyle RS-26)
-  const total = graph.collect(path, 0, makeComparator("manual")).cards.length;
+  const total = graph.countBelow(path);
   row.append(ic("sn-row-folder-icon", cardIcon(path) || "folder", "folder"), h("span", { cls: "sn-row-title", text: baseName(path), title: baseName(path) }),
     h("span", { cls: "sn-row-count", title: t("treeCountAll", { n: total }), text: t("cardsCount", { n: total }) }));
   row.addEventListener("click", (e) => {
@@ -124,10 +126,10 @@ export function renderRow(path, via, folder = false) {
   const text = h("div", { cls: "sn-row-text" });
 
   // the title first, then its text, then one line with where it is, when it changed, its tasks and its tags (spec UI-22)
-  const meta = h("div", { cls: "sn-row-meta" });
+  const meta = h("div", { cls: "sn-row-meta", id: "sn-row-meta-" + (++rowIds) });
   const parents = graph.parentsOf(path).filter((p) => graph.has(p));
   const where = via && parents.includes(via) ? via : parents.find((p) => p !== board.target) ?? null;
-  if (searching && where && where !== board.target) meta.append(h("a", { cls: "sn-row-parent", href: "#", text: baseName(where), onClick: (e) => { e.preventDefault(); e.stopPropagation(); setTarget(where); } }));
+  if (searching && where && where !== board.target) meta.append(h("span", { cls: "sn-row-parent", text: baseName(where), onClick: (e) => { e.stopPropagation(); setTarget(where); } }));
   const mtime = n?.mtime || 0;
   meta.append(h("span", { cls: "sn-row-date", text: formatDate(mtime), title: t("modifiedAt", { date: new Date(mtime).toLocaleString(LANG) }) }));
   const prog = cardTaskProgress(path);
@@ -155,7 +157,8 @@ export function renderRow(path, via, folder = false) {
   const tags = n?.tags || [];
   if (tags.length) {
     const tr = h("span", { cls: "sn-tags sn-row-tags" });
-    for (const tg of tags) tr.append(h("span", { cls: "sn-chip is-s is-link hue-" + hueOf(tg.replace(/^#/, "")), text: tg.replace(/^#/, ""), onClick: (e) => { e.stopPropagation(); openTagView(tg); } }));
+    // the name in a span of its own, so a chip short of room ends in … (frame.css) instead of being cut
+    for (const tg of tags) tr.append(h("span", { cls: "sn-chip is-s is-link hue-" + hueOf(tg.replace(/^#/, "")), title: tg.replace(/^#/, ""), onClick: (e) => { e.stopPropagation(); openTagView(tg); } }, h("span", { text: tg.replace(/^#/, "") })));
     meta.append(tr);
   }
   text.append(meta);
@@ -171,18 +174,22 @@ export function renderRow(path, via, folder = false) {
   const kids = graph.childrenOf(path).length;
   if (kids) {
     row.classList.add("has-kids");
-    row.append(h("button", { cls: "sn-row-enter", type: "button", title: t("rowEnter", { n: kids }), onClick: (e) => { e.stopPropagation(); enterRow(path); } },
-      h("span", { text: String(kids) }), ic("", "chevron-right")));
+    // a pointer's way in, out of the Tab order and hidden as a control: → does the same, and the row's description says it
+    const enter = h("button", { cls: "sn-row-enter", type: "button", id: "sn-row-enter-" + rowIds, tabindex: "-1", "aria-hidden": "true", "aria-label": t("rowEnter", { n: kids }), title: t("rowEnter", { n: kids }), onClick: (e) => { e.stopPropagation(); enterRow(path); } },
+      h("span", { text: String(kids) }), ic("", "chevron-right"));
+    row.append(enter);
   }
+  // the option is named by its title; where it is, when it changed, its tasks and tags are its description
+  row.setAttribute("aria-describedby", meta.id + (kids ? " sn-row-enter-" + rowIds : ""));
 
   row.addEventListener("click", (e) => {
     if (e.shiftKey || board.selectMode) { e.preventDefault(); toggleSelect(path); return; }
-    if (e.target.closest("a, button, input")) return;
+    if (e.target.closest("a, button, input, .sn-row-parent")) return;
     row.focus({ preventScroll: true });
     if (editor.path !== path || !$("#app").classList.contains("editor-open")) openEditor(path, { focus: false, wide: false });
   });
   row.addEventListener("dblclick", (e) => {
-    if (e.target.closest("a, button, input") || e.shiftKey || board.selectMode) return;
+    if (e.target.closest("a, button, input, .sn-row-parent") || e.shiftKey || board.selectMode) return;
     e.preventDefault();
     openEditor(path, { focus: true, edit: true, wide: false });
   });
