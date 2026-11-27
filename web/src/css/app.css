@@ -60,17 +60,20 @@ button.sb-search svg, .sn-search-icon svg, .fv-search-icon svg { width: var(--ic
 .fv-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); display: inline-flex; color: var(--muted); pointer-events: none; }
 input.fv-search { width: 100%; padding: 0 var(--sp-10) 0 30px; }
 .sb-actions { display: flex; align-items: center; gap: var(--sp-8); }
-/* New note fills the row, Today beside it: one height, the controls' corner */
-button.sn-btn.sb-new, :where(.sn-welcome-actions) button.sn-btn.is-primary {
+/* New note fills the row, Today beside it: one look, like the field above (white, a hairline border, the controls'
+   corner and height); New note's + in the accent is what marks it as the main action */
+:where(.sn-welcome-actions) button.sn-btn.is-primary {
   height: var(--ctl-field); padding: 0 var(--sp-12); border-radius: var(--r-s); background: var(--cta); color: var(--on-accent);
   font-size: var(--fs-md); font-weight: var(--fw-semibold); gap: var(--sp-6);
 }
+@media (hover: hover) { :where(.sn-welcome-actions) button.sn-btn.is-primary:hover { background: var(--cta-hover); opacity: 1; } }
+button.sn-btn:is(.sb-new, .sb-today) { height: var(--ctl-field); padding: 0 var(--sp-12); gap: var(--sp-6); border: 1px solid var(--line); border-radius: var(--r-m);
+  background: var(--win); color: var(--ink); font-size: var(--fs-md); font-weight: var(--fw-medium); }
+@media (hover: hover) { button.sn-btn:is(.sb-new, .sb-today):hover { border-color: var(--line-hover); background: var(--hover-bg); opacity: 1; } }
+button.sn-btn:is(.sb-new, .sb-today) svg { width: var(--icon-m); height: var(--icon-m); color: var(--muted); }
+button.sn-btn.sb-new svg { color: var(--accent); }
 button.sn-btn.sb-new { flex: 1 1 auto; min-width: 0; justify-content: center; }
-@media (hover: hover) { button.sn-btn.sb-new:hover, :where(.sn-welcome-actions) button.sn-btn.is-primary:hover { background: var(--cta-hover); opacity: 1; } }
-button.sn-btn.sb-new svg { width: var(--icon-m); height: var(--icon-m); }
-button.sn-btn.sb-today { flex: none; height: var(--ctl-field); padding: 0 var(--sp-12); border: 1px solid var(--line); border-radius: var(--r-m); background: var(--win); color: var(--ink); font-size: var(--fs-md); font-weight: var(--fw-medium); }
-@media (hover: hover) { button.sn-btn.sb-today:hover { background: var(--hover-bg); } }
-button.sn-btn.sb-today svg { width: var(--icon-m); height: var(--icon-m); color: var(--muted); }
+button.sn-btn.sb-today { flex: none; }
 .sb-today .wb-label { display: inline; }
 /* when New note and Today don't both fit (shell.js measures): Today is the field's square, New note keeps the rest,
    and its label ends in "…" only at the narrowest sidebar; the + never leaves the button */
