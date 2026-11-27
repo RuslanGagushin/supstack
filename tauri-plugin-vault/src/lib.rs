@@ -13,10 +13,10 @@ mod models;
 
 #[cfg(desktop)]
 mod desktop;
-#[cfg(desktop)]
-mod watch;
 #[cfg(mobile)]
 mod mobile;
+#[cfg(desktop)]
+mod watch;
 
 #[cfg(desktop)]
 use desktop::Vault;

@@ -15,9 +15,7 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .manage(capture::CaptureShortcut::default())
         .invoke_handler(tauri::generate_handler![capture::set_capture_shortcut]);
-    builder
-        .run(tauri::generate_context!())
-        .expect("error while running Supstack");
+    builder.run(tauri::generate_context!()).expect("error while running Supstack");
 }
 
 /// Quick capture from anywhere (spec TASK-5): a shortcut the system passes to the app while another one is in front.

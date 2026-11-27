@@ -254,6 +254,8 @@ All platforms need **Rust** (<https://rustup.rs>) and **Node.js 20+** (<https://
 | `npm run icons` | regenerates every icon from `icon.png` (then `git checkout src-tauri/icons/android/*/ic_launcher_foreground.png`: those are made by hand for the Android mask) |
 | `npm test` | runs the page tests in `tests/` with headless Chrome (set `CHROME_PATH` to use another Chromium) |
 | `npm run test:rust` | runs the vault plugin's Rust tests (file access, git sync, watching the folder) |
+| `npm run lint:rust` | checks the Rust crates' formatting (rustfmt, settings in `rustfmt.toml`) and runs clippy over the vault plugin |
+| `npm run fmt:rust` | formats the Rust crates with rustfmt |
 | `npm run lint` | runs ESLint over the page's code, the scripts and the tests |
 | `npm run typecheck` | type-checks `web/src/js/core/` (TypeScript over the JavaScript, no DOM in its lib) |
 

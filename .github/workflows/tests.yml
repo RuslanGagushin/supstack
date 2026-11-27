@@ -1,7 +1,8 @@
 # Runs the tests on every push and pull request:
 #  - checks: ESLint over the page's code, scripts and tests, and the type check of web/src/js/core/
 #  - page: tests/*.test.mjs, the real page in headless Chrome (ubuntu-latest has Chrome; playwright-core drives it, nothing is downloaded)
-#  - plugin: cargo test for tauri-plugin-vault (desktop file access, git sync)
+#  - plugin: rustfmt over the Rust crates (rustfmt.toml), clippy over tauri-plugin-vault with warnings as errors,
+#    and cargo test for it (desktop file access, git sync)
 name: Tests
 
 on:
@@ -40,7 +41,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev libayatana-appindicator3-dev libxdo-dev libssl-dev
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
       - uses: swatinem/rust-cache@v2
         with:
           workspaces: tauri-plugin-vault -> target
+      - run: cargo fmt --manifest-path tauri-plugin-vault/Cargo.toml --check
+      - run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
+      - run: cargo clippy --manifest-path tauri-plugin-vault/Cargo.toml --all-targets -- -D warnings
       - run: cargo test --manifest-path tauri-plugin-vault/Cargo.toml

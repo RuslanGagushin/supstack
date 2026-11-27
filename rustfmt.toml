@@ -1,0 +1,3 @@
+# rustfmt for the Rust crates (tauri-plugin-vault, src-tauri): the house style is wide lines, kept on one line where they fit.
+max_width = 140
+use_small_heuristics = "Max"

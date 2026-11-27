@@ -91,6 +91,7 @@ pub(crate) fn trace(msg: &str) {
 }
 
 /// The unfinished trace of an earlier run: its last lines, or None when it ended with "done" or an error.
+#[cfg(mobile)]
 fn unfinished(path: &Path) -> Option<String> {
     let text = std::fs::read_to_string(path).ok()?;
     let last = text.lines().last()?;
@@ -101,6 +102,7 @@ fn unfinished(path: &Path) -> Option<String> {
     Some(lines[lines.len().saturating_sub(4)..].join(" → "))
 }
 
+#[cfg(mobile)]
 fn begin_trace(path: &Path) {
     let _ = std::fs::write(path, "");
     if let Ok(mut g) = TRACE.lock() {
@@ -209,7 +211,11 @@ mod secret {
     }
     /// An empty token removes the stored one.
     pub fn set(dir: &Path, token: &str) -> Result<()> {
-        if token.is_empty() { store::delete(&account(dir)) } else { store::set(&account(dir), token) }
+        if token.is_empty() {
+            store::delete(&account(dir))
+        } else {
+            store::set(&account(dir), token)
+        }
     }
 }
 
@@ -434,7 +440,11 @@ pub(crate) fn merge_tasks(base: Option<&[u8]>, ours: &[u8], theirs: &[u8]) -> Ve
         }
     }
     out.extend(other);
-    if out.is_empty() { Vec::new() } else { (out.join("\n") + "\n").into_bytes() }
+    if out.is_empty() {
+        Vec::new()
+    } else {
+        (out.join("\n") + "\n").into_bytes()
+    }
 }
 
 /// "Cards/Note.md" → "Cards/Note (conflict 2026-10-28 10.00.00).md"
@@ -445,7 +455,11 @@ fn conflict_path(path: &str) -> String {
         _ => (name, ""),
     };
     let file = format!("{stem} (conflict {}){ext}", stamp());
-    if dir.is_empty() { file } else { format!("{dir}/{file}") }
+    if dir.is_empty() {
+        file
+    } else {
+        format!("{dir}/{file}")
+    }
 }
 
 fn commit_local(repo: &Repository, sig: &Signature) -> Result<bool> {
@@ -783,8 +797,7 @@ mod mirror {
         let changed: Vec<&String> = after
             .iter()
             .filter(|(path, stamp)| {
-                p.before.get(*path) != Some(*stamp)
-                    || p.racy.get(*path).is_some_and(|id| blob_id(&work.join(path)).as_ref() != Some(id))
+                p.before.get(*path) != Some(*stamp) || p.racy.get(*path).is_some_and(|id| blob_id(&work.join(path)).as_ref() != Some(id))
             })
             .map(|(path, _)| path)
             .collect();
@@ -1127,9 +1140,11 @@ mod tests {
         let base = [t("a", "A", "1"), t("b", "B", "1"), t("c", "C", "1"), t("d", "D", "1")].join("\n") + "\n";
         // ours: A changed, D deleted, E new; theirs: B changed, C changed later than ours, D unchanged, F new
         let ours = [t("a", "A2", "2"), t("b", "B", "1"), t("c", "C-ours", "2"), t("e", "E", "2")].join("\n") + "\n";
-        let theirs = [t("b", "B3", "3"), t("c", "C-theirs", "3"), t("d", "D", "1"), t("f", "F", "3"), t("a", "A", "1")].join("\n") + "\nnot a task\n";
+        let theirs = [t("b", "B3", "3"), t("c", "C-theirs", "3"), t("d", "D", "1"), t("f", "F", "3"), t("a", "A", "1")].join("\n")
+            + "\nnot a task\n";
         let got = String::from_utf8(super::merge_tasks(Some(base.as_bytes()), ours.as_bytes(), theirs.as_bytes())).unwrap();
-        let want = [t("a", "A2", "2"), t("b", "B3", "3"), t("c", "C-theirs", "3"), t("e", "E", "2"), t("f", "F", "3")].join("\n") + "\nnot a task\n";
+        let want = [t("a", "A2", "2"), t("b", "B3", "3"), t("c", "C-theirs", "3"), t("e", "E", "2"), t("f", "F", "3")].join("\n")
+            + "\nnot a task\n";
         assert_eq!(got, want);
         // without a base nothing is lost
         let got = String::from_utf8(super::merge_tasks(None, ours.as_bytes(), theirs.as_bytes())).unwrap();
@@ -1267,7 +1282,10 @@ mod tests {
             walk(&self.dir, "", &mut out);
             for path in mirror::HIDDEN {
                 if let Ok(meta) = fs::metadata(self.dir.join(path)) {
-                    out.insert(path.into(), (meta.modified().unwrap().duration_since(UNIX_EPOCH).unwrap().as_nanos() as f64 / 1e6, meta.len()));
+                    out.insert(
+                        path.into(),
+                        (meta.modified().unwrap().duration_since(UNIX_EPOCH).unwrap().as_nanos() as f64 / 1e6, meta.len()),
+                    );
                 }
             }
             Ok(out)

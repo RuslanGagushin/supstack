@@ -19,6 +19,7 @@ npm install
 npm run dev        # the desktop app, without installing it
 npm test           # page tests in headless Chrome (set CHROME_PATH to use another Chromium)
 npm run test:rust  # the vault plugin's Rust tests
+npm run lint:rust  # rustfmt (check) over the Rust crates and clippy over the vault plugin; `npm run fmt:rust` formats
 npm run lint       # ESLint over the page's code, scripts and tests
 npm run typecheck  # the type check of web/src/js/core/
 ```
@@ -32,7 +33,7 @@ See [How the app is put together](README.md#how-the-app-is-put-together) for a t
 1. Fork the repository and create a branch from `main`.
 2. Keep each pull request to one change, and describe what it does and why.
 3. Respect the module layers: `core/` is pure logic, `services/` holds state and vault access, `ui/` draws. Each layer only imports the ones before it; `tests/architecture.test.mjs` checks this.
-4. Add or update tests in `tests/` for behaviour you change, and make sure `npm test`, `npm run lint` and `npm run typecheck` pass (CI runs all three).
+4. Add or update tests in `tests/` for behaviour you change, and make sure `npm test`, `npm run lint` and `npm run typecheck` pass, and `npm run lint:rust` when you touch Rust (CI runs all four).
 5. Interface text lives in `web/src/js/core/strings.js` in English and Russian. Add both when you add a string (a rough translation is fine; it can be polished in review).
 6. For visible changes, attach a before/after screenshot. If the README screenshots change, regenerate them with `npm run screenshots`.
 7. Styles draw on the variables in `web/src/css/base.css` and the components described in [the design system](docs/design-system.md). A new colour, size, spacing, radius, shadow, layer or duration becomes a variable there first; use the existing button (`.sn-btn`), chip (`.sn-chip`) and state classes (`.is-selected`, `.is-active`) rather than new ones. `npm test` fails on a raw value, a variable nobody uses, or a retired class name.

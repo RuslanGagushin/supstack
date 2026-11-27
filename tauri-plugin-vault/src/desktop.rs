@@ -95,11 +95,7 @@ fn join(root: &str, rel: &str) -> Result<PathBuf> {
 }
 
 fn mtime_ms(meta: &fs::Metadata) -> f64 {
-    meta.modified()
-        .ok()
-        .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
-        .map(|d| d.as_millis() as f64)
-        .unwrap_or(0.0)
+    meta.modified().ok().and_then(|t| t.duration_since(UNIX_EPOCH).ok()).map(|d| d.as_millis() as f64).unwrap_or(0.0)
 }
 
 /// Every file under `dir`, skipping hidden names (".supstack", ".trash", ".git", …) like the web version does.
@@ -131,10 +127,7 @@ impl<R: Runtime> Vault<R> {
             return Ok(None);
         };
         let path = picked.into_path().map_err(|e| Error::Msg(e.to_string()))?;
-        let name = path
-            .file_name()
-            .map(|n| n.to_string_lossy().into_owned())
-            .unwrap_or_else(|| path.to_string_lossy().into_owned());
+        let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| path.to_string_lossy().into_owned());
         let root = path.to_string_lossy().into_owned();
         self.roots.add(&root);
         Ok(Some(Picked { root, name }))

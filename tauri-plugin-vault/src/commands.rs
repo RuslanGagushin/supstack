@@ -74,9 +74,7 @@ pub(crate) async fn git_sync<R: Runtime>(app: AppHandle<R>, root: String, config
 
 #[command]
 pub(crate) async fn git_info<R: Runtime>(app: AppHandle<R>, root: String) -> Result<crate::git::GitInfo> {
-    tauri::async_runtime::spawn_blocking(move || crate::git::info(&app, root))
-        .await
-        .map_err(|e| crate::Error::Msg(e.to_string()))?
+    tauri::async_runtime::spawn_blocking(move || crate::git::info(&app, root)).await.map_err(|e| crate::Error::Msg(e.to_string()))?
 }
 
 #[command]

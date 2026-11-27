@@ -2,7 +2,7 @@
 
 Three things, in this order. Nothing else is required.
 
-1. **Checks are green.** Run `npm run lint`, `npm run typecheck`, `npm test` and `npm run visual`.
+1. **Checks are green.** Run `npm run lint`, `npm run typecheck`, `npm run lint:rust`, `npm test` and `npm run visual`.
    If `npm run visual` says a screen moved and that was meant, open `tests/visual/<name>.diff.png`
    (red is what changed), then `npm run visual -- --update` and commit the new pictures with the change.
    The pictures are made on one machine's fonts: on a different machine, run `--update` once before relying on them.
