@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.45.0
+
+- Notes work better with a screen reader: the note's title is its heading, its text is named, and each row of the list says when it changed, its tasks, tags and notebook. Large vaults switch lists faster (about twice as fast on 10 000 notes). With reduced motion turned on, nothing slides or spins any more, but spinners still show they're busy and a new note still lights up. The note panel shows a notebook's order (child_order) as its notes in order, each one opening, instead of raw YAML. Also: switching a note to editing no longer nudges headings, previews leave out the #tags already shown as chips, a tag chip that runs out of room ends in … instead of being cut, and "Add tag…" is readable in both themes.
+
 ## 0.44.0
 
 - A note stays put when you switch between reading and editing: every line, box, bullet and tag stands where it was, a box's fold arrow hangs in the margin (shown on hover), a nested box or a line under one starts under its parent's text, and a long item wraps under its own text in both views; a #tag looks the same grey chip with a dot while editing. A note's boxes are a checklist again everywhere: only [ ] and [x] are boxes, and [/], [#A] or a SCHEDULED date in a note's text show as written (tasks with states and dates live in the agenda). Also: the waiting state's icon is an hourglass, the note's text column holds about 80 characters a line, and the Checklist panel shows its count once.
