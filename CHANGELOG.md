@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.46.0
+
+- The sidebar works from the keyboard: Recent and saved views move with the arrow keys like Notebooks, the menu key (or Shift+F10) opens a row's menu, and every menu in the app now takes the arrow keys, Enter and Escape, and says which options are ticked. The Agenda counts overdue and today's tasks apart (overdue a solid red plate, today an orange one), where one red number used to call today's tasks overdue. On a touch screen a notebook's fold arrow is much easier to hit, a big vault's sidebar keeps up when you save or switch notebooks (about seven times faster with every branch open), and a narrow sidebar or a longer language no longer cuts New note: Today becomes its calendar icon instead.
+
 ## 0.45.0
 
 - Notes work better with a screen reader: the note's title is its heading, its text is named, and each row of the list says when it changed, its tasks, tags and notebook. Large vaults switch lists faster (about twice as fast on 10 000 notes). With reduced motion turned on, nothing slides or spins any more, but spinners still show they're busy and a new note still lights up. The note panel shows a notebook's order (child_order) as its notes in order, each one opening, instead of raw YAML. Also: switching a note to editing no longer nudges headings, previews leave out the #tags already shown as chips, a tag chip that runs out of room ends in … instead of being cut, and "Add tag…" is readable in both themes.
