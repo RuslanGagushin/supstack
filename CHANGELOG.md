@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.47.1
+
+- New note in the sidebar no longer shouts in solid blue: it is a white button with a thin border like Today and the Go to note field beside it, its + in the accent colour.
+
 ## 0.47.0
 
 - Softer, rounder look: shadows under menus, popups, dialogs and a card under the pointer are lighter and spread wider, so things lift without a grey smudge (and still show in the dark theme); cards, menus, floating bars and buttons have rounder 12px corners, with the items inside a menu rounded to match.
