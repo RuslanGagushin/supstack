@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.46.1
+
+- The sidebar marks the open notebook or place with its grey alone, without the blue bar at its edge (in the light theme the grey is a step darker, so it still stands out). Notes synced with git on Windows keep the line endings they came with, where a common Git for Windows setting used to turn the phone's line endings into Windows ones on the desktop.
+
 ## 0.46.0
 
 - The sidebar works from the keyboard: Recent and saved views move with the arrow keys like Notebooks, the menu key (or Shift+F10) opens a row's menu, and every menu in the app now takes the arrow keys, Enter and Escape, and says which options are ticked. The Agenda counts overdue and today's tasks apart (overdue a solid red plate, today an orange one), where one red number used to call today's tasks overdue. On a touch screen a notebook's fold arrow is much easier to hit, a big vault's sidebar keeps up when you save or switch notebooks (about seven times faster with every branch open), and a narrow sidebar or a longer language no longer cuts New note: Today becomes its calendar icon instead.
