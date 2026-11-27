@@ -188,11 +188,21 @@ function renderAll() {
     h("span", { cls: "sb-avatar", text: (vault.fs.name || "S").trim().charAt(0).toUpperCase() }),
     h("span", { cls: "sb-account-name", text: vault.fs.name }), ic("wb-caret", "chevron-down"));
   account.addEventListener("click", vaultMenu);
-  const sideHead = h("div", { cls: "sb-head" }, account, search,
-    h("div", { cls: "sb-actions" },
-      wbBtn("plus", t("newShort"), newCard, "sb-new"),
-      // today's note, by name; the command palette is Ctrl+P and the vault's menu above
-      wbBtn("calendar-days", t("todayShort"), () => openToday(), "sb-today")));
+  const newBtn = wbBtn("plus", t("newShort"), newCard, "sb-new");
+  // today's note, by name; the command palette is Ctrl+P and the vault's menu above
+  const todayBtn = wbBtn("calendar-days", t("todayShort"), () => openToday(), "sb-today");
+  todayBtn.setAttribute("aria-label", t("todayShort"));
+  const actions = h("div", { cls: "sb-actions" }, newBtn, todayBtn);
+  // New note keeps its whole label: when it and a whole Today don't fit (a narrow sidebar, a longer language),
+  // Today becomes a square icon (is-tight, app.css); only past that does New note's label end in "…"
+  new ResizeObserver(() => {
+    actions.classList.remove("is-tight");
+    const gap = parseFloat(getComputedStyle(actions).columnGap) || 0;
+    const label = newBtn.querySelector(".wb-label"); // it shrinks into "…": its hidden part counts too
+    const need = newBtn.scrollWidth + (label ? label.scrollWidth - label.clientWidth : 0);
+    actions.classList.toggle("is-tight", need + gap + todayBtn.offsetWidth > actions.clientWidth + 0.5);
+  }).observe(actions);
+  const sideHead = h("div", { cls: "sb-head" }, account, search, actions);
   // the agenda and a quick task; Files, used now and then, is an icon at the foot
   const capture = wbBtn("inbox", tt("capture"), () => orgCapture(), "sb-capture");
   capture.id = "capture-btn";

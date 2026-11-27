@@ -72,6 +72,12 @@ button.sn-btn.sb-today { flex: none; height: var(--ctl-field); padding: 0 var(--
 @media (hover: hover) { button.sn-btn.sb-today:hover { background: var(--hover-bg); } }
 button.sn-btn.sb-today svg { width: var(--icon-m); height: var(--icon-m); color: var(--muted); }
 .sb-today .wb-label { display: inline; }
+/* when New note and Today don't both fit (shell.js measures): Today is the field's square, New note keeps the rest,
+   and its label ends in "…" only at the narrowest sidebar; the + never leaves the button */
+.sb-actions.is-tight button.sn-btn.sb-today { width: var(--ctl-field); padding: 0; justify-content: center; }
+.sb-actions.is-tight .sb-today .wb-label { display: none; }
+button.sn-btn.sb-new .wb-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+button.sn-btn.sb-new > :not(.wb-label) { flex: none; }
 .sn-keys-or { display: inline-flex; align-items: center; gap: var(--sp-6); }
 .sn-keys-or .sn-or { color: var(--faint); font-size: var(--fs-sm); }
 /* the vault: a square of the accent with its first letter, its name, a chevron to its menu */
@@ -113,6 +119,8 @@ button.sb-account .wb-caret svg { width: var(--icon-s); height: var(--icon-s); c
 /* a section's heading: the caret and the name are one button that folds it; the tools sit beside it (Notebooks) */
 .sn-sec-btn { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: var(--sp-4); min-height: 24px; border-radius: var(--r-xs); outline: none; }
 .sn-sec-btn:focus-visible { box-shadow: var(--ring); }
+/* a narrow sidebar ends the name in "…" instead of running it under the tools beside it */
+.sn-sec-btn > span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* the sidebar's tags: quiet grey chips, the tag's colour a dot (restyle of the tag cloud) */
 .sn-tag-dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--dot, var(--faint)); }
 .sn-tag-dot.hue-green { --dot: var(--hue-green-fg); } .sn-tag-dot.hue-blue { --dot: var(--hue-blue-fg); } .sn-tag-dot.hue-orange { --dot: var(--hue-orange-fg); }
