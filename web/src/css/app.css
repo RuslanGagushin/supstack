@@ -34,7 +34,7 @@ button.clickable-icon.sb-foot-btn { flex: none; width: var(--ctl-m); height: var
 .sb-nav button.sn-btn { justify-content: flex-start; gap: var(--sp-10); width: 100%; height: var(--ctl-l); padding: 0 var(--sp-8); border: 0; border-radius: var(--r-s);
   background: transparent; color: var(--fg); font-size: var(--fs-md); font-weight: var(--fw-medium); }
 @media (hover: hover) { .sb-nav button.sn-btn:hover { background: var(--hover-bg); } }
-.sb-nav button.sn-btn.is-active { background: var(--sel); color: var(--ink); font-weight: var(--fw-semibold); }
+.sb-nav button.sn-btn.is-active { background: var(--sel-nav); color: var(--ink); font-weight: var(--fw-semibold); }
 .sb-nav button.sn-btn svg { width: var(--icon-m); height: var(--icon-m); color: var(--faint); }
 .sb-nav button.sn-btn.is-active svg { color: var(--ink); }
 /* the sidebar's buttons keep their labels at every width (outweighing .sn-btn .wb-label in frame.css) */
@@ -102,7 +102,7 @@ button.sb-account .wb-caret svg { width: var(--icon-s); height: var(--icon-s); c
   margin: var(--sp-16) 0 var(--sp-6); padding-left: var(--sp-8); font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--faint);
 }
 .sn-tree-section:first-child { margin-top: var(--sp-4); }
-.sn-outline .tree-item-self.sn-tree-row.is-active { background: var(--sel); }
+.sn-outline .tree-item-self.sn-tree-row.is-active { background: var(--sel-nav); }
 /* the keyboard's place in the tree: a ring on the item's row, not around its whole branch (spec A11Y-2) */
 .sn-aria-tree [role=treeitem] { outline: none; }
 .sn-aria-tree [role=treeitem]:focus-visible > .sn-tree-row { box-shadow: var(--ring-inset); }
@@ -110,12 +110,6 @@ button.sb-account .wb-caret svg { width: var(--icon-s); height: var(--icon-s); c
 .sn-outline .tree-item-self.sn-tree-row.is-active .sn-tree-label { font-weight: var(--fw-semibold); }
 /* the notebook the open note sits in, when the list beside it shows another place (and the open note's Recent row): a quiet mark, not a second selection */
 .sn-outline .sn-tree-row:is(.is-holding, .is-editing):not(.is-active) :is(.sn-tree-label, .sn-tree-icon) { color: var(--ink); }
-/* the current place shows by an accent bar at the row's left edge as well as the grey and the weight:
-   in light mode the grey alone is barely apart from the sidebar's (the tree's rows and the places above them alike) */
-.sb-nav button.sn-btn { position: relative; }
-:is(.sn-outline .tree-item-self.sn-tree-row, .sb-nav button.sn-btn).is-active::before {
-  content: ""; position: absolute; inset-inline-start: 0; top: 50%; width: 3px; height: 16px; margin-top: -8px; border-radius: 0 2px 2px 0; background: var(--accent);
-}
 /* a section's heading: the caret and the name are one button that folds it; the tools sit beside it (Notebooks) */
 .sn-sec-btn { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: var(--sp-4); min-height: 24px; border-radius: var(--r-xs); outline: none; }
 .sn-sec-btn:focus-visible { box-shadow: var(--ring); }
