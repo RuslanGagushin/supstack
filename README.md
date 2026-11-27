@@ -50,8 +50,8 @@ Supstack shows a folder of Markdown notes (a *vault*) as notebooks with a list o
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/editor.png" alt="A note being read: tasks with a priority letter and their dates as short chips"><br><sub><b>Reading.</b> A note opens to read: its tasks show a priority letter and their dates as the agenda says them.</sub></td>
-    <td width="50%"><img src="docs/screenshots/editor-editing.png" alt="The same note in the live preview editor, with the toolbar and the dates as written"><br><sub><b>Editing.</b> <i>Edit</i> (or a double click) opens the live preview editor, with the Markdown as written.</sub></td>
+    <td width="50%"><img src="docs/screenshots/editor.png" alt="A note in reading mode with a packing checklist and its progress in the side panel"><br><sub><b>Reading.</b> A note opens in reading mode, with its checklist progress in the side panel.</sub></td>
+    <td width="50%"><img src="docs/screenshots/editor-editing.png" alt="The same note in the live preview editor, with a formatting toolbar above the text"><br><sub><b>Editing.</b> <i>Edit</i> (or a double click) opens the live preview editor in place and shows the formatting toolbar.</sub></td>
   </tr>
   <tr>
     <td width="50%"><img src="docs/screenshots/board-dark.png" alt="The list of notes in the dark theme"><br><sub><b>Dark theme.</b> The same view, with light and dark themes following the system.</sub></td>
@@ -65,10 +65,10 @@ Supstack shows a folder of Markdown notes (a *vault*) as notebooks with a list o
 <p align="center">
   <img src="docs/screenshots/phone-board.png" alt="Supstack on a phone: the list of notes" width="260">
   &nbsp;&nbsp;
-  <img src="docs/screenshots/phone-editor.png" alt="Supstack on a phone: a note open over the list, with a back link to its notebook" width="260">
+  <img src="docs/screenshots/phone-editor.png" alt="Supstack on a phone: a full-screen note with a back arrow" width="260">
   &nbsp;&nbsp;
   <img src="docs/screenshots/phone-agenda.png" alt="Supstack on a phone: the week's agenda with its strip of days" width="260">
-  <br><sub><b>On Android.</b> A single-column layout with a bottom bar; a note opens full screen with <i>‹ its notebook</i> to go back; the agenda has the week as a strip of days.</sub>
+  <br><sub><b>On Android.</b> A single-column layout with a bottom bar, full-screen notes and a weekly agenda with a strip of days.</sub>
 </p>
 
 > Screenshots are taken from the built-in demo vault with `npm run screenshots`.
