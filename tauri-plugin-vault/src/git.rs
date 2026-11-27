@@ -243,9 +243,21 @@ pub fn save_settings<R: Runtime>(app: &AppHandle<R>, root: String, settings: Git
     write_settings(&repo, &settings)
 }
 
+/// Notes travel byte for byte between devices: a global core.autocrlf (Git for Windows turns it on) must not make the phone's
+/// LF a CRLF on the desktop, nor the other way round. A value set for this repository itself stays the user's.
+fn keep_line_endings(repo: &Repository) -> Result<()> {
+    let mut local = repo.config()?.open_level(ConfigLevel::Local)?;
+    if local.get_entry("core.autocrlf").is_err() {
+        local.set_bool("core.autocrlf", false)?;
+    }
+    Ok(())
+}
+
 fn init(dir: &Path, branch: &str) -> Result<Repository> {
     let branch = if branch.trim().is_empty() { "main" } else { branch.trim() };
-    Ok(Repository::init_opts(dir, RepositoryInitOptions::new().initial_head(branch))?)
+    let repo = Repository::init_opts(dir, RepositoryInitOptions::new().initial_head(branch))?;
+    keep_line_endings(&repo)?;
+    Ok(repo)
 }
 
 pub(crate) fn read_settings(repo: &Repository) -> Option<GitSettings> {
@@ -590,6 +602,7 @@ pub(crate) fn sync_repo(dir: &Path, cfg: &GitConfig) -> Result<GitReport> {
         Ok(r) => r,
         Err(_) => init(dir, branch)?,
     };
+    keep_line_endings(&repo)?;
     match repo.find_remote("origin") {
         Ok(r) if r.url() == Some(cfg.remote.as_str()) => {}
         Ok(_) => repo.remote_set_url("origin", &cfg.remote)?,
@@ -1202,6 +1215,19 @@ mod tests {
         assert!(r.pulled, "{r:?}");
         assert_eq!(fs::read_to_string(a.join("Note.md")).unwrap(), "from b\n");
         let _ = fs::remove_dir_all(&tmp);
+    }
+
+    #[test]
+    fn line_endings_are_kept_unless_the_repository_says_otherwise() {
+        let dir = std::env::temp_dir().join(format!("supstack-eol-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        let repo = init(&dir, "main").unwrap();
+        let local = || repo.config().unwrap().open_level(ConfigLevel::Local).unwrap();
+        assert!(!local().get_bool("core.autocrlf").unwrap(), "a new vault repository turns autocrlf off");
+        local().set_bool("core.autocrlf", true).unwrap();
+        keep_line_endings(&repo).unwrap();
+        assert!(local().get_bool("core.autocrlf").unwrap(), "the user's own setting stays");
+        let _ = fs::remove_dir_all(&dir);
     }
 
     #[test]
