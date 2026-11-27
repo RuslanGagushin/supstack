@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.47.0
+
+- Softer, rounder look: shadows under menus, popups, dialogs and a card under the pointer are lighter and spread wider, so things lift without a grey smudge (and still show in the dark theme); cards, menus, floating bars and buttons have rounder 12px corners, with the items inside a menu rounded to match.
+
 ## 0.46.1
 
 - The sidebar marks the open notebook or place with its grey alone, without the blue bar at its edge (in the light theme the grey is a step darker, so it still stands out). Notes synced with git on Windows keep the line endings they came with, where a common Git for Windows setting used to turn the phone's line endings into Windows ones on the desktop.
