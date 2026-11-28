@@ -15,6 +15,17 @@
         android:orientation="horizontal"
         android:paddingEnd="6dp">
 
+        <ImageButton
+            android:id="@+id/task_widget_open"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="4dp"
+            android:background="@drawable/task_widget_touch"
+            android:contentDescription="@string/task_widget_open"
+            android:scaleType="center"
+            android:src="@drawable/task_widget_mark" />
+
+        <!-- Today or Upcoming: a tap switches to the other view -->
         <LinearLayout
             android:id="@+id/task_widget_title"
             android:layout_width="0dp"
@@ -27,18 +38,13 @@
             android:importantForAccessibility="yes"
             android:minHeight="48dp"
             android:orientation="horizontal"
-            android:paddingStart="16dp">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:importantForAccessibility="no"
-                android:src="@drawable/task_widget_mark" />
+            android:paddingStart="4dp"
+            android:paddingEnd="8dp">
 
             <TextView
+                android:id="@+id/task_widget_title_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
                 android:ellipsize="end"
                 android:importantForAccessibility="no"
                 android:maxLines="1"
@@ -46,6 +52,13 @@
                 android:textColor="@color/task_widget_accent"
                 android:textSize="16sp"
                 android:textStyle="bold" />
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="2dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/task_widget_switch" />
         </LinearLayout>
 
         <ImageButton

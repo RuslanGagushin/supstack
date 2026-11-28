@@ -11,4 +11,10 @@
     <color name="task_widget_divider">#36383D</color>
     <color name="task_widget_late">#FF9D94</color>
     <color name="task_widget_pressed">#303236</color>
+    <color name="task_widget_pri_a">#FF7066</color>
+    <color name="task_widget_pri_a_soft">#26FF7066</color>
+    <color name="task_widget_pri_b">#FF9A14</color>
+    <color name="task_widget_pri_b_soft">#26FF9A14</color>
+    <color name="task_widget_pri_c">#6FA8FF</color>
+    <color name="task_widget_pri_c_soft">#266FA8FF</color>
 </resources>

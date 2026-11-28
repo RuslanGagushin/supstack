@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- An open task of priority A: the circle takes the priority's colour, as in the app's priority menu. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:pathData="M12,2 A10,10 0,1 1,12 22 A10,10 0,1 1,12 2 Z"
+        android:fillColor="@color/task_widget_pri_a_soft"
+        android:strokeColor="@color/task_widget_pri_a" android:strokeWidth="2" />
+</vector>

@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="task_widget_name">Supstack — Сегодня</string>
+    <string name="task_widget_name">Supstack — Задачи</string>
     <string name="task_widget_today">Сегодня</string>
+    <string name="task_widget_upcoming">Предстоящие</string>
+    <string name="task_widget_tomorrow">Завтра</string>
     <string name="task_widget_overdue">Просрочено</string>
+    <string name="task_widget_open">Открыть Supstack</string>
+    <string name="task_widget_switch">%1$s. Переключить на «%2$s»</string>
+    <string name="task_widget_priority">Приоритет %1$s</string>
+    <string name="task_widget_note">Заметка %1$s</string>
     <string name="task_widget_add">Добавить задачу</string>
     <string name="task_widget_empty">На сегодня задач нет</string>
+    <string name="task_widget_empty_upcoming">На ближайшие 7 дней задач нет</string>
     <string name="task_widget_first_load">Откройте Supstack, чтобы загрузить задачи</string>
     <string name="task_widget_stale">Откройте Supstack, чтобы обновить задачи</string>
 </resources>

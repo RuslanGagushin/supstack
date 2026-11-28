@@ -155,6 +155,8 @@ class VaultPlugin(private val activity: Activity) : Plugin(activity) {
             put("action", action)
             put("id", intent.getStringExtra(TaskWidget.EXTRA_TASK_ID))
             put("root", intent.getStringExtra(TaskWidget.EXTRA_ROOT))
+            put("date", intent.getStringExtra(TaskWidget.EXTRA_DATE))
+            put("view", intent.getStringExtra(TaskWidget.EXTRA_VIEW))
         })
         intent.action = Intent.ACTION_MAIN
         widgetWebView?.let { view ->

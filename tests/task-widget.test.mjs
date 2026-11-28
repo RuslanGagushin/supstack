@@ -9,7 +9,7 @@ const task = (id, fields) => ({ id, title: id, state: " ", ...fields });
 const tasks = [
   task("late-and-due", { sched: "<2026-11-27 Fri>", dead: "<2026-11-28 Sat>" }),
   task("due", { dead: "<2026-11-28 Sat>" }),
-  task("timed", { sched: "<2026-11-28 Sat 09:00>" }),
+  task("timed", { sched: "<2026-11-28 Sat 09:00-10:30>", pri: "A", note: "n-report" }),
   task("repeat", { sched: "<2026-11-28 Sat +1d>" }),
   task("closed", { state: "x", dead: "<2026-11-28 Sat>" }),
   task("event", { state: null, when: "<2026-11-28 Sat 12:00>" }),
@@ -19,9 +19,13 @@ const tasks = [
 ];
 const ids = (rows) => rows.map(({ id }) => id);
 
-test("widget projects seven calendar days and deduplicates open tasks", () => {
-  const days = widgetDays(tasks.map((record) => taskEntry(record)), odn(2026, 11, 28));
-  assert.equal(Object.keys(days).length, 7);
+test("widget projects two weeks and deduplicates open tasks", () => {
+  const notes = { "n-report": "Report" };
+  const days = widgetDays(tasks.map((record) => taskEntry(record)), odn(2026, 11, 28), (e) => notes[e.noteId] ?? null);
+  assert.equal(Object.keys(days).length, 14);
+  // a row carries its time, priority and note when it has them, and nothing for what it lacks
+  assert.deepEqual(days["2026-11-28"].today[0], { id: "timed", title: "timed", time: 540, end: 630, pri: "A", note: "Report" });
+  assert.deepEqual(days["2026-11-28"].today[1], { id: "due", title: "due" });
   assert.deepEqual(ids(days["2026-11-28"].overdue), ["late-and-due"]);
   assert.deepEqual(ids(days["2026-11-28"].today), ["timed", "due", "repeat"]);
   assert.deepEqual(ids(days["2026-11-29"].today), ["markup", "repeat"]);
@@ -35,10 +39,15 @@ test("Android publishes a committed snapshot and opens the exact task or quick c
     clock: "2026-11-28T12:00:00",
     expose: true,
     userAgent: "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/130.0 Mobile Safari/537.36",
-    notes: { ".supstack/tasks.jsonl": tasks.map((record) => JSON.stringify(record)).join("\n") },
+    notes: {
+      ".supstack/tasks.jsonl": tasks.map((record) => JSON.stringify(record)).join("\n"),
+      "Report.md": "---\nid: n-report\n---\nThe quarterly report",
+    },
   });
   await page.waitForFunction(() => window.__taskWidget?.days);
   assert.equal(await ev(() => window.__taskWidget.root), "/vault");
+  assert.equal(await ev(() => window.__taskWidget.version), 2);
+  assert.equal(await ev(() => window.__taskWidget.days["2026-11-28"].today[0].note), "Report");
   async function act(action) {
     await ev((target) => {
       window.__widgetAction = target;
@@ -63,6 +72,12 @@ test("Android publishes a committed snapshot and opens the exact task or quick c
   await act({ action: "task", root: "/vault", id: "undated" });
   await page.waitForFunction(() => /no longer due today/.test(document.querySelector("#toast")?.textContent));
   assert.equal(await ev(() => !!document.querySelector(".modal, .sn-modal")), false);
+  // an Upcoming row opens its own day, and the header opens the week
+  await act({ action: "task", root: "/vault", id: "markup", date: "2026-11-29", view: "upcoming" });
+  await page.waitForSelector('.ag-row.is-selected[data-id="markup"]');
+  await act({ action: "open", view: "upcoming" });
+  await page.waitForFunction(() => /23–29/.test(document.querySelector(".ag-title")?.textContent) && !document.querySelector(".ag-row.is-selected"));
+  assert.equal(await ev(() => JSON.parse(localStorage.getItem("sn-agenda") || "{}").span ?? "week"), "week");
   await act({ action: "add" });
   await page.waitForSelector(".ag-cap.is-quick");
 });

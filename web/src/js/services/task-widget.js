@@ -1,8 +1,12 @@
 import { onow } from "../core/org.js";
 import { parseTasks, taskEntry } from "../core/tasks.js";
 import { widgetDays } from "../core/task-widget.js";
+import { on } from "./events.js";
 import { IS_ANDROID, vinvoke } from "./native.js";
+import { vault } from "./state.js";
 
+/** The snapshot's format; Android shows nothing from another version until the app sends this one. */
+const VERSION = 2;
 let source = null, entries = null, sourceText, pending = Promise.resolve(), last = null;
 
 function send(snapshot, fs) {
@@ -28,17 +32,31 @@ export function resetTaskWidget(fs = null, { pending = false } = {}) {
   entries = null;
   sourceText = undefined;
   last = null;
-  return send(source ? { version: 1, root: source.root, ...(pending && { pending: true }) } : null, source);
+  return send(source ? { version: VERSION, root: source.root, ...(pending && { pending: true }) } : null, source);
+}
+
+/** The name of the note each task belongs to, while the notes in memory are this vault's. */
+function noteNames() {
+  const names = new Map();
+  if (vault.fs !== source) return names;
+  for (const note of vault.notes.values()) {
+    const id = note.fm?.id;
+    if (id != null && id !== "" && !names.has(String(id))) names.set(String(id), note.name);
+  }
+  return names;
 }
 
 export function refreshTaskWidget() {
   if (!source || !entries) return;
   const today = onow().dn;
   const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const key = `${today}:${zone}`;
+  const names = noteNames();
+  const days = widgetDays(entries, today, (e) => (e.noteId == null ? null : names.get(String(e.noteId)) ?? null));
+  // the same day, zone and rows as last sent (a focus, or a note saved without a rename): nothing to send
+  const key = `${today}:${zone}:${JSON.stringify(days)}`;
   if (last === key) return;
   last = key;
-  return send({ version: 1, root: source.root, zone, generated: Date.now(), days: widgetDays(entries, today) }, source);
+  return send({ version: VERSION, root: source.root, zone, generated: Date.now(), days }, source);
 }
 
 /** Accept only data successfully read or written for the currently loaded vault. */
@@ -48,5 +66,8 @@ export function publishTaskWidget(fs, text) {
   sourceText = text;
   last = null;
   entries = text == null ? null : Array.from(parseTasks(text).records.values(), (record) => taskEntry(record));
-  return entries ? refreshTaskWidget() : send({ version: 1, root: fs.root }, fs);
+  return entries ? refreshTaskWidget() : send({ version: VERSION, root: fs.root }, fs);
 }
+
+// a note renamed, added or deleted changes the names the rows show
+if (IS_ANDROID) for (const type of ["written", "changed", "opened"]) on(type, () => { refreshTaskWidget(); });

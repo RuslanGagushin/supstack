@@ -24,7 +24,7 @@ export function startTaskWidget() {
       }
       const wrongVault = target.action === "task" && target.root !== vault.fs.root;
       closeEditor();
-      openWidgetAgenda(wrongVault ? null : target.id);
+      openWidgetAgenda(wrongVault ? null : target.id, { date: wrongVault ? null : target.date, span: target.view === "upcoming" ? "week" : "day" });
       if (wrongVault) echo(tt("widgetOtherVault"));
     }).catch((error) => console.warn("Could not open the Android task widget action", error));
   }

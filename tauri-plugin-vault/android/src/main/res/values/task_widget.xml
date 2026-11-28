@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="task_widget_name">Supstack — Today</string>
+    <string name="task_widget_name">Supstack — Tasks</string>
     <string name="task_widget_today">Today</string>
+    <string name="task_widget_upcoming">Upcoming</string>
+    <string name="task_widget_tomorrow">Tomorrow</string>
     <string name="task_widget_overdue">Overdue</string>
+    <string name="task_widget_open">Open Supstack</string>
+    <!-- the title's spoken name: the view shown, then what a tap does -->
+    <string name="task_widget_switch">%1$s. Switch to %2$s</string>
+    <string name="task_widget_priority">Priority %1$s</string>
+    <string name="task_widget_note">Note %1$s</string>
     <string name="task_widget_add">Add task</string>
     <string name="task_widget_empty">No tasks for today</string>
+    <string name="task_widget_empty_upcoming">No tasks for the next 7 days</string>
     <string name="task_widget_first_load">Open Supstack to load tasks</string>
     <string name="task_widget_stale">Open Supstack to refresh tasks</string>
     <color name="task_widget_surface">#FFFFFF</color>
@@ -18,4 +26,11 @@
     <color name="task_widget_divider">#E9E9E7</color>
     <color name="task_widget_late">#A8251E</color>
     <color name="task_widget_pressed">#EBEEFF</color>
+    <!-- priorities A, B and C: red, orange and blue circles, with a faint fill of the same colour -->
+    <color name="task_widget_pri_a">#D1453B</color>
+    <color name="task_widget_pri_a_soft">#1AD1453B</color>
+    <color name="task_widget_pri_b">#C76E00</color>
+    <color name="task_widget_pri_b_soft">#1AC76E00</color>
+    <color name="task_widget_pri_c">#246FE0</color>
+    <color name="task_widget_pri_c_soft">#1A246FE0</color>
 </resources>

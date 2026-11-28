@@ -3,7 +3,7 @@
    ========================================================= */
 import { LANG, t, tt } from "../core/i18n.js";
 import { baseName, debounce, dirName, norm, hueOf } from "../core/util.js";
-import { oaddMonths, oFmt, ohm, oisoWeek, onow, orgRelDay, orgDayEntries, orgPriRank, orgSkip, orgStats, orgTsStr, orgWithGrid, oymd, TASK_STATES } from "../core/org.js";
+import { oaddMonths, odn, oFmt, ohm, oisoWeek, onow, orgRelDay, orgDayEntries, orgPriRank, orgSkip, orgStats, orgTsStr, orgWithGrid, oymd, TASK_STATES } from "../core/org.js";
 import { lsGet, lsSet } from "../services/storage.js";
 import { board, vault } from "../services/state.js";
 import { cardHue, cardIcon, persistBoard } from "../services/vault.js";
@@ -48,12 +48,17 @@ export function openTasksView(push = true, view) {
   setTimeout(() => $(".ag-body")?.focus({ preventScroll: true }), 0);
 }
 
-/** Open today's unfiltered agenda and reveal a task by ID, including a standalone task. */
-export function openWidgetAgenda(id = null) {
-  AG.anchor = onow().dn;
-  // today, once: the agenda's saved span and view stay what the person chose
+/** Open the unfiltered agenda of a widget row's day (today by default) and reveal a task by ID.
+ *  `span` "week": the widget showed Upcoming, so its header opens the week from today. */
+export function openWidgetAgenda(id = null, { date = null, span = "day" } = {}) {
+  const T = onow().dn;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date || "");
+  const dn = m ? odn(+m[1], +m[2], +m[3]) : T;
+  // a row from an older copy of the widget can name a day that is already past: today then
+  AG.anchor = dn > T ? dn : T;
+  // once: the agenda's saved span and view stay what the person chose
   keptSpan ??= AG.span;
-  AG.span = "day";
+  AG.span = span === "week" && !id ? "week" : "day";
   AG.view = "agenda";
   AG.filter = {};
   AG.overOpen = true;
@@ -63,7 +68,7 @@ export function openWidgetAgenda(id = null) {
   const index = AGROWS.findIndex((row) => row.e.id === id);
   // the widget's copy is older than the vault: the task was closed, moved to another day or deleted since
   if (index >= 0) orgSelect(index);
-  else echo(tt("widgetGone"));
+  else echo(tt(AG.anchor === T ? "widgetGone" : "widgetGoneDay"));
 }
 export function tasksButton() {
   const b = h("button", { id: "tasks-btn", type: "button", cls: "sn-btn wb-tasks" });
