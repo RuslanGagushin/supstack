@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.49.0
+
+- The Android widget's title switches between Today and Upcoming (overdue, then the coming week), and each widget keeps its own view. A row now shows the task's time and the note it belongs to, and its open circle takes the priority's colour: A red, B orange, C blue. Tapping a row opens that day's agenda; stale, renamed or cross-vault rows say so instead of acting on the wrong task, and a task title with a [[link]] no longer breaks the agenda.
+
 ## 0.48.0
 
 - Android has a Today home-screen widget: see overdue and today's tasks, tap a row to open the task, or tap `+` to quickly add one.
