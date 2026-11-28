@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="task_widget_surface">#1C1D1F</color>
+    <color name="task_widget_header">#25272A</color>
+    <color name="task_widget_ink">#F2F3F4</color>
+    <color name="task_widget_muted">#A9ACB2</color>
+    <color name="task_widget_accent">#9BA8FF</color>
+    <color name="task_widget_action">#9BA8FF</color>
+    <color name="task_widget_on_action">#17181A</color>
+    <color name="task_widget_outline">#8E9198</color>
+    <color name="task_widget_divider">#36383D</color>
+    <color name="task_widget_late">#FF9D94</color>
+    <color name="task_widget_pressed">#303236</color>
+</resources>

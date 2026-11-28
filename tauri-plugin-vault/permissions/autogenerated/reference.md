@@ -18,6 +18,8 @@ Pick a vault folder, then list, read, write and delete files inside it, watch it
 - `allow-watch`
 - `allow-unwatch`
 - `allow-take-shared`
+- `allow-update-task-widget`
+- `allow-take-task-widget-action`
 
 ## Permission Table
 
@@ -317,6 +319,32 @@ Denies the take_shared command without any pre-configured scope.
 <tr>
 <td>
 
+`vault:allow-take-task-widget-action`
+
+</td>
+<td>
+
+Enables the take_task_widget_action command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`vault:deny-take-task-widget-action`
+
+</td>
+<td>
+
+Denies the take_task_widget_action command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `vault:allow-unwatch`
 
 </td>
@@ -336,6 +364,32 @@ Enables the unwatch command without any pre-configured scope.
 <td>
 
 Denies the unwatch command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`vault:allow-update-task-widget`
+
+</td>
+<td>
+
+Enables the update_task_widget command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`vault:deny-update-task-widget`
+
+</td>
+<td>
+
+Denies the update_task_widget command without any pre-configured scope.
 
 </td>
 </tr>

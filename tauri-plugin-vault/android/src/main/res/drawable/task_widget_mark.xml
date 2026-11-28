@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:pathData="M6,2 H18 Q22,2 22,6 V18 Q22,22 18,22 H6 Q2,22 2,18 V6 Q2,2 6,2 Z"
+        android:fillColor="@color/task_widget_action" />
+    <path android:pathData="M6,10 L12,6.5 L18,10 L12,13.5 Z M6,14 L12,17.5 L18,14"
+        android:strokeColor="@color/task_widget_on_action" android:strokeWidth="1.5"
+        android:strokeLineJoin="round" android:strokeLineCap="round" />
+</vector>

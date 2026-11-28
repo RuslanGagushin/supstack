@@ -16,6 +16,7 @@ import { dropAttachment } from "./attachments.js";
 import { stopSync, syncHook } from "./sync.js";
 import { flushIndexCache, loadIndexCache, scheduleIndexFlush } from "./index-cache.js";
 import { loadTasks, reloadTasks } from "./tasks.js";
+import { resetTaskWidget } from "./task-widget.js";
 
 export function isMd(p) { return /\.md$/i.test(p); }
 export function isCard(path) {
@@ -159,6 +160,7 @@ function reportUnreadable(paths) {
 /** Read a vault: every note, the attachments' sizes and dates, the settings, and the board and tree as they were left.
  *  ui/shell.js loadVault shows it. */
 export async function readVault(fs) {
+  await resetTaskWidget(fs);
   await stopSync();
   vault.fs?.unwatch?.();
   vault.watching = false;

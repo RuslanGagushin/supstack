@@ -3,22 +3,28 @@
    changes, and reopening the last vault.
    ========================================================= */
 import { HandleFS, idb, MemoryFS } from "../services/fs.js";
-import { IS_NATIVE, lastNative, NativeFS, vinvoke } from "../services/native.js";
+import { IS_NATIVE, lastNative, NativeFS } from "../services/native.js";
 import { board, editor, graph, vault } from "../services/state.js";
 import { pollChanges } from "../services/vault.js";
 import { flushIndexCache } from "../services/index-cache.js";
 import { startUpdateChecks } from "../services/updates.js";
+import { resetTaskWidget } from "../services/task-widget.js";
 import { h } from "./dom.js";
 import { saveEditor } from "./editor.js";
 import { applyLanguage, applyTheme, loadVault } from "./shell.js";
 import { demoVault, hasFsApi, loadCopy, showWelcome } from "./welcome.js";
+import { startTaskWidget } from "./task-widget.js";
 
 /** On launch, go straight back into the last vault when that needs no prompt; the welcome screen stays as the fallback. */
 async function autoReopen() {
   try {
     if (IS_NATIVE) {
       const ln = lastNative();
-      if (ln && (await vinvoke("exists", { root: ln.root, path: "" }))) await loadVault(new NativeFS(ln.root, ln.name));
+      if (ln) {
+        const fs = new NativeFS(ln.root, ln.name);
+        if (await fs.exists("")) await loadVault(fs);
+        else await resetTaskWidget(fs);
+      }
     } else if (hasFsApi) {
       const last = await idb.get("lastVault");
       if (last && (await last.queryPermission({ mode: "readwrite" })) === "granted") await loadVault(new HandleFS(last));
@@ -39,5 +45,6 @@ export function boot() {
   window.addEventListener("beforeunload", (e) => { if (editor.dirty) { saveEditor(); e.preventDefault(); } });
   window.SupstackApp = { loadVault, HandleFS, MemoryFS, demoVault, vault, board, get graph() { return graph; } };
   startUpdateChecks();
-  if (!window.__SN_NO_AUTOSTART) showWelcome().then(autoReopen);
+  if (!window.__SN_NO_AUTOSTART) showWelcome().then(autoReopen).finally(startTaskWidget);
+  else startTaskWidget();
 }

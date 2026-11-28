@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/task_widget_surface"
+    android:clipToOutline="true"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/task_widget_header"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingEnd="6dp">
+
+        <LinearLayout
+            android:id="@+id/task_widget_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:accessibilityHeading="true"
+            android:background="@drawable/task_widget_touch"
+            android:contentDescription="@string/task_widget_today"
+            android:gravity="center_vertical"
+            android:importantForAccessibility="yes"
+            android:minHeight="48dp"
+            android:orientation="horizontal"
+            android:paddingStart="16dp">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/task_widget_mark" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:ellipsize="end"
+                android:importantForAccessibility="no"
+                android:maxLines="1"
+                android:text="@string/task_widget_today"
+                android:textColor="@color/task_widget_accent"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/task_widget_add"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/task_widget_touch"
+            android:contentDescription="@string/task_widget_add"
+            android:scaleType="center"
+            android:src="@drawable/task_widget_plus" />
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/task_widget_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:divider="@null"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/task_widget_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/task_widget_touch"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:text="@string/task_widget_first_load"
+        android:textColor="@color/task_widget_muted"
+        android:textSize="14sp" />
+</LinearLayout>

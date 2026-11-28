@@ -43,6 +43,24 @@ export function openTasksView(push = true, view) {
   if (innerWidth <= 820) setSide(false);
   setTimeout(() => $(".ag-body")?.focus({ preventScroll: true }), 0);
 }
+
+/** Open today's unfiltered agenda and reveal a task by ID, including a standalone task. */
+export function openWidgetAgenda(id = null) {
+  AG.anchor = onow().dn;
+  AG.span = "day";
+  AG.filter = {};
+  AG.overOpen = true;
+  AG.sel = null;
+  openTasksView(true, "agenda");
+  if (!id) return;
+  const index = AGROWS.findIndex((row) => row.e.id === id);
+  if (index >= 0) orgSelect(index);
+  else {
+    const entry = orgAll().find((task) => task.id === id);
+    if (entry) orgRenameEntry(entry);
+    else echo(tt("lost"));
+  }
+}
 export function tasksButton() {
   const b = h("button", { id: "tasks-btn", type: "button", cls: "sn-btn wb-tasks" });
   b.addEventListener("click", () => (board.view === "tasks" ? goBack() : openTasksView()));

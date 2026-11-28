@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="task_widget_name">Supstack — Today</string>
+    <string name="task_widget_today">Today</string>
+    <string name="task_widget_overdue">Overdue</string>
+    <string name="task_widget_add">Add task</string>
+    <string name="task_widget_empty">No tasks for today</string>
+    <string name="task_widget_first_load">Open Supstack to load tasks</string>
+    <string name="task_widget_stale">Open Supstack to refresh tasks</string>
+    <color name="task_widget_surface">#FFFFFF</color>
+    <color name="task_widget_header">#F8F8F7</color>
+    <color name="task_widget_ink">#17181A</color>
+    <color name="task_widget_muted">#55585E</color>
+    <color name="task_widget_accent">#3245BB</color>
+    <color name="task_widget_action">#4D64FF</color>
+    <color name="task_widget_on_action">#FFFFFF</color>
+    <color name="task_widget_outline">#80838A</color>
+    <color name="task_widget_divider">#E9E9E7</color>
+    <color name="task_widget_late">#A8251E</color>
+    <color name="task_widget_pressed">#EBEEFF</color>
+</resources>

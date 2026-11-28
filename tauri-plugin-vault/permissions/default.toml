@@ -17,4 +17,6 @@ permissions = [
   "allow-watch",
   "allow-unwatch",
   "allow-take-shared",
+  "allow-update-task-widget",
+  "allow-take-task-widget-action",
 ]

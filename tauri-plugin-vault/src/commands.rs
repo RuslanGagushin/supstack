@@ -66,6 +66,28 @@ pub(crate) async fn take_shared<R: Runtime>(app: AppHandle<R>) -> Result<Option<
 }
 
 #[command]
+pub(crate) async fn update_task_widget<R: Runtime>(app: AppHandle<R>, snapshot: Option<String>) -> Result<()> {
+    #[cfg(target_os = "android")]
+    return app.vault().update_task_widget(snapshot);
+    #[cfg(not(target_os = "android"))]
+    {
+        let _ = (app, snapshot);
+        Ok(())
+    }
+}
+
+#[command]
+pub(crate) async fn take_task_widget_action<R: Runtime>(app: AppHandle<R>) -> Result<Option<serde_json::Value>> {
+    #[cfg(target_os = "android")]
+    return app.vault().take_task_widget_action();
+    #[cfg(not(target_os = "android"))]
+    {
+        let _ = app;
+        Ok(None)
+    }
+}
+
+#[command]
 pub(crate) async fn git_sync<R: Runtime>(app: AppHandle<R>, root: String, config: crate::git::GitConfig) -> Result<crate::git::GitReport> {
     tauri::async_runtime::spawn_blocking(move || crate::git::sync(&app, root, config))
         .await

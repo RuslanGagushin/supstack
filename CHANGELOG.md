@@ -2,6 +2,10 @@
 
 One line per release, newest first: what changed for you.
 
+## 0.48.0
+
+- Android has a Today home-screen widget: see overdue and today's tasks, tap a row to open the task, or tap `+` to quickly add one.
+
 ## 0.47.1
 
 - New note in the sidebar no longer shouts in solid blue: it is a white button with a thin border like Today and the Go to note field beside it, its + in the accent colour.

@@ -79,4 +79,16 @@ impl<R: Runtime> Vault<R> {
         let r: Shared = self.0.run_mobile_plugin("take_shared", serde_json::json!({}))?;
         Ok(if r.text.trim().is_empty() && r.subject.trim().is_empty() { None } else { Some(r) })
     }
+
+    #[cfg(target_os = "android")]
+    pub fn update_task_widget(&self, snapshot: Option<String>) -> Result<()> {
+        let _: serde_json::Value = self.0.run_mobile_plugin("update_task_widget", serde_json::json!({ "snapshot": snapshot }))?;
+        Ok(())
+    }
+
+    #[cfg(target_os = "android")]
+    pub fn take_task_widget_action(&self) -> Result<Option<serde_json::Value>> {
+        let r: serde_json::Value = self.0.run_mobile_plugin("take_task_widget_action", serde_json::json!({}))?;
+        Ok(r.get("target").cloned())
+    }
 }

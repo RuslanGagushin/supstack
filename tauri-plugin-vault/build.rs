@@ -13,6 +13,8 @@ const COMMANDS: &[&str] = &[
     "watch",
     "unwatch",
     "take_shared",
+    "update_task_widget",
+    "take_task_widget_action",
 ];
 
 fn main() {

@@ -7,6 +7,7 @@ import { board, editor, graph, S, saveUI, setGraph, tree, UI, undoStack, vault }
 import { buildGraph, persistBoard, readVault, saveSettings } from "../services/vault.js";
 import { undo } from "../services/save.js";
 import { movableTasks, moveTasksFromNotes, taskStore } from "../services/tasks.js";
+import { resetTaskWidget } from "../services/task-widget.js";
 import { runSync, stopSync, sync, syncAvailable, syncBoot } from "../services/sync.js";
 import { upd } from "../services/updates.js";
 import { lsGet, lsSet } from "../services/storage.js";
@@ -170,7 +171,7 @@ function renderAll() {
     m.add(t("openOther"), "folder-open", () => pickVault());
     m.add(t("commands") + "…", "terminal", () => commandPalette());
     m.sep();
-    m.add(t("closeVault"), "log-out", async () => { closeEditor(); await stopSync(); vault.fs = null; showWelcome(); });
+    m.add(t("closeVault"), "log-out", async () => { closeEditor(); await resetTaskWidget(); await stopSync(); vault.fs = null; showWelcome(); });
     m.showBelow(e.currentTarget);
   };
   const newCard = async () => { const title = await promptModal(t("newCard")); if (title) createCard(title, board.target, "", undefined, { open: true }); };

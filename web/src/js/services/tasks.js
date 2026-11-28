@@ -12,6 +12,8 @@ import { emit, on } from "./events.js";
 import { vault } from "./state.js";
 import { txn, txnKeep, writeRaw } from "./save.js";
 import { syncHook } from "./sync.js";
+import { IS_ANDROID } from "./native.js";
+import { publishTaskWidget } from "./task-widget.js";
 
 export { TASKS_PATH, ARCHIVE_PATH };
 /** The tasks as read from the file: records by id, and the file's lines that are not tasks (kept as they are). */
@@ -46,17 +48,31 @@ function apply(text, exists) {
   invalidate();
 }
 async function readFile(fs, path) {
-  try { return { text: await fs.read(path), exists: true }; } catch { return { text: "", exists: false }; }
+  try { return { text: await fs.read(path), exists: true, readable: true }; }
+  catch {
+    // A missing task file is normal in a new vault. A revoked grant or unreadable file
+    // should clear the widget rather than passing for an empty list.
+    let readable = false;
+    if (IS_ANDROID && fs.native) {
+      try { readable = !(await fs.exists(path)) && await fs.exists(""); } catch { /* storage unavailable */ }
+    }
+    return { text: "", exists: false, readable };
+  }
 }
 /** Read the tasks of the vault in `fs` (services/vault.js readVault calls it before the vault opens). */
 export async function loadTasks(fs = vault.fs) {
-  const { text, exists } = await readFile(fs, TASKS_PATH);
+  const { text, exists, readable } = await readFile(fs, TASKS_PATH);
   apply(text, exists);
+  publishTaskWidget(fs, readable ? text : null);
 }
 let writing = Promise.resolve(), pending = 0;
 async function writeText(path, text) {
+  const fs = vault.fs;
   pending++;
-  writing = writing.then(() => vault.fs.write(path, text)).then(() => syncHook("modify", path), (e) => { emit("notice", t("writeFailed", { name: path.split("/").pop(), msg: e.message || e })); });
+  writing = writing.then(() => fs.write(path, text)).then(() => {
+    if (path === TASKS_PATH) publishTaskWidget(fs, text);
+    if (vault.fs === fs) return syncHook("modify", path);
+  }, (e) => { emit("notice", t("writeFailed", { name: path.split("/").pop(), msg: e.message || e })); });
   try { await writing; } finally { pending--; }
 }
 async function writeTasks() {
@@ -68,8 +84,11 @@ async function writeTasks() {
 /** The file changed on disk (a sync brought other devices' tasks): read it again. services/vault.js pollChanges calls it. */
 export async function reloadTasks() {
   if (!vault.fs || pending) return false;
-  const { text, exists } = await readFile(vault.fs, TASKS_PATH);
-  if (pending || text === taskStore.text) return false;
+  const fs = vault.fs;
+  const { text, exists, readable } = await readFile(fs, TASKS_PATH);
+  if (pending || vault.fs !== fs) return false;
+  publishTaskWidget(fs, readable ? text : null);
+  if (text === taskStore.text) return false;
   apply(text, exists || taskStore.exists);
   emit("changed", { disk: true });
   return true;

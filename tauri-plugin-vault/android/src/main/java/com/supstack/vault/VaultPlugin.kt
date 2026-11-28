@@ -29,6 +29,7 @@ import java.nio.charset.CharacterCodingException
 import java.nio.charset.CodingErrorAction
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicReference
 
 @InvokeArg
 class RootArgs {
@@ -54,6 +55,11 @@ class WriteArgs {
     var path: String = ""
     var text: String? = null
     var base64: String? = null
+}
+
+@InvokeArg
+class TaskWidgetArgs {
+    var snapshot: String? = null
 }
 
 private data class Doc(val id: String, val name: String, val isDir: Boolean, val mtime: Long, val size: Long)
@@ -106,6 +112,8 @@ class VaultPlugin(private val activity: Activity) : Plugin(activity) {
         super.load(webView)
         // the app was started by a share from another app ("Share to Supstack", spec TASK-6)
         activity.intent?.let { takeShare(it) }
+        widgetWebView = webView
+        activity.intent?.let { takeWidgetIntent(it) }
         ViewCompat.setOnApplyWindowInsetsListener(webView) { v, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
             if (bars != lastInsets) {
@@ -129,6 +137,43 @@ class VaultPlugin(private val activity: Activity) : Plugin(activity) {
     /** A share that comes while the app is running. */
     override fun onNewIntent(intent: Intent) {
         takeShare(intent)
+        takeWidgetIntent(intent)
+    }
+
+    private var widgetWebView: WebView? = null
+    private val widgetAction = AtomicReference<JSObject?>()
+
+    private fun takeWidgetIntent(intent: Intent) {
+        val action = when (intent.action) {
+            TaskWidget.ACTION_OPEN -> "open"
+            TaskWidget.ACTION_ADD -> "add"
+            TaskWidget.ACTION_TASK -> "task"
+            else -> return
+        }
+        widgetAction.set(JSObject().apply {
+            put("action", action)
+            put("id", intent.getStringExtra(TaskWidget.EXTRA_TASK_ID))
+            put("root", intent.getStringExtra(TaskWidget.EXTRA_ROOT))
+        })
+        intent.action = Intent.ACTION_MAIN
+        widgetWebView?.let { view ->
+            view.post { view.evaluateJavascript("window.dispatchEvent(new Event('supstack-task-widget'))", null) }
+        }
+    }
+
+    @Command
+    fun take_task_widget_action(invoke: Invoke) {
+        invoke.resolve(JSObject().apply { put("target", widgetAction.getAndSet(null)) })
+    }
+
+    @Command
+    fun update_task_widget(invoke: Invoke) {
+        val args = invoke.parseArgs(TaskWidgetArgs::class.java)
+        bg(invoke) {
+            TaskWidget.write(activity.applicationContext, args.snapshot)
+            TaskWidget.refresh(activity.applicationContext)
+            JSObject()
+        }
     }
 
     private fun takeShare(intent: Intent) {

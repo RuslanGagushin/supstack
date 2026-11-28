@@ -54,6 +54,8 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             commands::watch,
             commands::unwatch,
             commands::take_shared,
+            commands::update_task_widget,
+            commands::take_task_widget_action,
         ])
         .setup(|app, api| {
             #[cfg(mobile)]
