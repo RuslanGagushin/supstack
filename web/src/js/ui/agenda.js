@@ -748,8 +748,9 @@ export function orgCapture(pre = {}) {
     else if (cal) { e.preventDefault(); e.stopPropagation(); toggleCal(cal.kind); }
   };
   window.addEventListener("keydown", onEsc, true);
-  // while a word is being composed (an IME, a dead key) the text is left alone; it is read when the word is done
-  input.addEventListener("input", (e) => { if (e.isComposing) return; render(); suggest(); });
+  // while a word is being composed (an IME, a dead key, an Android keyboard that holds the whole word until a space)
+  // the marks are left alone, redrawing them would break the composition; the list still narrows as the word is typed
+  input.addEventListener("input", (e) => { if (!e.isComposing) render(); suggest(); });
   input.addEventListener("compositionend", () => { render(); suggest(); });
   input.addEventListener("click", suggest);
   input.addEventListener("keyup", (e) => { if (/^(Arrow(Left|Right)|Home|End)$/.test(e.key)) suggest(); });

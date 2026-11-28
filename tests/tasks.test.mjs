@@ -308,3 +308,23 @@ describe("the agenda and the notes' boxes", () => {
     assert.deepEqual(rem.sort(), ["Buy stamps", "Standup"], "a task with a time reminds");
   });
 });
+
+describe("capture on a phone keyboard", () => {
+  test("a word held in a composition (as Android keyboards do until a space) still narrows the @ list, and a tap picks", async () => {
+    await openVault({ demo: false, time: NOW, notes: { "cards/Maintenance.md": "x\n", "cards/HomeLab.md": "x\n", "cards/Family.md": "x\n", "cards/Past travels.md": "x\n" } });
+    await ev(() => orgCapture());
+    await H.page.keyboard.type("Call @");
+    await ev(() => {
+      const el = document.querySelector(".cap-input");
+      el.append("fami");
+      const r = document.createRange(); r.selectNodeContents(el); r.collapse(false);
+      getSelection().removeAllRanges(); getSelection().addRange(r);
+      el.dispatchEvent(new InputEvent("input", { isComposing: true, inputType: "insertCompositionText", data: "fami" }));
+    });
+    assert.deepEqual(await ev(() => [...document.querySelectorAll(".cap-list .suggestion-title")].map((x) => x.textContent)), ["Family"], "narrowed while composing");
+    await H.page.click(".cap-list .suggestion-item");
+    assert.equal(await H.page.textContent(".cap-input"), "Call @Family ");
+    assert.match(await H.page.textContent(".cap-chips"), /Family/);
+    await H.page.keyboard.press("Escape");
+  });
+});
