@@ -45,6 +45,10 @@ internal object TaskWidget {
             file.delete()
             return
         }
+        // The app is reading this same vault again (a cold start): its last rows stay until the new list comes.
+        // Any other vault, or a failed read (no "pending"), replaces them at once.
+        val next = JSONObject(value)
+        if (next.optBoolean("pending") && keepsRows(file, next.getString("root"))) return
         val out = file.startWrite()
         try {
             out.write(value.toByteArray(Charsets.UTF_8))
@@ -53,6 +57,13 @@ internal object TaskWidget {
             file.failWrite(out)
             throw error
         }
+    }
+
+    private fun keepsRows(file: AtomicFile, root: String): Boolean = try {
+        val saved = JSONObject(String(file.readFully(), Charsets.UTF_8))
+        saved.optInt("version") == 1 && saved.optString("root") == root && saved.has("days")
+    } catch (_: Exception) {
+        false
     }
 
     @Synchronized

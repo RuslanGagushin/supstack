@@ -28,7 +28,11 @@ if (!["agenda", "todo", "search"].includes(AG.view)) AG.view = "agenda"; // Matc
 /** The task list's state filter: all open tasks, or one open state. */
 const TODO_FILTERS = ["ALL", ...TASK_STATES.filter((x) => x.open).map((x) => x.id)];
 if (!TODO_FILTERS.includes(AG.todoKw)) AG.todoKw = "ALL";
-const saveAG = () => lsSet("sn-agenda", { view: AG.view, span: AG.span, overOpen: AG.overOpen, todoKw: AG.todoKw });
+/** The span the person chose, kept while the Android widget shows one day: that day is not their setting. */
+let keptSpan = null;
+const saveAG = () => lsSet("sn-agenda", { view: AG.view, span: keptSpan ?? AG.span, overOpen: AG.overOpen, todoKw: AG.todoKw });
+/** The person picks a span: from now on it is theirs. */
+function setSpan(v) { AG.span = v; keptSpan = null; }
 export let AGROWS = [];
 export function openTasksView(push = true, view) {
   if (view) { AG.view = view; saveAG(); }
@@ -47,19 +51,19 @@ export function openTasksView(push = true, view) {
 /** Open today's unfiltered agenda and reveal a task by ID, including a standalone task. */
 export function openWidgetAgenda(id = null) {
   AG.anchor = onow().dn;
+  // today, once: the agenda's saved span and view stay what the person chose
+  keptSpan ??= AG.span;
   AG.span = "day";
+  AG.view = "agenda";
   AG.filter = {};
   AG.overOpen = true;
   AG.sel = null;
-  openTasksView(true, "agenda");
+  openTasksView(true);
   if (!id) return;
   const index = AGROWS.findIndex((row) => row.e.id === id);
+  // the widget's copy is older than the vault: the task was closed, moved to another day or deleted since
   if (index >= 0) orgSelect(index);
-  else {
-    const entry = orgAll().find((task) => task.id === id);
-    if (entry) orgRenameEntry(entry);
-    else echo(tt("lost"));
-  }
+  else echo(tt("widgetGone"));
 }
 export function tasksButton() {
   const b = h("button", { id: "tasks-btn", type: "button", cls: "sn-btn wb-tasks" });
@@ -118,7 +122,7 @@ function agHead(icon, kind, title, nav) {
     const span = h("div", { cls: "sn-seg ag-span" });
     for (const [v, k, key] of [["day", "day", "d"], ["week", "week", "w"], ["month", "month", "M"]]) {
       span.append(h("button", { cls: "clickable-icon" + (AG.span === v ? " is-active" : ""), type: "button", text: tt(k), title: `${tt(k)} (${key})`, "aria-pressed": String(AG.span === v),
-        onClick: () => { AG.span = v; saveAG(); renderBoard(); } }));
+        onClick: () => { setSpan(v); saveAG(); renderBoard(); } }));
     }
     const steps = h("div", { cls: "ag-steps", role: "group" },
       iconBtn("chevron-left", tt("earlier"), () => orgNav(-1), "ag-nav"),
@@ -145,7 +149,7 @@ function renderMonth(body, all, T, pass) {
         type: "button", role: "gridcell", cls: "ag-mday" + (dn === T ? " is-today" : "") + (dn < first || dn >= next ? " is-out" : "") + (o.w === 0 || o.w === 6 ? " weekend" : "") + (n ? " has" : ""),
         "aria-label": oFmt(dn, "dddd D MMMM") + (n ? " · " + tt("sumEntries", { n }) : ""), dataset: { dn: String(dn) },
       }, h("span", { cls: "dn", text: String(o.d) }), n ? h("span", { cls: "cnt", text: String(n) }) : null);
-      b.addEventListener("click", () => { AG.span = "day"; AG.anchor = dn; saveAG(); renderBoard(); });
+      b.addEventListener("click", () => { setSpan("day"); AG.anchor = dn; saveAG(); renderBoard(); });
       row.append(b);
     }
     grid.append(row);
@@ -259,10 +263,10 @@ export function renderTasksView(root) {
       const dn = week0 + i, n = orgDayEntries(dn, all, T, { log: true, carried: true }).filter((x) => !x.grid && pass(x.e)).length, has = n > 0;
       const b = h("button", { type: "button", cls: "ag-strip-day" + (dn === T ? " is-today" : "") + (AG.span === "day" && dn === AG.anchor ? " is-selected" : ""), "aria-label": oFmt(dn, "dddd D MMMM") + (n ? " · " + tt("sumEntries", { n }) : "") },
         h("span", { cls: "wd", text: oFmt(dn, "ddd") }), h("span", { cls: "dn", text: String(oymd(dn).d) }), h("span", { cls: "dot" + (has ? " has" : "") }));
-      b.addEventListener("click", () => { AG.span = "day"; AG.anchor = dn; saveAG(); renderBoard(); });
+      b.addEventListener("click", () => { setSpan("day"); AG.anchor = dn; saveAG(); renderBoard(); });
       strip.append(b);
     }
-    strip.append(h("button", { type: "button", cls: "ag-strip-month", title: tt("month"), "aria-label": tt("month"), onClick: () => { AG.span = "month"; saveAG(); renderBoard(); } }, ic("", "calendar-days")));
+    strip.append(h("button", { type: "button", cls: "ag-strip-month", title: tt("month"), "aria-label": tt("month"), onClick: () => { setSpan("month"); saveAG(); renderBoard(); } }, ic("", "calendar-days")));
     body.append(strip);
     // what is overdue is carried into today (as Org does) and gathered in a section of its own, above the days
     // (in a week, above Monday rather than between two days)
@@ -506,7 +510,7 @@ function orgAgendaKey(ev) {
   if (k === "s") { stop(); if (row) (row.e.kind === "event" ? orgWhenEntry(row.e) : orgPlanEntry(row.e, "SCHEDULED")); return; }
   if (k === "e") { stop(); if (row) orgPlanEntry(row.e, "DEADLINE"); return; }
   if (k === ":") { stop(); if (row) orgTagsEntry(row.e); return; }
-  if (k === "d" || k === "w" || k === "M") { stop(); AG.span = k === "d" ? "day" : k === "w" ? "week" : "month"; AG.view = "agenda"; saveAG(); renderBoard(); return; }
+  if (k === "d" || k === "w" || k === "M") { stop(); setSpan(k === "d" ? "day" : k === "w" ? "week" : "month"); AG.view = "agenda"; saveAG(); renderBoard(); return; }
   if (k === "f" || k === "ArrowRight") { stop(); orgNav(1); return; }
   if (k === "b" || k === "ArrowLeft") { stop(); orgNav(-1); return; }
   if (k === ".") { stop(); orgNav(0); return; }

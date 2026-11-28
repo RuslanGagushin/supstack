@@ -49,6 +49,7 @@ export function addAttachment(path) {
 /** Link resolution: exact path, then by name (same folder first, then the shortest path). */
 export function resolveLink(linkpath, source = "") {
   if (!linkpath) return null;
+  source ??= ""; // a task with no note renders its links from nowhere (null), not from the vault's top folder
   let lp = linkpath.trim().replace(/\\/g, "/");
   if (!lp) return null;
   const lower = lp.toLowerCase();
@@ -160,7 +161,7 @@ function reportUnreadable(paths) {
 /** Read a vault: every note, the attachments' sizes and dates, the settings, and the board and tree as they were left.
  *  ui/shell.js loadVault shows it. */
 export async function readVault(fs) {
-  await resetTaskWidget(fs);
+  await resetTaskWidget(fs, { pending: true });
   await stopSync();
   vault.fs?.unwatch?.();
   vault.watching = false;

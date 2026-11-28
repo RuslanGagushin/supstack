@@ -20,13 +20,15 @@ function send(snapshot, fs) {
   return pending;
 }
 
-export function resetTaskWidget(fs = null) {
+/** Forget the previous vault's tasks. `pending`: the vault in `fs` is being read now, so a widget that already shows
+ *  this same vault keeps its rows until the new list comes (Android drops them for any other vault). */
+export function resetTaskWidget(fs = null, { pending = false } = {}) {
   if (!IS_ANDROID) return;
   source = fs?.native ? fs : null;
   entries = null;
   sourceText = undefined;
   last = null;
-  return send(source ? { version: 1, root: source.root } : null, source);
+  return send(source ? { version: 1, root: source.root, ...(pending && { pending: true }) } : null, source);
 }
 
 export function refreshTaskWidget() {

@@ -144,6 +144,7 @@ class VaultPlugin(private val activity: Activity) : Plugin(activity) {
     private val widgetAction = AtomicReference<JSObject?>()
 
     private fun takeWidgetIntent(intent: Intent) {
+        if (fromHistory(intent)) return
         val action = when (intent.action) {
             TaskWidget.ACTION_OPEN -> "open"
             TaskWidget.ACTION_ADD -> "add"
@@ -176,7 +177,12 @@ class VaultPlugin(private val activity: Activity) : Plugin(activity) {
         }
     }
 
+    /** Reopened from Recents after the process was gone: Android hands back the intent that first started the task,
+     *  whose share or widget tap was already taken, so it must not be taken again. */
+    private fun fromHistory(intent: Intent) = (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0
+
     private fun takeShare(intent: Intent) {
+        if (fromHistory(intent)) return
         if (intent.action != Intent.ACTION_SEND || intent.type?.startsWith("text/") != true) return
         val text = intent.getStringExtra(Intent.EXTRA_TEXT)
         val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)

@@ -18,9 +18,12 @@
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.DATE_CHANGED" />
+                <!-- Android 8+ delivers only these system broadcasts to a manifest receiver (DATE_CHANGED is not one of
+                     them): the midnight alarm and updatePeriodMillis cover a new day. LOCALE_CHANGED redraws the
+                     widget's own words in the new language. -->
                 <action android:name="android.intent.action.TIME_SET" />
                 <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.LOCALE_CHANGED" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/task_widget_info" />
         </receiver>

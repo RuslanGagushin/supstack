@@ -25,7 +25,7 @@ export function startTaskWidget() {
       const wrongVault = target.action === "task" && target.root !== vault.fs.root;
       closeEditor();
       openWidgetAgenda(wrongVault ? null : target.id);
-      if (wrongVault) echo(tt("lost"));
+      if (wrongVault) echo(tt("widgetOtherVault"));
     }).catch((error) => console.warn("Could not open the Android task widget action", error));
   }
   window.addEventListener("supstack-task-widget", poll);

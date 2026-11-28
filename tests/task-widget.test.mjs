@@ -15,6 +15,7 @@ const tasks = [
   task("event", { state: null, when: "<2026-11-28 Sat 12:00>" }),
   task("soon", { dead: "<2026-12-03 Thu -7d>" }),
   task("undated", {}),
+  { id: "markup", title: "Call [[People/Bob|Bob]] **now** #work", state: " ", dead: "<2026-11-29 Sun>" },
 ];
 const ids = (rows) => rows.map(({ id }) => id);
 
@@ -23,8 +24,9 @@ test("widget projects seven calendar days and deduplicates open tasks", () => {
   assert.equal(Object.keys(days).length, 7);
   assert.deepEqual(ids(days["2026-11-28"].overdue), ["late-and-due"]);
   assert.deepEqual(ids(days["2026-11-28"].today), ["timed", "due", "repeat"]);
-  assert.deepEqual(ids(days["2026-11-29"].today), ["repeat"]);
-  assert.deepEqual(ids(days["2026-12-04"].overdue), ["late-and-due", "due", "soon", "timed"]);
+  assert.deepEqual(ids(days["2026-11-29"].today), ["markup", "repeat"]);
+  assert.equal(days["2026-11-29"].today[0].title, "Call Bob now");
+  assert.deepEqual(ids(days["2026-12-04"].overdue), ["late-and-due", "due", "soon", "markup", "timed"]);
 });
 
 test("Android publishes a committed snapshot and opens the exact task or quick capture", async () => {
@@ -45,6 +47,8 @@ test("Android publishes a committed snapshot and opens the exact task or quick c
   }
   await act({ action: "task", root: "/vault", id: "timed" });
   await page.waitForSelector('.ag-row.is-selected[data-id="timed"]');
+  // the widget opens one day without making it the agenda's saved span
+  assert.equal(await ev(() => JSON.parse(localStorage.getItem("sn-agenda") || "{}").span ?? "week"), "week");
   await page.click('.ag-row[data-id="timed"] [data-act="tick"]');
   await page.waitForFunction(() => !window.__taskWidget.days["2026-11-28"].today.some(({ id }) => id === "timed"));
   await ev(async (record) => {
@@ -54,6 +58,11 @@ test("Android publishes a committed snapshot and opens the exact task or quick c
   await page.waitForFunction(() => window.__taskWidget.days["2026-11-28"].today.some(({ id }) => id === "synced"));
   await act({ action: "task", root: "/old", id: "due" });
   await page.waitForFunction(() => !document.querySelector(".ag-row.is-selected"));
+  await page.waitForFunction(() => /another vault/.test(document.querySelector("#toast")?.textContent));
+  // a row from an older copy whose task is no longer due today: a note, not a rename prompt
+  await act({ action: "task", root: "/vault", id: "undated" });
+  await page.waitForFunction(() => /no longer due today/.test(document.querySelector("#toast")?.textContent));
+  assert.equal(await ev(() => !!document.querySelector(".modal, .sn-modal")), false);
   await act({ action: "add" });
   await page.waitForSelector(".ag-cap.is-quick");
 });
